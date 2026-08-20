@@ -572,3 +572,51 @@
   }
   .dia { min-height: 0; }
 }
+
+/* ---------- Paginación ---------- */
+
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -8px 0 24px;
+}
+
+.paginacion__recuento {
+  margin: 0;
+  color: var(--color-text-light);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.paginacion__recuento strong {
+  color: var(--color-text-default);
+}
+
+.paginacion__controles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paginacion__pagina {
+  color: var(--color-text-light);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* El extremo de la lista se marca apagando el control, no escondiéndolo: así
+   los botones no se mueven de sitio al cambiar de página. */
+.paginacion .boton-mini[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (max-width: 560px) {
+  .paginacion {
+    justify-content: center;
+  }
+}

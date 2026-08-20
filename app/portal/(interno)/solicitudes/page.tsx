@@ -1,5 +1,5 @@
 import { portalFetch, enBogota } from '@/lib/portal'
-import { Cabecera, Etiqueta, Vacio } from '../componentes'
+import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
 import { BotonAdmitir } from './BotonAdmitir'
 
 export const metadata = { title: 'Solicitudes' }
@@ -27,9 +27,20 @@ const FRANJA_CORTA: Record<string, string> = {
   MANANA: 'mañana', TARDE: 'tarde', NOCHE: 'noche',
 }
 
-export default async function SolicitudesPage() {
-  const respuesta = await portalFetch<Solicitud[]>('/support-requests?perPage=100')
+const POR_PAGINA = 25
+
+export default async function SolicitudesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pagina?: string }>
+}) {
+  const pagina = leerPagina((await searchParams).pagina)
+
+  const respuesta = await portalFetch<Solicitud[]>(
+    `/support-requests?page=${pagina}&perPage=${POR_PAGINA}`,
+  )
   const solicitudes = respuesta.data ?? []
+  const total = Number(respuesta.meta?.total ?? solicitudes.length)
 
   return (
     <>
@@ -41,7 +52,11 @@ export default async function SolicitudesPage() {
       {!respuesta.success ? (
         <Vacio>{respuesta.message ?? 'No pudimos cargar las solicitudes.'}</Vacio>
       ) : solicitudes.length === 0 ? (
-        <Vacio>Todavía no ha llegado ninguna solicitud.</Vacio>
+        <Vacio>
+          {pagina > 1
+            ? 'Esta página ya no tiene solicitudes.'
+            : 'Todavía no ha llegado ninguna solicitud.'}
+        </Vacio>
       ) : (
         <div className="tabla-envoltorio">
           <table className="tabla">
@@ -89,6 +104,15 @@ export default async function SolicitudesPage() {
           </table>
         </div>
       )}
+
+      {respuesta.success ? (
+        <Paginacion
+          pagina={pagina}
+          porPagina={POR_PAGINA}
+          total={total}
+          ruta="/portal/solicitudes"
+        />
+      ) : null}
     </>
   )
 }
