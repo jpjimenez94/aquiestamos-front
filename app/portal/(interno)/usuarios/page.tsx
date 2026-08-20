@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { UserPlus } from 'lucide-react'
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
@@ -48,6 +49,7 @@ export default async function UsuariosPage() {
                 <th>Rol</th>
                 <th>Último acceso</th>
                 <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -70,6 +72,11 @@ export default async function UsuariosPage() {
                     {c.mustChangePassword ? (
                       <span className="tabla__secundario">debe cambiar la clave</span>
                     ) : null}
+                  </td>
+                  <td>
+                    <Link href={`/portal/usuarios/${c.id}`} style={{ color: 'var(--color-primario)', fontWeight: 500, fontSize: '0.875rem' }}>
+                      Editar
+                    </Link>
                   </td>
                 </tr>
               ))}
