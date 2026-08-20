@@ -90,13 +90,30 @@ const TARJETA = [
   { value: 'ESTUDIANTE', label: 'Soy estudiante' },
 ] as const
 
+const PROFESIONES = [
+  { value: 'Psicología', label: 'Psicología' },
+  { value: 'Psiquiatría', label: 'Psiquiatría' },
+  { value: 'Trabajo Social', label: 'Trabajo Social' },
+  { value: 'Otra', label: 'Otra' },
+] as const
+
+const FORMACION_ADICIONAL = [
+  { value: 'Primeros auxilios psicológicos', label: 'Primeros auxilios psicológicos' },
+  { value: 'Especialización clínica', label: 'Especialización clínica' },
+  { value: 'Atención en crisis', label: 'Atención en crisis' },
+  { value: 'Ninguna', label: 'Ninguna' },
+  { value: 'Otra', label: 'Otra' },
+] as const
+
 const VACIO = {
   fullName: '',
   phone: '',
   email: '',
   city: '',
   profession: '',
+  professionOther: '',
   additionalTraining: '',
+  additionalTrainingOther: '',
   yearsExperience: '',
   professionalCard: '',
   populations: [] as string[],
@@ -122,6 +139,9 @@ export function VolunteerForm() {
   // Quien solo puede de forma virtual no viaja ni necesita el carné de vacunas.
   const vaPresencial = form.modality === 'PRESENCIAL' || form.modality === 'AMBAS'
   const marcoOtra = form.populations.includes('Otra')
+
+  const marcoOtraProfesion = form.profession === 'Otra'
+  const marcoOtraFormacion = form.additionalTraining === 'Otra'
 
   function clearError(key: string) {
     setErrors((current) => {
@@ -154,11 +174,17 @@ export function VolunteerForm() {
 
   function validate() {
     const found: Record<string, string> = {}
-    if (!form.fullName.trim()) found.fullName = 'Cuéntanos tu nombre completo'
-    if (!form.phone.trim()) found.phone = 'Necesitamos un celular de contacto'
+    if (!form.fullName.trim() || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(form.fullName)) {
+      found.fullName = 'Cuéntanos tu nombre completo (solo letras)'
+    }
+    if (!form.phone.trim() || !/^3\d{9}$/.test(form.phone)) {
+      found.phone = 'Ingresa un número de celular válido en Colombia (10 dígitos, empieza por 3)'
+    }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = 'Escribe un correo válido'
     if (!form.city.trim()) found.city = 'Dinos en qué ciudad o municipio vives'
-    if (!form.profession.trim()) found.profession = 'Cuéntanos cuál es tu profesión'
+    if (!form.profession) found.profession = 'Selecciona una profesión'
+    if (marcoOtraProfesion && !form.professionOther.trim()) found.professionOther = 'Cuéntanos cuál es tu profesión'
+    if (marcoOtraFormacion && !form.additionalTrainingOther.trim()) found.additionalTrainingOther = 'Cuéntanos cuál es tu formación adicional'
     if (!form.yearsExperience) found.yearsExperience = 'Selecciona una opción'
     if (!form.professionalCard) found.professionalCard = 'Selecciona una opción'
     if (form.populations.length === 0) found.populations = 'Selecciona al menos una población'
@@ -189,10 +215,17 @@ export function VolunteerForm() {
 
     setSubmitting(true)
     try {
+      const payloadForm = {
+        ...form,
+        profession: marcoOtraProfesion ? form.professionOther : form.profession,
+        additionalTraining: marcoOtraFormacion ? form.additionalTrainingOther : (form.additionalTraining === 'Ninguna' ? '' : form.additionalTraining),
+        consentVersion: VERSION_CONSENTIMIENTO
+      }
+
       const response = await fetch('/api/volunteers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, consentVersion: VERSION_CONSENTIMIENTO }),
+        body: JSON.stringify(payloadForm),
       })
       const payload = await response.json()
 
@@ -262,23 +295,41 @@ export function VolunteerForm() {
       </Bloque>
 
       <Bloque numero={2} titulo="Tu perfil profesional">
-        <TextField
+        <RadioField
           label="¿Cuál es tu profesión?"
-          name="profession"
           required
-          placeholder="Ej. Psicóloga, Psiquiatra, Trabajador social"
+          options={PROFESIONES}
           value={form.profession}
           error={errors.profession}
           onChange={(v) => update('profession', v)}
         />
-        <TextField
+        {marcoOtraProfesion ? (
+          <TextField
+            label="¿Qué otra profesión?"
+            name="professionOther"
+            required
+            value={form.professionOther}
+            error={errors.professionOther}
+            onChange={(v) => update('professionOther', v)}
+          />
+        ) : null}
+        <RadioField
           label="Formación adicional"
-          name="additionalTraining"
-          hint="Opcional. Especializaciones, maestrías, diplomados o cursos que quieras contarnos."
+          options={FORMACION_ADICIONAL}
           value={form.additionalTraining}
           error={errors.additionalTraining}
           onChange={(v) => update('additionalTraining', v)}
         />
+        {marcoOtraFormacion ? (
+          <TextField
+            label="¿Qué otra formación adicional?"
+            name="additionalTrainingOther"
+            required
+            value={form.additionalTrainingOther}
+            error={errors.additionalTrainingOther}
+            onChange={(v) => update('additionalTrainingOther', v)}
+          />
+        ) : null}
         <RadioField
           label="¿Cuántos años de experiencia tienes?"
           required
