@@ -6,3 +6,7 @@ out/
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# Respaldos de los PDF antes de optimizarlos. No van al repositorio:
+# el original siempre se puede recuperar del historial de git.
+public/recursos/.originales/

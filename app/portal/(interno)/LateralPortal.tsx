@@ -16,7 +16,14 @@ import {
 } from 'lucide-react'
 import type { Usuario } from '@/lib/portal'
 
-type Enlace = { href: string; texto: string; icono: React.ReactNode; permiso: string }
+type Enlace = {
+  href: string
+  texto: string
+  icono: React.ReactNode
+  permiso: string
+  /** Si se indica, el enlace solo aparece para estos roles. */
+  soloRoles?: Usuario['role'][]
+}
 
 const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
   {
@@ -38,7 +45,15 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
     titulo: 'Agenda',
     enlaces: [
       { href: '/portal/agenda', texto: 'Agenda de la red', icono: <CalendarDays size={17} />, permiso: 'agenda:leer' },
-      { href: '/portal/mi-agenda', texto: 'Mi agenda', icono: <CalendarCheck size={17} />, permiso: 'agenda:leer:propia' },
+      {
+        href: '/portal/mi-agenda',
+        texto: 'Mi agenda',
+        icono: <CalendarCheck size={17} />,
+        permiso: 'agenda:leer:propia',
+        // El administrador tiene el permiso, pero no tiene ficha de profesional:
+        // el enlace solo le llevaria a un aviso de que no esta enlazado.
+        soloRoles: ['PROFESIONAL'],
+      },
     ],
   },
   {
@@ -76,7 +91,9 @@ export function LateralPortal({ usuario }: { usuario: Usuario }) {
 
       <nav className="portal__nav">
         {GRUPOS.map((grupo) => {
-          const visibles = grupo.enlaces.filter((e) => puede(usuario, e.permiso))
+          const visibles = grupo.enlaces.filter(
+            (e) => puede(usuario, e.permiso) && (!e.soloRoles || e.soloRoles.includes(usuario.role)),
+          )
           if (visibles.length === 0) return null
 
           return (
