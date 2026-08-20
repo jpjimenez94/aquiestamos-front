@@ -191,6 +191,11 @@ export function VolunteerForm() {
     if (marcoOtra && !form.populationOther.trim())
       found.populationOther = 'Cuéntanos con qué otra población trabajas'
     if (!form.crisisExperience) found.crisisExperience = 'Selecciona una opción'
+    if (!form.modality) found.modality = 'Selecciona una modalidad'
+    if (form.availableDays.length === 0) found.availableDays = 'Selecciona al menos un día'
+    if (form.availableSlots.length === 0) found.availableSlots = 'Selecciona al menos una franja'
+    if (!form.weeklyHours) found.weeklyHours = 'Selecciona una opción'
+    if (vaPresencial && !form.yellowFeverVaccine) found.yellowFeverVaccine = 'Selecciona una opción'
     if (!form.dataConsent) found.dataConsent = 'Necesitamos tu autorización para poder contactarte'
     if (vaPresencial && !form.sensitiveDataConsent)
       found.sensitiveDataConsent = 'Necesitamos tu autorización expresa para guardar el dato de vacunación'
@@ -370,7 +375,68 @@ export function VolunteerForm() {
         />
       </Bloque>
 
-      <Bloque numero={3} titulo="Autorizaciones">
+      <Bloque
+        numero={3}
+        titulo="Tu disponibilidad"
+        descripcion="Cada acompañamiento dura 45 minutos y dejamos 30 de descanso entre uno y otro."
+      >
+        <RadioField
+          label="¿En qué modalidad puedes acompañar?"
+          required
+          options={MODALIDAD}
+          value={form.modality}
+          error={errors.modality}
+          onChange={(v) => update('modality', v)}
+        />
+        {vaPresencial ? (
+          <TextField
+            label="¿A qué municipios o zonas podrías desplazarte?"
+            name="availableToTravel"
+            hint="Opcional."
+            value={form.availableToTravel}
+            error={errors.availableToTravel}
+            onChange={(v) => update('availableToTravel', v)}
+          />
+        ) : null}
+        <CheckboxGroup
+          label="¿Qué días de la semana puedes?"
+          required
+          hint="Marca todos los que te sirvan."
+          options={DIAS}
+          values={form.availableDays}
+          error={errors.availableDays}
+          onToggle={(v, c) => toggleOption('availableDays', v, c)}
+        />
+        <CheckboxGroup
+          label="¿En qué franjas del día?"
+          required
+          options={FRANJAS}
+          values={form.availableSlots}
+          error={errors.availableSlots}
+          onToggle={(v, c) => toggleOption('availableSlots', v, c)}
+        />
+        <RadioField
+          label="¿Cuántas horas a la semana podrías dedicar?"
+          required
+          options={HORAS_SEMANA}
+          value={form.weeklyHours}
+          error={errors.weeklyHours}
+          onChange={(v) => update('weeklyHours', v)}
+        />
+        {vaPresencial ? (
+          <RadioField
+            label="¿Estás vacunado o vacunada contra la fiebre amarilla?"
+            required
+            hint="Algunas de las zonas afectadas exigen este carné para entrar. Si no la tienes, igual puedes acompañar de forma virtual."
+            options={FIEBRE_AMARILLA}
+            value={form.yellowFeverVaccine}
+            error={errors.yellowFeverVaccine}
+            onChange={(v) => update('yellowFeverVaccine', v)}
+          />
+        ) : null}
+      </Bloque>
+
+      <Bloque numero={4} titulo="Autorizaciones">
         <div className="autorizaciones">
           <p className="autorizaciones__aviso">{AVISO_TRATAMIENTO.profesionales}</p>
           <p className="autorizaciones__aviso">
