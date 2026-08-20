@@ -14,8 +14,10 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const tieneCookie = Boolean(request.cookies.get(COOKIE_SESION)?.value)
 
-  if (pathname === '/portal/entrar') {
-    if (tieneCookie) {
+  // Rutas públicas dentro del portal que no requieren sesión de administrador/agendador
+  if (pathname === '/portal/entrar' || pathname.startsWith('/portal/caso/')) {
+    // Si ya está logueado pero intenta entrar a /entrar, lo redirigimos al dashboard
+    if (pathname === '/portal/entrar' && tieneCookie) {
       return NextResponse.redirect(new URL('/portal', request.url))
     }
     return NextResponse.next()
