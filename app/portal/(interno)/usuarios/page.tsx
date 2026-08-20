@@ -1,5 +1,7 @@
+import { UserPlus } from 'lucide-react'
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
+import { ButtonLink } from '@/components/ui/Button'
 
 export const metadata = { title: 'Cuentas' }
 
@@ -28,6 +30,11 @@ export default async function UsuariosPage() {
       <Cabecera
         titulo="Cuentas del portal"
         descripcion="No hay registro público: las cuentas las crea la administración."
+        acciones={
+          <ButtonLink href="/portal/usuarios/nuevo" variant="primary" icon={<UserPlus size={16} />}>
+            Nueva cuenta
+          </ButtonLink>
+        }
       />
 
       {!respuesta.success ? (
