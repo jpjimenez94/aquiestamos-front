@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
+import { BotonCopiarEnlace } from '@/components/ui/BotonCopiar'
 
 type Persona = {
   id: string
@@ -99,6 +100,9 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               <Link href={`/portal/profesionales/${persona.asignacion.profesional.id}`}>
                 {persona.asignacion.profesional.nombre}
               </Link>
+            </Dato>
+            <Dato etiqueta="Acceso rápido para el profesional">
+              <BotonCopiarEnlace ruta={`/portal/caso/${persona.id}`} etiqueta="Copiar enlace de acceso" />
             </Dato>
           </div>
         </div>
