@@ -127,9 +127,6 @@ export function SupportRequestForm() {
       found.email = 'Si prefieres que te escribamos por correo, necesitamos tu dirección'
     if (!form.preferredContact) found.preferredContact = 'Selecciona una opción'
     if (!form.city.trim()) found.city = 'Cuéntanos desde dónde nos escribes'
-    if (!form.preferredModality) found.preferredModality = 'Selecciona una opción'
-    if (form.availableDays.length === 0) found.availableDays = 'Selecciona al menos un día'
-    if (form.availableSlots.length === 0) found.availableSlots = 'Selecciona al menos una franja'
     if (!form.dataConsent) found.dataConsent = 'Necesitamos tu autorización para poder contactarte'
     if (!form.sensitiveDataConsent)
       found.sensitiveDataConsent = 'Necesitamos tu autorización expresa para poder acompañarte'
@@ -277,47 +274,7 @@ export function SupportRequestForm() {
         />
       </Bloque>
 
-      <Bloque
-        numero={3}
-        titulo="Cuándo te viene bien"
-        descripcion="Cada sesión dura 45 minutos. Con esto buscamos un profesional que coincida contigo."
-      >
-        <RadioField
-          label="¿Prefieres que el acompañamiento sea presencial o virtual?"
-          required
-          options={MODALIDAD}
-          value={form.preferredModality}
-          error={errors.preferredModality}
-          onChange={(v) => update('preferredModality', v)}
-        />
-        <CheckboxGroup
-          label="¿Qué días te quedan bien?"
-          required
-          hint="Marca todos los que puedas."
-          options={DIAS}
-          values={form.availableDays}
-          error={errors.availableDays}
-          onToggle={(v, c) => toggleOption('availableDays', v, c)}
-        />
-        <CheckboxGroup
-          label="¿A qué hora del día?"
-          required
-          options={FRANJAS}
-          values={form.availableSlots}
-          error={errors.availableSlots}
-          onToggle={(v, c) => toggleOption('availableSlots', v, c)}
-        />
-        <TextArea
-          label="¿Hay algo que quieras que sepamos antes de llamarte?"
-          name="message"
-          hint="Opcional. No hace falta que cuentes nada aquí: puedes dejarlo en blanco y hablarlo con calma en la sesión."
-          value={form.message}
-          error={errors.message}
-          onChange={(v) => update('message', v)}
-        />
-      </Bloque>
-
-      <Bloque numero={4} titulo="Autorizaciones">
+      <Bloque numero={3} titulo="Autorizaciones">
         <div className="autorizaciones">
           <p className="autorizaciones__aviso">{AVISO_TRATAMIENTO.atencion}</p>
           <p className="autorizaciones__aviso">

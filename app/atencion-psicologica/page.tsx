@@ -26,7 +26,7 @@ export default function AtencionPsicologicaPage() {
 
       <section className="content section">
         {/* Lo primero de la página: quien está en crisis no debe tener que leer nada más. */}
-        <AvisoEmergencia />
+        {/* <AvisoEmergencia /> */}
 
         <div style={{ marginTop: 28 }}>
           <Callout icon="heart">
