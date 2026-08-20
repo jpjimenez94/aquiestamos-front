@@ -1,0 +1,574 @@
+/* ==========================================================================
+   Portal de coordinación
+   Misma paleta que el sitio público, pero denso: esto se opera, no se lee.
+   ========================================================================== */
+
+.portal {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  background-color: var(--color-bg-default);
+}
+
+/* ---------- Barra lateral ---------- */
+
+.portal__lateral {
+  background-color: var(--navbar-background-color);
+  color: var(--navbar-text-color);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.portal__marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.portal__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.portal__grupo {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  padding: 14px 10px 6px;
+}
+
+.portal__enlace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--navbar-text-color);
+  transition: background-color 0.14s ease;
+}
+
+.portal__enlace:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.portal__enlace[data-activo='true'] {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.portal__enlace-cuenta {
+  margin-left: auto;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background-color: var(--color-red);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.portal__pie {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 246, 235, 0.16);
+  padding-top: 14px;
+  font-size: 0.78rem;
+}
+
+.portal__quien {
+  padding: 0 10px 10px;
+  line-height: 1.4;
+}
+
+.portal__quien strong {
+  display: block;
+  font-size: 0.86rem;
+}
+
+.portal__rol {
+  opacity: 0.65;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.portal__salir {
+  width: 100%;
+  background: none;
+  border: 1px solid rgba(255, 246, 235, 0.24);
+  color: var(--navbar-text-color);
+  border-radius: 8px;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.portal__salir:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- Contenido ---------- */
+
+.portal__principal {
+  padding: 28px 34px 64px;
+  min-width: 0;
+}
+
+.portal__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-default);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.portal__cabecera h1 {
+  font-size: 1.7rem;
+  margin: 0;
+}
+
+.portal__cabecera p {
+  margin: 4px 0 0;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+}
+
+/* ---------- Tarjetas de indicador ---------- */
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.indicador {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radii-layout);
+  padding: 16px 18px;
+}
+
+.indicador__cifra {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.indicador__cifra[data-alerta='true'] {
+  color: var(--color-red);
+}
+
+.indicador__etiqueta {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  line-height: 1.35;
+  display: block;
+}
+
+/* ---------- Tabla de trabajo ---------- */
+
+.tabla-envoltorio {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radii-layout);
+  overflow-x: auto;
+  margin-bottom: 24px;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+
+.tabla thead th {
+  text-align: left;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  background-color: var(--color-bg-default);
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--color-border-default);
+  white-space: nowrap;
+}
+
+.tabla tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0efec;
+  vertical-align: middle;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabla tbody tr:hover {
+  background-color: #fbfaf8;
+}
+
+.tabla__principal {
+  font-weight: 600;
+}
+
+.tabla__secundario {
+  display: block;
+  color: var(--color-text-light);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.tabla__numero {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tabla__acciones {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ---------- Etiquetas de estado ---------- */
+
+.etiqueta {
+  display: inline-block;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background-color: #ebeced;
+  color: #5f5e57;
+}
+
+.etiqueta[data-tono='verde'] { background-color: #dff0e5; color: #2f5f45; }
+.etiqueta[data-tono='ambar'] { background-color: #f8ecd6; color: #7a5410; }
+.etiqueta[data-tono='rojo']  { background-color: #f7e2e0; color: #8f302c; }
+.etiqueta[data-tono='azul']  { background-color: #dceaf1; color: #26637f; }
+
+/* ---------- Botones compactos ---------- */
+
+.boton-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-card-bg);
+  color: var(--color-text-default);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.boton-mini:hover:not(:disabled) { background-color: #f4f2ee; }
+.boton-mini:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.boton-mini[data-tono='principal'] {
+  background-color: var(--navbar-background-color);
+  border-color: var(--navbar-background-color);
+  color: #fff6eb;
+}
+.boton-mini[data-tono='principal']:hover:not(:disabled) { background-color: #1f2143; }
+
+.boton-mini[data-tono='peligro'] {
+  border-color: var(--color-red);
+  color: var(--color-red);
+}
+.boton-mini[data-tono='peligro']:hover:not(:disabled) { background-color: #fbeceb; }
+
+/* ---------- Panel y fichas ---------- */
+
+.panel {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radii-layout);
+  padding: 20px 22px;
+  margin-bottom: 20px;
+}
+
+.panel h2 {
+  font-size: 1.15rem;
+  margin: 0 0 4px;
+}
+
+.panel__nota {
+  color: var(--color-text-light);
+  font-size: 0.86rem;
+  margin: 0 0 16px;
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px 24px;
+}
+
+.dato__etiqueta {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  margin-bottom: 3px;
+}
+
+.dato__valor {
+  font-size: 0.92rem;
+}
+
+/* ---------- Candidatos del emparejamiento ---------- */
+
+.candidato {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0efec;
+}
+
+.candidato:last-child { border-bottom: 0; }
+
+.candidato__nombre {
+  font-weight: 600;
+  font-size: 0.96rem;
+  margin-bottom: 3px;
+}
+
+.candidato__razones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.candidato__razon {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  background-color: var(--color-bg-default);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.candidato__barra {
+  height: 4px;
+  border-radius: 2px;
+  background-color: #ebe7e0;
+  overflow: hidden;
+  margin-top: 8px;
+  max-width: 220px;
+}
+
+.candidato__barra span {
+  display: block;
+  height: 100%;
+  background-color: var(--color-green);
+}
+
+/* ---------- Agenda semanal ---------- */
+
+.semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dia {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 150px;
+}
+
+.dia[data-hoy='true'] {
+  border-color: var(--navbar-background-color);
+  border-width: 2px;
+}
+
+.dia__cabecera {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f0efec;
+}
+
+.dia__numero {
+  display: block;
+  font-size: 1.1rem;
+  color: var(--color-text-default);
+  letter-spacing: 0;
+}
+
+.cita-mini {
+  display: block;
+  border-left: 3px solid var(--color-blue);
+  background-color: var(--color-bg-default);
+  border-radius: 0 6px 6px 0;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.cita-mini[data-estado='CONFIRMADA'] { border-left-color: var(--color-green); }
+.cita-mini[data-estado='CANCELADA'] { border-left-color: var(--color-gray); opacity: 0.55; }
+.cita-mini[data-estado='REPROGRAMADA'] { border-left-color: var(--color-gray); opacity: 0.55; }
+.cita-mini[data-estado='NO_ASISTIO'] { border-left-color: var(--color-red); }
+
+.cita-mini strong {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Vacíos y avisos ---------- */
+
+.vacio {
+  padding: 34px 20px;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+}
+
+.aviso-portal {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-card-bg);
+}
+
+.aviso-portal[data-tono='rojo'] {
+  border-color: var(--color-red);
+  background-color: #fbeceb;
+  color: #8f302c;
+}
+
+.aviso-portal[data-tono='verde'] {
+  border-color: var(--color-green);
+  background-color: #eaf3ee;
+  color: #2f5f45;
+}
+
+/* ---------- Entrada al portal ---------- */
+
+.entrar {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background-color: var(--color-bg-default);
+}
+
+.entrar__caja {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radii-layout);
+  padding: 32px;
+  box-shadow: var(--shadow-card);
+}
+
+.entrar__caja h1 {
+  font-size: 1.5rem;
+  margin: 0 0 4px;
+}
+
+.entrar__caja > p {
+  color: var(--color-text-light);
+  font-size: 0.88rem;
+  margin-bottom: 22px;
+}
+
+.entrar__campos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .portal {
+    grid-template-columns: 1fr;
+  }
+
+  .portal__lateral {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px;
+  }
+
+  .portal__nav {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .portal__grupo { display: none; }
+  .portal__pie {
+    margin-top: 0;
+    margin-left: auto;
+    border-top: 0;
+    padding-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .portal__quien { display: none; }
+  .portal__salir { width: auto; white-space: nowrap; }
+
+  .portal__principal { padding: 20px 16px 48px; }
+
+  .semana {
+    grid-template-columns: 1fr;
+  }
+  .dia { min-height: 0; }
+}

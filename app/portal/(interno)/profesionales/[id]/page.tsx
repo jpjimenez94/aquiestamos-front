@@ -1,0 +1,112 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
+import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
+import { EditorDisponibilidad } from './EditorDisponibilidad'
+
+type Profesional = {
+  id: string
+  fullName: string
+  email: string
+  phone: string
+  city: string
+  profession: string
+  modality: string
+  populations: string[]
+  travelsTo?: string | null
+  status: string
+  estadoLegible: string
+  maxActiveCases: number
+  carga: number
+  notes?: string | null
+  casos: { id: string; paciente: { id: string; nombre: string }; desde: string }[]
+}
+
+type Franja = {
+  id: string
+  dia: string
+  diaLegible: string
+  desde: string
+  hasta: string
+  desdeMinuto: number
+  hastaMinuto: number
+  modalidad: string
+  activa: boolean
+}
+
+export default async function ProfesionalPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const usuario = await usuarioActual()
+
+  const [respuesta, disponibilidad] = await Promise.all([
+    portalFetch<Profesional>(`/professionals/${id}`),
+    portalFetch<{ franjas: Franja[]; bloqueos: { id: string; inicio: string; fin: string; motivo: string | null }[] }>(
+      `/professionals/${id}/disponibilidad`,
+    ),
+  ])
+
+  if (!respuesta.success || !respuesta.data) notFound()
+  const p = respuesta.data
+  const franjas = disponibilidad.data?.franjas ?? []
+
+  return (
+    <>
+      <Cabecera
+        titulo={p.fullName}
+        descripcion={`${p.profession} · ${p.city}`}
+        acciones={
+          <Link className="boton-mini" href="/portal/profesionales">
+            Volver
+          </Link>
+        }
+      />
+
+      <div className="panel">
+        <div className="datos">
+          <Dato etiqueta="Estado">
+            <Etiqueta estado={p.status} texto={p.estadoLegible} />
+          </Dato>
+          <Dato etiqueta="Carga">
+            {p.carga} de {p.maxActiveCases} acompañamientos
+          </Dato>
+          <Dato etiqueta="Modalidad">{p.modality.toLowerCase()}</Dato>
+          <Dato etiqueta="Teléfono">{p.phone}</Dato>
+          <Dato etiqueta="Correo">{p.email}</Dato>
+          <Dato etiqueta="Poblaciones">{p.populations?.join(', ') || '—'}</Dato>
+          {p.travelsTo ? <Dato etiqueta="Se desplaza a">{p.travelsTo}</Dato> : null}
+          {p.notes ? <Dato etiqueta="Notas internas">{p.notes}</Dato> : null}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2>Acompañamientos activos</h2>
+        {p.casos.length === 0 ? (
+          <Vacio>No lleva ningún caso ahora mismo.</Vacio>
+        ) : (
+          <div className="tabla-envoltorio" style={{ marginBottom: 0, border: 0 }}>
+            <table className="tabla">
+              <tbody>
+                {p.casos.map((caso) => (
+                  <tr key={caso.id}>
+                    <td>
+                      <Link href={`/portal/personas/${caso.paciente.id}`}>
+                        {caso.paciente.nombre}
+                      </Link>
+                    </td>
+                    <td className="tabla__numero">desde {enBogota(caso.desde, false)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <EditorDisponibilidad
+        profesionalId={p.id}
+        franjasIniciales={franjas}
+        puedeEditar={puede(usuario, 'profesional:editar') || usuario?.role === 'ADMIN'}
+      />
+    </>
+  )
+}
