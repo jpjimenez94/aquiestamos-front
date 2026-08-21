@@ -12,6 +12,45 @@
 
 /* ---------- Barra lateral ---------- */
 
+/* La barra y el telón solo existen en móvil; en escritorio el menú está fijo
+   a la izquierda y no hace falta abrirlo. */
+.portal__barra {
+  display: none;
+}
+
+.portal__telon {
+  display: none;
+}
+
+.portal__hamburguesa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  color: var(--navbar-text-color);
+  background: none;
+  border: 1px solid #fff6eb3d;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.portal__hamburguesa:hover {
+  background-color: #ffffff1f;
+}
+
+.portal__hamburguesa:focus-visible {
+  outline: 2px solid var(--navbar-text-color);
+  outline-offset: 2px;
+}
+
+/* Con el menú abierto el fondo no se desplaza: si no, al arrastrar sobre el
+   telón se mueve la página de detrás. */
+body.sin-desplazamiento {
+  overflow: hidden;
+}
+
 .portal__lateral {
   background-color: var(--navbar-background-color);
   color: var(--navbar-text-color);
@@ -533,45 +572,123 @@
 /* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
+  /* Alto de la barra. Se declara una vez porque el panel lo necesita para
+     empezar justo debajo. */
   .portal {
+    --barra-alto: 62px;
     grid-template-columns: 1fr;
+    /* Sin esto la rejilla reparte el alto sobrante entre sus filas y estira
+       la barra hasta el doble en las páginas con poco contenido. */
+    grid-template-rows: auto 1fr;
   }
 
-  .portal__lateral {
-    position: static;
-    height: auto;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 12px;
-  }
-
-  .portal__nav {
-    flex-direction: row;
-    gap: 4px;
-  }
-
-  .portal__grupo { display: none; }
-  .portal__pie {
-    margin-top: 0;
-    margin-left: auto;
-    border-top: 0;
-    padding-top: 0;
+  /* Barra fija arriba con la marca y la hamburguesa. Va por encima del panel
+     para que el botón de cerrar siga a mano con el menú abierto. */
+  .portal__barra {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--barra-alto);
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background-color: var(--navbar-background-color);
+    color: var(--navbar-text-color);
   }
-  .portal__quien { display: none; }
-  .portal__salir { width: auto; white-space: nowrap; }
 
-  .portal__principal { padding: 20px 16px 48px; }
+  /* El menú pasa a ser un panel que entra desde la izquierda. Va fijo y
+     fuera del flujo, así que el contenido ocupa todo el ancho. */
+  .portal__lateral {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    width: min(290px, 84vw);
+    height: 100dvh;
+    /* Empieza debajo de la barra: el fondo es del mismo color, así que al
+       desplazarse el contenido se mete bajo ella sin costura. */
+    padding: calc(var(--barra-alto) + 12px) 14px 18px;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 4px 0 24px #0000002e;
+    overflow-y: auto;
+  }
+
+  .portal__lateral[data-abierto='true'] {
+    transform: translateX(0);
+  }
+
+  /* La marca ya está en la barra: repetirla dentro del panel sobra. */
+  .portal__marca--lateral {
+    display: none;
+  }
+
+  .portal__telon {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    display: block;
+    background-color: #00000066;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+
+  .portal__telon[data-visible='true'] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Dentro del panel el menú vuelve a ser vertical, así que los títulos de
+     grupo y el nombre de quien entró recuperan su sitio. */
+  .portal__nav {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .portal__grupo {
+    display: block;
+  }
+
+  .portal__pie {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid #fff6eb29;
+    display: block;
+  }
+
+  .portal__quien {
+    display: block;
+  }
+
+  .portal__salir {
+    width: 100%;
+  }
+
+  .portal__principal {
+    padding: 20px 16px 48px;
+  }
 
   .semana {
     grid-template-columns: 1fr;
   }
-  .dia { min-height: 0; }
+
+  .dia {
+    min-height: 0;
+  }
 }
+
+/* Quien pide menos movimiento no debería ver el panel deslizarse. */
+@media (prefers-reduced-motion: reduce) {
+  .portal__lateral,
+  .portal__telon {
+    transition: none;
+  }
+}
+
 
 /* ---------- Paginación ---------- */
 
