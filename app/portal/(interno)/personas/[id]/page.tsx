@@ -28,6 +28,20 @@ type Persona = {
     desde: string
     profesional: { id: string; nombre: string }
   } | null
+  reportes: Reporte[]
+}
+
+type Reporte = {
+  id: string
+  outcome: string
+  resultadoLegible: string
+  modality: string | null
+  meetsAt: string | null
+  contactDifficulties: string | null
+  notes: string | null
+  reportedByEmail: string
+  profesional: string | null
+  createdAt: string
 }
 
 const DIA: Record<string, string> = {
@@ -109,6 +123,49 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
       ) : (
         <PanelEmparejamiento personaId={persona.id} />
       )}
+
+      {persona.asignacion ? (
+        <div className="panel">
+          <h2>Qué ha reportado quien acompaña</h2>
+          <p className="panel__nota">
+            Lo que respondió desde su enlace de acceso. Se va sumando: la entrada de
+            arriba es la más reciente.
+          </p>
+          {persona.reportes?.length ? (
+            <ul className="bitacora">
+              {persona.reportes.map((r) => (
+                <li key={r.id} className="bitacora__entrada">
+                  <div className="bitacora__cabecera">
+                    <strong>{r.resultadoLegible}</strong>
+                    <span className="bitacora__fecha">{enBogota(r.createdAt)}</span>
+                  </div>
+                  {r.modality || r.meetsAt ? (
+                    <p className="bitacora__dato">
+                      {r.modality ? r.modality.toLowerCase() : null}
+                      {r.modality && r.meetsAt ? ' · ' : null}
+                      {r.meetsAt ? enBogota(r.meetsAt) : null}
+                    </p>
+                  ) : null}
+                  {r.contactDifficulties ? (
+                    <p className="bitacora__dato">
+                      <em>Dificultades:</em> {r.contactDifficulties}
+                    </p>
+                  ) : null}
+                  {r.notes ? <p className="bitacora__dato">{r.notes}</p> : null}
+                  <p className="bitacora__dato">
+                    <em>Lo reportó:</em> {r.profesional ?? r.reportedByEmail}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Vacio>
+              Todavía no ha respondido. Si el caso lleva días así, vale la pena
+              escribirle.
+            </Vacio>
+          )}
+        </div>
+      ) : null}
     </>
   )
 }

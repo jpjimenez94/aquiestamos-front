@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { BACKEND_URL } from '@/lib/api'
 import { AccesoCasoForm } from './AccesoCasoForm'
+import { ReporteCasoForm } from './ReporteCasoForm'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
 import { Dato, Etiqueta } from '../../(interno)/componentes'
@@ -72,6 +73,48 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           </Dato>
         </div>
       </div>
+
+      <div className="panel" style={{ marginTop: '2rem' }}>
+        <h2>¿Qué pasó con esta asignación?</h2>
+        <p className="panel__nota">
+          Cuéntanos cómo te fue. Es la forma de que quien coordina sepa en qué va el
+          caso sin tener que llamarte a preguntar.
+        </p>
+        <ReporteCasoForm patientId={id} />
+      </div>
+
+      {paciente.reportes?.length > 0 ? (
+        <div className="panel" style={{ marginTop: '2rem' }}>
+          <h2>Lo que ya nos contaste</h2>
+          <p className="panel__nota">
+            Se van sumando: si algo cambia, envía una respuesta nueva en vez de
+            corregir la anterior.
+          </p>
+          <ul className="bitacora">
+            {paciente.reportes.map((r: any) => (
+              <li key={r.id} className="bitacora__entrada">
+                <div className="bitacora__cabecera">
+                  <strong>{r.resultadoLegible}</strong>
+                  <span className="bitacora__fecha">{enBogota(r.createdAt)}</span>
+                </div>
+                {r.modality || r.meetsAt ? (
+                  <p className="bitacora__dato">
+                    {r.modality ? r.modality.toLowerCase() : null}
+                    {r.modality && r.meetsAt ? ' · ' : null}
+                    {r.meetsAt ? enBogota(r.meetsAt) : null}
+                  </p>
+                ) : null}
+                {r.contactDifficulties ? (
+                  <p className="bitacora__dato">
+                    <em>Dificultades:</em> {r.contactDifficulties}
+                  </p>
+                ) : null}
+                {r.notes ? <p className="bitacora__dato">{r.notes}</p> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="panel" style={{ marginTop: '2rem' }}>
         <h2>Citas programadas</h2>

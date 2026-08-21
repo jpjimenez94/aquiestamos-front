@@ -38,3 +38,52 @@ export async function authorizeCaseAction(patientId: string, email: string) {
     return { success: false, message: 'Error de conexión con el servidor.' }
   }
 }
+
+/**
+ * Manda el reporte del profesional. Va por server action y no por fetch desde
+ * el navegador porque el token del caso vive en una cookie httpOnly: el
+ * cliente no puede leerlo, y así sigue sin poder.
+ */
+export async function reportarCasoAction(
+  patientId: string,
+  datos: {
+    outcome: string
+    modality: string
+    meetsAt: string
+    contactDifficulties: string
+    notes: string
+  },
+) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(`case_token_${patientId}`)?.value
+
+  if (!token) {
+    return { success: false, message: 'El acceso venció. Vuelve a ingresar tu correo.' }
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/shared-cases/${patientId}/reporte`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-shared-case-token': token,
+      },
+      body: JSON.stringify(datos),
+      cache: 'no-store',
+    })
+
+    const payload = await response.json()
+
+    if (!response.ok || !payload.success) {
+      return {
+        success: false,
+        message: payload.message ?? 'No pudimos registrar tu respuesta.',
+        details: payload.details as Record<string, string> | undefined,
+      }
+    }
+
+    return { success: true, message: payload.message as string }
+  } catch {
+    return { success: false, message: 'Error de conexión con el servidor.' }
+  }
+}
