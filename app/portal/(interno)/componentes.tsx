@@ -100,11 +100,14 @@ export function Paginacion({
   porPagina,
   total,
   ruta,
+  filtros,
 }: {
   pagina: number
   porPagina: number
   total: number
   ruta: string
+  /** Lo que haya en la URL además de la página, para no perderlo al avanzar. */
+  filtros?: Record<string, string | undefined>
 }) {
   const ultima = Math.max(1, Math.ceil(total / porPagina))
   const desde = (pagina - 1) * porPagina + 1
@@ -116,7 +119,18 @@ export function Paginacion({
 
   // Con una sola página el control no aporta nada, pero el recuento sí:
   // saber que son 12 y no 12 de 300 cambia cómo se lee la tabla.
-  const enlace = (n: number) => (n === 1 ? ruta : `${ruta}?pagina=${n}`)
+  const enlace = (n: number) => {
+    const query = new URLSearchParams()
+    for (const [clave, valor] of Object.entries(filtros ?? {})) {
+      if (valor) query.set(clave, valor)
+    }
+    // La primera página no lleva número: deja la URL limpia y hace que
+    // "Anterior" desde la 2 devuelva a la misma dirección que el menú.
+    if (n > 1) query.set('pagina', String(n))
+
+    const cadena = query.toString()
+    return cadena ? `${ruta}?${cadena}` : ruta
+  }
 
   // Desde fuera de rango, "Anterior" devuelve a la última página real en vez
   // de a otra página vacía.

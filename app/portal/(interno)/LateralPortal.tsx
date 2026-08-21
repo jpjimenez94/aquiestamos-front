@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Inbox,
   UserPlus,
+  HeartHandshake,
   Users,
   Stethoscope,
   CalendarDays,
@@ -32,6 +33,12 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
       { href: '/portal', texto: 'Tablero', icono: <LayoutDashboard size={17} />, permiso: 'agenda:leer' },
       { href: '/portal/solicitudes', texto: 'Solicitudes', icono: <Inbox size={17} />, permiso: 'solicitud:leer' },
       { href: '/portal/postulaciones', texto: 'Postulaciones', icono: <UserPlus size={17} />, permiso: 'postulacion:leer' },
+      {
+        href: '/portal/colaboradores',
+        texto: 'Voluntariado de apoyo',
+        icono: <HeartHandshake size={17} />,
+        permiso: 'colaborador:leer',
+      },
     ],
   },
   {

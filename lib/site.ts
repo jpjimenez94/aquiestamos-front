@@ -20,6 +20,7 @@ export const whatsappHref = `https://wa.me/${site.whatsappNumber}`
 
 export const navLinks = [
   { href: '/quiero-ser-parte', label: 'Quiero ser parte' },
+  { href: '/quiero-apoyar', label: 'Quiero apoyar' },
   { href: '/atencion-psicologica', label: 'Atención Psicológica' },
   { href: '/recursos', label: 'Recursos' },
 ] as const
@@ -29,6 +30,13 @@ export const homeCards = [
     href: '/quiero-ser-parte',
     title: 'Quiero ser parte',
     text: 'Haz parte de nuestra red de profesionales y construyamos más posibilidades de acompañamiento.',
+    image: '/images/card-ser-parte.png',
+    icon: 'sun',
+  },
+  {
+    href: '/quiero-apoyar',
+    title: 'Quiero apoyar',
+    text: 'Una emergencia no se atiende solo desde la psicología. Súmate desde lo que sabes hacer.',
     image: '/images/card-ser-parte.png',
     icon: 'sun',
   },

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Bloque, CheckboxGroup, ConsentField, RadioField, TextField } from './fields'
+import { Bloque, CheckboxGroup, ConsentField, RadioField, TextArea, TextField } from './fields'
 import { FormStatus, type Status } from './FormStatus'
 import { ERROR_TELEFONO, PISTA_TELEFONO, telefonoValido } from '@/lib/telefono'
 import {
@@ -15,26 +15,78 @@ import {
 } from '@/lib/consentimiento'
 
 /**
- * Formulario "Quiero ser parte" — reemplaza al Google Form original.
+ * Formulario "Quiero apoyar" — voluntariado de otras disciplinas.
  *
- * Está en cuatro bloques y no en una sola columna de trece campos. Los campos
- * condicionales solo aparecen cuando tienen sentido: a quien acompaña solo de
- * forma virtual no se le pregunta por desplazamientos ni por vacunas, y por eso
- * tampoco se le pide autorización de datos de salud.
+ * Es hermano de "Quiero ser parte", no una variante suya. Quien se registra
+ * aquí queda en un directorio que la coordinación consulta cuando aparece una
+ * necesidad concreta; no entra al emparejamiento con personas en crisis ni a
+ * la agenda de acompañamientos.
+ *
+ * La disciplina se pregunta en dos pasos, área y luego oficio, porque una
+ * lista plana de treinta opciones se vuelve ilegible en un teléfono.
  */
 
-const POBLACIONES = [
-  'Niños y niñas',
-  'Adolescentes',
-  'Jóvenes',
-  'Adultos',
-  'Personas mayores',
-  'Familias',
-  'Enfoque de género',
-  'Población víctima de violencia',
-  'Población desplazada/migrante',
-  'Otra',
+const AREAS = [
+  { value: 'SALUD', label: 'Salud y primeros auxilios' },
+  { value: 'SOCIAL_LEGAL_EDUCATIVO', label: 'Social, legal y educativo' },
+  { value: 'OPERACION_LOGISTICA', label: 'Operación y logística' },
+  { value: 'COMUNICACION_TECNOLOGIA', label: 'Comunicación y tecnología' },
+  { value: 'GESTION_PROYECTOS', label: 'Gestión y proyectos' },
+  { value: 'OTRA', label: 'Otra área' },
 ] as const
+
+/**
+ * Tiene que coincidir con `DISCIPLINAS` en
+ * `backend/src/validators/collaborator.schema.js`: el backend rechaza una
+ * disciplina que no pertenezca al área elegida.
+ */
+const DISCIPLINAS: Record<string, readonly string[]> = {
+  SALUD: [
+    'Medicina',
+    'Enfermería',
+    'Fisioterapia',
+    'Terapia ocupacional',
+    'Fonoaudiología',
+    'Nutrición y dietética',
+    'Odontología',
+    'Primeros auxilios',
+    'Otra',
+  ],
+  SOCIAL_LEGAL_EDUCATIVO: [
+    'Trabajo social',
+    'Derecho',
+    'Docencia',
+    'Pedagogía',
+    'Primera infancia',
+    'Gestión comunitaria',
+    'Otra',
+  ],
+  OPERACION_LOGISTICA: [
+    'Logística',
+    'Transporte y conducción',
+    'Bodega e inventario',
+    'Cocina y alimentación',
+    'Construcción y obra',
+    'Gestión del riesgo de desastres',
+    'Otra',
+  ],
+  COMUNICACION_TECNOLOGIA: [
+    'Comunicación social',
+    'Diseño',
+    'Sistemas y tecnología',
+    'Análisis de datos',
+    'Traducción e interpretación',
+    'Otra',
+  ],
+  GESTION_PROYECTOS: [
+    'Gerencia de proyectos',
+    'Administración',
+    'Finanzas y contabilidad',
+    'Talento humano',
+    'Otra',
+  ],
+  OTRA: ['Otra'],
+}
 
 const DIAS = [
   { value: 'LUNES', label: 'Lunes' },
@@ -47,9 +99,9 @@ const DIAS = [
 ] as const
 
 const FRANJAS = [
-  { value: 'MANANA', label: 'Mañana · 8 a. m. – 12 m.' },
-  { value: 'TARDE', label: 'Tarde · 12 m. – 6 p. m.' },
-  { value: 'NOCHE', label: 'Noche · 6 – 9 p. m.' },
+  { value: 'MANANA', label: 'Mañana (8 a. m. – 12 m.)' },
+  { value: 'TARDE', label: 'Tarde (12 m. – 6 p. m.)' },
+  { value: 'NOCHE', label: 'Noche (6 – 9 p. m.)' },
 ] as const
 
 const ANOS_EXPERIENCIA = [
@@ -60,50 +112,28 @@ const ANOS_EXPERIENCIA = [
 ] as const
 
 const HORAS_SEMANA = [
-  { value: 'ENTRE_1_Y_3', label: 'Entre 1 y 3 horas · una o dos sesiones' },
-  { value: 'ENTRE_4_Y_6', label: 'Entre 4 y 6 horas · tres o cuatro sesiones' },
-  { value: 'MAS_DE_6', label: 'Más de 6 horas · cinco o más sesiones' },
+  { value: 'ENTRE_1_Y_3', label: 'Entre 1 y 3 horas' },
+  { value: 'ENTRE_4_Y_6', label: 'Entre 4 y 6 horas' },
+  { value: 'MAS_DE_6', label: 'Más de 6 horas' },
   { value: 'VARIABLE', label: 'Depende de la semana' },
-] as const
-
-const EXPERIENCIA_CRISIS = [
-  { value: 'SI', label: 'Sí, tengo formación y experiencia' },
-  { value: 'FORMACION_POCA_PRACTICA', label: 'Tengo formación, pero poca experiencia práctica' },
-  { value: 'SIN_FORMACION_DISPONIBLE_APRENDER', label: 'No tengo formación, pero quiero aprender' },
-  { value: 'NO', label: 'No' },
 ] as const
 
 const MODALIDAD = [
   { value: 'PRESENCIAL', label: 'Presencial' },
-  { value: 'VIRTUAL', label: 'Virtual' },
-  { value: 'AMBAS', label: 'Ambas' },
-] as const
-
-const FIEBRE_AMARILLA = [
-  { value: 'SI', label: 'Sí, ya estoy vacunado o vacunada' },
-  { value: 'CITA_AGENDADA', label: 'Todavía no, pero ya tengo cita' },
-  { value: 'NO', label: 'No' },
+  { value: 'VIRTUAL', label: 'Virtual, desde donde estoy' },
+  { value: 'AMBAS', label: 'Las dos' },
 ] as const
 
 const TARJETA = [
   { value: 'SI', label: 'Sí, la tengo' },
   { value: 'EN_TRAMITE', label: 'Está en trámite' },
-  { value: 'ESTUDIANTE', label: 'Soy estudiante' },
+  { value: 'ESTUDIANTE', label: 'Todavía soy estudiante' },
 ] as const
 
-const PROFESIONES = [
-  { value: 'Psicología', label: 'Psicología' },
-  { value: 'Psiquiatría', label: 'Psiquiatría' },
-  { value: 'Trabajo Social', label: 'Trabajo Social' },
-  { value: 'Otra', label: 'Otra' },
-] as const
-
-const FORMACION_ADICIONAL = [
-  { value: 'Primeros auxilios psicológicos', label: 'Primeros auxilios psicológicos' },
-  { value: 'Especialización clínica', label: 'Especialización clínica' },
-  { value: 'Atención en crisis', label: 'Atención en crisis' },
-  { value: 'Ninguna', label: 'Ninguna' },
-  { value: 'Otra', label: 'Otra' },
+const FIEBRE_AMARILLA = [
+  { value: 'SI', label: 'Sí' },
+  { value: 'NO', label: 'No' },
+  { value: 'CITA_AGENDADA', label: 'Tengo la cita agendada' },
 ] as const
 
 const VACIO = {
@@ -111,15 +141,12 @@ const VACIO = {
   phone: '',
   email: '',
   city: '',
-  profession: '',
-  professionOther: '',
-  additionalTraining: '',
-  additionalTrainingOther: '',
+  area: '',
+  discipline: '',
+  disciplineOther: '',
   yearsExperience: '',
   professionalCard: '',
-  populations: [] as string[],
-  populationOther: '',
-  crisisExperience: '',
+  skills: '',
   modality: '',
   availableToTravel: '',
   availableDays: [] as string[],
@@ -131,36 +158,38 @@ const VACIO = {
   communicationsConsent: false,
 }
 
-export function VolunteerForm() {
+export function CollaboratorForm() {
   const [form, setForm] = useState(VACIO)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<Status>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  // Quien solo puede de forma virtual no viaja ni necesita el carné de vacunas.
   const vaPresencial = form.modality === 'PRESENCIAL' || form.modality === 'AMBAS'
-  const marcoOtra = form.populations.includes('Otra')
-
-  const marcoOtraProfesion = form.profession === 'Otra'
-  const marcoOtraFormacion = form.additionalTraining === 'Otra'
-
-  function clearError(key: string) {
-    setErrors((current) => {
-      if (!current[key]) return current
-      const next = { ...current }
-      delete next[key]
-      return next
-    })
-  }
+  const marcoOtraDisciplina = form.discipline === 'Otra'
+  const disciplinas = form.area ? DISCIPLINAS[form.area] : undefined
 
   function update<K extends keyof typeof VACIO>(key: K, value: (typeof VACIO)[K]) {
     setForm((current) => ({ ...current, [key]: value }))
     clearError(key as string)
   }
 
-  /** Calcula siempre sobre el estado más reciente, para que dos clics seguidos no se pisen. */
+  /** Cambiar de área invalida la disciplina que se hubiera elegido antes. */
+  function cambiarArea(value: string) {
+    setForm((current) => ({ ...current, area: value, discipline: '', disciplineOther: '' }))
+    clearError('area')
+    clearError('discipline')
+  }
+
+  function clearError(key: string) {
+    setErrors((current) => {
+      if (!current[key]) return current
+      const { [key]: _, ...resto } = current
+      return resto
+    })
+  }
+
   function toggleOption(
-    key: 'populations' | 'availableDays' | 'availableSlots',
+    key: 'availableDays' | 'availableSlots',
     option: string,
     checked: boolean,
   ) {
@@ -181,16 +210,11 @@ export function VolunteerForm() {
     if (!telefonoValido(form.phone)) found.phone = ERROR_TELEFONO
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = 'Escribe un correo válido'
     if (!form.city.trim()) found.city = 'Dinos en qué ciudad o municipio vives'
-    if (!form.profession) found.profession = 'Selecciona una profesión'
-    if (marcoOtraProfesion && !form.professionOther.trim()) found.professionOther = 'Cuéntanos cuál es tu profesión'
-    if (marcoOtraFormacion && !form.additionalTrainingOther.trim()) found.additionalTrainingOther = 'Cuéntanos cuál es tu formación adicional'
-    if (!form.yearsExperience) found.yearsExperience = 'Selecciona una opción'
-    if (!form.professionalCard) found.professionalCard = 'Selecciona una opción'
-    if (form.populations.length === 0) found.populations = 'Selecciona al menos una población'
-    if (marcoOtra && !form.populationOther.trim())
-      found.populationOther = 'Cuéntanos con qué otra población trabajas'
-    if (!form.crisisExperience) found.crisisExperience = 'Selecciona una opción'
-    if (!form.modality) found.modality = 'Selecciona una modalidad'
+    if (!form.area) found.area = 'Selecciona un área'
+    if (!form.discipline) found.discipline = 'Selecciona tu disciplina'
+    if (marcoOtraDisciplina && !form.disciplineOther.trim())
+      found.disciplineOther = 'Cuéntanos cuál es tu disciplina'
+    if (!form.modality) found.modality = 'Selecciona una opción'
     if (form.availableDays.length === 0) found.availableDays = 'Selecciona al menos un día'
     if (form.availableSlots.length === 0) found.availableSlots = 'Selecciona al menos una franja'
     if (!form.weeklyHours) found.weeklyHours = 'Selecciona una opción'
@@ -214,17 +238,10 @@ export function VolunteerForm() {
 
     setSubmitting(true)
     try {
-      const payloadForm = {
-        ...form,
-        profession: marcoOtraProfesion ? form.professionOther : form.profession,
-        additionalTraining: marcoOtraFormacion ? form.additionalTrainingOther : (form.additionalTraining === 'Ninguna' ? '' : form.additionalTraining),
-        consentVersion: VERSION_CONSENTIMIENTO
-      }
-
-      const response = await fetch('/api/volunteers', {
+      const response = await fetch('/api/collaborators', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloadForm),
+        body: JSON.stringify({ ...form, consentVersion: VERSION_CONSENTIMIENTO }),
       })
       const payload = await response.json()
 
@@ -283,104 +300,85 @@ export function VolunteerForm() {
           onChange={(v) => update('email', v)}
         />
         <TextField
-          label="¿En qué ciudad o municipio vives?"
+          label="Ciudad o municipio donde vives"
           name="city"
           required
-          hint="Nos sirve para asignarte acompañamientos cerca de ti."
           value={form.city}
           error={errors.city}
           onChange={(v) => update('city', v)}
         />
       </Bloque>
 
-      <Bloque numero={2} titulo="Tu perfil profesional">
+      <Bloque
+        numero={2}
+        titulo="En qué puedes ayudar"
+        descripcion="No hace falta que tengas experiencia en emergencias. Lo que necesitamos saber es qué sabes hacer."
+      >
         <RadioField
-          label="¿Cuál es tu profesión?"
+          label="¿En qué área está lo tuyo?"
           required
-          options={PROFESIONES}
-          value={form.profession}
-          error={errors.profession}
-          onChange={(v) => update('profession', v)}
+          options={AREAS}
+          value={form.area}
+          error={errors.area}
+          onChange={cambiarArea}
         />
-        {marcoOtraProfesion ? (
-          <TextField
-            label="¿Qué otra profesión?"
-            name="professionOther"
+
+        {disciplinas ? (
+          <RadioField
+            label="¿Cuál es tu disciplina?"
             required
-            value={form.professionOther}
-            error={errors.professionOther}
-            onChange={(v) => update('professionOther', v)}
+            options={disciplinas.map((d) => ({ value: d, label: d }))}
+            value={form.discipline}
+            error={errors.discipline}
+            onChange={(v) => update('discipline', v)}
           />
         ) : null}
-        <RadioField
-          label="Formación adicional"
-          options={FORMACION_ADICIONAL}
-          value={form.additionalTraining}
-          error={errors.additionalTraining}
-          onChange={(v) => update('additionalTraining', v)}
-        />
-        {marcoOtraFormacion ? (
+
+        {marcoOtraDisciplina ? (
           <TextField
-            label="¿Qué otra formación adicional?"
-            name="additionalTrainingOther"
+            label="¿Cuál?"
+            name="disciplineOther"
             required
-            value={form.additionalTrainingOther}
-            error={errors.additionalTrainingOther}
-            onChange={(v) => update('additionalTrainingOther', v)}
+            value={form.disciplineOther}
+            error={errors.disciplineOther}
+            onChange={(v) => update('disciplineOther', v)}
           />
         ) : null}
+
         <RadioField
-          label="¿Cuántos años de experiencia tienes?"
-          required
+          label="¿Cuántos años llevas en eso?"
           options={ANOS_EXPERIENCIA}
           value={form.yearsExperience}
           error={errors.yearsExperience}
           onChange={(v) => update('yearsExperience', v)}
         />
+
         <RadioField
-          label="¿Cuentas con tarjeta profesional?"
-          required
+          label="¿Tienes tarjeta profesional?"
+          hint="Solo si tu profesión la exige. Si no aplica, sáltate esta pregunta."
           options={TARJETA}
           value={form.professionalCard}
           error={errors.professionalCard}
           onChange={(v) => update('professionalCard', v)}
         />
-        <CheckboxGroup
-          label="¿Con qué poblaciones tienes experiencia?"
-          required
-          hint="Marca todas las que apliquen."
-          options={POBLACIONES}
-          values={form.populations}
-          error={errors.populations}
-          onToggle={(o, c) => toggleOption('populations', o, c)}
-        />
-        {marcoOtra ? (
-          <TextField
-            label="¿Con qué otra población?"
-            name="populationOther"
-            required
-            value={form.populationOther}
-            error={errors.populationOther}
-            onChange={(v) => update('populationOther', v)}
-          />
-        ) : null}
-        <RadioField
-          label="¿Tienes experiencia en atención en crisis o primeros auxilios psicológicos?"
-          required
-          options={EXPERIENCIA_CRISIS}
-          value={form.crisisExperience}
-          error={errors.crisisExperience}
-          onChange={(v) => update('crisisExperience', v)}
+
+        <TextArea
+          label="¿Qué sabes hacer que nos pueda servir?"
+          name="skills"
+          hint="Opcional, pero es lo que más ayuda. Con tus palabras: herramientas que manejas, idiomas, si conduces, si has trabajado en terreno."
+          value={form.skills}
+          error={errors.skills}
+          onChange={(v) => update('skills', v)}
         />
       </Bloque>
 
       <Bloque
         numero={3}
         titulo="Tu disponibilidad"
-        descripcion="Cada acompañamiento dura 45 minutos y dejamos 30 de descanso entre uno y otro."
+        descripcion="Es lo que miramos para saber a quién llamar cuando aparece algo. No te compromete a nada."
       >
         <RadioField
-          label="¿En qué modalidad puedes acompañar?"
+          label="¿Cómo puedes apoyar?"
           required
           options={MODALIDAD}
           value={form.modality}
@@ -426,7 +424,7 @@ export function VolunteerForm() {
           <RadioField
             label="¿Estás vacunado o vacunada contra la fiebre amarilla?"
             required
-            hint="Algunas de las zonas afectadas exigen este carné para entrar. Si no la tienes, igual puedes acompañar de forma virtual."
+            hint="Algunas de las zonas afectadas exigen este carné para entrar. Si no la tienes, igual puedes apoyar de forma virtual."
             options={FIEBRE_AMARILLA}
             value={form.yellowFeverVaccine}
             error={errors.yellowFeverVaccine}
@@ -437,7 +435,7 @@ export function VolunteerForm() {
 
       <Bloque numero={4} titulo="Autorizaciones">
         <div className="autorizaciones">
-          <p className="autorizaciones__aviso">{AVISO_TRATAMIENTO.profesionales}</p>
+          <p className="autorizaciones__aviso">{AVISO_TRATAMIENTO.apoyo}</p>
           <p className="autorizaciones__aviso">
             Los conservamos durante {RESPONSABLE.retencionMeses / 12} años desde que
             terminas tu participación. {AVISO_DERECHOS} Escríbenos a{' '}
@@ -475,7 +473,7 @@ export function VolunteerForm() {
       <div className="form__footer">
         <FormStatus status={status} />
         <Button type="submit" variant="primary" disabled={submitting} icon={<Send size={16} />}>
-          {submitting ? 'Enviando…' : 'Enviar mi registro'}
+          {submitting ? 'Enviando…' : 'Quiero apoyar'}
         </Button>
       </div>
     </form>

@@ -34,6 +34,8 @@ export const AVISO_TRATAMIENTO = {
     'Red Aquí Estamos es responsable de los datos que nos compartes. Los usamos para contactarte, coordinar tu acompañamiento y llevar el registro interno de la red. Se comparten únicamente con el profesional que te acompañe y con el equipo de coordinación: no los vendemos ni los entregamos a terceros.',
   profesionales:
     'Red Aquí Estamos es responsable de los datos que nos compartes. Los usamos para evaluar tu postulación, coordinar los acompañamientos que asumas y llevar el registro interno de la red. No los vendemos ni los entregamos a terceros.',
+  apoyo:
+    'Red Aquí Estamos es responsable de los datos que nos compartes. Los usamos para tener un directorio del voluntariado de la red y poder buscarte cuando aparezca una necesidad que encaje con lo que sabes hacer. No los vendemos ni los entregamos a terceros.',
 } as const
 
 export const AVISO_DERECHOS =

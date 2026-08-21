@@ -620,3 +620,64 @@
     justify-content: center;
   }
 }
+
+/* ---------- Filtros de listado ---------- */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radii-layout);
+}
+
+.filtros__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1 1 180px;
+}
+
+.filtros__campo > span {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+
+.filtros__campo select,
+.filtros__campo input {
+  width: 100%;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--color-text-default);
+  background-color: var(--color-bg-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 7px;
+}
+
+.filtros__campo select:focus-visible,
+.filtros__campo input:focus-visible {
+  outline: 2px solid var(--navbar-background-color);
+  outline-offset: 1px;
+}
+
+.filtros__acciones {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 560px) {
+  .filtros__acciones {
+    flex: 1 1 100%;
+  }
+}
