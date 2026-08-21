@@ -15,8 +15,11 @@ export default async function PortalLayout({ children }: { children: React.React
   // La cookie existía pero la sesión ya no vale (caducó o la revocaron).
   if (!usuario) redirect('/portal/entrar')
 
+  // data-rol existe para el modo solo lectura: el CSS apaga los controles de
+  // acción cuando vale LECTURA. Es cortesía visual; la seguridad real está en
+  // el backend, que rechaza cada escritura de ese rol con 403.
   return (
-    <div className="portal">
+    <div className="portal" data-rol={usuario.role}>
       <LateralPortal usuario={usuario} />
       <main className="portal__principal">{children}</main>
     </div>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Bloque, CheckboxGroup, ConsentField, RadioField, TextArea, TextField } from './fields'
+import { Bloque, ConsentField, RadioField, TextField } from './fields'
 import { FormStatus, type Status } from './FormStatus'
 import {
   AVISO_DERECHOS,
@@ -21,22 +21,6 @@ import {
  * contar lo que está pasando.
  */
 
-const DIAS = [
-  { value: 'LUNES', label: 'Lunes' },
-  { value: 'MARTES', label: 'Martes' },
-  { value: 'MIERCOLES', label: 'Miércoles' },
-  { value: 'JUEVES', label: 'Jueves' },
-  { value: 'VIERNES', label: 'Viernes' },
-  { value: 'SABADO', label: 'Sábado' },
-  { value: 'DOMINGO', label: 'Domingo' },
-] as const
-
-const FRANJAS = [
-  { value: 'MANANA', label: 'Mañana · 8 a. m. – 12 m.' },
-  { value: 'TARDE', label: 'Tarde · 12 m. – 6 p. m.' },
-  { value: 'NOCHE', label: 'Noche · 6 – 9 p. m.' },
-] as const
-
 const PARA_QUIEN = [
   { value: 'PARA_MI', label: 'Para mí' },
   { value: 'PARA_OTRA_PERSONA', label: 'Para otra persona' },
@@ -51,12 +35,6 @@ const CANAL = [
   { value: 'WHATSAPP', label: 'WhatsApp' },
   { value: 'LLAMADA', label: 'Llamada' },
   { value: 'CORREO', label: 'Correo electrónico' },
-] as const
-
-const MODALIDAD = [
-  { value: 'VIRTUAL', label: 'Virtual' },
-  { value: 'PRESENCIAL', label: 'Presencial' },
-  { value: 'INDIFERENTE', label: 'Me da igual' },
 ] as const
 
 const VACIO = {
@@ -103,16 +81,6 @@ export function SupportRequestForm() {
     clearError(key as string)
   }
 
-  function toggleOption(key: 'availableDays' | 'availableSlots', option: string, checked: boolean) {
-    setForm((current) => ({
-      ...current,
-      [key]: checked
-        ? [...current[key], option]
-        : current[key].filter((value) => value !== option),
-    }))
-    clearError(key)
-  }
-
   function validate() {
     const found: Record<string, string> = {}
     if (!form.forWhom) found.forWhom = 'Selecciona una opción'
@@ -127,9 +95,6 @@ export function SupportRequestForm() {
       found.email = 'Si prefieres que te escribamos por correo, necesitamos tu dirección'
     if (!form.preferredContact) found.preferredContact = 'Selecciona una opción'
     if (!form.city.trim()) found.city = 'Cuéntanos desde dónde nos escribes'
-    if (!form.preferredModality) found.preferredModality = 'Selecciona una opción'
-    if (form.availableDays.length === 0) found.availableDays = 'Selecciona al menos un día'
-    if (form.availableSlots.length === 0) found.availableSlots = 'Selecciona al menos una franja'
     if (!form.dataConsent) found.dataConsent = 'Necesitamos tu autorización para poder contactarte'
     if (!form.sensitiveDataConsent)
       found.sensitiveDataConsent = 'Necesitamos tu autorización expresa para poder acompañarte'
@@ -277,47 +242,7 @@ export function SupportRequestForm() {
         />
       </Bloque>
 
-      <Bloque
-        numero={3}
-        titulo="Cuándo te viene bien"
-        descripcion="Cada sesión dura 45 minutos. Con esto buscamos un profesional que coincida contigo."
-      >
-        <RadioField
-          label="¿Prefieres que el acompañamiento sea presencial o virtual?"
-          required
-          options={MODALIDAD}
-          value={form.preferredModality}
-          error={errors.preferredModality}
-          onChange={(v) => update('preferredModality', v)}
-        />
-        <CheckboxGroup
-          label="¿Qué días te quedan bien?"
-          required
-          hint="Marca todos los que puedas."
-          options={DIAS}
-          values={form.availableDays}
-          error={errors.availableDays}
-          onToggle={(v, c) => toggleOption('availableDays', v, c)}
-        />
-        <CheckboxGroup
-          label="¿A qué hora del día?"
-          required
-          options={FRANJAS}
-          values={form.availableSlots}
-          error={errors.availableSlots}
-          onToggle={(v, c) => toggleOption('availableSlots', v, c)}
-        />
-        <TextArea
-          label="¿Hay algo que quieras que sepamos antes de llamarte?"
-          name="message"
-          hint="Opcional. No hace falta que cuentes nada aquí: puedes dejarlo en blanco y hablarlo con calma en la sesión."
-          value={form.message}
-          error={errors.message}
-          onChange={(v) => update('message', v)}
-        />
-      </Bloque>
-
-      <Bloque numero={4} titulo="Autorizaciones">
+      <Bloque numero={3} titulo="Autorizaciones">
         <div className="autorizaciones">
           <p className="autorizaciones__aviso">{AVISO_TRATAMIENTO.atencion}</p>
           <p className="autorizaciones__aviso">

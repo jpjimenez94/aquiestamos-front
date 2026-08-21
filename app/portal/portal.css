@@ -930,3 +930,46 @@ body.sin-desplazamiento {
   border: 1px solid var(--color-border-default);
   border-radius: 10px;
 }
+
+/* ---------- Confirmación de guardado ---------- */
+
+.guardado {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #2f5f45;
+  background-color: #dff0e5;
+  border-radius: 7px;
+}
+
+/* ---------- Modo solo lectura ---------- */
+
+/* El rol LECTURA ve todo y no toca nada. Aquí se apagan los controles de
+   acción; la seguridad real está en el backend, que responde 403 a cada
+   escritura de ese rol. Por eso esto puede ser CSS y no lógica repartida por
+   cada componente.
+
+   Se apagan: los botones de acción de las tablas, los de los paneles (aprobar,
+   admitir, asignar, mensaje al profesional) y el envío de formularios.
+   Siguen vivos: los filtros de búsqueda y la paginación, porque buscar y
+   navegar ES leer. */
+.portal[data-rol='LECTURA'] .tabla__acciones .boton-mini,
+.portal[data-rol='LECTURA'] .panel .boton-mini,
+.portal[data-rol='LECTURA'] .admitir__opciones .boton-mini,
+.portal[data-rol='LECTURA'] .mensaje__acciones .boton-mini,
+.portal[data-rol='LECTURA'] .mensaje__acciones a,
+.portal[data-rol='LECTURA'] .portal__principal form button[type='submit'] {
+  pointer-events: none;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Los filtros viven dentro de un form pero son lectura: se recuperan. */
+.portal[data-rol='LECTURA'] .filtros button[type='submit'],
+.portal[data-rol='LECTURA'] .paginacion .boton-mini {
+  pointer-events: auto;
+  opacity: 1;
+  cursor: pointer;
+}

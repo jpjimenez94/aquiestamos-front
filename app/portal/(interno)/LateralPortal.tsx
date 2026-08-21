@@ -123,6 +123,7 @@ const NOMBRE_ROL: Record<string, string> = {
   ADMIN: "Administración",
   AGENDADOR: "Agenda",
   PROFESIONAL: "Profesional",
+  LECTURA: "Solo lectura",
 };
 
 export function LateralPortal({ usuario }: { usuario: Usuario }) {

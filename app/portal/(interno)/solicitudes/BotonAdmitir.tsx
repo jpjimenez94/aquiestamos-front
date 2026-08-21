@@ -27,6 +27,7 @@ export function BotonAdmitir({
   const router = useRouter()
   const [eligiendo, setEligiendo] = useState(false)
   const [cargando, setCargando] = useState(false)
+  const [guardado, setGuardado] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function admitir(priority: string) {
@@ -45,12 +46,23 @@ export function BotonAdmitir({
         return
       }
       setEligiendo(false)
-      router.refresh()
+      // Primero la confirmación, luego el refresco: sin esto la página se
+      // recargaba en silencio y parecía que no se había guardado.
+      setGuardado(true)
+      setTimeout(() => router.refresh(), 900)
     } catch {
       setError('No pudimos conectarnos')
     } finally {
       setCargando(false)
     }
+  }
+
+  if (guardado) {
+    return (
+      <span className="guardado" role="status">
+        ✓ Guardado
+      </span>
+    )
   }
 
   if (yaAdmitida) {

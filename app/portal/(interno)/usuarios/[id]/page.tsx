@@ -22,6 +22,7 @@ const ROL: Record<string, string> = {
   ADMIN: 'Administración',
   AGENDADOR: 'Agenda',
   PROFESIONAL: 'Profesional',
+  LECTURA: 'Solo lectura',
 }
 
 export default async function UsuarioPage({ params }: { params: Promise<{ id: string }> }) {

@@ -16,7 +16,7 @@ export type Usuario = {
   id: string
   email: string
   name: string
-  role: 'ADMIN' | 'AGENDADOR' | 'PROFESIONAL'
+  role: 'ADMIN' | 'AGENDADOR' | 'PROFESIONAL' | 'LECTURA'
   mustChangePassword: boolean
   permisos: string[]
 }

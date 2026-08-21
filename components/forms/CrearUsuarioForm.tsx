@@ -11,6 +11,7 @@ const ROLES = [
   { value: 'ADMIN', label: 'Administración' },
   { value: 'AGENDADOR', label: 'Agenda' },
   { value: 'PROFESIONAL', label: 'Profesional' },
+  { value: 'LECTURA', label: 'Solo lectura' },
 ]
 
 export function CrearUsuarioForm() {
