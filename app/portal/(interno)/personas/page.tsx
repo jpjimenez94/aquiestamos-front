@@ -15,6 +15,8 @@ type Persona = {
   availableSlots: string[]
   status: string
   estadoLegible: string
+  priority: string
+  prioridadLegible: string
   createdAt: string
   diasEsperando: number
 }
@@ -78,6 +80,7 @@ export default async function PersonasPage({
                 <th>Ciudad</th>
                 <th>Disponibilidad</th>
                 <th>Esperando</th>
+                <th>Prioridad</th>
                 <th>Estado</th>
                 <th />
               </tr>
@@ -102,6 +105,9 @@ export default async function PersonasPage({
                   <td className="tabla__numero">
                     {p.diasEsperando} {p.diasEsperando === 1 ? 'día' : 'días'}
                     <span className="tabla__secundario">{enBogota(p.createdAt, false)}</span>
+                  </td>
+                  <td>
+                    <Etiqueta estado={p.priority} texto={p.prioridadLegible} />
                   </td>
                   <td>
                     <Etiqueta estado={p.status} texto={p.estadoLegible} />

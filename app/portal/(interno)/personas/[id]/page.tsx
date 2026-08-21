@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
-import { BotonCopiarEnlace } from '@/components/ui/BotonCopiar'
+import { MensajeAlProfesional } from './MensajeAlProfesional'
 
 type Persona = {
   id: string
@@ -21,12 +21,14 @@ type Persona = {
   availableSlots: string[]
   status: string
   estadoLegible: string
+  priority: string
+  prioridadLegible: string
   createdAt: string
   diasEsperando: number
   asignacion: {
     id: string
     desde: string
-    profesional: { id: string; nombre: string }
+    profesional: { id: string; nombre: string; telefono: string }
   } | null
   reportes: Reporte[]
 }
@@ -99,6 +101,9 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               {persona.relationship ? ` (${persona.relationship})` : ''}
             </Dato>
           ) : null}
+          <Dato etiqueta="Prioridad">
+            <Etiqueta estado={persona.priority} texto={persona.prioridadLegible} />
+          </Dato>
           <Dato etiqueta="Recibida">{enBogota(persona.createdAt)}</Dato>
         </div>
       </div>
@@ -115,10 +120,23 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                 {persona.asignacion.profesional.nombre}
               </Link>
             </Dato>
-            <Dato etiqueta="Acceso rápido para el profesional">
-              <BotonCopiarEnlace ruta={`/portal/caso/${persona.id}`} etiqueta="Copiar enlace de acceso" />
-            </Dato>
           </div>
+
+          <p className="panel__nota" style={{ marginTop: 18, marginBottom: 8 }}>
+            Mensaje listo para mandarle. Lleva las instrucciones y el enlace por
+            donde tiene que respondernos; los datos de contacto de la persona solo
+            se ven al abrir ese enlace.
+          </p>
+          <MensajeAlProfesional
+            ruta={`/portal/caso/${persona.id}`}
+            telefono={persona.asignacion.profesional.telefono}
+            profesional={persona.asignacion.profesional.nombre}
+            ciudad={persona.city}
+            prioridad={persona.priority}
+            modalidad={persona.preferredModality}
+            dias={persona.availableDays}
+            franjas={persona.availableSlots}
+          />
         </div>
       ) : (
         <PanelEmparejamiento personaId={persona.id} />

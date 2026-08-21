@@ -41,6 +41,10 @@ const TONOS: Record<string, string> = {
   CANCELADA: '',
   NO_ASISTIO: 'rojo',
   REPROGRAMADA: '',
+  // Prioridad del caso
+  ALTA: 'rojo',
+  MEDIA: 'ambar',
+  BAJA: '',
   // Formularios
   EN_REVISION: 'azul',
   CONTACTADO: 'azul',

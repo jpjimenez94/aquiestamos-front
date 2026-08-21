@@ -845,3 +845,88 @@ body.sin-desplazamiento {
   font-style: normal;
   font-weight: 600;
 }
+
+/* ---------- Elegir prioridad al admitir ---------- */
+
+.admitir {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.admitir__pregunta {
+  font-size: 0.76rem;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+.admitir__opciones {
+  display: flex;
+  gap: 6px;
+}
+
+/* El color dice la urgencia antes que la palabra. */
+.boton-mini[data-prioridad='ALTA'] {
+  border-color: var(--color-red);
+  color: var(--color-red);
+}
+
+.boton-mini[data-prioridad='ALTA']:hover:not(:disabled) {
+  background-color: #fbeceb;
+}
+
+.boton-mini[data-prioridad='MEDIA'] {
+  border-color: #b98a1f;
+  color: #7a5410;
+}
+
+.boton-mini[data-prioridad='MEDIA']:hover:not(:disabled) {
+  background-color: #f8ecd6;
+}
+
+.admitir__cancelar {
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.76rem;
+  color: var(--color-text-light);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* ---------- Mensaje para el profesional ---------- */
+
+.mensaje__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.mensaje__ver {
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* El texto se muestra tal cual se va a enviar: los saltos de línea son parte
+   del mensaje, así que se respetan. */
+.mensaje__texto {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background-color: var(--color-bg-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+}
