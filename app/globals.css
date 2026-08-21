@@ -209,7 +209,9 @@ img {
    crisis y no puede competir en igualdad con "Recursos". Usa los tokens de
    botón del diseño original (crema sobre el azul de la barra). */
 .navbar__link[data-cta] {
-  background-color: var(--navbar-button-background-color);
+  /* Blanco puro y no el crema del token: sobre el azul de la barra es el
+     punto de mayor contraste posible de toda la página. */
+  background-color: #ffffff;
   color: var(--navbar-button-text-color);
   font-weight: 600;
   border-radius: 999px;
@@ -219,7 +221,7 @@ img {
 
 .navbar__link[data-cta]:hover,
 .navbar__link[data-cta][data-active="true"] {
-  background-color: #fff6eb;
+  background-color: var(--color-bg-default);
 }
 
 .navbar__toggle {
@@ -276,7 +278,7 @@ img {
 }
 
 .navbar__sheet-link[data-cta] {
-  background-color: var(--navbar-button-background-color);
+  background-color: #ffffff;
   color: var(--navbar-button-text-color);
   border-radius: 12px;
   margin: 10px 0;
