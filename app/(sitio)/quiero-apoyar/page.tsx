@@ -7,7 +7,7 @@ import { CollaboratorForm } from '@/components/forms/CollaboratorForm'
 import { whatsappHref } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Quiero apoyar',
+  title: 'Quiero ser voluntario general',
   description:
     'Súmate al voluntariado de la red desde tu disciplina: salud, logística, derecho, comunicación, gestión y más.',
 }
@@ -18,8 +18,8 @@ export default function QuieroApoyarPage() {
       <PageHeader
         cover="/images/cover-ser-parte.png"
         icon="sun"
-        title="Quiero apoyar"
-        crumbs={[{ href: '/quiero-apoyar', label: 'Quiero apoyar' }]}
+        title="Quiero ser voluntario general"
+        crumbs={[{ href: '/quiero-apoyar', label: 'Quiero ser voluntario general' }]}
       >
         <p>
           Una emergencia no se atiende solo desde la psicología. Súmate desde lo que
@@ -43,7 +43,7 @@ export default function QuieroApoyarPage() {
           <p>
             Si eres profesional de psicología, psiquiatría o trabajo social y quieres
             acompañar a personas en crisis, el formulario que te corresponde es{' '}
-            <a href="/quiero-ser-parte">Quiero ser parte</a>.
+            <a href="/quiero-ser-parte">Quiero dar apoyo psicológico</a>.
           </p>
         </Callout>
 

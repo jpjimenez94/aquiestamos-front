@@ -8,7 +8,7 @@ import { VolunteerForm } from '@/components/forms/VolunteerForm'
 import { whatsappHref } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Quiero ser parte',
+  title: 'Quiero dar apoyo psicológico',
   description:
     'Haz parte de nuestra red de profesionales y construyamos más posibilidades de acompañamiento.',
 }
@@ -19,8 +19,8 @@ export default function QuieroSerPartePage() {
       <PageHeader
         cover="/images/cover-ser-parte.png"
         icon="sun"
-        title="Quiero ser parte"
-        crumbs={[{ href: '/quiero-ser-parte', label: 'Quiero ser parte' }]}
+        title="Quiero dar apoyo psicológico"
+        crumbs={[{ href: '/quiero-ser-parte', label: 'Quiero dar apoyo psicológico' }]}
       >
         <p>
           Haz parte de nuestra red de profesionales y construyamos más posibilidades de

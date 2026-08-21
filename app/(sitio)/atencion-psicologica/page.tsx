@@ -8,7 +8,7 @@ import { SupportRequestForm } from '@/components/forms/SupportRequestForm'
 import { site, whatsappHref } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Atención Psicológica',
+  title: 'Necesito ayuda',
   description: 'Déjanos tus datos y pronto te contactaremos.',
 }
 
@@ -18,8 +18,8 @@ export default function AtencionPsicologicaPage() {
       <PageHeader
         cover="/images/cover-atencion.png"
         icon="arrow-right-blue"
-        title="Atención Psicológica"
-        crumbs={[{ href: '/atencion-psicologica', label: 'Atención Psicológica' }]}
+        title="Necesito ayuda"
+        crumbs={[{ href: '/atencion-psicologica', label: 'Necesito ayuda' }]}
       >
         <p>Déjanos tus datos y pronto te contactaremos</p>
       </PageHeader>

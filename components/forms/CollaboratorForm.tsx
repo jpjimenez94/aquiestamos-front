@@ -166,16 +166,27 @@ export function CollaboratorForm() {
 
   const vaPresencial = form.modality === 'PRESENCIAL' || form.modality === 'AMBAS'
   const marcoOtraDisciplina = form.discipline === 'Otra'
-  const disciplinas = form.area ? DISCIPLINAS[form.area] : undefined
+  const disciplinas = form.area && form.area !== 'OTRA' ? DISCIPLINAS[form.area] : undefined
 
   function update<K extends keyof typeof VACIO>(key: K, value: (typeof VACIO)[K]) {
     setForm((current) => ({ ...current, [key]: value }))
     clearError(key as string)
   }
 
-  /** Cambiar de área invalida la disciplina que se hubiera elegido antes. */
+  /**
+   * Cambiar de área invalida la disciplina que se hubiera elegido antes.
+   *
+   * "Otra área" es especial: su única disciplina es "Otra", así que mostrarle
+   * ese radio era obligar a un clic sin decisión. Se fija sola y se pasa
+   * directo a preguntar cuál.
+   */
   function cambiarArea(value: string) {
-    setForm((current) => ({ ...current, area: value, discipline: '', disciplineOther: '' }))
+    setForm((current) => ({
+      ...current,
+      area: value,
+      discipline: value === 'OTRA' ? 'Otra' : '',
+      disciplineOther: '',
+    }))
     clearError('area')
     clearError('discipline')
   }
@@ -336,7 +347,7 @@ export function CollaboratorForm() {
 
         {marcoOtraDisciplina ? (
           <TextField
-            label="¿Cuál?"
+            label={form.area === 'OTRA' ? '¿Cuál es tu oficio o profesión?' : '¿Cuál?'}
             name="disciplineOther"
             required
             value={form.disciplineOther}

@@ -258,6 +258,19 @@ img {
   font-weight: 500;
 }
 
+/* La aclaración de cada opción del menú: quién es esa puerta. */
+.navbar__sheet-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--navbar-text-color);
+  opacity: 0.65;
+}
+
+
 .navbar__sheet-link:hover {
   background-color: var(--navbar-list-item-hover);
 }

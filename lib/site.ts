@@ -18,32 +18,50 @@ export const site = {
 
 export const whatsappHref = `https://wa.me/${site.whatsappNumber}`
 
+/**
+ * Los nombres dicen qué viene a hacer la persona, no cómo se llama el módulo:
+ * "Necesito ayuda" se entiende en crisis; "Atención Psicológica" es lenguaje
+ * de quien opera. La aclaración entre paréntesis sale en el menú desplegable,
+ * donde hay espacio; en la barra de escritorio iría apretada.
+ */
 export const navLinks = [
-  { href: '/quiero-ser-parte', label: 'Quiero ser parte' },
-  { href: '/quiero-apoyar', label: 'Quiero apoyar' },
-  { href: '/atencion-psicologica', label: 'Atención Psicológica' },
+  {
+    href: '/quiero-ser-parte',
+    label: 'Quiero dar apoyo psicológico',
+    sublabel: '(Graduados o estudiantes de últimos semestres)',
+  },
+  {
+    href: '/quiero-apoyar',
+    label: 'Quiero ser voluntario general',
+    sublabel: '(Abogados, administrativos, logística, diseño, etc.)',
+  },
+  {
+    href: '/atencion-psicologica',
+    label: 'Necesito ayuda',
+    sublabel: '(Solicitar apoyo emocional y atención psicológica)',
+  },
   { href: '/recursos', label: 'Recursos' },
 ] as const
 
 export const homeCards = [
   {
     href: '/quiero-ser-parte',
-    title: 'Quiero ser parte',
-    text: 'Haz parte de nuestra red de profesionales y construyamos más posibilidades de acompañamiento.',
+    title: 'Quiero dar apoyo psicológico',
+    text: 'Para graduados o estudiantes de últimos semestres de psicología que quieran acompañar.',
     image: '/images/card-ser-parte.png',
     icon: 'sun',
   },
   {
     href: '/quiero-apoyar',
-    title: 'Quiero apoyar',
-    text: 'Una emergencia no se atiende solo desde la psicología. Súmate desde lo que sabes hacer.',
+    title: 'Quiero ser voluntario general',
+    text: 'Abogados, administrativos, logística, diseño y más: súmate desde lo que sabes hacer.',
     image: '/images/card-ser-parte.png',
     icon: 'sun',
   },
   {
     href: '/atencion-psicologica',
-    title: 'Atención Psicológica',
-    text: 'Encuentra profesionales de la salud mental que te acompañen.',
+    title: 'Necesito ayuda',
+    text: 'Solicita apoyo emocional y atención psicológica: te acompañamos.',
     image: '/images/card-atencion.png',
     icon: 'arrow-right-blue',
   },

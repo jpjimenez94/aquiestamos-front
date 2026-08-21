@@ -73,6 +73,9 @@ export function Navbar() {
                 {navLinks.map((link) => (
                   <Link key={link.href} className="navbar__sheet-link" href={link.href}>
                     {link.label}
+                    {'sublabel' in link ? (
+                      <span className="navbar__sheet-sub">{link.sublabel}</span>
+                    ) : null}
                   </Link>
                 ))}
               </nav>
