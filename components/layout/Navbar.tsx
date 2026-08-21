@@ -37,6 +37,7 @@ export function Navbar() {
               <li key={link.href}>
                 <Link
                   className="navbar__link"
+                  data-cta={'cta' in link || undefined}
                   href={link.href}
                   data-active={pathname === link.href}
                 >
@@ -71,7 +72,12 @@ export function Navbar() {
 
               <nav aria-label="Navegación móvil">
                 {navLinks.map((link) => (
-                  <Link key={link.href} className="navbar__sheet-link" href={link.href}>
+                  <Link
+                    key={link.href}
+                    className="navbar__sheet-link"
+                    data-cta={'cta' in link || undefined}
+                    href={link.href}
+                  >
                     {link.label}
                     {'sublabel' in link ? (
                       <span className="navbar__sheet-sub">{link.sublabel}</span>

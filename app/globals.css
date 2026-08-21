@@ -205,6 +205,23 @@ img {
   background-color: var(--navbar-list-item-hover);
 }
 
+/* "Necesito ayuda" va como botón relleno: es la puerta para quien está en
+   crisis y no puede competir en igualdad con "Recursos". Usa los tokens de
+   botón del diseño original (crema sobre el azul de la barra). */
+.navbar__link[data-cta] {
+  background-color: var(--navbar-button-background-color);
+  color: var(--navbar-button-text-color);
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 9px 18px;
+  margin-left: 6px;
+}
+
+.navbar__link[data-cta]:hover,
+.navbar__link[data-cta][data-active="true"] {
+  background-color: #fff6eb;
+}
+
 .navbar__toggle {
   display: none;
   background: none;
@@ -256,6 +273,18 @@ img {
   border-radius: 10px;
   font-size: 1rem;
   font-weight: 500;
+}
+
+.navbar__sheet-link[data-cta] {
+  background-color: var(--navbar-button-background-color);
+  color: var(--navbar-button-text-color);
+  border-radius: 12px;
+  margin: 10px 0;
+}
+
+.navbar__sheet-link[data-cta] .navbar__sheet-sub {
+  color: var(--navbar-button-text-color);
+  opacity: 0.75;
 }
 
 /* La aclaración de cada opción del menú: quién es esa puerta. */

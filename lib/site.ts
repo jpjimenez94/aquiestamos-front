@@ -39,6 +39,9 @@ export const navLinks = [
     href: '/atencion-psicologica',
     label: 'Necesito ayuda',
     sublabel: '(Solicitar apoyo emocional y atención psicológica)',
+    // La puerta para quien está en crisis no puede verse igual que "Recursos":
+    // va como botón relleno, con los tokens de botón que el diseño ya traía.
+    cta: true,
   },
   { href: '/recursos', label: 'Recursos' },
 ] as const
