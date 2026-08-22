@@ -1,16 +1,21 @@
 import Link from 'next/link'
 import { portalFetch } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
+import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 
 export const metadata = { title: 'Profesionales' }
 
 type Profesional = {
   id: string
   fullName: string
+  phone?: string
   profession: string
   city: string
   modality: string
   populations: string[]
+  professionalCardVerified?: boolean
+  professionalCardNumber?: string | null
+  professionalCardDocumentUrl?: string | null
   status: string
   estadoLegible: string
   maxActiveCases: number
@@ -25,13 +30,13 @@ export default async function ProfesionalesPage() {
     <>
       <Cabecera
         titulo="Profesionales de la red"
-        descripcion="La carga se calcula contando acompañamientos activos: nunca se guarda en un campo, así no se desincroniza."
+        descripcion="Voluntarios habilitados para acompañamiento psicológico y estado de validación legal de su tarjeta profesional."
       />
 
       {!respuesta.success ? (
         <Vacio>{respuesta.message ?? 'No pudimos cargar los profesionales.'}</Vacio>
       ) : profesionales.length === 0 ? (
-        <Vacio>Todavía no hay profesionales. Aprueba una postulación para empezar.</Vacio>
+        <Vacio>Todavía no hay profesionales registrados.</Vacio>
       ) : (
         <div className="tabla-envoltorio">
           <table className="tabla">
@@ -41,6 +46,7 @@ export default async function ProfesionalesPage() {
                 <th>Poblaciones</th>
                 <th>Modalidad</th>
                 <th>Carga</th>
+                <th>Tarjeta Profesional</th>
                 <th>Estado</th>
                 <th />
               </tr>
@@ -49,7 +55,9 @@ export default async function ProfesionalesPage() {
               {profesionales.map((p) => (
                 <tr key={p.id}>
                   <td>
-                    <span className="tabla__principal">{p.fullName}</span>
+                    <Link href={`/portal/profesionales/${p.id}`} className="tabla__principal">
+                      {p.fullName}
+                    </Link>
                     <span className="tabla__secundario">
                       {p.profession} · {p.city}
                     </span>
@@ -58,7 +66,7 @@ export default async function ProfesionalesPage() {
                     {p.populations?.slice(0, 3).join(', ') || '—'}
                     {p.populations?.length > 3 ? '…' : ''}
                   </td>
-                  <td>{p.modality.toLowerCase()}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{p.modality.toLowerCase()}</td>
                   <td className="tabla__numero">
                     {p.carga} / {p.maxActiveCases}
                     {p.carga >= p.maxActiveCases ? (
@@ -66,6 +74,16 @@ export default async function ProfesionalesPage() {
                         sin cupo
                       </span>
                     ) : null}
+                  </td>
+                  <td>
+                    <BotonVerificarTarjeta
+                      profesionalId={p.id}
+                      profesionalNombre={p.fullName}
+                      profesionalTelefono={p.phone}
+                      verificada={p.professionalCardVerified}
+                      numero={p.professionalCardNumber}
+                      documentoUrl={p.professionalCardDocumentUrl}
+                    />
                   </td>
                   <td>
                     <Etiqueta estado={p.status} texto={p.estadoLegible} />

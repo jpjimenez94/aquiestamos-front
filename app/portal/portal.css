@@ -973,3 +973,280 @@ body.sin-desplazamiento {
   opacity: 1;
   cursor: pointer;
 }
+
+/* ---------- Modales del Portal ---------- */
+
+.modal-telon {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-caja {
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border-default, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.boton-icono {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #64748b);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boton-icono:hover {
+  background-color: var(--color-bg-hover, #f1f5f9);
+  color: var(--color-text-default, #0f172a);
+}
+
+/* ---------- Selector de Pestañas de Agenda ---------- */
+
+.pestanas-agenda {
+  display: flex;
+  gap: 4px;
+  background-color: var(--color-bg-subtle, #f1f5f9);
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-border-default, #e2e8f0);
+}
+
+.pestana-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #64748b);
+  border-radius: 7px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pestana-boton:hover {
+  color: var(--color-text-default, #0f172a);
+}
+
+.pestana-boton[data-activo='true'] {
+  background-color: var(--color-bg-surface, #ffffff);
+  color: var(--color-principal, #0e7490);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Grid de Métricas (KPIs) ---------- */
+
+.metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.metrica-card {
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border-default, #e2e8f0);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metrica-card__titulo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary, #64748b);
+}
+
+.metrica-card__valor {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text-default, #0f172a);
+}
+
+.metrica-card__sub {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
+/* ---------- Pipeline / Tablero de Casos ---------- */
+
+.pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.pipeline-columna {
+  background-color: var(--color-bg-subtle, #f8fafc);
+  border: 1px solid var(--color-border-default, #e2e8f0);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 200px;
+}
+
+.pipeline-columna__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-default, #e2e8f0);
+}
+
+.pipeline-columna__titulo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pipeline-columna__contador {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border-default, #e2e8f0);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.pipeline-card {
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border-default, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.pipeline-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Modal de Confirmación de Eliminación ---------- */
+
+.modal-eliminar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.modal-eliminar {
+  background: var(--color-bg-default);
+  border-radius: 12px;
+  border: 1px solid var(--color-border-default, #e2e8f0);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  padding: 28px 32px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.modal-eliminar__icono {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fef2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.modal-eliminar__titulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-default, #0f172a);
+  margin: 0;
+}
+
+.modal-eliminar__cuerpo {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary, #475569);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.modal-eliminar__error {
+  font-size: 0.83rem;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.modal-eliminar__acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* Variante de color peligro para botones */
+.boton-mini[data-tono="peligro"] {
+  background: #dc2626;
+  color: #fff;
+  border-color: #b91c1c;
+}
+
+.boton-mini[data-tono="peligro"]:hover:not(:disabled) {
+  background: #b91c1c;
+}

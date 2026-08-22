@@ -2,12 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ModalConsentimiento } from '@/components/portal/ModalConsentimiento'
+import { ModalReprogramar } from '@/components/portal/ModalReprogramar'
+import { ModalTarjetaProfesional } from '@/components/portal/ModalTarjetaProfesional'
+import { CalendarClock, FileCheck2, ShieldCheck } from 'lucide-react'
 
 const ETIQUETA: Record<string, string> = {
-  CONFIRMADA: 'Confirmar',
-  REALIZADA: 'Marcar como realizada',
-  NO_ASISTIO: 'Marcar que no asistió',
-  CANCELADA: 'Cancelar',
+  CONFIRMADA: 'Confirmar Cita',
+  REALIZADA: 'Marcar como Realizada',
+  NO_ASISTIO: 'Marcar que No Asistió',
+  CANCELADA: 'Cancelar Cita',
   REPROGRAMADA: 'Reprogramar',
 }
 
@@ -15,16 +19,39 @@ export function AccionesCita({
   citaId,
   estado,
   siguientesEstados,
+  profesionalId,
+  profesionalNombre,
+  profesionalVerificado,
+  profesionalTarjetaNumero,
+  profesionalDocumentoUrl,
+  pacienteNombre,
+  modalidad,
+  consentSigned,
+  consentSignedDocumentUrl,
 }: {
   citaId: string
   estado: string
   siguientesEstados: string[]
+  profesionalId: string
+  profesionalNombre: string
+  profesionalVerificado: boolean
+  profesionalTarjetaNumero?: string
+  profesionalDocumentoUrl?: string
+  pacienteNombre: string
+  modalidad: string
+  consentSigned: boolean
+  consentSignedDocumentUrl?: string
 }) {
   const router = useRouter()
   const [cargando, setCargando] = useState<string | null>(null)
   const [motivo, setMotivo] = useState('')
   const [pidiendoMotivo, setPidiendoMotivo] = useState(false)
   const [aviso, setAviso] = useState<{ tono: string; texto: string } | null>(null)
+
+  // Modales
+  const [modalConsentimientoAbierto, setModalConsentimientoAbierto] = useState(false)
+  const [modalReprogramarAbierto, setModalReprogramarAbierto] = useState(false)
+  const [modalTarjetaAbierto, setModalTarjetaAbierto] = useState(false)
 
   async function cambiar(nuevo: string, motivoTexto?: string) {
     setCargando(nuevo)
@@ -54,82 +81,147 @@ export function AccionesCita({
 
   const posibles = siguientesEstados.filter((e) => e !== 'REPROGRAMADA')
 
-  if (posibles.length === 0) {
-    return (
-      <div className="panel">
-        <h2>Acciones</h2>
-        <p className="panel__nota">
-          Una cita {estado.toLowerCase()} ya no se puede cambiar. Queda así en el historial.
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="panel">
-      <h2>Acciones</h2>
-      <p className="panel__nota">
-        Cancelar libera la franja de inmediato, incluido el descanso.
-      </p>
+    <>
+      <div className="panel">
+        <h2>Acciones y Gestión de la Cita</h2>
+        <p className="panel__nota">
+          Gestiona el estado de la cita, registra requisitos legales o reprograma la sesión.
+        </p>
 
-      {aviso ? (
-        <div className="aviso-portal" data-tono={aviso.tono}>
-          {aviso.texto}
-        </div>
-      ) : null}
-
-      {pidiendoMotivo ? (
-        <div style={{ marginBottom: 14 }}>
-          <label className="field__label" htmlFor="motivo-cancelacion">
-            ¿Por qué se cancela?
-          </label>
-          <input
-            id="motivo-cancelacion"
-            className="input"
-            value={motivo}
-            placeholder="Ej. la persona pidió moverla"
-            onChange={(e) => setMotivo(e.target.value)}
-          />
-          <div className="button-row" style={{ marginTop: 10 }}>
-            <button
-              className="boton-mini"
-              data-tono="peligro"
-              disabled={!motivo.trim() || cargando !== null}
-              onClick={() => cambiar('CANCELADA', motivo.trim())}
-            >
-              {cargando ? 'Cancelando…' : 'Confirmar cancelación'}
-            </button>
-            <button className="boton-mini" onClick={() => setPidiendoMotivo(false)}>
-              Volver
-            </button>
+        {aviso ? (
+          <div className="aviso-portal" data-tono={aviso.tono}>
+            {aviso.texto}
           </div>
+        ) : null}
+
+        {/* Botones de Gestión Especiales */}
+        <div className="button-row" style={{ marginBottom: 16, borderBottom: '1px solid var(--color-border-default, #e2e8f0)', paddingBottom: 16 }}>
+          <button
+            type="button"
+            className="boton-mini"
+            data-tono="principal"
+            onClick={() => setModalConsentimientoAbierto(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <FileCheck2 size={15} />
+            {consentSigned ? 'Ver / Editar Consentimiento' : 'Registrar Consentimiento Firmado'}
+          </button>
+
+          <button
+            type="button"
+            className="boton-mini"
+            onClick={() => setModalTarjetaAbierto(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <ShieldCheck size={15} />
+            {profesionalVerificado ? 'Ver Tarjeta Profesional' : 'Verificar Tarjeta Profesional'}
+          </button>
+
+          {estado !== 'CANCELADA' && estado !== 'REALIZADA' && (
+            <button
+              type="button"
+              className="boton-mini"
+              onClick={() => setModalReprogramarAbierto(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <CalendarClock size={15} />
+              Reprogramar Cita
+            </button>
+          )}
         </div>
-      ) : (
-        <div className="button-row">
-          {posibles.map((siguiente) =>
-            siguiente === 'CANCELADA' ? (
+
+        {/* Transiciones de Estado */}
+        {posibles.length === 0 ? (
+          <p className="panel__nota" style={{ margin: 0 }}>
+            Esta cita está en estado <strong>{estado.toLowerCase()}</strong> y ya no se pueden aplicar cambios de estado adicionales.
+          </p>
+        ) : pidiendoMotivo ? (
+          <div style={{ marginBottom: 14 }}>
+            <label className="field__label" htmlFor="motivo-cancelacion">
+              ¿Por qué se cancela la cita?
+            </label>
+            <input
+              id="motivo-cancelacion"
+              className="input"
+              value={motivo}
+              placeholder="Ej. La persona solicitó cancelación o no puede asistir"
+              onChange={(e) => setMotivo(e.target.value)}
+            />
+            <div className="button-row" style={{ marginTop: 10 }}>
               <button
                 className="boton-mini"
                 data-tono="peligro"
-                key={siguiente}
-                onClick={() => setPidiendoMotivo(true)}
+                disabled={!motivo.trim() || cargando !== null}
+                onClick={() => cambiar('CANCELADA', motivo.trim())}
+                type="button"
               >
-                Cancelar
+                {cargando ? 'Cancelando…' : 'Confirmar cancelación'}
               </button>
-            ) : (
-              <button
-                className="boton-mini"
-                data-tono={siguiente === 'CONFIRMADA' ? 'principal' : undefined}
-                key={siguiente}
-                disabled={cargando !== null}
-                onClick={() => cambiar(siguiente)}
-              >
-                {cargando === siguiente ? 'Guardando…' : (ETIQUETA[siguiente] ?? siguiente)}
+              <button className="boton-mini" onClick={() => setPidiendoMotivo(false)} type="button">
+                Volver
               </button>
-            ),
-          )}
-        </div>
-      )}
-    </div>
+            </div>
+          </div>
+        ) : (
+          <div className="button-row">
+            {posibles.map((siguiente) =>
+              siguiente === 'CANCELADA' ? (
+                <button
+                  className="boton-mini"
+                  data-tono="peligro"
+                  key={siguiente}
+                  onClick={() => setPidiendoMotivo(true)}
+                  type="button"
+                >
+                  Cancelar Cita
+                </button>
+              ) : (
+                <button
+                  className="boton-mini"
+                  data-tono={siguiente === 'CONFIRMADA' ? 'principal' : undefined}
+                  key={siguiente}
+                  disabled={cargando !== null}
+                  onClick={() => cambiar(siguiente)}
+                  type="button"
+                >
+                  {cargando === siguiente ? 'Guardando…' : (ETIQUETA[siguiente] ?? siguiente)}
+                </button>
+              ),
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Modales */}
+      <ModalConsentimiento
+        citaId={citaId}
+        pacienteNombre={pacienteNombre}
+        consentSignedActual={consentSigned}
+        consentSignedDocumentUrlActual={consentSignedDocumentUrl}
+        abierto={modalConsentimientoAbierto}
+        onCerrar={() => setModalConsentimientoAbierto(false)}
+      />
+
+      <ModalReprogramar
+        citaId={citaId}
+        profesionalId={profesionalId}
+        profesionalNombre={profesionalNombre}
+        pacienteNombre={pacienteNombre}
+        modalidadActual={modalidad}
+        abierto={modalReprogramarAbierto}
+        onCerrar={() => setModalReprogramarAbierto(false)}
+      />
+
+      <ModalTarjetaProfesional
+        profesionalId={profesionalId}
+        profesionalNombre={profesionalNombre}
+        numeroActual={profesionalTarjetaNumero}
+        documentoUrlActual={profesionalDocumentoUrl}
+        verificadaActual={profesionalVerificado}
+        abierto={modalTarjetaAbierto}
+        onCerrar={() => setModalTarjetaAbierto(false)}
+      />
+    </>
   )
 }

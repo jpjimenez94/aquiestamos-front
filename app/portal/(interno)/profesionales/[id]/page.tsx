@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { EditorDisponibilidad } from './EditorDisponibilidad'
+import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
 
 type Profesional = {
   id: string
@@ -14,6 +15,9 @@ type Profesional = {
   modality: string
   populations: string[]
   travelsTo?: string | null
+  professionalCardNumber?: string | null
+  professionalCardDocumentUrl?: string | null
+  professionalCardVerified?: boolean
   status: string
   estadoLegible: string
   maxActiveCases: number
@@ -77,6 +81,15 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
           {p.notes ? <Dato etiqueta="Notas internas">{p.notes}</Dato> : null}
         </div>
       </div>
+
+      <SeccionTarjetaProfesional
+        profesionalId={p.id}
+        profesionalNombre={p.fullName}
+        profesionalTelefono={p.phone}
+        verificada={p.professionalCardVerified}
+        numero={p.professionalCardNumber}
+        documentoUrl={p.professionalCardDocumentUrl}
+      />
 
       <div className="panel">
         <h2>Acompañamientos activos</h2>

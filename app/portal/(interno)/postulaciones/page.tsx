@@ -1,6 +1,7 @@
 import { portalFetch, enBogota } from '@/lib/portal'
+import Link from 'next/link'
 import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
-import { BotonAprobar } from './BotonAprobar'
+import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 
 export const metadata = { title: 'Postulaciones' }
 
@@ -17,6 +18,11 @@ type Postulacion = {
   availableDays: string[]
   status: string
   createdAt: string
+  /** ID del profesional creado si ya fue aprobado (auto-aprobación) */
+  professionalId?: string | null
+  professionalCardVerified?: boolean
+  professionalCardNumber?: string | null
+  professionalCardDocumentUrl?: string | null
 }
 
 const EXPERIENCIA: Record<string, string> = {
@@ -45,7 +51,7 @@ export default async function PostulacionesPage({
     <>
       <Cabecera
         titulo="Postulaciones de profesionales"
-        descripcion="Aprobar una crea su ficha y convierte los días y franjas que marcó en su disponibilidad inicial."
+        descripcion="Registro histórico de postulaciones recibidas. Los psicólogos se aprueban automáticamente al enviar el formulario y su tarjeta profesional puede ser validada aquí."
       />
 
       {!respuesta.success ? (
@@ -66,6 +72,7 @@ export default async function PostulacionesPage({
                 <th>Experiencia</th>
                 <th>Modalidad</th>
                 <th>Recibida</th>
+                <th>Tarjeta Profesional</th>
                 <th>Estado</th>
                 <th />
               </tr>
@@ -87,13 +94,33 @@ export default async function PostulacionesPage({
                     </span>
                   </td>
                   <td>{EXPERIENCIA[p.yearsExperience ?? ''] ?? '—'}</td>
-                  <td>{p.modality}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{p.modality.toLowerCase()}</td>
                   <td className="tabla__numero">{enBogota(p.createdAt, false)}</td>
+                  <td>
+                    {p.professionalId ? (
+                      <BotonVerificarTarjeta
+                        profesionalId={p.professionalId}
+                        profesionalNombre={p.fullName}
+                        profesionalTelefono={p.phone}
+                        verificada={p.professionalCardVerified}
+                        numero={p.professionalCardNumber}
+                        documentoUrl={p.professionalCardDocumentUrl}
+                      />
+                    ) : (
+                      <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                        —
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <Etiqueta estado={p.status} />
                   </td>
                   <td className="tabla__acciones">
-                    <BotonAprobar volunteerId={p.id} yaAprobada={p.status === 'ACTIVO'} />
+                    {p.professionalId ? (
+                      <Link className="boton-mini" href={`/portal/profesionales/${p.professionalId}`}>
+                        Ver ficha
+                      </Link>
+                    ) : null}
                   </td>
                 </tr>
               ))}

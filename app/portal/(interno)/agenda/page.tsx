@@ -1,23 +1,99 @@
 import Link from 'next/link'
-import { portalFetch, soloHora } from '@/lib/portal'
-import { Cabecera, Vacio } from '../componentes'
+import { portalFetch, soloHora, enBogota } from '@/lib/portal'
+import { Cabecera, Etiqueta, Vacio } from '../componentes'
+import { BotonExportarCSV } from '@/components/portal/BotonExportarCSV'
+import {
+  LayoutGrid,
+  CalendarDays,
+  History,
+  ShieldCheck,
+  ShieldAlert,
+  FileCheck2,
+  FileClock,
+  UserCheck,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-react'
 
-export const metadata = { title: 'Agenda' }
+export const metadata = { title: 'Agenda y Gestión de Casos' }
 
 type Cita = {
   id: string
   inicio: string
   fin: string
+  inicioLocal: string
+  finLocal: string
   estado: string
   estadoLegible: string
   modalidad: string
-  profesional: { id: string; nombre?: string }
-  paciente: { id: string; nombre?: string }
+  consentSigned?: boolean
+  consentSignedDocumentUrl?: string | null
+  motivoCancelacion?: string | null
+  profesional: { id: string; nombre?: string; telefono?: string }
+  paciente: { id: string; nombre?: string; telefono?: string; esMenor?: boolean }
+}
+
+type HistorialRespuesta = {
+  data: Cita[]
+  metricas?: {
+    total: number
+    realizadas: number
+    confirmadas: number
+    programadas: number
+    canceladas: number
+    noAsistio: number
+    tasaAsistencia: number
+  }
+}
+
+type Paciente = {
+  id: string
+  fullName: string
+  city: string
+  status: string
+  estadoLegible?: string
+  priority: string
+  prioridadLegible?: string
+  isMinor: boolean
+  createdAt: string
+  diasEsperando: number
+  asignacion: {
+    id: string
+    desde: string
+    profesional: {
+      id: string
+      nombre: string
+      professionalCardVerified?: boolean
+      professionalCardNumber?: string
+      professionalCardDocumentUrl?: string
+    }
+  } | null
+}
+
+const PRIORIDAD_LABEL: Record<string, string> = {
+  ALTA: 'Alta', MEDIA: 'Media', BAJA: 'Baja',
+}
+
+const ESTADO_PACIENTE_LABEL: Record<string, string> = {
+  NUEVO: 'Nuevo',
+  EN_ADMISION: 'En admisión',
+  ASIGNADO: 'Asignado',
+  EN_ACOMPANAMIENTO: 'En acompañamiento',
+  CERRADO: 'Cerrado',
+}
+
+const ESTADO_CITA_LABEL: Record<string, string> = {
+  PROGRAMADA: 'Programada',
+  CONFIRMADA: 'Confirmada',
+  REALIZADA: 'Realizada',
+  CANCELADA: 'Cancelada',
+  NO_ASISTIO: 'No asistió',
+  REPROGRAMADA: 'Reprogramada',
 }
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
-/** El lunes de la semana que contiene esa fecha, en hora local del servidor. */
 function lunesDe(fecha: Date) {
   const d = new Date(fecha)
   const dia = (d.getDay() + 6) % 7
@@ -38,94 +114,514 @@ function claveDia(fecha: Date | string) {
 export default async function AgendaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ semana?: string }>
+  searchParams: Promise<{
+    vista?: string
+    semana?: string
+    estado?: string
+    q?: string
+    desde?: string
+    hasta?: string
+  }>
 }) {
-  const { semana } = await searchParams
-  const referencia = semana ? new Date(`${semana}T12:00:00`) : new Date()
-  const lunes = lunesDe(Number.isNaN(referencia.getTime()) ? new Date() : referencia)
-  const domingo = new Date(lunes)
-  domingo.setDate(domingo.getDate() + 7)
+  const params = await searchParams
+  const vista = params.vista || 'tablero' // 'tablero' | 'semana' | 'historial'
 
-  const respuesta = await portalFetch<Cita[]>(
-    `/appointments?desde=${lunes.toISOString()}&hasta=${domingo.toISOString()}`,
-  )
-  const citas = respuesta.data ?? []
+  // --- Vista 1: Tablero de Casos (Pipeline de Gestión) ---
+  if (vista === 'tablero') {
+    const tableroRes = await portalFetch<{
+      porAsignar: Paciente[]
+      enVerificacionTP: Paciente[]
+      listasParaAgendar: Paciente[]
+      citasAbiertas: Cita[]
+      enAcompanamiento: Paciente[]
+    }>('/dashboard/tablero')
 
-  const porDia = new Map<string, Cita[]>()
-  for (const cita of citas) {
-    const clave = claveDia(cita.inicio)
-    porDia.set(clave, [...(porDia.get(clave) ?? []), cita])
+    const porAsignar = tableroRes.data?.porAsignar ?? []
+    const enVerificacion = tableroRes.data?.enVerificacionTP ?? []
+    const listasParaAgendar = tableroRes.data?.listasParaAgendar ?? []
+    const citasAbiertas = tableroRes.data?.citasAbiertas ?? []
+    const enAcompanamiento = tableroRes.data?.enAcompanamiento ?? []
+
+    return (
+      <>
+        <Cabecera
+          titulo="Agenda y Gestión de Casos"
+          descripcion="Flujo integral de remisión, recepción, verificación legal y acompañamiento."
+        />
+
+        <div className="pestanas-agenda">
+          <Link
+            className="pestana-boton"
+            data-activo={true}
+            href="/portal/agenda?vista=tablero"
+          >
+            <LayoutGrid size={16} />
+            Tablero de Casos
+          </Link>
+          <Link
+            className="pestana-boton"
+            data-activo={false}
+            href="/portal/agenda?vista=semana"
+          >
+            <CalendarDays size={16} />
+            Calendario Semanal
+          </Link>
+          <Link
+            className="pestana-boton"
+            data-activo={false}
+            href="/portal/agenda?vista=historial"
+          >
+            <History size={16} />
+            Historial General
+          </Link>
+        </div>
+
+        <div className="pipeline-grid">
+          {/* Columna 1: Por Asignar */}
+          <div className="pipeline-columna">
+            <div className="pipeline-columna__cabecera">
+              <span className="pipeline-columna__titulo">
+                <AlertCircle size={15} style={{ color: '#d97706' }} />
+                1. Por Asignar
+              </span>
+              <span className="pipeline-columna__contador">{porAsignar.length}</span>
+            </div>
+            {porAsignar.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin casos pendientes</span>
+            ) : (
+              porAsignar.map((p) => (
+                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                    <Etiqueta estado={p.priority} texto={PRIORIDAD_LABEL[p.priority] ?? p.priority} />
+                  </div>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    {p.city} · {p.diasEsperando}d en espera
+                  </span>
+                  {p.isMinor && (
+                    <span style={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600 }}>
+                      Menor de edad
+                    </span>
+                  )}
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Columna 2: Asignadas en Verificación */}
+          <div className="pipeline-columna">
+            <div className="pipeline-columna__cabecera">
+              <span className="pipeline-columna__titulo">
+                <ShieldAlert size={15} style={{ color: '#dc2626' }} />
+                2. En Verificación TP
+              </span>
+              <span className="pipeline-columna__contador">{enVerificacion.length}</span>
+            </div>
+            {enVerificacion.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Todos los psicólogos verificados</span>
+            ) : (
+              enVerificacion.map((p) => (
+                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #dc2626' }}>
+                  <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    Psicólogo: <strong>{p.asignacion?.profesional.nombre}</strong>
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#dc2626', fontSize: '0.74rem', fontWeight: 600 }}>
+                    <ShieldAlert size={13} />
+                    Tarjeta Profesional sin verificar
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Columna 3: Listas para Agendar */}
+          <div className="pipeline-columna">
+            <div className="pipeline-columna__cabecera">
+              <span className="pipeline-columna__titulo">
+                <UserCheck size={15} style={{ color: '#0284c7' }} />
+                3. Listas para Agendar
+              </span>
+              <span className="pipeline-columna__contador">{listasParaAgendar.length}</span>
+            </div>
+            {listasParaAgendar.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin casos pendientes de agendar</span>
+            ) : (
+              listasParaAgendar.map((p) => (
+                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #0284c7' }}>
+                  <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    Con: {p.asignacion?.profesional.nombre}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.74rem', fontWeight: 600 }}>
+                    <ShieldCheck size={13} />
+                    Psicólogo verificado
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Columna 4: Citas Abiertas / Programadas */}
+          <div className="pipeline-columna">
+            <div className="pipeline-columna__cabecera">
+              <span className="pipeline-columna__titulo">
+                <Clock size={15} style={{ color: '#7c3aed' }} />
+                4. Citas Abiertas
+              </span>
+              <span className="pipeline-columna__contador">{citasAbiertas.length}</span>
+            </div>
+            {citasAbiertas.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin citas programadas</span>
+            ) : (
+              citasAbiertas.map((c) => (
+                <Link key={c.id} href={`/portal/agenda/${c.id}`} className="pipeline-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>{c.paciente.nombre ?? 'Paciente'}</strong>
+                    <Etiqueta estado={c.estado} texto={ESTADO_CITA_LABEL[c.estado] ?? c.estado} />
+                  </div>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    {enBogota(c.inicio)} · {c.profesional.nombre}
+                  </span>
+                  <div style={{ marginTop: 2 }}>
+                    {c.consentSigned ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.74rem', fontWeight: 600 }}>
+                        <FileCheck2 size={13} /> Consentimiento firmado
+                      </span>
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#d97706', fontSize: '0.74rem', fontWeight: 600 }}>
+                        <FileClock size={13} /> Falta consentimiento
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Columna 5: En Acompañamiento */}
+          <div className="pipeline-columna">
+            <div className="pipeline-columna__cabecera">
+              <span className="pipeline-columna__titulo">
+                <CheckCircle2 size={15} style={{ color: '#059669' }} />
+                5. En Acompañamiento
+              </span>
+              <span className="pipeline-columna__contador">{enAcompanamiento.length}</span>
+            </div>
+            {enAcompanamiento.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin acompañamientos activos</span>
+            ) : (
+              enAcompanamiento.map((p) => (
+                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card">
+                  <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    Psicólogo: {p.asignacion?.profesional.nombre ?? 'Asignado'}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      </>
+    )
   }
 
-  const anterior = new Date(lunes)
-  anterior.setDate(anterior.getDate() - 7)
-  const siguiente = new Date(lunes)
-  siguiente.setDate(siguiente.getDate() + 7)
-  const aParam = (d: Date) => d.toISOString().slice(0, 10)
+  // --- Vista 2: Calendario Semanal ---
+  if (vista === 'semana') {
+    const referencia = params.semana ? new Date(`${params.semana}T12:00:00`) : new Date()
+    const lunes = lunesDe(Number.isNaN(referencia.getTime()) ? new Date() : referencia)
+    const domingo = new Date(lunes)
+    domingo.setDate(domingo.getDate() + 7)
 
-  const hoy = claveDia(new Date())
+    const respuesta = await portalFetch<Cita[]>(
+      `/appointments?desde=${lunes.toISOString()}&hasta=${domingo.toISOString()}`,
+    )
+    const citas = respuesta.data ?? []
+
+    const porDia = new Map<string, Cita[]>()
+    for (const cita of citas) {
+      const clave = claveDia(cita.inicio)
+      porDia.set(clave, [...(porDia.get(clave) ?? []), cita])
+    }
+
+    const anterior = new Date(lunes)
+    anterior.setDate(anterior.getDate() - 7)
+    const siguiente = new Date(lunes)
+    siguiente.setDate(siguiente.getDate() + 7)
+    const aParam = (d: Date) => d.toISOString().slice(0, 10)
+    const hoy = claveDia(new Date())
+
+    return (
+      <>
+        <Cabecera
+          titulo="Agenda de la red"
+          descripcion={`Semana del ${lunes.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}`}
+          acciones={
+            <>
+              <Link className="boton-mini" href={`/portal/agenda?vista=semana&semana=${aParam(anterior)}`}>
+                ← Semana anterior
+              </Link>
+              <Link className="boton-mini" href="/portal/agenda?vista=semana">
+                Esta semana
+              </Link>
+              <Link className="boton-mini" href={`/portal/agenda?vista=semana&semana=${aParam(siguiente)}`}>
+                Semana siguiente →
+              </Link>
+            </>
+          }
+        />
+
+        <div className="pestanas-agenda">
+          <Link className="pestana-boton" data-activo={false} href="/portal/agenda?vista=tablero">
+            <LayoutGrid size={16} />
+            Tablero de Casos
+          </Link>
+          <Link className="pestana-boton" data-activo={true} href="/portal/agenda?vista=semana">
+            <CalendarDays size={16} />
+            Calendario Semanal
+          </Link>
+          <Link className="pestana-boton" data-activo={false} href="/portal/agenda?vista=historial">
+            <History size={16} />
+            Historial General
+          </Link>
+        </div>
+
+        {!respuesta.success ? (
+          <Vacio>{respuesta.message ?? 'No pudimos cargar la agenda.'}</Vacio>
+        ) : (
+          <div className="semana">
+            {DIAS.map((nombre, indice) => {
+              const fecha = new Date(lunes)
+              fecha.setDate(fecha.getDate() + indice)
+              const clave = claveDia(fecha)
+              const delDia = (porDia.get(clave) ?? []).sort((a, b) => a.inicio.localeCompare(b.inicio))
+
+              return (
+                <div className="dia" key={nombre} data-hoy={clave === hoy}>
+                  <div className="dia__cabecera">
+                    {nombre.slice(0, 3)}
+                    <span className="dia__numero">{fecha.getDate()}</span>
+                  </div>
+
+                  {delDia.length === 0 ? (
+                    <span className="tabla__secundario" style={{ marginTop: 0 }}>
+                      —
+                    </span>
+                  ) : (
+                    delDia.map((cita) => (
+                      <Link
+                        className="cita-mini"
+                        data-estado={cita.estado}
+                        href={`/portal/agenda/${cita.id}`}
+                        key={cita.id}
+                      >
+                        <strong>{soloHora(cita.inicio)}</strong>
+                        {cita.paciente.nombre ?? 'Persona'}
+                        <br />
+                        <span style={{ opacity: 0.7 }}>{cita.profesional.nombre ?? ''}</span>
+                        {cita.consentSigned ? (
+                          <span style={{ display: 'block', fontSize: '0.68rem', color: '#059669', marginTop: 2 }}>
+                            ✓ Consentimiento
+                          </span>
+                        ) : null}
+                      </Link>
+                    ))
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </>
+    )
+  }
+
+  // --- Vista 3: Historial General con Filtros y KPIs ---
+  const queryParams = new URLSearchParams()
+  if (params.estado) queryParams.set('estado', params.estado)
+  if (params.q) queryParams.set('q', params.q)
+  if (params.desde) queryParams.set('desde', params.desde)
+  if (params.hasta) queryParams.set('hasta', params.hasta)
+
+  const respuestaHistorial = await portalFetch<Cita[]>(
+    `/appointments/historial?${queryParams.toString()}`,
+  )
+
+  const citas = respuestaHistorial.data ?? []
+  const metricas = (respuestaHistorial as HistorialRespuesta).metricas ?? {
+    total: citas.length,
+    realizadas: citas.filter((c) => c.estado === 'REALIZADA').length,
+    confirmadas: citas.filter((c) => c.estado === 'CONFIRMADA').length,
+    programadas: citas.filter((c) => c.estado === 'PROGRAMADA').length,
+    canceladas: citas.filter((c) => c.estado === 'CANCELADA').length,
+    noAsistio: citas.filter((c) => c.estado === 'NO_ASISTIO').length,
+    tasaAsistencia: citas.length ? Math.round((citas.filter((c) => c.estado === 'REALIZADA').length / citas.length) * 100) : 100,
+  }
+
+  const citasParaCSV = citas.map((c) => ({
+    id: c.id,
+    inicioLocal: c.inicioLocal || enBogota(c.inicio),
+    finLocal: c.finLocal || enBogota(c.fin),
+    pacienteNombre: c.paciente.nombre,
+    profesionalNombre: c.profesional.nombre,
+    modalidad: c.modalidad,
+    estado: c.estado,
+    estadoLegible: c.estadoLegible,
+    consentSigned: c.consentSigned,
+    motivoCancelacion: c.motivoCancelacion,
+  }))
 
   return (
     <>
       <Cabecera
-        titulo="Agenda de la red"
-        descripcion={`Semana del ${lunes.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}`}
-        acciones={
-          <>
-            <Link className="boton-mini" href={`/portal/agenda?semana=${aParam(anterior)}`}>
-              ← Semana anterior
-            </Link>
-            <Link className="boton-mini" href="/portal/agenda">
-              Esta semana
-            </Link>
-            <Link className="boton-mini" href={`/portal/agenda?semana=${aParam(siguiente)}`}>
-              Semana siguiente →
-            </Link>
-          </>
-        }
+        titulo="Historial General de Agenda"
+        descripcion="Registro histórico y auditoría de todas las citas y acompañamientos de la red."
+        acciones={<BotonExportarCSV citas={citasParaCSV} filename="historial-agenda-aquiestamos.csv" />}
       />
 
-      {!respuesta.success ? (
-        <Vacio>{respuesta.message ?? 'No pudimos cargar la agenda.'}</Vacio>
+      <div className="pestanas-agenda">
+        <Link className="pestana-boton" data-activo={false} href="/portal/agenda?vista=tablero">
+          <LayoutGrid size={16} />
+          Tablero de Casos
+        </Link>
+        <Link className="pestana-boton" data-activo={false} href="/portal/agenda?vista=semana">
+          <CalendarDays size={16} />
+          Calendario Semanal
+        </Link>
+        <Link className="pestana-boton" data-activo={true} href="/portal/agenda?vista=historial">
+          <History size={16} />
+          Historial General
+        </Link>
+      </div>
+
+      {/* Tarjetas de Métricas (KPIs) */}
+      <div className="metricas-grid">
+        <div className="metrica-card">
+          <span className="metrica-card__titulo">Total Citas</span>
+          <span className="metrica-card__valor">{metricas.total}</span>
+          <span className="metrica-card__sub">En el filtro seleccionado</span>
+        </div>
+        <div className="metrica-card">
+          <span className="metrica-card__titulo">Realizadas</span>
+          <span className="metrica-card__valor" style={{ color: '#059669' }}>
+            {metricas.realizadas}
+          </span>
+          <span className="metrica-card__sub">Sesiones completadas</span>
+        </div>
+        <div className="metrica-card">
+          <span className="metrica-card__titulo">Efectividad</span>
+          <span className="metrica-card__valor" style={{ color: '#0284c7' }}>
+            {metricas.tasaAsistencia}%
+          </span>
+          <span className="metrica-card__sub">Tasa de asistencia</span>
+        </div>
+        <div className="metrica-card">
+          <span className="metrica-card__titulo">Canceladas / Ausencias</span>
+          <span className="metrica-card__valor" style={{ color: '#dc2626' }}>
+            {metricas.canceladas + metricas.noAsistio}
+          </span>
+          <span className="metrica-card__sub">
+            {metricas.canceladas} canceladas · {metricas.noAsistio} ausencias
+          </span>
+        </div>
+      </div>
+
+      {/* Filtros de Búsqueda */}
+      <form className="filtros" method="GET" action="/portal/agenda" style={{ marginBottom: 18 }}>
+        <input type="hidden" name="vista" value="historial" />
+        <div className="filtros__grupo">
+          <input
+            className="input"
+            type="text"
+            name="q"
+            defaultValue={params.q || ''}
+            placeholder="Buscar por paciente, teléfono o psicólogo…"
+            style={{ minWidth: 260 }}
+          />
+          <select className="input" name="estado" defaultValue={params.estado || ''}>
+            <option value="">Todos los estados</option>
+            <option value="PROGRAMADA">Programada</option>
+            <option value="CONFIRMADA">Confirmada</option>
+            <option value="REALIZADA">Realizada</option>
+            <option value="CANCELADA">Cancelada</option>
+            <option value="NO_ASISTIO">No asistió</option>
+            <option value="REPROGRAMADA">Reprogramada</option>
+          </select>
+          <button className="boton-mini" type="submit">
+            Filtrar
+          </button>
+          {(params.q || params.estado) && (
+            <Link className="boton-mini" href="/portal/agenda?vista=historial">
+              Limpiar
+            </Link>
+          )}
+        </div>
+      </form>
+
+      {citas.length === 0 ? (
+        <Vacio>No se encontraron citas con los filtros especificados.</Vacio>
       ) : (
-        <div className="semana">
-          {DIAS.map((nombre, indice) => {
-            const fecha = new Date(lunes)
-            fecha.setDate(fecha.getDate() + indice)
-            const clave = claveDia(fecha)
-            const delDia = (porDia.get(clave) ?? []).sort((a, b) =>
-              a.inicio.localeCompare(b.inicio),
-            )
-
-            return (
-              <div className="dia" key={nombre} data-hoy={clave === hoy}>
-                <div className="dia__cabecera">
-                  {nombre.slice(0, 3)}
-                  <span className="dia__numero">{fecha.getDate()}</span>
-                </div>
-
-                {delDia.length === 0 ? (
-                  <span className="tabla__secundario" style={{ marginTop: 0 }}>
-                    —
-                  </span>
-                ) : (
-                  delDia.map((cita) => (
-                    <Link
-                      className="cita-mini"
-                      data-estado={cita.estado}
-                      href={`/portal/agenda/${cita.id}`}
-                      key={cita.id}
-                    >
-                      <strong>{soloHora(cita.inicio)}</strong>
-                      {cita.paciente.nombre ?? 'Persona'}
-                      <br />
-                      <span style={{ opacity: 0.7 }}>{cita.profesional.nombre ?? ''}</span>
+        <div className="tabla-envoltorio">
+          <table className="tabla">
+            <thead>
+              <tr>
+                <th>Cuándo</th>
+                <th>Persona Acompañada</th>
+                <th>Psicólogo Asignado</th>
+                <th>Modalidad</th>
+                <th>Estado</th>
+                <th>Consentimiento</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {citas.map((c) => (
+                <tr key={c.id}>
+                  <td>
+                    <span className="tabla__principal">{enBogota(c.inicio, false)}</span>
+                    <span className="tabla__secundario">
+                      {soloHora(c.inicio)} – {soloHora(c.fin)}
+                    </span>
+                  </td>
+                  <td>
+                    <Link href={`/portal/personas/${c.paciente.id}`} style={{ fontWeight: 600 }}>
+                      {c.paciente.nombre ?? 'Persona'}
                     </Link>
-                  ))
-                )}
-              </div>
-            )
-          })}
+                    {c.paciente.telefono && (
+                      <span className="tabla__secundario">{c.paciente.telefono}</span>
+                    )}
+                  </td>
+                  <td>
+                    <Link href={`/portal/profesionales/${c.profesional.id}`}>
+                      {c.profesional.nombre ?? 'Psicólogo'}
+                    </Link>
+                  </td>
+                  <td>
+                    <span style={{ textTransform: 'capitalize' }}>{c.modalidad.toLowerCase()}</span>
+                  </td>
+                  <td>
+                    <Etiqueta estado={c.estado} texto={c.estadoLegible} />
+                  </td>
+                  <td>
+                    {c.consentSigned ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.82rem', fontWeight: 600 }}>
+                        <FileCheck2 size={15} /> Firmado
+                      </span>
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#d97706', fontSize: '0.82rem', fontWeight: 600 }}>
+                        <FileClock size={15} /> Pendiente
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <Link className="boton-mini" href={`/portal/agenda/${c.id}`}>
+                      Ver detalle
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Bloque, CheckboxGroup, ConsentField, RadioField, TextField } from './fields'
+import { MunicipioSelector } from './MunicipioSelector'
 import { FormStatus, type Status } from './FormStatus'
 import { ERROR_TELEFONO, PISTA_TELEFONO, telefonoValido } from '@/lib/telefono'
 import {
@@ -282,11 +283,12 @@ export function VolunteerForm() {
           error={errors.email}
           onChange={(v) => update('email', v)}
         />
-        <TextField
+        <MunicipioSelector
           label="¿En qué ciudad o municipio vives?"
           name="city"
           required
-          hint="Nos sirve para asignarte acompañamientos cerca de ti."
+          placeholder="Busca tu municipio o escribe tu ciudad/país..."
+          hint="Selecciona de la lista de Colombia o escríbelo libremente si vives en el exterior."
           value={form.city}
           error={errors.city}
           onChange={(v) => update('city', v)}

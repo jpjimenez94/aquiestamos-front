@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Bloque, ConsentField, RadioField, TextField } from './fields'
+import { MunicipioSelector } from './MunicipioSelector'
 import { FormStatus, type Status } from './FormStatus'
 import {
   AVISO_DERECHOS,
@@ -14,11 +15,7 @@ import {
 } from '@/lib/consentimiento'
 
 /**
- * Formulario "Atención Psicológica" — reemplaza al Google Form original.
- *
- * Lo llena alguien que está pidiendo ayuda, así que casi todo se responde
- * marcando en vez de escribiendo, el correo es opcional y ningún campo obliga a
- * contar lo que está pasando.
+ * Formulario "Atención Psicológica" — "Necesito ayuda"
  */
 
 const PARA_QUIEN = [
@@ -35,6 +32,12 @@ const CANAL = [
   { value: 'WHATSAPP', label: 'WhatsApp' },
   { value: 'LLAMADA', label: 'Llamada' },
   { value: 'CORREO', label: 'Correo electrónico' },
+] as const
+
+const MODALIDAD_PREFERIDA = [
+  { value: 'VIRTUAL', label: 'Virtual (por videollamada o llamada telefónica)' },
+  { value: 'PRESENCIAL', label: 'Presencial (en consultorio o espacio acordado en tu municipio)' },
+  { value: 'INDIFERENTE', label: 'Me es indiferente (puedo virtual o presencial)' },
 ] as const
 
 const VACIO = {
@@ -94,7 +97,8 @@ export function SupportRequestForm() {
     if (porCorreo && !form.email.trim())
       found.email = 'Si prefieres que te escribamos por correo, necesitamos tu dirección'
     if (!form.preferredContact) found.preferredContact = 'Selecciona una opción'
-    if (!form.city.trim()) found.city = 'Cuéntanos desde dónde nos escribes'
+    if (!form.city.trim()) found.city = 'Selecciona o escribe desde qué ciudad o municipio nos escribes'
+    if (!form.preferredModality) found.preferredModality = 'Selecciona cómo prefieres recibir el acompañamiento'
     if (!form.dataConsent) found.dataConsent = 'Necesitamos tu autorización para poder contactarte'
     if (!form.sensitiveDataConsent)
       found.sensitiveDataConsent = 'Necesitamos tu autorización expresa para poder acompañarte'
@@ -192,7 +196,7 @@ export function SupportRequestForm() {
         ) : null}
       </Bloque>
 
-      <Bloque numero={2} titulo="Cómo te contactamos">
+      <Bloque numero={2} titulo="Cómo te contactamos y modalidad">
         <TextField
           label={paraOtra ? '¿Cómo se llama esa persona?' : '¿Cómo te llamas?'}
           name="name"
@@ -231,14 +235,27 @@ export function SupportRequestForm() {
           error={errors.preferredContact}
           onChange={(v) => update('preferredContact', v)}
         />
-        <TextField
+
+        {/* Selector de Ciudad o Municipio con Autocompletado de Colombia */}
+        <MunicipioSelector
           label="¿Desde qué ciudad o municipio nos escribes?"
           name="city"
           required
-          placeholder="Ej. Manizales"
+          placeholder="Busca o escribe tu ciudad o municipio..."
+          hint="Selecciona de la lista de Colombia o escríbelo si no aparece."
           value={form.city}
           error={errors.city}
           onChange={(v) => update('city', v)}
+        />
+
+        {/* Modalidad de Acompañamiento Preferida */}
+        <RadioField
+          label="¿Cómo prefieres recibir el acompañamiento?"
+          required
+          options={MODALIDAD_PREFERIDA}
+          value={form.preferredModality}
+          error={errors.preferredModality}
+          onChange={(v) => update('preferredModality', v)}
         />
       </Bloque>
 

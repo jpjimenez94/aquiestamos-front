@@ -1,6 +1,7 @@
-import { portalFetch, enBogota } from '@/lib/portal'
+import { portalFetch, enBogota, usuarioActual } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
 import { BotonAdmitir } from './BotonAdmitir'
+import { BotonEliminarSolicitud } from './BotonEliminarSolicitud'
 
 export const metadata = { title: 'Solicitudes' }
 
@@ -34,7 +35,12 @@ export default async function SolicitudesPage({
 }: {
   searchParams: Promise<{ pagina?: string }>
 }) {
-  const pagina = leerPagina((await searchParams).pagina)
+  const [pagina, usuario] = await Promise.all([
+    searchParams.then((p) => leerPagina(p.pagina)),
+    usuarioActual(),
+  ])
+
+  const esAdmin = usuario?.role === 'ADMIN'
 
   const respuesta = await portalFetch<Solicitud[]>(
     `/support-requests?page=${pagina}&perPage=${POR_PAGINA}`,
@@ -97,6 +103,12 @@ export default async function SolicitudesPage({
                   </td>
                   <td className="tabla__acciones">
                     <BotonAdmitir solicitudId={s.id} yaAdmitida={s.status !== 'NUEVO'} />
+                    {esAdmin && (
+                      <BotonEliminarSolicitud
+                        solicitudId={s.id}
+                        nombrePersona={s.name}
+                      />
+                    )}
                   </td>
                 </tr>
               ))}
