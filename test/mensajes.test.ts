@@ -179,15 +179,20 @@ describe('mensaje de tamizaje', () => {
 })
 
 describe('respuestas del tamizaje', () => {
+  // Cada respuesta es una lista, tambien las de opcion unica: tener dos
+  // formas obliga a preguntar en cada sitio cual es cual.
   const todas = {
-    seguridad: 'SI',
-    intensidad: '4',
-    sueno: 'MAS_O_MENOS',
-    funcionamiento: 'CON_DIFICULTAD',
-    red: 'NO',
-    riesgo: 'NO',
-    urgencia: 'ESTA_SEMANA',
-  } as const
+    seguridad: ['SI'],
+    intensidad: ['4'],
+    sueno: ['MAS_O_MENOS'],
+    funcionamiento: ['CON_DIFICULTAD'],
+    red: ['NO'],
+    riesgo: ['NO'],
+    urgencia: ['ESTA_SEMANA'],
+    dias: ['MARTES', 'JUEVES'],
+    franjas: ['TARDE'],
+    modalidad: ['VIRTUAL'],
+  }
 
   it('traduce lo que se tocó en pantalla a lo que espera la API', () => {
     expect(respuestasParaLaApi(todas)).toEqual({
@@ -198,6 +203,9 @@ describe('respuestas del tamizaje', () => {
       hasSupport: false,
       selfHarmThoughts: false,
       howSoon: 'ESTA_SEMANA',
+      availableDays: ['MARTES', 'JUEVES'],
+      availableSlots: ['TARDE'],
+      preferredModality: 'VIRTUAL',
       sensitiveDataConsent: true,
     })
   })
@@ -212,9 +220,9 @@ describe('respuestas del tamizaje', () => {
    */
   it('detecta riesgo en cuanto se marca, sin esperar a que termine', () => {
     expect(respuestaDeRiesgo({})).toBe(false)
-    expect(respuestaDeRiesgo({ riesgo: 'NO' })).toBe(false)
-    expect(respuestaDeRiesgo({ riesgo: 'SI' })).toBe(true)
-    expect(respuestaDeRiesgo({ seguridad: 'NO' })).toBe(true)
+    expect(respuestaDeRiesgo({ riesgo: ['NO'] })).toBe(false)
+    expect(respuestaDeRiesgo({ riesgo: ['SI'] })).toBe(true)
+    expect(respuestaDeRiesgo({ seguridad: ['NO'] })).toBe(true)
   })
 })
 
@@ -230,8 +238,26 @@ describe('guía de prioridad', () => {
    */
   it('numera las preguntas a partir de la lista, no a mano', () => {
     expect(numeroDePregunta('seguridad')).toBe(1)
-    expect(numeroDePregunta('riesgo')).toBe(PREGUNTAS_TAMIZAJE.length - 1)
-    expect(numeroDePregunta('urgencia')).toBe(PREGUNTAS_TAMIZAJE.length)
+    // La de riesgo es la 6 y la de urgencia la 7, delante de las de
+    // disponibilidad: primero cómo está, después cuándo puede.
+    expect(numeroDePregunta('riesgo')).toBe(6)
+    expect(numeroDePregunta('urgencia')).toBe(7)
+    expect(numeroDePregunta('modalidad')).toBe(PREGUNTAS_TAMIZAJE.length)
+  })
+
+  /**
+   * Las de disponibilidad van al FINAL a propósito. Si alguien abandona el
+   * formulario a medias, lo que interesa haber preguntado ya es cómo está,
+   * no qué días le sirven.
+   */
+  it('pregunta cómo está antes que cuándo puede', () => {
+    const claves = PREGUNTAS_TAMIZAJE.map((p) => p.clave)
+    expect(claves.slice(-3)).toEqual(['dias', 'franjas', 'modalidad'])
+  })
+
+  it('las de varias respuestas están marcadas como tales', () => {
+    const multiples = PREGUNTAS_TAMIZAJE.filter((p) => 'multiple' in p && p.multiple).map((p) => p.clave)
+    expect(multiples).toEqual(['dias', 'franjas'])
   })
 
   it('la señal de riesgo manda sola a prioridad alta', () => {

@@ -236,12 +236,71 @@ export const PREGUNTAS_TAMIZAJE = [
       { valor: 'PUEDO_ESPERAR', etiqueta: 'Puedo esperar' },
     ],
   },
+
+  /**
+   * Las tres últimas no son sobre cómo está, sino sobre cuándo puede.
+   *
+   * Van aquí y no en el formulario público por una razón concreta: allá se
+   * preguntan como opcionales y no las llena nadie —de las cinco solicitudes
+   * que había, cinco llegaron sin días—, y la consecuencia sale al otro lado
+   * de la red: al profesional le llega una propuesta sin más dato que la
+   * ciudad y tiene que decidir a ciegas.
+   *
+   * Aquí sí las responde, porque ya está contestando y le cuestan dos toques.
+   */
+  {
+    clave: 'dias',
+    pregunta: '¿Qué días podrías tener el acompañamiento?',
+    ayuda: 'Marca todos los que te sirvan. Entre más marques, más rápido te encontramos con quién.',
+    multiple: true,
+    respuestas: [
+      { valor: 'LUNES', etiqueta: 'Lunes' },
+      { valor: 'MARTES', etiqueta: 'Martes' },
+      { valor: 'MIERCOLES', etiqueta: 'Miércoles' },
+      { valor: 'JUEVES', etiqueta: 'Jueves' },
+      { valor: 'VIERNES', etiqueta: 'Viernes' },
+      { valor: 'SABADO', etiqueta: 'Sábado' },
+      { valor: 'DOMINGO', etiqueta: 'Domingo' },
+    ],
+  },
+  {
+    clave: 'franjas',
+    pregunta: '¿A qué horas te queda mejor?',
+    ayuda: 'También puedes marcar varias.',
+    multiple: true,
+    respuestas: [
+      { valor: 'MANANA', etiqueta: 'Mañana (8 a. m. – 12 m.)' },
+      { valor: 'TARDE', etiqueta: 'Tarde (12 m. – 6 p. m.)' },
+      { valor: 'NOCHE', etiqueta: 'Noche (6 – 9 p. m.)' },
+    ],
+  },
+  {
+    clave: 'modalidad',
+    pregunta: '¿Cómo prefieres que sea?',
+    respuestas: [
+      { valor: 'VIRTUAL', etiqueta: 'Por video o llamada' },
+      { valor: 'PRESENCIAL', etiqueta: 'En persona' },
+      { valor: 'INDIFERENTE', etiqueta: 'Me da igual' },
+    ],
+  },
 ] as const
 
 export type ClaveTamizaje = (typeof PREGUNTAS_TAMIZAJE)[number]['clave']
 
-/** Lo que responde la persona, tal como lo guarda el formulario: todo texto. */
-export type RespuestasTamizaje = Partial<Record<ClaveTamizaje, string>>
+/**
+ * Lo que responde la persona.
+ *
+ * Siempre una lista, incluso en las preguntas de una sola respuesta, que
+ * guardan una lista de un elemento. Tener dos formas —a veces texto, a veces
+ * lista— obliga a preguntar en cada sitio cuál es cuál, y ese es justo el tipo
+ * de rama que acaba leyendo mal una respuesta.
+ */
+export type RespuestasTamizaje = Partial<Record<ClaveTamizaje, string[]>>
+
+/** La primera respuesta de una pregunta de opción única. */
+function una(r: RespuestasTamizaje, clave: ClaveTamizaje): string | undefined {
+  return r[clave]?.[0]
+}
 
 /**
  * De lo que se tocó en pantalla a lo que entiende el backend.
@@ -250,22 +309,27 @@ export type RespuestasTamizaje = Partial<Record<ClaveTamizaje, string>>
  * derecha son el contrato con la API: si cambian, tienen que cambiar al lado
  * de las preguntas que los producen.
  */
-export function respuestasParaLaApi(r: Required<RespuestasTamizaje>) {
+export function respuestasParaLaApi(r: RespuestasTamizaje) {
   return {
-    safePlace: r.seguridad === 'SI',
-    distress: Number(r.intensidad),
-    sleepAndEat: r.sueno,
-    dailyFunction: r.funcionamiento,
-    hasSupport: r.red === 'SI',
-    selfHarmThoughts: r.riesgo === 'SI',
-    howSoon: r.urgencia,
+    safePlace: una(r, 'seguridad') === 'SI',
+    distress: Number(una(r, 'intensidad')),
+    sleepAndEat: una(r, 'sueno'),
+    dailyFunction: una(r, 'funcionamiento'),
+    hasSupport: una(r, 'red') === 'SI',
+    selfHarmThoughts: una(r, 'riesgo') === 'SI',
+    howSoon: una(r, 'urgencia'),
+    // Cuándo puede: esto es lo que acaba en su ficha y en la propuesta que
+    // recibe el profesional.
+    availableDays: r.dias ?? [],
+    availableSlots: r.franjas ?? [],
+    preferredModality: una(r, 'modalidad'),
     sensitiveDataConsent: true as const,
   }
 }
 
 /** Si esto es cierto, la salida de emergencia tiene que aparecer YA en pantalla. */
 export function respuestaDeRiesgo(r: RespuestasTamizaje): boolean {
-  return r.riesgo === 'SI' || r.seguridad === 'NO'
+  return una(r, 'riesgo') === 'SI' || una(r, 'seguridad') === 'NO'
 }
 
 /**

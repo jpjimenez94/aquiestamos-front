@@ -40,8 +40,24 @@ export function FormularioTamizaje({
 
   const hayRiesgo = respuestaDeRiesgo(respuestas)
 
-  function responder(clave: ClaveTamizaje, valor: string) {
-    setRespuestas((previas) => ({ ...previas, [clave]: valor }))
+  /**
+   * Marcar una respuesta.
+   *
+   * En las preguntas de varias respuestas —qué días, a qué horas— tocar
+   * alterna en vez de sustituir: la persona marca todos los que le sirvan y
+   * puede quitar uno sin empezar de cero.
+   */
+  function responder(clave: ClaveTamizaje, valor: string, multiple: boolean) {
+    setRespuestas((previas) => {
+      const actuales = previas[clave] ?? []
+      if (!multiple) return { ...previas, [clave]: [valor] }
+      return {
+        ...previas,
+        [clave]: actuales.includes(valor)
+          ? actuales.filter((v) => v !== valor)
+          : [...actuales, valor],
+      }
+    })
     setFaltantes((previas) => previas.filter((c) => c !== clave))
     setError(null)
   }
@@ -49,7 +65,9 @@ export function FormularioTamizaje({
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault()
 
-    const sinResponder = PREGUNTAS_TAMIZAJE.filter((p) => !respuestas[p.clave]).map((p) => p.clave)
+    const sinResponder = PREGUNTAS_TAMIZAJE.filter(
+      (p) => (respuestas[p.clave] ?? []).length === 0,
+    ).map((p) => p.clave)
     if (sinResponder.length > 0) {
       setFaltantes(sinResponder)
       setError(
@@ -69,10 +87,7 @@ export function FormularioTamizaje({
     setEnviando(true)
     setError(null)
 
-    const salida = await responderTamizajeAction(
-      token,
-      respuestasParaLaApi(respuestas as Required<RespuestasTamizaje>),
-    )
+    const salida = await responderTamizajeAction(token, respuestasParaLaApi(respuestas))
 
     if (!salida.success) {
       setError(salida.message)
@@ -124,9 +139,9 @@ export function FormularioTamizaje({
                   className="tamizaje__opcion"
                   type="button"
                   key={r.valor}
-                  aria-pressed={respuestas[p.clave] === r.valor}
-                  data-elegida={respuestas[p.clave] === r.valor}
-                  onClick={() => responder(p.clave, r.valor)}
+                  aria-pressed={(respuestas[p.clave] ?? []).includes(r.valor)}
+                  data-elegida={(respuestas[p.clave] ?? []).includes(r.valor)}
+                  onClick={() => responder(p.clave, r.valor, 'multiple' in p && p.multiple === true)}
                 >
                   {r.etiqueta}
                 </button>
@@ -135,8 +150,8 @@ export function FormularioTamizaje({
 
             {/* La salida de emergencia sale pegada a la pregunta que la
                 disparó, en cuanto se toca. No al final de la página. */}
-            {p.clave === 'riesgo' && respuestas.riesgo === 'SI' ? <SalidaDeEmergencia /> : null}
-            {p.clave === 'seguridad' && respuestas.seguridad === 'NO' ? (
+            {p.clave === 'riesgo' && respuestas.riesgo?.[0] === 'SI' ? <SalidaDeEmergencia /> : null}
+            {p.clave === 'seguridad' && respuestas.seguridad?.[0] === 'NO' ? (
               <SalidaDeEmergencia
                 titulo="Si te falta un lugar donde estar o comida"
                 texto="Llama a estas líneas: te pueden orientar sobre albergues y ayuda inmediata en tu zona. Nosotros seguimos con tu acompañamiento psicológico."
