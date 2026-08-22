@@ -36,13 +36,39 @@ describe('mensaje de propuesta al profesional', () => {
     expect(mensajeDePropuesta(base)).toContain('lunes, miércoles y viernes en la tarde')
   })
 
-  it('no incluye días ni modalidad cuando no se declararon', () => {
+  /**
+   * Lo que no se sabe se dice. El silencio se lee como "no tiene
+   * restricciones", que es lo contrario de lo que significa, y en la práctica
+   * casi ninguna solicitud trae la disponibilidad llena.
+   */
+  it('dice lo que NO sabemos en vez de callarlo', () => {
     const texto = mensajeDePropuesta({ ...base, dias: [], franjas: [], modalidad: null })
-    expect(texto).not.toContain('Puede ')
-    expect(texto).not.toContain('Prefiere')
-    // Pero el enlace y las instrucciones siguen ahí: es lo que hace útil el
-    // mensaje aunque falten datos.
+    expect(texto).toContain('No sabemos qué modalidad prefiere y qué días puede')
+    expect(texto).toContain('no quedó en el formulario')
+    expect(texto).not.toContain('· Puede ')
+    expect(texto).not.toContain('· Prefiere')
+    // Y el enlace sigue ahí: el mensaje es útil aunque falten datos.
     expect(texto).toContain(base.enlace)
+  })
+
+  it('nombra solo lo que de verdad falta', () => {
+    const sinDias = mensajeDePropuesta({ ...base, dias: [], franjas: [] })
+    expect(sinDias).toContain('No sabemos qué días puede')
+    expect(sinDias).not.toContain('qué modalidad prefiere')
+    expect(sinDias).toContain('· Prefiere que sea virtual.')
+  })
+
+  it('cuando está todo, no dice que falte nada', () => {
+    expect(mensajeDePropuesta(base)).not.toContain('No sabemos')
+  })
+
+  /**
+   * Este mensaje le llega a la misma persona muchas veces. "Gracias por
+   * sumarte" es para quien acaba de llegar; a la quinta propuesta suena a
+   * plantilla mal puesta.
+   */
+  it('saluda sin dar por hecho que es la primera vez', () => {
+    expect(mensajeDePropuesta(base)).not.toContain('gracias por sumarte')
   })
 
   /**

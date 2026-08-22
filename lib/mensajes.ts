@@ -83,14 +83,36 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
   // Solo el nombre de pila: en un saludo, el apellido sobra.
   const nombre = d.profesional.trim().split(/\s+/)[0]
 
+  /**
+   * Lo que NO sabemos se dice, no se calla.
+   *
+   * Antes, si la solicitud llegaba sin modalidad y sin días, esas líneas
+   * simplemente no salían y el mensaje quedaba en «la persona está en Cali».
+   * Un profesional lee ese silencio como «no tiene restricciones» —que es lo
+   * contrario de lo que significa— y puede aceptar creyendo que es flexible
+   * para descubrir después que solo puede los domingos.
+   *
+   * No es un caso raro: el formulario público pide la disponibilidad como
+   * opcional y en la práctica casi nadie la llena.
+   */
+  const faltantes = [
+    !modalidad ? 'qué modalidad prefiere' : null,
+    !cuando ? 'qué días puede' : null,
+  ].filter((x): x is string => x !== null)
+
   const lineas = [
-    `Hola ${nombre}, gracias por sumarte a Red Aquí Estamos.`,
+    // Neutro a propósito: «gracias por sumarte» es para quien acaba de
+    // llegar, y este mensaje le va a llegar a la misma persona muchas veces.
+    `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
     'Tenemos un acompañamiento que podría encajarte y queremos saber si puedes tomarlo.',
     '',
     `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
     cuando ? `· Puede ${cuando}.` : null,
+    faltantes.length
+      ? `· No sabemos ${enumerar(faltantes)}: no quedó en el formulario. Eso lo cuadramos contigo después.`
+      : null,
     '',
     URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
     '',
