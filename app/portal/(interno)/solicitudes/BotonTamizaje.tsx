@@ -24,21 +24,16 @@ import {
 export function BotonTamizaje({
   nombre,
   telefono,
-  ruta,
+  enlace,
   yaRespondio,
 }: {
   nombre: string
   telefono: string | null
-  ruta: string | null
+  enlace: string | null
   yaRespondio: boolean
 }) {
   const [abierto, setAbierto] = useState(false)
   const [copiado, setCopiado] = useState(false)
-
-  // El origen solo existe en el navegador, así que el enlace se arma después
-  // de montar. Es el mismo motivo por el que `MensajeAlProfesional` lo hace.
-  const [montado, setMontado] = useState(false)
-  useEffect(() => setMontado(true), [])
 
   // Escape cierra, igual que en el menú lateral: quien navega con teclado no
   // debe quedar atrapado dentro del panel.
@@ -58,14 +53,20 @@ export function BotonTamizaje({
     }
   }, [abierto])
 
-  if (!ruta) return null
+  if (!enlace) return null
 
-  const mensaje = montado
-    ? mensajeDeTamizaje({ nombre, enlace: `${window.location.origin}${ruta}` })
-    : ''
+  const mensaje = mensajeDeTamizaje({ nombre, enlace })
+
   // Puede ser null: el número no trae indicativo y no es colombiano, así que
   // no hay a qué país mandarlo. Copiar el mensaje sigue funcionando.
-  const whatsapp = montado ? enlaceWhatsapp(telefono, mensaje) : null
+  const whatsapp = enlaceWhatsapp(telefono, mensaje)
+
+  /**
+   * Un enlace a localhost o a una vista previa no le sirve de nada a la persona
+   * que lo recibe en su teléfono. Antes esto pasaba en silencio: el mensaje
+   * salía, la persona lo abría y veía "este enlace ya no sirve".
+   */
+  const enlaceLocal = /localhost|127\.0\.0\.1|\.vercel\.app/.test(enlace)
 
   function copiar() {
     navigator.clipboard.writeText(mensaje)
@@ -142,11 +143,19 @@ export function BotonTamizaje({
                     : 'Esta solicitud no dejó teléfono: copia el mensaje y mándalo por donde puedas.'}
                 </span>
               )}
-              <button className="boton-mini" type="button" onClick={copiar} disabled={!montado}>
+              <button className="boton-mini" type="button" onClick={copiar}>
                 {copiado ? <Check size={14} /> : <Copy size={14} />}
                 {copiado ? '¡Copiado!' : 'Copiar mensaje'}
               </button>
             </div>
+
+            {enlaceLocal ? (
+              <div className="aviso-portal" data-tono="rojo" style={{ marginTop: 12 }}>
+                <strong>Este enlace apunta a {new URL(enlace).host} y no va a abrir en el
+                teléfono de nadie.</strong> Pasa cuando el servidor tiene <code>SITIO_URL</code>{' '}
+                apuntando a una máquina de desarrollo. Míralo antes de mandar el mensaje.
+              </div>
+            ) : null}
 
             <pre className="mensaje__texto">{mensaje}</pre>
 

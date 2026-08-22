@@ -7,7 +7,7 @@ import { ResultadoTamizaje } from './ResultadoTamizaje'
 export const metadata = { title: 'Solicitudes' }
 
 type Tamizaje = {
-  ruta: string
+  enlace: string
   respuesta: {
     id: string
     prioridadSugerida: 'ALTA' | 'MEDIA' | 'BAJA'
@@ -127,7 +127,7 @@ export default async function SolicitudesPage({
                     <BotonTamizaje
                       nombre={s.name}
                       telefono={s.phone}
-                      ruta={s.tamizaje?.ruta ?? null}
+                      enlace={s.tamizaje?.enlace ?? null}
                       yaRespondio={Boolean(s.tamizaje?.respuesta)}
                     />
                     {esAdmin && (

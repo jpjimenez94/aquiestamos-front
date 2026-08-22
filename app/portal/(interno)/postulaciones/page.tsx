@@ -1,4 +1,4 @@
-import { portalFetch, enBogota } from '@/lib/portal'
+import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import Link from 'next/link'
 import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
@@ -39,7 +39,17 @@ export default async function PostulacionesPage({
 }: {
   searchParams: Promise<{ pagina?: string }>
 }) {
-  const pagina = leerPagina((await searchParams).pagina)
+  const [pagina, usuario] = await Promise.all([
+    searchParams.then((p) => leerPagina(p.pagina)),
+    usuarioActual(),
+  ])
+
+  // Quien agenda NO ve el modulo de profesionales: es una decision expresa de
+  // la red, escrita en la matriz de permisos. Antes estos controles se le
+  // pintaban igual y al tocarlos recibia un 403 que la pagina traducia a "no
+  // encontramos esta pagina", que ademas es mentira: la ficha existe.
+  const veProfesionales = puede(usuario, 'profesional:leer')
+  const editaProfesionales = puede(usuario, 'profesional:editar')
 
   const respuesta = await portalFetch<Postulacion[]>(
     `/volunteers?page=${pagina}&perPage=${POR_PAGINA}`,
@@ -97,7 +107,7 @@ export default async function PostulacionesPage({
                   <td style={{ textTransform: 'capitalize' }}>{p.modality.toLowerCase()}</td>
                   <td className="tabla__numero">{enBogota(p.createdAt, false)}</td>
                   <td>
-                    {p.professionalId ? (
+                    {p.professionalId && editaProfesionales ? (
                       <BotonVerificarTarjeta
                         profesionalId={p.professionalId}
                         profesionalNombre={p.fullName}
@@ -116,7 +126,7 @@ export default async function PostulacionesPage({
                     <Etiqueta estado={p.status} />
                   </td>
                   <td className="tabla__acciones">
-                    {p.professionalId ? (
+                    {p.professionalId && veProfesionales ? (
                       <Link className="boton-mini" href={`/portal/profesionales/${p.professionalId}`}>
                         Ver ficha
                       </Link>

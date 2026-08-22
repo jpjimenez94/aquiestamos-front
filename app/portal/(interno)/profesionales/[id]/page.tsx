@@ -49,6 +49,33 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
     ),
   ])
 
+  /**
+   * Un 403 no es un 404. Antes cualquier fallo acababa en "no encontramos esta
+   * página", y a quien agenda —que por decisión de la red no ve el módulo de
+   * profesionales— le decía que la ficha no existe cuando sí existe. Media hora
+   * buscando un enlace roto que nunca estuvo roto.
+   */
+  if (!respuesta.success && respuesta.details?.permiso) {
+    return (
+      <>
+        <Cabecera titulo="Ficha del profesional" />
+        <div className="panel">
+          <h2>Esto no te toca a ti</h2>
+          <p className="panel__nota">
+            Las fichas de los profesionales son datos maestros y tu rol no las abre. No es un
+            error: la ficha existe y quien coordina puede verla. Si necesitas algo de ahí,
+            pídeselo a la administración.
+          </p>
+          <div className="button-row" style={{ marginTop: 14 }}>
+            <Link className="boton-mini" href="/portal/postulaciones">
+              Volver a las postulaciones
+            </Link>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   if (!respuesta.success || !respuesta.data) notFound()
   const p = respuesta.data
   const franjas = disponibilidad.data?.franjas ?? []
