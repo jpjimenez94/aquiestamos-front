@@ -1,3 +1,6 @@
+import { LINEAS_EMERGENCIA } from './consentimiento'
+import { paraWhatsapp } from './telefono'
+
 /**
  * El mensaje que la coordinación le manda al profesional cuando le asigna un
  * acompañamiento.
@@ -100,11 +103,236 @@ export function mensajeDeAsignacion(d: DatosDelMensaje): string {
  * ni aprobación de plantillas, y lo único que cambia es que alguien tiene que
  * darle a enviar.
  */
-export function enlaceWhatsapp(telefono: string, mensaje: string): string {
-  // wa.me quiere el número con indicativo y sin nada más. Un celular
-  // colombiano de diez dígitos se asume local y se le antepone el 57.
-  const limpio = telefono.replace(/\D/g, '')
-  const conIndicativo = /^3\d{9}$/.test(limpio) ? `57${limpio}` : limpio
+export function enlaceWhatsapp(
+  telefono: string | null | undefined,
+  mensaje: string,
+): string | null {
+  // Qué indicativo lleva el número lo decide `paraWhatsapp`, en un solo sitio.
+  // Si no se puede saber, esto devuelve null y quien llame tiene que enseñar
+  // otra cosa: un enlace a un número inexistente parece que funcionó.
+  const numero = paraWhatsapp(telefono)
+  if (!numero) return null
 
-  return `https://wa.me/${conIndicativo}?text=${encodeURIComponent(mensaje)}`
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`
 }
+
+// ---------------------------------------------------------------------------
+// Tamizaje: las preguntas que se le hacen a la persona ANTES de admitirla.
+// ---------------------------------------------------------------------------
+
+/**
+ * Admitir una solicitud obliga a elegir prioridad, y hasta ahora esa decisión
+ * se tomaba con lo único que trae el formulario: nombre, ciudad y cuándo
+ * puede. Eso no dice cómo está la persona hoy, así que la prioridad acababa
+ * siendo MEDIA casi siempre y la cola se ordenaba por fecha de llegada en vez
+ * de por urgencia, que es justo lo que la prioridad venía a evitar.
+ *
+ * Estas preguntas las manda por WhatsApp quien opera la entrada, y lo que
+ * responda la persona es lo que sostiene la elección de ALTA, MEDIA o BAJA.
+ *
+ * Qué NO es esto: no es un instrumento clínico ni un diagnóstico, y quien lo
+ * manda no es psicólogo. Es un triaje —en qué orden acompañar— y el mensaje se
+ * lo dice a la persona con esas palabras, para que nadie crea que ya la
+ * atendieron y se quede esperando.
+ *
+ * A diferencia del mensaje al profesional, este SÍ lleva el nombre de la
+ * persona: va dirigido a ella misma y a su propio teléfono. Lo que no puede
+ * llevar nunca es el dato de un tercero.
+ */
+const SI_O_NO = [
+  { valor: 'SI', etiqueta: 'Sí' },
+  { valor: 'NO', etiqueta: 'No' },
+] as const
+
+export const PREGUNTAS_TAMIZAJE = [
+  {
+    clave: 'seguridad',
+    pregunta: '¿Estás en un lugar seguro y tienes lo básico (dónde dormir, agua, comida)?',
+    respuestas: SI_O_NO,
+  },
+  {
+    clave: 'intensidad',
+    pregunta: 'Del 1 al 5, ¿qué tan mal la estás pasando hoy?',
+    ayuda: '1 es «lo estoy sobrellevando» y 5 es «no puedo con esto».',
+    respuestas: [
+      { valor: '1', etiqueta: '1' },
+      { valor: '2', etiqueta: '2' },
+      { valor: '3', etiqueta: '3' },
+      { valor: '4', etiqueta: '4' },
+      { valor: '5', etiqueta: '5' },
+    ],
+  },
+  {
+    clave: 'sueno',
+    pregunta: '¿Has podido dormir y comer estos días?',
+    respuestas: [
+      { valor: 'SI', etiqueta: 'Sí' },
+      { valor: 'MAS_O_MENOS', etiqueta: 'Más o menos' },
+      { valor: 'NO', etiqueta: 'No' },
+    ],
+  },
+  {
+    clave: 'funcionamiento',
+    pregunta: '¿Puedes con tus cosas del día (trabajo, estudio, cuidar a alguien)?',
+    respuestas: [
+      { valor: 'SI', etiqueta: 'Sí' },
+      { valor: 'CON_DIFICULTAD', etiqueta: 'Con dificultad' },
+      { valor: 'NO', etiqueta: 'No' },
+    ],
+  },
+  {
+    clave: 'red',
+    pregunta: '¿Tienes cerca a alguien que te acompañe?',
+    respuestas: SI_O_NO,
+  },
+  {
+    clave: 'riesgo',
+    pregunta: 'En estos días, ¿has tenido pensamientos de hacerte daño o de no querer seguir?',
+    respuestas: SI_O_NO,
+  },
+  {
+    clave: 'urgencia',
+    pregunta: '¿Qué tan pronto sientes que necesitas hablar con alguien?',
+    respuestas: [
+      { valor: 'HOY', etiqueta: 'Hoy' },
+      { valor: 'ESTA_SEMANA', etiqueta: 'Esta semana' },
+      { valor: 'PUEDO_ESPERAR', etiqueta: 'Puedo esperar' },
+    ],
+  },
+] as const
+
+export type ClaveTamizaje = (typeof PREGUNTAS_TAMIZAJE)[number]['clave']
+
+/** Lo que responde la persona, tal como lo guarda el formulario: todo texto. */
+export type RespuestasTamizaje = Partial<Record<ClaveTamizaje, string>>
+
+/**
+ * De lo que se tocó en pantalla a lo que entiende el backend.
+ *
+ * La conversión vive aquí y no en el componente porque los nombres de la
+ * derecha son el contrato con la API: si cambian, tienen que cambiar al lado
+ * de las preguntas que los producen.
+ */
+export function respuestasParaLaApi(r: Required<RespuestasTamizaje>) {
+  return {
+    safePlace: r.seguridad === 'SI',
+    distress: Number(r.intensidad),
+    sleepAndEat: r.sueno,
+    dailyFunction: r.funcionamiento,
+    hasSupport: r.red === 'SI',
+    selfHarmThoughts: r.riesgo === 'SI',
+    howSoon: r.urgencia,
+    sensitiveDataConsent: true as const,
+  }
+}
+
+/** Si esto es cierto, la salida de emergencia tiene que aparecer YA en pantalla. */
+export function respuestaDeRiesgo(r: RespuestasTamizaje): boolean {
+  return r.riesgo === 'SI' || r.seguridad === 'NO'
+}
+
+/**
+ * Qué número le toca a una pregunta en el mensaje.
+ *
+ * La guía de lectura lo usa en vez de escribir "la 6" a mano: reordenar o
+ * añadir una pregunta no puede dejar la guía señalando otra distinta.
+ */
+export function numeroDePregunta(clave: ClaveTamizaje): number {
+  return PREGUNTAS_TAMIZAJE.findIndex((p) => p.clave === clave) + 1
+}
+
+/**
+ * El aviso de crisis va al final y DENTRO del mismo mensaje, no en uno aparte.
+ *
+ * Preguntarle a alguien si ha pensado en hacerse daño y dejarlo esperando una
+ * respuesta que puede tardar horas sería irresponsable: la salida inmediata
+ * tiene que viajar en el mismo mensaje que la pregunta.
+ */
+export const LINEA_DE_CRISIS = `Si en este momento estás en peligro o sientes que puedes hacerte daño, no esperes nuestra respuesta: llama al ${LINEAS_EMERGENCIA.map(
+  (l) => `${l.numero} (${l.nombre.toLowerCase()})`,
+).join(' o al ')}. Son gratuitas y atienden a toda hora.`
+
+/**
+ * El mensaje que abre el tamizaje.
+ *
+ * Las siete preguntas NO van en el chat: van detrás del enlace. Contestarlas
+ * escribiendo obliga a la persona a redactar siete veces y obliga a quien
+ * coordina a interpretar un chat; con el enlace es un toque por pregunta y la
+ * prioridad sale calculada. El texto en el chat es corto a propósito: es una
+ * invitación, no el formulario.
+ *
+ * La línea de crisis se queda aquí aunque la pregunta de riesgo viva detrás
+ * del enlace. Quien recibe esto puede estar mal AHORA, antes de abrir nada.
+ */
+export function mensajeDeTamizaje({
+  nombre,
+  enlace,
+}: {
+  nombre: string
+  enlace: string
+}): string {
+  // Solo el nombre de pila, igual que en el mensaje al profesional.
+  const primero = String(nombre ?? '').trim().split(/\s+/)[0] || 'hola'
+
+  return [
+    `Hola ${primero}, te escribimos de la Red Aquí Estamos.`,
+    '',
+    'Recibimos tu solicitud de acompañamiento psicológico y ya estamos buscándote profesional.',
+    '',
+    `Para saber qué tan pronto necesitamos llamarte, te dejamos ${PREGUNTAS_TAMIZAJE.length} preguntas cortas. Se responden en un minuto, tocando una opción en cada una:`,
+    '',
+    enlace,
+    '',
+    'Confírmanos por aquí cuando las hayas respondido, por favor, así te asignamos ayuda lo más pronto posible.',
+    '',
+    'No es un diagnóstico y quien te escribe no es tu psicólogo: son preguntas para saber en qué orden acompañar. Lo que respondas queda entre tú y el equipo de la red.',
+    '',
+    LINEA_DE_CRISIS,
+  ].join('\n')
+}
+
+/**
+ * Cómo se leen las respuestas.
+ *
+ * Vive aquí, al lado de las preguntas, y no en el componente: si las preguntas
+ * cambian y la guía se quedó en otro archivo, nadie se entera hasta que
+ * alguien admite mal un caso.
+ */
+export const GUIA_DE_PRIORIDAD = [
+  {
+    prioridad: 'ALTA',
+    resumen: 'Búscale profesional hoy',
+    senales: [
+      `Contestó que sí a la ${numeroDePregunta('riesgo')}, la de hacerse daño. Esa sola respuesta ya es ALTA, y además hay que avisarle a coordinación de una vez.`,
+      `Contestó que no a la ${numeroDePregunta('seguridad')}: no está en un lugar seguro o le falta lo básico.`,
+      `Puso 5 en la ${numeroDePregunta('intensidad')}, o puso 4 y además no puede con el día.`,
+      `Dijo «Hoy» en la ${numeroDePregunta('urgencia')}.`,
+      'Es menor de edad y aparece cualquier señal de MEDIA: en un menor, MEDIA sube a ALTA.',
+    ],
+  },
+  {
+    prioridad: 'MEDIA',
+    resumen: 'En los próximos días',
+    senales: [
+      `Puso 3 o 4 en la ${numeroDePregunta('intensidad')}.`,
+      `No está durmiendo ni comiendo bien (${numeroDePregunta('sueno')}), o va «con dificultad» con sus cosas del día (${numeroDePregunta('funcionamiento')}).`,
+      `Dijo «Esta semana» en la ${numeroDePregunta('urgencia')}.`,
+      `Está sola o solo (${numeroDePregunta('red')}: No), aunque el resto se vea bien.`,
+    ],
+  },
+  {
+    prioridad: 'BAJA',
+    resumen: 'Puede esperar',
+    senales: [
+      `Puso 1 o 2 en la ${numeroDePregunta('intensidad')}, está en un lugar seguro, duerme, come, puede con el día y tiene con quién.`,
+      `Dijo «Puedo esperar» en la ${numeroDePregunta('urgencia')}.`,
+    ],
+  },
+] as const
+
+/** Lo que hay que saber además de la tabla, para no confiarse de ella. */
+export const REGLAS_DE_LECTURA = [
+  'Ante la duda, el sistema sube la prioridad, no la baja: una sola señal de ALTA basta aunque todo lo demás esté bien, y en un menor de edad cualquier señal de MEDIA se vuelve ALTA.',
+  'Que no conteste NO significa que esté bien. A los dos días el sistema la admite igual, en MEDIA, para que no se quede fuera de la cola — pero esa prioridad es una suposición, no algo que ella haya dicho. A quien entró así hay que llamarla, no solo asignarle profesional.',
+  'La prioridad sale de siete preguntas, no de conocer a la persona. Si sabes algo que las preguntas no recogieron, dilo en su ficha de Personas y trátalo como lo que sepas, no como lo que diga la etiqueta.',
+] as const

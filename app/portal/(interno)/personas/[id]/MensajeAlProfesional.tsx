@@ -38,19 +38,28 @@ export function MensajeAlProfesional({
     setTimeout(() => setCopiado(false), 2000)
   }
 
+  const whatsapp = enlaceWhatsapp(telefono, mensaje)
+
   return (
     <div className="mensaje">
       <div className="mensaje__acciones">
-        <a
-          className="boton-mini"
-          data-tono="principal"
-          href={enlaceWhatsapp(telefono, mensaje)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <MessageCircle size={14} />
-          Abrir WhatsApp
-        </a>
+        {whatsapp ? (
+          <a
+            className="boton-mini"
+            data-tono="principal"
+            href={whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle size={14} />
+            Abrir WhatsApp
+          </a>
+        ) : (
+          <span className="tabla__secundario" style={{ marginTop: 0 }}>
+            No sabemos a qué país llamar con ese número. Copia el mensaje y revisa el teléfono en
+            su ficha.
+          </span>
+        )}
         <button className="boton-mini" type="button" onClick={copiar}>
           {copiado ? <Check size={14} /> : <Copy size={14} />}
           {copiado ? '¡Copiado!' : 'Copiar mensaje'}

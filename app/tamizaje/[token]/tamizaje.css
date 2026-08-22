@@ -1,0 +1,319 @@
+/* ---------------------------------------------------------------------------
+   Tamizaje — la pantalla que abre quien pidió acompañamiento.
+
+   Se diseña para un pulgar en un celular, con poca batería y poca paciencia:
+   opciones grandes, una columna, y nada en lo que se pueda tocar por error.
+   --------------------------------------------------------------------------- */
+
+.tamizaje {
+  min-height: 100dvh;
+  padding: 28px 16px 60px;
+  background-color: var(--color-bg-default);
+}
+
+.tamizaje__caja {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 28px 24px 32px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radii-layout, 14px);
+}
+
+.tamizaje__logo {
+  height: auto;
+  max-width: 132px;
+  margin-bottom: 20px;
+}
+
+.tamizaje h1 {
+  margin: 0 0 10px;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.tamizaje__intro {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.tamizaje__aclaracion,
+.tamizaje__nota {
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--color-text-light);
+}
+
+.tamizaje__nota {
+  padding: 10px 14px;
+  background-color: var(--color-bg-default);
+  border-radius: 10px;
+}
+
+.tamizaje__form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 26px;
+}
+
+/* ---------- Cada pregunta ---------- */
+
+.tamizaje__pregunta {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tamizaje__pregunta legend {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* Si falta responderla, se marca la pregunta, no solo el aviso de abajo. */
+.tamizaje__pregunta[data-falta='true'] legend {
+  color: var(--color-red);
+}
+
+.tamizaje__numero {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-bg-default);
+  border: 1px solid var(--color-border-default);
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tamizaje__pregunta[data-falta='true'] .tamizaje__numero {
+  border-color: var(--color-red);
+  color: var(--color-red);
+}
+
+.tamizaje__ayuda {
+  margin: -4px 0 10px 36px;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+.tamizaje__opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: 36px;
+}
+
+/* 48px de alto: es el mínimo para que un pulgar acierte sin pensarlo. */
+.tamizaje__opcion {
+  flex: 1 1 auto;
+  min-width: 84px;
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--color-border-default);
+  border-radius: 10px;
+  background-color: var(--color-card-bg);
+  color: var(--color-text-default);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tamizaje__opcion:hover {
+  border-color: var(--color-text-light);
+}
+
+.tamizaje__opcion[data-elegida='true'] {
+  background-color: var(--navbar-background-color);
+  border-color: var(--navbar-background-color);
+  color: #fff6eb;
+}
+
+/* ---------- Salida de emergencia ---------- */
+
+/* Aparece pegada a la pregunta que la disparó, en el momento en que se toca.
+   Es lo único de esta pantalla que no puede esperar a que el formulario
+   termine: quien marca que ha pensado en hacerse daño puede no llegar al final. */
+.tamizaje__emergencia {
+  display: flex;
+  gap: 12px;
+  margin: 14px 0 0 36px;
+  padding: 14px 16px;
+  background-color: #fbeceb;
+  border: 1.5px solid var(--color-red);
+  border-radius: 12px;
+}
+
+.tamizaje__emergencia-icono {
+  flex-shrink: 0;
+  color: var(--color-red);
+  line-height: 0;
+  padding-top: 2px;
+}
+
+.tamizaje__emergencia strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+  color: #7a2723;
+}
+
+.tamizaje__emergencia p {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #7a2723;
+}
+
+.tamizaje__lineas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tamizaje__linea {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  min-height: 44px;
+  border-radius: 999px;
+  background-color: var(--color-red);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tamizaje__linea span {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.tamizaje__linea:hover {
+  background-color: #8f2c26;
+}
+
+/* ---------- Autorización y envío ---------- */
+
+.tamizaje__autorizacion {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  background-color: var(--color-bg-default);
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  cursor: pointer;
+}
+
+.tamizaje__autorizacion input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  accent-color: var(--navbar-background-color);
+  cursor: pointer;
+}
+
+.tamizaje__error {
+  margin: 0;
+  padding: 11px 14px;
+  background-color: #fbeceb;
+  border: 1px solid var(--color-red);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #7a2723;
+}
+
+.tamizaje__enviar {
+  min-height: 52px;
+  padding: 14px 24px;
+  border: 0;
+  border-radius: 12px;
+  background-color: var(--navbar-background-color);
+  color: #fff6eb;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tamizaje__enviar:hover:not(:disabled) {
+  background-color: #1f2143;
+}
+
+.tamizaje__enviar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Después de enviar ---------- */
+
+.tamizaje__gracias {
+  margin-top: 26px;
+  text-align: center;
+}
+
+.tamizaje__gracias-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background-color: #dff0e5;
+  color: #2f5f45;
+}
+
+.tamizaje__gracias h2 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.tamizaje__gracias > p {
+  margin: 0 auto;
+  max-width: 46ch;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--color-text-light);
+}
+
+/* Si hubo señal de riesgo, la salida de emergencia se queda visible también
+   en la pantalla de gracias. Aquí ya no cuelga de ninguna pregunta. */
+.tamizaje__gracias .tamizaje__emergencia {
+  margin: 22px 0 0;
+  text-align: left;
+}
+
+@media (max-width: 560px) {
+  .tamizaje {
+    padding: 16px 10px 48px;
+  }
+
+  .tamizaje__caja {
+    padding: 22px 18px 26px;
+  }
+
+  /* En pantalla estrecha el sangrado bajo el número roba demasiado ancho a
+     las opciones, y una opción que no cabe se lee como dos. */
+  .tamizaje__opciones,
+  .tamizaje__ayuda,
+  .tamizaje__emergencia {
+    margin-left: 0;
+  }
+}

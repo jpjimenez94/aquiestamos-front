@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { paraWhatsapp } from '@/lib/telefono'
 import { ModalTarjetaProfesional } from '@/components/portal/ModalTarjetaProfesional'
 import {
   ShieldCheck,
@@ -53,9 +54,11 @@ export function SeccionTarjetaProfesional({
 
   const mensajeWhatsApp = mensajes[tipoPerfil]
 
-  const telLimpio = profesionalTelefono ? profesionalTelefono.replace(/\D/g, '') : ''
+  // El indicativo lo decide `paraWhatsapp`: pegarle 57 a lo que no empiece por
+  // 57 rompe cualquier número extranjero.
+  const telLimpio = paraWhatsapp(profesionalTelefono)
   const linkWhatsApp = telLimpio
-    ? `https://wa.me/${telLimpio.startsWith('57') ? telLimpio : `57${telLimpio}`}?text=${encodeURIComponent(mensajeWhatsApp)}`
+    ? `https://wa.me/${telLimpio}?text=${encodeURIComponent(mensajeWhatsApp)}`
     : null
 
   function copiarMensaje() {

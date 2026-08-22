@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { MessageSquare, Copy, Check, X, Send } from 'lucide-react'
+import { paraWhatsapp } from '@/lib/telefono'
 
 type CasoAsignado = {
   pacienteNombre: string
@@ -89,9 +90,11 @@ export function ModalSeguimientoGeneral({ casos }: { casos: CasoAsignado[] }) {
               </strong>
               <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {casos.map((c, i) => {
-                  const telLimpio = c.profesionalTelefono ? c.profesionalTelefono.replace(/\D/g, '') : ''
-                  const link = telLimpio
-                    ? `https://wa.me/${telLimpio.startsWith('57') ? telLimpio : `57${telLimpio}`}?text=${encodeURIComponent(mensajeBase)}`
+                  // Mismo motivo que en el botón de seguimiento: el indicativo
+                  // no se adivina con un startsWith.
+                  const tel = paraWhatsapp(c.profesionalTelefono)
+                  const link = tel
+                    ? `https://wa.me/${tel}?text=${encodeURIComponent(mensajeBase)}`
                     : null
                   return (
                     <div

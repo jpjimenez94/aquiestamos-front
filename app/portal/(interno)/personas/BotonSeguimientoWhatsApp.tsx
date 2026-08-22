@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { MessageSquare, Copy, Check, X, Phone, UserCheck } from 'lucide-react'
+import { paraWhatsapp } from '@/lib/telefono'
 
 type BotonSeguimientoProps = {
   pacienteNombre: string
@@ -20,19 +21,22 @@ export function BotonSeguimientoWhatsApp({
   const [copiadoProf, setCopiadoProf] = useState(false)
   const [copiadoPac, setCopiadoPac] = useState(false)
 
-  const telProfLimpio = profesionalTelefono ? profesionalTelefono.replace(/\D/g, '') : ''
-  const telPacLimpio = pacienteTelefono ? pacienteTelefono.replace(/\D/g, '') : ''
+  // El indicativo lo resuelve `paraWhatsapp`. Antes esto hacía
+  // `startsWith('57') ? tel : '57' + tel`, que a un número de España —34600…—
+  // le pegaba el 57 delante y salía 5734600…, un enlace a ninguna parte.
+  const telProf = paraWhatsapp(profesionalTelefono)
+  const telPac = paraWhatsapp(pacienteTelefono)
 
   const mensajeProfesional = `¡Hola ${profesionalNombre}! Te saludamos del equipo de coordinación de Aquí Estamos 💚. Te escribimos para hacer seguimiento al caso de acompañamiento de ${pacienteNombre} (Tel: ${pacienteTelefono}). Por favor cuéntanos cómo va el contacto o recuerda agendar la sesión y actualizar el estado de avance en tu enlace. ¡Muchas gracias por tu valioso apoyo voluntario!`
 
   const mensajePaciente = `¡Hola ${pacienteNombre}! Te saludamos de la Red Aquí Estamos 💚. Te escribimos para hacer seguimiento a tu asignación con el/la profesional ${profesionalNombre}. Queremos confirmar si ya lograste ponerte en contacto con él/ella o si requieres algún apoyo de nuestra parte.`
 
-  const linkWaProf = telProfLimpio
-    ? `https://wa.me/${telProfLimpio.startsWith('57') ? telProfLimpio : `57${telProfLimpio}`}?text=${encodeURIComponent(mensajeProfesional)}`
+  const linkWaProf = telProf
+    ? `https://wa.me/${telProf}?text=${encodeURIComponent(mensajeProfesional)}`
     : null
 
-  const linkWaPac = telPacLimpio
-    ? `https://wa.me/${telPacLimpio.startsWith('57') ? telPacLimpio : `57${telPacLimpio}`}?text=${encodeURIComponent(mensajePaciente)}`
+  const linkWaPac = telPac
+    ? `https://wa.me/${telPac}?text=${encodeURIComponent(mensajePaciente)}`
     : null
 
   function copiar(texto: string, setCopiado: (v: boolean) => void) {

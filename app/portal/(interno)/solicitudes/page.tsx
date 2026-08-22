@@ -1,9 +1,22 @@
 import { portalFetch, enBogota, usuarioActual } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
-import { BotonAdmitir } from './BotonAdmitir'
 import { BotonEliminarSolicitud } from './BotonEliminarSolicitud'
+import { BotonTamizaje } from './BotonTamizaje'
+import { ResultadoTamizaje } from './ResultadoTamizaje'
 
 export const metadata = { title: 'Solicitudes' }
+
+type Tamizaje = {
+  ruta: string
+  respuesta: {
+    id: string
+    prioridadSugerida: 'ALTA' | 'MEDIA' | 'BAJA'
+    prioridadLegible: string
+    razones: string[]
+    respondidoEn: string
+  } | null
+  diasParaAdmisionAutomatica: number
+}
 
 type Solicitud = {
   id: string
@@ -17,6 +30,7 @@ type Solicitud = {
   availableSlots: string[]
   status: string
   createdAt: string
+  tamizaje: Tamizaje | null
 }
 
 const DIA_CORTO: Record<string, string> = {
@@ -52,7 +66,7 @@ export default async function SolicitudesPage({
     <>
       <Cabecera
         titulo="Solicitudes de acompañamiento"
-        descripcion="Lo que llega por el formulario público. Admitir una crea su ficha para poder asignarle profesional."
+        descripcion="Lo que llega por el formulario público, con lo pendiente arriba. Mándale el enlace con «Preguntar»: cuando responda, el sistema calcula su prioridad y la admite sola. Si no responde, la admite igual a los pocos días para que nadie se quede fuera de la cola."
       />
 
       {!respuesta.success ? (
@@ -70,6 +84,7 @@ export default async function SolicitudesPage({
               <tr>
                 <th>Persona</th>
                 <th>Ciudad</th>
+                <th>Cómo está</th>
                 <th>Disponibilidad</th>
                 <th>Recibida</th>
                 <th>Estado</th>
@@ -88,6 +103,13 @@ export default async function SolicitudesPage({
                   </td>
                   <td>{s.city ?? '—'}</td>
                   <td>
+                    <ResultadoTamizaje
+                      respuesta={s.tamizaje?.respuesta ?? null}
+                      diasParaAdmision={s.tamizaje?.diasParaAdmisionAutomatica ?? null}
+                      yaAdmitida={s.status !== 'NUEVO'}
+                    />
+                  </td>
+                  <td>
                     <span className="tabla__secundario" style={{ marginTop: 0 }}>
                       {s.availableDays?.length
                         ? s.availableDays.map((d) => DIA_CORTO[d] ?? d).join(' ')
@@ -102,7 +124,12 @@ export default async function SolicitudesPage({
                     <Etiqueta estado={s.status} />
                   </td>
                   <td className="tabla__acciones">
-                    <BotonAdmitir solicitudId={s.id} yaAdmitida={s.status !== 'NUEVO'} />
+                    <BotonTamizaje
+                      nombre={s.name}
+                      telefono={s.phone}
+                      ruta={s.tamizaje?.ruta ?? null}
+                      yaRespondio={Boolean(s.tamizaje?.respuesta)}
+                    />
                     {esAdmin && (
                       <BotonEliminarSolicitud
                         solicitudId={s.id}

@@ -1250,3 +1250,109 @@ body.sin-desplazamiento {
 .boton-mini[data-tono="peligro"]:hover:not(:disabled) {
   background: #b91c1c;
 }
+
+/* ---------- Tamizaje: preguntas previas a admitir ---------- */
+
+.tamizaje__seccion {
+  margin-top: 20px;
+}
+
+.tamizaje__subtitulo {
+  margin: 0 0 8px;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.tamizaje__guia {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* El color del borde dice la urgencia antes que la palabra, igual que en los
+   botones de prioridad de "Admitir". Son la misma decisión. */
+.tamizaje__nivel {
+  padding: 10px 13px;
+  background-color: var(--color-bg-default);
+  border: 1px solid var(--color-border-default);
+  border-left-width: 4px;
+  border-radius: 8px;
+}
+
+.tamizaje__nivel[data-prioridad='ALTA'] { border-left-color: var(--color-red); }
+.tamizaje__nivel[data-prioridad='MEDIA'] { border-left-color: var(--color-yellow); }
+.tamizaje__nivel[data-prioridad='BAJA'] { border-left-color: var(--color-green); }
+
+.tamizaje__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tamizaje__prioridad {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tamizaje__nivel[data-prioridad='ALTA'] .tamizaje__prioridad { color: var(--color-red); }
+.tamizaje__nivel[data-prioridad='MEDIA'] .tamizaje__prioridad { color: var(--color-yellow); }
+.tamizaje__nivel[data-prioridad='BAJA'] .tamizaje__prioridad { color: var(--color-green); }
+
+.tamizaje__resumen {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+}
+
+.tamizaje__senales {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.tamizaje__senales li + li {
+  margin-top: 5px;
+}
+
+/* ---------- Resultado del tamizaje en la bandeja ---------- */
+
+/* Ámbar y no gris: quien no responde no entra a la cola, así que esto es
+   trabajo pendiente, no un dato de paso. */
+.tamizaje-sin-responder {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background-color: #f8ecd6;
+  color: #7a5410;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tamizaje-celda__resumen {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-light);
+}
+
+.tamizaje-celda__detalle {
+  margin-top: 8px;
+  padding: 10px 12px;
+  max-width: 340px;
+  background-color: var(--color-bg-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+}
+
