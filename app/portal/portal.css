@@ -1356,3 +1356,14 @@ body.sin-desplazamiento {
   border-radius: 8px;
 }
 
+
+/* Documentos privados: el icono gira mientras se pide la URL firmada. */
+.girando {
+  animation: girar 0.9s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}

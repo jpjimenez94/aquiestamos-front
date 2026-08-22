@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { paraWhatsapp } from '@/lib/telefono'
+import { DocumentoPrivado } from './DocumentoPrivado'
 import {
   ShieldCheck,
   Upload,
@@ -98,7 +99,8 @@ export function ModalTarjetaProfesional({
       const data = await res.json()
 
       if (res.ok && data.success) {
-        setDocumentoUrl(data.url)
+        // Ahora llega una clave, no una URL: el archivo vive en un bucket privado.
+        setDocumentoUrl(data.clave)
         setVerificada(true)
         setMensaje({ tipo: 'exito', texto: `Archivo cargado correctamente: ${data.nombreOriginal}` })
       } else {
@@ -293,68 +295,28 @@ export function ModalTarjetaProfesional({
                   disabled={subiendoArchivo}
                 />
               </label>
-              {documentoUrl && (
-                <a
-                  href={documentoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="boton-mini"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, textDecoration: 'none' }}
-                >
-                  <ExternalLink size={13} />
-                  Abrir en pestaña nueva
-                </a>
-              )}
+              <DocumentoPrivado clave={documentoUrl} etiqueta="Abrir el soporte" />
             </div>
           </div>
 
-          {/* Vista Previa Miniatura del Documento */}
-          {documentoUrl && (
+          {/*
+            Ya no hay miniatura ni <iframe> con el documento incrustado.
+            El archivo vive en un bucket privado y para verlo hace falta una URL
+            firmada que dura un minuto; pintarla al abrir el modal significaría
+            pedir —y auditar— la consulta de un documento de identidad que quizá
+            nadie iba a mirar. Se pide cuando alguien hace clic.
+          */}
+          {documentoUrl ? (
             <div style={{ padding: 10, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
-              <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, fontWeight: 600 }}>
-                <Eye size={13} /> Vista previa del soporte cargado:
+              <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                <Eye size={13} /> Hay un soporte cargado.
               </span>
-
-              {esImagen(documentoUrl) ? (
-                <div style={{ textAlign: 'center', background: '#fff', padding: 6, borderRadius: 6, border: '1px solid #cbd5e1' }}>
-                  <img
-                    src={documentoUrl}
-                    alt="Vista previa del soporte"
-                    style={{ maxHeight: 180, maxWidth: '100%', objectFit: 'contain', borderRadius: 4 }}
-                  />
-                </div>
-              ) : esPdf(documentoUrl) ? (
-                <div style={{ width: '100%', height: 190, background: '#fff', borderRadius: 6, overflow: 'hidden', border: '1px solid #cbd5e1' }}>
-                  <iframe
-                    src={documentoUrl}
-                    title="Vista previa PDF"
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                  />
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.84rem' }}>
-                  <FileText size={16} />
-                  <a href={documentoUrl} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
-                    {documentoUrl}
-                  </a>
-                </div>
-              )}
+              <span className="tabla__secundario" style={{ fontSize: '0.76rem' }}>
+                Se guarda en un almacenamiento privado. Cada vez que alguien lo abre queda
+                registrado quién y cuándo.
+              </span>
             </div>
-          )}
-
-          <div>
-            <label className="field__label" htmlFor="tp-url">
-              O Enlace de soporte en la nube / Nota de verificación
-            </label>
-            <input
-              id="tp-url"
-              className="input"
-              type="text"
-              placeholder="https://drive.google.com/... o nota de validación interna"
-              value={documentoUrl}
-              onChange={(e) => setDocumentoUrl(e.target.value)}
-            />
-          </div>
+          ) : null}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, background: '#f8fafc', padding: 10, borderRadius: 6, border: '1px solid #e2e8f0' }}>
             <input

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { paraWhatsapp } from '@/lib/telefono'
+import { DocumentoPrivado } from '@/components/portal/DocumentoPrivado'
 import { ModalTarjetaProfesional } from '@/components/portal/ModalTarjetaProfesional'
 import {
   ShieldCheck,
@@ -207,15 +208,9 @@ export function SeccionTarjetaProfesional({
           <div>
             <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'block' }}>Soporte Adjunto</span>
             {documentoUrl ? (
-              <a
-                href={documentoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="boton-mini"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}
-              >
-                <ExternalLink size={13} /> Ver soporte completo
-              </a>
+              <div style={{ marginTop: 4 }}>
+                <DocumentoPrivado clave={documentoUrl} etiqueta="Ver soporte completo" />
+              </div>
             ) : (
               <span className="tabla__secundario" style={{ fontSize: '0.85rem', display: 'block', marginTop: 4 }}>
                 Sin archivo
@@ -224,52 +219,15 @@ export function SeccionTarjetaProfesional({
           </div>
         </div>
 
-        {/* Vista Previa Miniatura del Documento Adjunto */}
-        {documentoUrl && (
-          <div style={{ marginTop: 14, padding: 12, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span className="tabla__secundario" style={{ fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={14} /> Vista previa del soporte cargado:
-              </span>
-              <a
-                href={documentoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="boton-mini"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.76rem' }}
-              >
-                <ExternalLink size={12} /> Abrir en tamaño completo
-              </a>
-            </div>
+        {/*
+          Ya no hay miniatura del documento incrustada.
 
-            {esImagen(documentoUrl) ? (
-              <div style={{ textAlign: 'center', background: '#fff', padding: 8, borderRadius: 6, border: '1px solid #cbd5e1' }}>
-                <a href={documentoUrl} target="_blank" rel="noopener noreferrer" title="Clic para ampliar">
-                  <img
-                    src={documentoUrl}
-                    alt="Vista previa del soporte"
-                    style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain', borderRadius: 4, cursor: 'zoom-in' }}
-                  />
-                </a>
-              </div>
-            ) : esPdf(documentoUrl) ? (
-              <div style={{ width: '100%', height: 240, background: '#fff', borderRadius: 6, overflow: 'hidden', border: '1px solid #cbd5e1' }}>
-                <iframe
-                  src={documentoUrl}
-                  title="Vista previa PDF"
-                  style={{ width: '100%', height: '100%', border: 'none' }}
-                />
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.86rem', padding: 8, background: '#fff', borderRadius: 6, border: '1px solid #cbd5e1' }}>
-                <FileText size={16} />
-                <a href={documentoUrl} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
-                  {documentoUrl}
-                </a>
-              </div>
-            )}
-          </div>
-        )}
+          El soporte vive en un almacenamiento privado y para verlo hace falta
+          una URL firmada que dura un minuto. Pintarla al cargar la ficha
+          significaria pedir —y dejar en la auditoria— la consulta de un
+          documento de identidad que quiza nadie iba a mirar. Se pide cuando
+          alguien hace clic.
+        */}
       </div>
 
       <ModalTarjetaProfesional

@@ -49,7 +49,8 @@ export function ModalConsentimiento({
       const data = await res.json()
 
       if (res.ok && data.success) {
-        setDocumentUrl(data.url)
+        // Ahora llega una clave, no una URL: el archivo vive en un bucket privado.
+        setDocumentUrl(data.clave)
         setConsentSigned(true)
         setMensaje({ tipo: 'exito', texto: `Consentimiento cargado: ${data.nombreOriginal}` })
       } else {

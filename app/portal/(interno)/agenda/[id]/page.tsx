@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
+import { DocumentoPrivado } from '@/components/portal/DocumentoPrivado'
 import { Cabecera, Dato, Etiqueta } from '../../componentes'
 import { AccionesCita } from './AccionesCita'
 import { MensajesFlujoCita } from './MensajesFlujoCita'
@@ -132,17 +133,12 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
                 Nº: {cita.profesional.professionalCardNumber}
               </p>
             )}
-            {cita.profesional.professionalCardDocumentUrl && (
-              <a
-                href={cita.profesional.professionalCardDocumentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="boton-mini"
-                style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}
-              >
-                <FileText size={13} /> Ver soporte de tarjeta
-              </a>
-            )}
+            <div style={{ marginTop: 8 }}>
+              <DocumentoPrivado
+                clave={cita.profesional.professionalCardDocumentUrl}
+                etiqueta="Ver soporte de tarjeta"
+              />
+            </div>
           </div>
 
           {/* Consentimiento Informado */}
@@ -162,17 +158,12 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
             <p className="tabla__secundario" style={{ fontSize: '0.82rem', margin: '4px 0' }}>
               Requisito previo para dar inicio a la sesión con {cita.paciente.nombre}.
             </p>
-            {cita.consentSignedDocumentUrl && (
-              <a
-                href={cita.consentSignedDocumentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="boton-mini"
-                style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}
-              >
-                <FileText size={13} /> Ver documento firmado
-              </a>
-            )}
+            <div style={{ marginTop: 8 }}>
+              <DocumentoPrivado
+                clave={cita.consentSignedDocumentUrl}
+                etiqueta="Ver documento firmado"
+              />
+            </div>
           </div>
         </div>
       </div>
