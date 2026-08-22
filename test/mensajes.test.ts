@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  mensajeDeAsignacion,
+  mensajeDePropuesta,
   enlaceWhatsapp,
   mensajeDeTamizaje,
   numeroDePregunta,
@@ -10,6 +10,9 @@ import {
   LINEA_DE_CRISIS,
   respuestasParaLaApi,
   respuestaDeRiesgo,
+  mensajeParaCuadrarHorario,
+  mensajeDeCitaConfirmada,
+  mensajeDeCitaAlProfesional,
 } from '../lib/mensajes'
 import { LINEAS_EMERGENCIA } from '../lib/consentimiento'
 
@@ -23,18 +26,18 @@ const base = {
   enlace: 'https://redaquiestamos.org/portal/caso/abc-123',
 }
 
-describe('mensaje de asignación', () => {
+describe('mensaje de propuesta al profesional', () => {
   it('saluda por el nombre de pila, no por el nombre completo', () => {
-    expect(mensajeDeAsignacion(base)).toContain('Hola Ana,')
-    expect(mensajeDeAsignacion(base)).not.toContain('Pérez Gómez')
+    expect(mensajeDePropuesta(base)).toContain('Hola Ana,')
+    expect(mensajeDePropuesta(base)).not.toContain('Pérez Gómez')
   })
 
   it('enumera los días como se dicen', () => {
-    expect(mensajeDeAsignacion(base)).toContain('lunes, miércoles y viernes en la tarde')
+    expect(mensajeDePropuesta(base)).toContain('lunes, miércoles y viernes en la tarde')
   })
 
   it('no incluye días ni modalidad cuando no se declararon', () => {
-    const texto = mensajeDeAsignacion({ ...base, dias: [], franjas: [], modalidad: null })
+    const texto = mensajeDePropuesta({ ...base, dias: [], franjas: [], modalidad: null })
     expect(texto).not.toContain('Puede ')
     expect(texto).not.toContain('Prefiere')
     // Pero el enlace y las instrucciones siguen ahí: es lo que hace útil el
@@ -48,20 +51,41 @@ describe('mensaje de asignación', () => {
    * de la persona acompañada, esta prueba tiene que fallar.
    */
   it('no filtra datos de contacto de la persona acompañada', () => {
-    const texto = mensajeDeAsignacion(base)
+    const texto = mensajeDePropuesta(base)
     expect(texto).not.toMatch(/\d{7,}/)
     expect(texto.toLowerCase()).not.toContain('teléfono')
   })
 
   it('cambia la urgencia según la prioridad', () => {
-    expect(mensajeDeAsignacion({ ...base, prioridad: 'ALTA' })).toContain('hoy mismo')
-    expect(mensajeDeAsignacion({ ...base, prioridad: 'BAJA' })).toContain('esta semana')
+    expect(mensajeDePropuesta({ ...base, prioridad: 'ALTA' })).toContain('hoy mismo')
+    expect(mensajeDePropuesta({ ...base, prioridad: 'BAJA' })).toContain('esta semana')
   })
 
-  it('pide siempre responder por el enlace', () => {
-    const texto = mensajeDeAsignacion(base)
-    expect(texto).toContain('cuéntanos cómo te fue desde ese mismo enlace')
+  /**
+   * El cambio de fondo: este mensaje PREGUNTA, no anuncia. Antes decía "te
+   * asignamos un acompañamiento", como si aceptar fuera automático, y el
+   * profesional es voluntario y puede no poder.
+   */
+  it('pregunta si puede, en vez de darlo por hecho', () => {
+    const texto = mensajeDePropuesta(base)
+    expect(texto).toContain('queremos saber si puedes tomarlo')
+    expect(texto).not.toContain('Te asignamos')
+  })
+
+  it('le pide responder por el enlace, no por WhatsApp', () => {
+    const texto = mensajeDePropuesta(base)
+    expect(texto).toContain(base.enlace)
+    expect(texto).toContain('los días y las horas en las que podrías')
+  })
+
+  it('le dice que los datos de la persona se abren solo si acepta', () => {
+    const texto = mensajeDePropuesta(base)
+    expect(texto).toContain('aparecen cuando aceptas, no antes')
     expect(texto).toContain('confidencial')
+  })
+
+  it('deja claro que decir que no está bien', () => {
+    expect(mensajeDePropuesta(base)).toContain('No pasa nada: es voluntario')
   })
 })
 
@@ -191,5 +215,103 @@ describe('guía de prioridad', () => {
 
   it('ante la duda se sube la prioridad, no se baja', () => {
     expect(REGLAS_DE_LECTURA.join(' ')).toContain('sube la prioridad')
+  })
+})
+
+
+/**
+ * Los tres mensajes que siguen a la propuesta.
+ *
+ * Lo que más se cuida aquí es quién puede ver el teléfono de quién. La red
+ * decidió que el número del profesional no llega a la persona acompañada y
+ * que el de ella no llega a él por WhatsApp: cada uno ve lo suyo, y quien
+ * coordina es el puente. Si alguien afloja eso, estas pruebas fallan.
+ */
+describe('cuadrar el horario con la persona', () => {
+  const datos = {
+    persona: 'Luisa Fernanda Ortiz',
+    profesional: 'Ana María Pérez Gómez',
+    dias: ['MARTES', 'JUEVES'],
+    franjas: ['TARDE'],
+    nota: 'después de las 4 mejor',
+  }
+  const texto = mensajeParaCuadrarHorario(datos)
+
+  it('saluda por el nombre de pila', () => {
+    expect(texto).toContain('Hola Luisa,')
+  })
+
+  it('dice quién la va a acompañar, con nombre completo', () => {
+    expect(texto).toContain('Ana María Pérez Gómez')
+  })
+
+  /** El nombre sí, el teléfono no: coordinar es trabajo de quien coordina. */
+  it('NO lleva el teléfono del profesional', () => {
+    expect(texto).not.toMatch(/d{7,}/)
+  })
+
+  it('lista los horarios que el profesional puso él mismo', () => {
+    expect(texto).toContain('martes y jueves')
+    expect(texto).toContain('en la tarde')
+    expect(texto).toContain('después de las 4 mejor')
+  })
+
+  it('deja salida si ninguno le sirve', () => {
+    expect(texto).toContain('dinos tú cuándo puedes')
+  })
+
+  it('lleva la línea de crisis: sigue habiendo alguien esperando ayuda', () => {
+    expect(texto).toContain(LINEA_DE_CRISIS)
+  })
+})
+
+describe('confirmación de la cita a la persona', () => {
+  const texto = mensajeDeCitaConfirmada({
+    persona: 'Luisa Fernanda Ortiz',
+    profesional: 'Ana María Pérez Gómez',
+    cuando: '2026-09-03 15:00',
+    modalidad: 'VIRTUAL',
+  })
+
+  it('lleva cuándo, con quién y en qué modalidad', () => {
+    expect(texto).toContain('2026-09-03 15:00')
+    expect(texto).toContain('Ana María Pérez Gómez')
+    expect(texto).toContain('virtual')
+  })
+
+  /**
+   * Sin esta frase la persona se queda esperando sin saber quién da el primer
+   * paso, y en una espera así no saber es lo que más pesa.
+   */
+  it('dice explícitamente que el profesional la va a contactar', () => {
+    expect(texto).toContain('se va a poner en contacto contigo')
+  })
+
+  it('sigue sin llevar el teléfono del profesional', () => {
+    expect(texto).not.toMatch(/d{7,}/)
+  })
+})
+
+describe('confirmación de la cita al profesional', () => {
+  const texto = mensajeDeCitaAlProfesional({
+    profesional: 'Ana María Pérez Gómez',
+    cuando: '2026-09-03 15:00',
+    modalidad: 'VIRTUAL',
+    enlace: 'https://redaquiestamos.org/portal/caso/abc-123',
+  })
+
+  it('lleva la cita y el enlace', () => {
+    expect(texto).toContain('2026-09-03 15:00')
+    expect(texto).toContain('https://redaquiestamos.org/portal/caso/abc-123')
+  })
+
+  /** Los datos de la persona nunca viajan por WhatsApp: van tras el enlace. */
+  it('no lleva el nombre ni el teléfono de la persona acompañada', () => {
+    expect(texto).not.toMatch(/d{7,}/)
+    expect(texto.toLowerCase()).not.toContain('teléfono')
+  })
+
+  it('le avisa de que la persona lo está esperando a él', () => {
+    expect(texto).toContain('tú vas a contactarla')
   })
 })

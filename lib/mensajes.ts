@@ -38,9 +38,9 @@ const MODALIDAD_LARGA: Record<string, string> = {
 }
 
 const URGENCIA: Record<string, string> = {
-  ALTA: 'Es un caso de prioridad alta: te pedimos buscarla hoy mismo si puedes.',
-  MEDIA: 'Te pedimos buscarla en los próximos días.',
-  BAJA: 'Puedes buscarla cuando tengas espacio esta semana.',
+  ALTA: 'Es un caso de prioridad alta: si puedes, respóndenos hoy mismo.',
+  MEDIA: 'Te pedimos responder en los próximos días.',
+  BAJA: 'Puedes responder cuando tengas un momento esta semana.',
 }
 
 /** "lunes, miércoles y viernes" — con la coma y la "y" donde van. */
@@ -60,7 +60,20 @@ export type DatosDelMensaje = {
   enlace: string
 }
 
-export function mensajeDeAsignacion(d: DatosDelMensaje): string {
+/**
+ * PASO 1 · Al profesional: te proponemos un caso, ¿puedes?
+ *
+ * Antes este mensaje decía "te asignamos un acompañamiento", en indicativo,
+ * como si aceptar fuera automático. No lo es: es voluntario y puede no poder.
+ * Ahora pregunta, y le pide que responda por su enlace en vez de por WhatsApp
+ * — así sus horarios entran al sistema tal como él los escribe, sin que nadie
+ * los transcriba y sin depender de que quien coordina se acuerde.
+ *
+ * Sigue sin llevar el nombre ni el teléfono de la persona: para decidir si
+ * puede acompañarla hace falta saber dónde está, cómo prefiere que sea y
+ * cuándo puede, no quién es. Si dice que no, no se lleva nada.
+ */
+export function mensajeDePropuesta(d: DatosDelMensaje): string {
   const dias = enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase()))
   const franjas = enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase()))
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
@@ -73,20 +86,22 @@ export function mensajeDeAsignacion(d: DatosDelMensaje): string {
   const lineas = [
     `Hola ${nombre}, gracias por sumarte a Red Aquí Estamos.`,
     '',
-    'Te asignamos un acompañamiento.',
+    'Tenemos un acompañamiento que podría encajarte y queremos saber si puedes tomarlo.',
     '',
-    `· Está en ${d.ciudad}.`,
+    `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
     cuando ? `· Puede ${cuando}.` : null,
     '',
-    'Sus datos de contacto están en este enlace. Entras con el correo con el que te registraste:',
-    d.enlace,
-    '',
     URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
     '',
-    'Cuando la busques, cuéntanos cómo te fue desde ese mismo enlace: si lograste hablar con ella, si quedaron en una cita y de qué tipo, o si tuviste dificultades para contactarla. Eso es lo que nos permite saber en qué va el caso sin tener que llamarte a preguntar.',
+    'Entra aquí con el correo con el que te registraste y dinos si puedes. Si aceptas, ahí mismo nos dejas los días y las horas en las que podrías:',
+    d.enlace,
     '',
-    'Es un acompañamiento voluntario y confidencial. Te pedimos manejarlo con responsabilidad ética y profesional, y no compartir los datos de la persona con nadie más.',
+    'Con eso cuadramos el horario con ella y te confirmamos. Sus datos de contacto aparecen cuando aceptas, no antes.',
+    '',
+    'Si no puedes, dínoslo en esa misma pantalla y se lo proponemos a otra persona. No pasa nada: es voluntario.',
+    '',
+    'Es un acompañamiento confidencial. Te pedimos manejarlo con responsabilidad ética y profesional, y no compartir los datos de la persona con nadie más.',
     '',
     'Gracias por tu tiempo.',
   ]
@@ -336,3 +351,117 @@ export const REGLAS_DE_LECTURA = [
   'Que no conteste NO significa que esté bien. A los dos días el sistema la admite igual, en MEDIA, para que no se quede fuera de la cola — pero esa prioridad es una suposición, no algo que ella haya dicho. A quien entró así hay que llamarla, no solo asignarle profesional.',
   'La prioridad sale de siete preguntas, no de conocer a la persona. Si sabes algo que las preguntas no recogieron, dilo en su ficha de Personas y trátalo como lo que sepas, no como lo que diga la etiqueta.',
 ] as const
+
+// ---------------------------------------------------------------------------
+// Los tres mensajes que siguen a la propuesta.
+//
+// Asignar no es un clic: es una negociación entre quien coordina, el
+// profesional y la persona acompañada. Cada estado de esa negociación tiene
+// exactamente un mensaje, y viven aquí los cuatro juntos para que se lean
+// como lo que son —una conversación— y no como cuatro textos sueltos.
+// ---------------------------------------------------------------------------
+
+/**
+ * PASO 2 · A la persona acompañada: ya hay profesional, ¿cuándo puedes?
+ *
+ * Lleva el NOMBRE del profesional pero no su teléfono. Saber quién la va a
+ * acompañar es lo que convierte «alguien te va a llamar» en algo real; darle
+ * el número, en cambio, saca el de un voluntario de la red al historial de
+ * WhatsApp de un tercero. Quien cuadra el horario es coordinación.
+ */
+export function mensajeParaCuadrarHorario(d: {
+  persona: string
+  profesional: string
+  dias: string[]
+  franjas: string[]
+  nota?: string | null
+}): string {
+  const nombre = String(d.persona ?? '').trim().split(/\s+/)[0] || 'hola'
+  const dias = enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase()))
+  const franjas = enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase()))
+
+  return [
+    `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
+    '',
+    `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`,
+    '',
+    dias || franjas ? 'Nos dijo que puede en estos momentos:' : 'Estamos cuadrando el horario.',
+    dias ? `· ${dias}` : null,
+    franjas ? `· ${franjas}` : null,
+    d.nota ? `· ${d.nota}` : null,
+    '',
+    '¿Cuál de esos te sirve? Respóndenos por aquí y lo dejamos agendado. Si ninguno te queda bien, dinos tú cuándo puedes y lo miramos.',
+    '',
+    LINEA_DE_CRISIS,
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
+/**
+ * PASO 3 · A la persona acompañada: quedó agendada.
+ *
+ * Con la fecha, la hora y el nombre de quien la va a acompañar, y diciéndole
+ * claramente que el profesional la va a contactar. Sin esa última frase, la
+ * persona se queda esperando sin saber quién da el primer paso — y en una
+ * espera así, no saber es lo que más pesa.
+ */
+export function mensajeDeCitaConfirmada(d: {
+  persona: string
+  profesional: string
+  cuando: string
+  modalidad?: string | null
+}): string {
+  const nombre = String(d.persona ?? '').trim().split(/\s+/)[0] || 'hola'
+  const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+
+  return [
+    `Listo, ${nombre}. Tu acompañamiento quedó agendado.`,
+    '',
+    `· Con: ${d.profesional}`,
+    `· Cuándo: ${d.cuando}`,
+    modalidad ? `· Modalidad: ${modalidad}` : null,
+    '',
+    `${d.profesional.trim().split(/\s+/)[0]} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
+    '',
+    'Si te surge algo y no puedes, escríbenos por aquí con tiempo y lo movemos. No pasa nada.',
+    '',
+    LINEA_DE_CRISIS,
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
+/**
+ * PASO 4 · Al profesional: quedó para tal día.
+ *
+ * Los datos de contacto de la persona siguen sin viajar por WhatsApp: van
+ * detrás del enlace, como siempre.
+ */
+export function mensajeDeCitaAlProfesional(d: {
+  profesional: string
+  cuando: string
+  modalidad?: string | null
+  enlace: string
+}): string {
+  const nombre = String(d.profesional ?? '').trim().split(/\s+/)[0] || 'hola'
+  const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+
+  return [
+    `Hola ${nombre}, ya cuadramos el horario.`,
+    '',
+    `· Cuándo: ${d.cuando}`,
+    modalidad ? `· Modalidad: ${modalidad}` : null,
+    '',
+    'Los datos de contacto de la persona están en tu enlace. Entras con el mismo correo:',
+    d.enlace,
+    '',
+    'Le dijimos que tú vas a contactarla para ese momento, así que te está esperando.',
+    '',
+    'Cuando pase, cuéntanos cómo te fue desde ese mismo enlace. Eso es lo que nos permite saber en qué va el caso sin tener que llamarte a preguntar.',
+    '',
+    'Gracias por tu tiempo.',
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}

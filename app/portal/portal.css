@@ -1367,3 +1367,52 @@ body.sin-desplazamiento {
     transform: rotate(360deg);
   }
 }
+
+/* ---------- El caso, según en qué punto va la negociación ---------- */
+
+.caso-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+/* Lo que hay que hacer AHORA con este caso. Va arriba y con icono porque es
+   lo primero que alguien necesita saber al abrir la ficha. */
+.caso-siguiente {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 10px 13px;
+  background-color: var(--color-bg-default);
+  border-radius: 9px;
+  font-size: 0.86rem;
+  color: var(--color-text-default);
+}
+
+.caso-paso {
+  margin: 0 0 4px;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+/* Los horarios que el profesional puso él mismo desde su enlace. */
+.caso-horarios {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background-color: #dceaf1;
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.caso-horarios em {
+  color: var(--color-text-light);
+  font-size: 0.84rem;
+}

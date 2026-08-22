@@ -87,3 +87,51 @@ export async function reportarCasoAction(
     return { success: false, message: 'Error de conexión con el servidor.' }
   }
 }
+
+/**
+ * El profesional dice si puede tomar el caso, y si puede, cuándo.
+ *
+ * Va por server action por lo mismo que el reporte: el token del caso vive en
+ * una cookie httpOnly y el navegador no puede leerlo. Aquí se queda en el
+ * servidor.
+ */
+export async function decidirPropuestaAction(
+  patientId: string,
+  datos: {
+    acepta: boolean
+    dias: string[]
+    franjas: string[]
+    nota: string
+    motivo: string
+  },
+) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(`case_token_${patientId}`)?.value
+
+  if (!token) {
+    return { success: false, message: 'El acceso venció. Vuelve a ingresar tu correo.' }
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/shared-cases/${patientId}/propuesta`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-shared-case-token': token },
+      body: JSON.stringify(datos),
+      cache: 'no-store',
+    })
+
+    const payload = await response.json()
+
+    if (!response.ok || !payload.success) {
+      return {
+        success: false,
+        message: payload.message ?? 'No pudimos registrar tu respuesta.',
+        details: payload.details as Record<string, string> | undefined,
+      }
+    }
+
+    return { success: true, message: payload.message as string }
+  } catch {
+    return { success: false, message: 'Error de conexión con el servidor.' }
+  }
+}

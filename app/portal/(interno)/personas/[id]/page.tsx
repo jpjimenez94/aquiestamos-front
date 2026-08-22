@@ -3,7 +3,14 @@ import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
-import { MensajeAlProfesional } from './MensajeAlProfesional'
+import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
+
+/**
+ * Los estados en los que la negociación sigue abierta. Es el reflejo de
+ * `VIVOS` en `back/src/services/assignmentState.service.js`, que es la fuente
+ * de verdad: si allá cambia, aquí también.
+ */
+const VIVOS = ['PROPUESTA', 'ACEPTADA', 'ACTIVA']
 
 type Persona = {
   id: string
@@ -25,11 +32,7 @@ type Persona = {
   prioridadLegible: string
   createdAt: string
   diasEsperando: number
-  asignacion: {
-    id: string
-    desde: string
-    profesional: { id: string; nombre: string; telefono: string }
-  } | null
+  asignacion: Asignacion | null
   reportes: Reporte[]
 }
 
@@ -60,6 +63,11 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
 
   if (!respuesta.success || !respuesta.data) notFound()
   const persona = respuesta.data
+
+  // El enlace del caso sale de la configuración del sitio, no del navegador de
+  // quien coordina: si sale de ahí, quien trabaja en local le manda a un
+  // profesional un enlace a localhost. Ya pasó con el del tamizaje.
+  const enlaceDelSitio = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
 
   return (
     <>
@@ -108,41 +116,17 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {persona.asignacion ? (
-        <div className="panel">
-          <h2>Acompañamiento en curso</h2>
-          <p className="panel__nota">
-            Desde el {enBogota(persona.asignacion.desde, false)}.
-          </p>
-          <div className="datos">
-            <Dato etiqueta="Profesional">
-              <Link href={`/portal/profesionales/${persona.asignacion.profesional.id}`}>
-                {persona.asignacion.profesional.nombre}
-              </Link>
-            </Dato>
-          </div>
-
-          <p className="panel__nota" style={{ marginTop: 18, marginBottom: 8 }}>
-            Mensaje listo para mandarle. Lleva las instrucciones y el enlace por
-            donde tiene que respondernos; los datos de contacto de la persona solo
-            se ven al abrir ese enlace.
-          </p>
-          <MensajeAlProfesional
-            ruta={`/portal/caso/${persona.id}`}
-            telefono={persona.asignacion.profesional.telefono}
-            profesional={persona.asignacion.profesional.nombre}
-            ciudad={persona.city}
-            prioridad={persona.priority}
-            modalidad={persona.preferredModality}
-            dias={persona.availableDays}
-            franjas={persona.availableSlots}
-          />
-        </div>
+      {persona.asignacion && VIVOS.includes(persona.asignacion.estado) ? (
+        <PanelDelCaso
+          persona={persona}
+          asignacion={persona.asignacion}
+          enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+        />
       ) : (
         <PanelEmparejamiento personaId={persona.id} />
       )}
 
-      {persona.asignacion ? (
+      {persona.asignacion?.estado === 'ACTIVA' ? (
         <div className="panel">
           <h2>Qué ha reportado quien acompaña</h2>
           <p className="panel__nota">

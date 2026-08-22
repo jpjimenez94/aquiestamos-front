@@ -3,12 +3,31 @@ import { cookies } from 'next/headers'
 import { BACKEND_URL } from '@/lib/api'
 import { AccesoCasoForm } from './AccesoCasoForm'
 import { ReporteCasoForm } from './ReporteCasoForm'
+import { DecidirPropuestaForm } from './DecidirPropuestaForm'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
 import { Dato, Etiqueta } from '../../(interno)/componentes'
 import { enBogota } from '@/lib/portal'
 
+/**
+ * Esta pantalla usa las clases del portal y no las importaba: vive fuera del
+ * grupo `(interno)`, que es quien trae `portal.css`, así que el profesional
+ * la ha estado viendo a medio vestir.
+ *
+ * Y las del tamizaje porque el formulario de decisión reutiliza sus opciones
+ * grandes: son la misma cosa —alguien contestando algo importante desde el
+ * teléfono— y no tiene sentido dibujarlas dos veces.
+ */
+import '../../portal.css'
+import '../../../tamizaje/[token]/tamizaje.css'
+
 export const metadata = { title: 'Acceso al caso' }
+
+const DIA: Record<string, string> = {
+  LUNES: 'lunes', MARTES: 'martes', MIERCOLES: 'miércoles', JUEVES: 'jueves',
+  VIERNES: 'viernes', SABADO: 'sábado', DOMINGO: 'domingo',
+}
+const FRANJA: Record<string, string> = { MANANA: 'mañana', TARDE: 'tarde', NOCHE: 'noche' }
 
 // La ruta recibe params con el id del paciente.
 export default async function SharedCasePage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,6 +67,59 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
         <div className="login-box">
           <h2>Enlace expirado o inválido</h2>
           <p>{message}</p>
+        </div>
+      </main>
+    )
+  }
+
+  /**
+   * Todavía no ha aceptado: se le enseña lo justo para decidir.
+   *
+   * El backend ni siquiera manda el nombre ni el teléfono de la persona en
+   * este estado. Para decidir si puede acompañarla hace falta saber dónde
+   * está, cómo prefiere que sea y cuándo puede — no quién es. Si dice que no,
+   * no se lleva los datos de alguien que nunca fue su caso.
+   */
+  if (paciente.decidir) {
+    const caso = paciente.caso
+    return (
+      <main className="portal" style={{ padding: '2rem', maxWidth: '760px', margin: '0 auto' }}>
+        <header className="portal__cabecera">
+          <div>
+            <h1>Te proponemos un acompañamiento</h1>
+            <p>Mira si puedes tomarlo y dinos. No estás comprometido a nada.</p>
+          </div>
+        </header>
+
+        <div className="panel" style={{ marginTop: '2rem' }}>
+          <h2>De qué se trata</h2>
+          <p className="panel__nota">
+            Los datos de contacto de la persona aparecen cuando aceptas, no antes.
+          </p>
+          <div className="datos">
+            <Dato etiqueta="Dónde está">{caso.city}</Dato>
+            <Dato etiqueta="Prioridad">
+              <Etiqueta estado={caso.priority} texto={caso.prioridadLegible} />
+            </Dato>
+            <Dato etiqueta="Modalidad que prefiere">
+              {caso.preferredModality?.toLowerCase() ?? 'le da igual'}
+            </Dato>
+            <Dato etiqueta="Días que puede">
+              {caso.availableDays?.length
+                ? caso.availableDays.map((d: string) => DIA[d] ?? d).join(', ')
+                : 'sin especificar'}
+            </Dato>
+            <Dato etiqueta="Franjas">
+              {caso.availableSlots?.length
+                ? caso.availableSlots.map((f: string) => FRANJA[f] ?? f).join(', ')
+                : 'sin especificar'}
+            </Dato>
+            {caso.isMinor ? <Dato etiqueta="Es menor de edad">Sí</Dato> : null}
+          </div>
+        </div>
+
+        <div className="panel" style={{ marginTop: '2rem' }}>
+          <DecidirPropuestaForm patientId={id} />
         </div>
       </main>
     )
