@@ -13,3 +13,10 @@ public/recursos/.originales/
 
 # Configuracion local de herramientas, no del proyecto.
 .claude/
+
+# Documentos que sube el equipo desde el portal: tarjetas profesionales,
+# certificados de estudio, consentimientos firmados. Son datos personales y
+# `public/` es la carpeta que Next sirve al mundo entero sin pedir sesion:
+# versionarlos aqui los publica dos veces, en el repositorio y en el sitio.
+# Su sitio es un almacenamiento privado, no el arbol de git.
+public/uploads/
