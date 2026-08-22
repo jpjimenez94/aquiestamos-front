@@ -116,6 +116,7 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
         verificada={p.professionalCardVerified}
         numero={p.professionalCardNumber}
         documentoUrl={p.professionalCardDocumentUrl}
+        puedeVerificar={puede(usuario, 'profesional:verificar-tarjeta')}
       />
 
       <div className="panel">

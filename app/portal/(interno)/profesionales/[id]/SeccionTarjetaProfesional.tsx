@@ -25,6 +25,8 @@ type SeccionTarjetaProps = {
   verificada?: boolean
   numero?: string | null
   documentoUrl?: string | null
+  /** Solo lectura tambien abre esta ficha, pero no verifica nada. */
+  puedeVerificar?: boolean
 }
 
 function esImagen(url: string) {
@@ -42,6 +44,7 @@ export function SeccionTarjetaProfesional({
   verificada = false,
   numero = '',
   documentoUrl = '',
+  puedeVerificar = false,
 }: SeccionTarjetaProps) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [copiadoMsg, setCopiadoMsg] = useState(false)
@@ -73,16 +76,18 @@ export function SeccionTarjetaProfesional({
       <div className="panel">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <h2 style={{ margin: 0 }}>Soporte de Tarjeta Profesional / Certificado de Estudios</h2>
-          <button
-            type="button"
-            className="boton-mini"
-            data-tono={verificada ? undefined : 'principal'}
-            onClick={() => setModalAbierto(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            <Edit3 size={14} />
-            {verificada ? 'Editar Soporte' : 'Registrar / Verificar Soporte'}
-          </button>
+          {puedeVerificar ? (
+            <button
+              type="button"
+              className="boton-mini"
+              data-tono={verificada ? undefined : 'principal'}
+              onClick={() => setModalAbierto(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <Edit3 size={14} />
+              {verificada ? 'Editar Soporte' : 'Registrar / Verificar Soporte'}
+            </button>
+          ) : null}
         </div>
 
         <p className="panel__nota" style={{ marginTop: 0, marginBottom: 14 }}>
@@ -90,7 +95,7 @@ export function SeccionTarjetaProfesional({
         </p>
 
         {/* Alerta / Botón de Solicitud por WhatsApp si no está verificada */}
-        {!verificada && (
+        {!verificada && puedeVerificar && (
           <div style={{ padding: 12, borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
               <strong style={{ fontSize: '0.84rem', color: '#166534', display: 'flex', alignItems: 'center', gap: 5 }}>

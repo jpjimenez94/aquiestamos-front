@@ -49,7 +49,7 @@ export default async function PostulacionesPage({
   // pintaban igual y al tocarlos recibia un 403 que la pagina traducia a "no
   // encontramos esta pagina", que ademas es mentira: la ficha existe.
   const veProfesionales = puede(usuario, 'profesional:leer')
-  const editaProfesionales = puede(usuario, 'profesional:editar')
+  const editaProfesionales = puede(usuario, 'profesional:verificar-tarjeta')
 
   const respuesta = await portalFetch<Postulacion[]>(
     `/volunteers?page=${pagina}&perPage=${POR_PAGINA}`,
