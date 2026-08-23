@@ -1,5 +1,12 @@
 import { Cabecera, Etiqueta } from '../componentes'
 import { DiagramaDelFlujo } from './DiagramaDelFlujo'
+import {
+  DiagramaSolicitud,
+  DiagramaProfesionales,
+  DiagramaAsignacion,
+  DiagramaCita,
+  DiagramaCierre,
+} from './DiagramasEtapa'
 import './procesos.css'
 
 export const metadata = { title: 'Cómo funciona la red' }
@@ -127,6 +134,7 @@ export default function ProcesosPage() {
           La entrada de quien pide ayuda. El tamizaje decide la prioridad con lo que la persona
           cuenta hoy, y nadie se queda por fuera por no responder.
         </p>
+        <DiagramaSolicitud />
         <Flujo
           pasos={[
             {
@@ -160,6 +168,7 @@ export default function ProcesosPage() {
           La otra puerta del sitio. La tarjeta profesional es un trámite del profesional — vive en
           Postulaciones y nunca es una etapa del caso.
         </p>
+        <DiagramaProfesionales />
         <Flujo
           pasos={[
             {
@@ -190,6 +199,7 @@ export default function ProcesosPage() {
           Entre coordinación, el profesional y la persona. Puede fallar en cada tramo, y por eso
           cada tramo tiene estado, mensaje y reloj.
         </p>
+        <DiagramaAsignacion />
         <Estados
           cadena={[
             { estado: 'PROPUESTA', texto: 'Propuesta enviada' },
@@ -237,6 +247,7 @@ export default function ProcesosPage() {
           La sesión dura 45 minutos y deja 30 de descanso. Antes de empezar, el consentimiento tiene
           que estar firmado.
         </p>
+        <DiagramaCita />
         <Estados
           cadena={[
             { estado: 'PROGRAMADA', texto: 'Programada' },
@@ -282,6 +293,7 @@ export default function ProcesosPage() {
           El profesional reporta, coordinación lee y decide. Cerrar siempre es un humano con motivo
           — nunca el sistema.
         </p>
+        <DiagramaCierre />
         <Flujo
           pasos={[
             {
