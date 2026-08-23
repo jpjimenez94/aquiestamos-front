@@ -194,6 +194,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         modalidad={cita.modalidad}
         consentSigned={cita.consentSigned ?? false}
         consentSignedDocumentUrl={cita.consentSignedDocumentUrl ?? ''}
+        consentSignedAt={cita.consentSignedAt ?? null}
       />
     </>
   )

@@ -9,6 +9,7 @@ type ModalConsentimientoProps = {
   pacienteNombre: string
   consentSignedActual?: boolean
   consentSignedDocumentUrlActual?: string | null
+  consentSignedAtActual?: string | null
   abierto: boolean
   onCerrar: () => void
 }
@@ -18,6 +19,7 @@ export function ModalConsentimiento({
   pacienteNombre,
   consentSignedActual = false,
   consentSignedDocumentUrlActual = '',
+  consentSignedAtActual = null,
   abierto,
   onCerrar,
 }: ModalConsentimientoProps) {
@@ -29,6 +31,61 @@ export function ModalConsentimiento({
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null)
 
   if (!abierto) return null
+
+  /**
+   * Firmado, se mira y ya. La firma es de la persona —la puso ella desde su
+   * enlace, o quedó su documento adjunto— y coordinación no la edita ni la
+   * desmarca: deshacer una firma no es un clic, es un tema que se resuelve
+   * hablando y queda en auditoría.
+   */
+  if (consentSignedActual) {
+    return (
+      <div className="modal-telon">
+        <div className="modal-caja">
+          <div className="modal-cabecera">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FileCheck2 size={22} style={{ color: '#059669' }} />
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 600 }}>Consentimiento Informado</h3>
+            </div>
+            <button className="boton-icono" onClick={onCerrar} type="button" aria-label="Cerrar">
+              <X size={18} />
+            </button>
+          </div>
+
+          <p className="panel__nota" style={{ marginTop: 4 }}>
+            {pacienteNombre} ya firmó el consentimiento
+            {consentSignedAtActual
+              ? ` el ${new Date(consentSignedAtActual).toLocaleString('es-CO', {
+                  dateStyle: 'long',
+                  timeStyle: 'short',
+                  timeZone: 'America/Bogota',
+                })}`
+              : ''}
+            . Quién firmó y qué versión del texto aceptó quedaron en la auditoría.
+          </p>
+
+          {documentUrl ? (
+            <a
+              href={documentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="boton-mini"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', marginTop: 8 }}
+            >
+              <FileText size={14} />
+              Ver documento adjunto
+            </a>
+          ) : null}
+
+          <div className="button-row" style={{ marginTop: 24, justifyContent: 'flex-end' }}>
+            <button className="boton-mini" data-tono="principal" onClick={onCerrar} type="button">
+              Entendido
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   async function manejarSubidaArchivo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

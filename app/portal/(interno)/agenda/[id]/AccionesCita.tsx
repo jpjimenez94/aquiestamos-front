@@ -28,6 +28,7 @@ export function AccionesCita({
   modalidad,
   consentSigned,
   consentSignedDocumentUrl,
+  consentSignedAt,
 }: {
   citaId: string
   estado: string
@@ -41,6 +42,7 @@ export function AccionesCita({
   modalidad: string
   consentSigned: boolean
   consentSignedDocumentUrl?: string
+  consentSignedAt?: string | null
 }) {
   const router = useRouter()
   const [cargando, setCargando] = useState<string | null>(null)
@@ -105,7 +107,7 @@ export function AccionesCita({
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
           >
             <FileCheck2 size={15} />
-            {consentSigned ? 'Ver / Editar Consentimiento' : 'Registrar Consentimiento Firmado'}
+            {consentSigned ? 'Ver Consentimiento' : 'Registrar Consentimiento Firmado'}
           </button>
 
           <button
@@ -199,6 +201,7 @@ export function AccionesCita({
         pacienteNombre={pacienteNombre}
         consentSignedActual={consentSigned}
         consentSignedDocumentUrlActual={consentSignedDocumentUrl}
+        consentSignedAtActual={consentSignedAt}
         abierto={modalConsentimientoAbierto}
         onCerrar={() => setModalConsentimientoAbierto(false)}
       />
