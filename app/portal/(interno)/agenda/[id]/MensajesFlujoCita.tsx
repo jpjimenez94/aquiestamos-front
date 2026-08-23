@@ -2,119 +2,125 @@
 
 import { useState } from 'react'
 import { Copy, Check, MessageSquare } from 'lucide-react'
-import { paraWhatsapp } from '@/lib/telefono'
+import {
+  mensajeDeCitaConfirmada,
+  mensajeDeConsentimiento,
+  enlaceWhatsapp,
+} from '@/lib/mensajes'
 
-type MensajesFlujoProps = {
-  pacienteNombre: string
-  pacienteTelefono: string
-  profesionalNombre: string
-  fechaHoraBogota: string
-  modalidad: string
-}
-
+/**
+ * Los dos mensajes que salen desde el detalle de la cita: la confirmación a
+ * la persona (paso 8) y la solicitud de firma del consentimiento (paso 9).
+ *
+ * Los textos viven en `lib/mensajes.ts` con todos los demás, no aquí: este
+ * archivo tenía sus propias plantillas —con emoji, sin línea de crisis y con
+ * un enlace de consentimiento que llevaba a una página que no existía— y era
+ * la única pantalla de la red hablando con otra voz.
+ */
 export function MensajesFlujoCita({
   pacienteNombre,
   pacienteTelefono,
   profesionalNombre,
   fechaHoraBogota,
   modalidad,
-}: MensajesFlujoProps) {
-  const [copiadoPaso8, setCopiadoPaso8] = useState(false)
-  const [copiadoPaso9, setCopiadoPaso9] = useState(false)
+  enlaceConsentimiento,
+  consentimientoFirmado,
+}: {
+  pacienteNombre: string
+  pacienteTelefono: string
+  profesionalNombre: string
+  fechaHoraBogota: string
+  modalidad: string
+  enlaceConsentimiento: string | null
+  consentimientoFirmado: boolean
+}) {
+  const mensajeConfirmacion = mensajeDeCitaConfirmada({
+    persona: pacienteNombre,
+    profesional: profesionalNombre,
+    cuando: fechaHoraBogota,
+    modalidad,
+  })
 
-  const mensajeConfirmacion = `¡Hola ${pacienteNombre}! Te saludamos de la Red Aquí Estamos 💚. Te confirmamos que tu cita de acompañamiento psicológico con el/la profesional ${profesionalNombre} ha sido agendada para el ${fechaHoraBogota} (${modalidad.toLowerCase()}). Quedamos atentos para apoyarte.`
+  const mensajeFirma = enlaceConsentimiento
+    ? mensajeDeConsentimiento({
+        persona: pacienteNombre,
+        profesional: profesionalNombre,
+        enlace: enlaceConsentimiento,
+      })
+    : null
 
-  const mensajeConsentimiento = `Hola ${pacienteNombre}, para dar inicio a tu sesión de acompañamiento con ${profesionalNombre}, por favor diligencia y firma nuestro formulario de Consentimiento Informado aquí: https://redaquiestamos.org/consentimiento. Este documento es requisito previo para tu cita. ¡Muchas gracias!`
+  return (
+    <div className="panel">
+      <h2>Mensajes para la persona</h2>
+      <p className="panel__nota">
+        Confirmarle la cita y pedirle la firma del consentimiento. Van por WhatsApp, como todo.
+      </p>
 
-  function copiar(texto: string, setCopiado: (v: boolean) => void) {
+      <Mensaje titulo="Paso 8 · Confirmarle la cita" telefono={pacienteTelefono} texto={mensajeConfirmacion} />
+
+      {consentimientoFirmado ? (
+        <p className="panel__nota" style={{ marginTop: 14 }}>
+          Paso 9 · El consentimiento ya está firmado: no hay nada que pedir.
+        </p>
+      ) : mensajeFirma ? (
+        <Mensaje
+          titulo="Paso 9 · Pedirle la firma del consentimiento"
+          telefono={pacienteTelefono}
+          texto={mensajeFirma}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+/** Un mensaje listo para mandar, con el mismo trío de siempre. */
+function Mensaje({ titulo, telefono, texto }: { titulo: string; telefono: string; texto: string }) {
+  const [copiado, setCopiado] = useState(false)
+  const [verTexto, setVerTexto] = useState(false)
+  const whatsapp = enlaceWhatsapp(telefono, texto)
+
+  function copiar() {
     navigator.clipboard.writeText(texto)
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
   }
 
-  // El indicativo lo decide `paraWhatsapp`: pegarle 57 a lo que no empiece por
-  // 57 rompe cualquier número extranjero.
-  const telLimpio = paraWhatsapp(pacienteTelefono)
-  const linkWhatsApp8 = telLimpio
-    ? `https://wa.me/${telLimpio}?text=${encodeURIComponent(mensajeConfirmacion)}`
-    : null
-
-  const linkWhatsApp9 = telLimpio
-    ? `https://wa.me/${telLimpio}?text=${encodeURIComponent(mensajeConsentimiento)}`
-    : null
-
   return (
-    <div className="panel">
-      <h2>Mensajes Oficiales para el Paciente</h2>
-      <p className="panel__nota">
-        Plantillas oficiales para enviar por WhatsApp al paciente según los pasos 8 y 9 del flujo.
-      </p>
+    <div className="mensaje" style={{ marginTop: 18 }}>
+      <h3 className="caso-paso">{titulo}</h3>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-        {/* Paso 8 */}
-        <div style={{ padding: 14, background: 'var(--color-bg-subtle, #f8fafc)', borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <strong style={{ fontSize: '0.88rem' }}>Paso 8: Confirmación de Cita al Paciente</strong>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                type="button"
-                className="boton-mini"
-                onClick={() => copiar(mensajeConfirmacion, setCopiadoPaso8)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-              >
-                {copiadoPaso8 ? <Check size={13} style={{ color: '#059669' }} /> : <Copy size={13} />}
-                {copiadoPaso8 ? 'Copiado' : 'Copiar texto'}
-              </button>
-              {linkWhatsApp8 && (
-                <a
-                  href={linkWhatsApp8}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="boton-mini"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
-                >
-                  <MessageSquare size={13} /> Abrir WhatsApp
-                </a>
-              )}
-            </div>
-          </div>
-          <p style={{ fontSize: '0.84rem', color: 'var(--color-text-secondary, #475569)', margin: 0, fontStyle: 'italic' }}>
-            &ldquo;{mensajeConfirmacion}&rdquo;
-          </p>
-        </div>
-
-        {/* Paso 9 */}
-        <div style={{ padding: 14, background: 'var(--color-bg-subtle, #f8fafc)', borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <strong style={{ fontSize: '0.88rem' }}>Paso 9: Solicitud de Consentimiento Informado Firmado</strong>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                type="button"
-                className="boton-mini"
-                onClick={() => copiar(mensajeConsentimiento, setCopiadoPaso9)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-              >
-                {copiadoPaso9 ? <Check size={13} style={{ color: '#059669' }} /> : <Copy size={13} />}
-                {copiadoPaso9 ? 'Copiado' : 'Copiar texto'}
-              </button>
-              {linkWhatsApp9 && (
-                <a
-                  href={linkWhatsApp9}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="boton-mini"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
-                >
-                  <MessageSquare size={13} /> Abrir WhatsApp
-                </a>
-              )}
-            </div>
-          </div>
-          <p style={{ fontSize: '0.84rem', color: 'var(--color-text-secondary, #475569)', margin: 0, fontStyle: 'italic' }}>
-            &ldquo;{mensajeConsentimiento}&rdquo;
-          </p>
-        </div>
+      <div className="mensaje__acciones">
+        {whatsapp ? (
+          <a
+            className="boton-mini"
+            data-tono="principal"
+            href={whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageSquare size={14} />
+            Abrir WhatsApp
+          </a>
+        ) : (
+          <span className="tabla__secundario" style={{ marginTop: 0 }}>
+            No sabemos a qué país corresponde ese número. Copia el mensaje y mándalo aparte.
+          </span>
+        )}
+        <button className="boton-mini" type="button" onClick={copiar}>
+          {copiado ? <Check size={14} /> : <Copy size={14} />}
+          {copiado ? 'Copiado' : 'Copiar mensaje'}
+        </button>
+        <button
+          className="mensaje__ver"
+          type="button"
+          onClick={() => setVerTexto((v) => !v)}
+          aria-expanded={verTexto}
+        >
+          {verTexto ? 'Ocultar' : 'Ver el mensaje'}
+        </button>
       </div>
+
+      {verTexto ? <pre className="mensaje__texto">{texto}</pre> : null}
     </div>
   )
 }

@@ -26,6 +26,7 @@ type Cita = {
   consentSignedAt?: string | null
   motivoCancelacion: string | null
   reprogramadaA: string | null
+  consentimiento?: { enlace: string }
   profesional: {
     id: string
     nombre?: string
@@ -175,6 +176,8 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         profesionalNombre={cita.profesional.nombre ?? 'Psicólogo'}
         fechaHoraBogota={enBogota(cita.inicio)}
         modalidad={cita.modalidad}
+        enlaceConsentimiento={cita.consentimiento?.enlace ?? null}
+        consentimientoFirmado={cita.consentSigned === true}
       />
 
       {/* Acciones de la Cita */}

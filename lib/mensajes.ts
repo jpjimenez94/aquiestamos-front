@@ -526,6 +526,30 @@ export function mensajeDeCitaConfirmada(d: {
 }
 
 /**
+ * PASO 3b · A la persona: firma el consentimiento antes de la sesión.
+ *
+ * El enlace va COMPLETO y lo arma el servidor con SITIO_URL, como todos los
+ * enlaces que salen por WhatsApp. Dice para qué es y qué pasa si no se firma,
+ * sin sonar a contrato: es requisito, no amenaza.
+ */
+export function mensajeDeConsentimiento(d: {
+  persona: string
+  profesional: string
+  enlace: string
+}): string {
+  const nombre = nombreDePila(d.persona) || 'hola'
+
+  return [
+    `Hola ${nombre}, antes de tu sesión con ${nombreDePila(d.profesional)} necesitamos que leas y firmes el consentimiento informado. Es corto y se hace desde el teléfono:`,
+    d.enlace,
+    '',
+    'Sin esto no podemos dar inicio a la sesión. Si algo no te queda claro, escríbenos por aquí y te lo explicamos.',
+    '',
+    LINEA_DE_CRISIS,
+  ].join('\n')
+}
+
+/**
  * PASO 4 · Al profesional: quedó para tal día.
  *
  * Los datos de contacto de la persona siguen sin viajar por WhatsApp: van

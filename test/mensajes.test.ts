@@ -13,6 +13,7 @@ import {
   mensajeParaCuadrarHorario,
   mensajeDeCitaConfirmada,
   mensajeDeCitaAlProfesional,
+  mensajeDeConsentimiento,
 } from '../lib/mensajes'
 import { LINEAS_EMERGENCIA } from '../lib/consentimiento'
 
@@ -368,5 +369,29 @@ describe('confirmación de la cita al profesional', () => {
 
   it('le avisa de que la persona lo está esperando a él', () => {
     expect(texto).toContain('tú vas a contactarla')
+  })
+})
+
+describe('mensaje de consentimiento', () => {
+  const texto = mensajeDeConsentimiento({
+    persona: 'camilo andrés torres',
+    profesional: 'juan pablo jiménez',
+    enlace: 'https://redaquiestamos.org/consentimiento/abc.def',
+  })
+
+  it('saluda por el nombre de pila y lleva el enlace completo', () => {
+    expect(texto).toContain('Hola Camilo')
+    expect(texto).toContain('con Juan')
+    expect(texto).toContain('https://redaquiestamos.org/consentimiento/abc.def')
+  })
+
+  it('dice que es requisito, sin sonar a amenaza', () => {
+    expect(texto).toContain('Sin esto no podemos dar inicio')
+    expect(texto).toContain('escríbenos por aquí')
+  })
+
+  it('lleva la línea de crisis, como todo mensaje a la persona', () => {
+    expect(texto).toContain('123')
+    expect(texto).toContain('106')
   })
 })
