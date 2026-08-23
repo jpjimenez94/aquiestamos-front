@@ -6,7 +6,6 @@ import {
   LayoutGrid,
   CalendarDays,
   History,
-  ShieldCheck,
   ShieldAlert,
   FileCheck2,
   FileClock,
@@ -62,6 +61,12 @@ type Paciente = {
   asignacion: {
     id: string
     desde: string
+    estado?: string
+    diasOfrecidos?: string[]
+    franjasOfrecidas?: string[]
+    notaDisponibilidad?: string | null
+    /** Días que faltan para que el barrido libere la asignación. */
+    venceEnDias?: number | null
     profesional: {
       id: string
       nombre: string
@@ -70,6 +75,43 @@ type Paciente = {
       professionalCardDocumentUrl?: string
     }
   } | null
+}
+
+const DIA_CORTO: Record<string, string> = {
+  LUNES: 'lun', MARTES: 'mar', MIERCOLES: 'mié', JUEVES: 'jue',
+  VIERNES: 'vie', SABADO: 'sáb', DOMINGO: 'dom',
+}
+const FRANJA_CORTA: Record<string, string> = { MANANA: 'mañana', TARDE: 'tarde', NOCHE: 'noche' }
+
+/**
+ * El aviso de cuándo el barrido va a liberar la asignación. Con 0 días la
+ * liberación es cuestión de horas: se dice en rojo, no en gris.
+ */
+function ChipVence({ dias }: { dias?: number | null }) {
+  if (dias == null) return null
+  const urgente = dias <= 0
+  return (
+    <span
+      style={{
+        fontSize: '0.72rem',
+        fontWeight: 600,
+        color: urgente ? '#dc2626' : '#92700c',
+      }}
+    >
+      {urgente ? 'Se libera en las próximas horas' : `Se libera en ${dias} ${dias === 1 ? 'día' : 'días'} si no hay respuesta`}
+    </span>
+  )
+}
+
+/** La TP sin verificar es un aviso transversal, no una etapa: se resuelve en postulaciones. */
+function AvisoTP({ verificada }: { verificada?: boolean }) {
+  if (verificada !== false) return null
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#dc2626', fontSize: '0.72rem', fontWeight: 600 }}>
+      <ShieldAlert size={12} />
+      TP sin verificar — revisar en Postulaciones
+    </span>
+  )
 }
 
 const PRIORIDAD_LABEL: Record<string, string> = {
@@ -131,15 +173,15 @@ export default async function AgendaPage({
   if (vista === 'tablero') {
     const tableroRes = await portalFetch<{
       porAsignar: Paciente[]
-      enVerificacionTP: Paciente[]
-      listasParaAgendar: Paciente[]
+      esperandoProfesional: Paciente[]
+      porCuadrarHorario: Paciente[]
       citasAbiertas: Cita[]
       enAcompanamiento: Paciente[]
     }>('/dashboard/tablero')
 
     const porAsignar = tableroRes.data?.porAsignar ?? []
-    const enVerificacion = tableroRes.data?.enVerificacionTP ?? []
-    const listasParaAgendar = tableroRes.data?.listasParaAgendar ?? []
+    const esperandoProfesional = tableroRes.data?.esperandoProfesional ?? []
+    const porCuadrarHorario = tableroRes.data?.porCuadrarHorario ?? []
     const citasAbiertas = tableroRes.data?.citasAbiertas ?? []
     const enAcompanamiento = tableroRes.data?.enAcompanamiento ?? []
 
@@ -147,7 +189,7 @@ export default async function AgendaPage({
       <>
         <Cabecera
           titulo="Agenda y Gestión de Casos"
-          descripcion="Flujo integral de remisión, recepción, verificación legal y acompañamiento."
+          descripcion="Cada columna es un estado del caso: dónde está y qué respuesta se espera."
         />
 
         <div className="pestanas-agenda">
@@ -209,66 +251,73 @@ export default async function AgendaPage({
             )}
           </div>
 
-          {/* Columna 2: Asignadas en Verificación */}
+          {/* Columna 2: la propuesta salió y el profesional no ha respondido */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
-                <ShieldAlert size={15} style={{ color: '#dc2626' }} />
-                2. En Verificación TP
+                <Clock size={15} style={{ color: '#d97706' }} />
+                2. Esperando al profesional
               </span>
-              <span className="pipeline-columna__contador">{enVerificacion.length}</span>
+              <span className="pipeline-columna__contador">{esperandoProfesional.length}</span>
             </div>
-            {enVerificacion.length === 0 ? (
-              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Todos los psicólogos verificados</span>
+            {esperandoProfesional.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin propuestas pendientes de respuesta</span>
             ) : (
-              enVerificacion.map((p) => (
-                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #dc2626' }}>
-                  <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
-                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
-                    Psicólogo: <strong>{p.asignacion?.profesional.nombre}</strong>
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#dc2626', fontSize: '0.74rem', fontWeight: 600 }}>
-                    <ShieldAlert size={13} />
-                    Tarjeta Profesional sin verificar
+              esperandoProfesional.map((p) => (
+                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #d97706' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
+                    <Etiqueta estado={p.priority} texto={PRIORIDAD_LABEL[p.priority] ?? p.priority} />
                   </div>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    Propuesto a: <strong>{nombrePropio(p.asignacion?.profesional.nombre)}</strong>
+                  </span>
+                  <ChipVence dias={p.asignacion?.venceEnDias} />
+                  <AvisoTP verificada={p.asignacion?.profesional.professionalCardVerified} />
                 </Link>
               ))
             )}
           </div>
 
-          {/* Columna 3: Listas para Agendar */}
+          {/* Columna 3: el profesional aceptó; falta que la persona confirme horario */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <UserCheck size={15} style={{ color: '#0284c7' }} />
-                3. Listas para Agendar
+                3. Aceptadas · falta cuadrar horario
               </span>
-              <span className="pipeline-columna__contador">{listasParaAgendar.length}</span>
+              <span className="pipeline-columna__contador">{porCuadrarHorario.length}</span>
             </div>
-            {listasParaAgendar.length === 0 ? (
-              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin casos pendientes de agendar</span>
+            {porCuadrarHorario.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin horarios pendientes de cuadrar</span>
             ) : (
-              listasParaAgendar.map((p) => (
+              porCuadrarHorario.map((p) => (
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #0284c7' }}>
                   <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
-                    Con: {p.asignacion?.profesional.nombre}
+                    Aceptó: <strong>{nombrePropio(p.asignacion?.profesional.nombre)}</strong>
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.74rem', fontWeight: 600 }}>
-                    <ShieldCheck size={13} />
-                    Psicólogo verificado
-                  </div>
+                  {p.asignacion?.diasOfrecidos?.length || p.asignacion?.franjasOfrecidas?.length ? (
+                    <span className="tabla__secundario" style={{ fontSize: '0.76rem' }}>
+                      Puede: {(p.asignacion.diasOfrecidos ?? []).map((d) => DIA_CORTO[d] ?? d).join(', ')}
+                      {p.asignacion.franjasOfrecidas?.length
+                        ? ` · ${p.asignacion.franjasOfrecidas.map((f) => FRANJA_CORTA[f] ?? f).join(', ')}`
+                        : ''}
+                    </span>
+                  ) : null}
+                  <ChipVence dias={p.asignacion?.venceEnDias} />
+                  <AvisoTP verificada={p.asignacion?.profesional.professionalCardVerified} />
                 </Link>
               ))
             )}
           </div>
 
-          {/* Columna 4: Citas Abiertas / Programadas */}
+          {/* Columna 4: hay horario sobre la mesa. PROGRAMADA = propuesto a la persona; CONFIRMADA = la persona confirmó. */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#7c3aed' }} />
-                4. Citas Abiertas
+                4. Cita propuesta / confirmada
               </span>
               <span className="pipeline-columna__contador">{citasAbiertas.length}</span>
             </div>
@@ -305,7 +354,7 @@ export default async function AgendaPage({
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <CheckCircle2 size={15} style={{ color: '#059669' }} />
-                5. En Acompañamiento
+                5. En acompañamiento / seguimiento
               </span>
               <span className="pipeline-columna__contador">{enAcompanamiento.length}</span>
             </div>
