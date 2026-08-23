@@ -35,6 +35,18 @@ type Persona = {
   diasEsperando: number
   asignacion: Asignacion | null
   reportes: Reporte[]
+  citas: CitaDeLaPersona[]
+}
+
+type CitaDeLaPersona = {
+  id: string
+  inicio: string
+  inicioLocal: string
+  modalidad: string
+  estado: string
+  estadoLegible: string
+  consentSigned?: boolean
+  profesional: { id: string; nombre?: string }
 }
 
 type Reporte = {
@@ -137,6 +149,46 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
       ) : (
         <PanelEmparejamiento personaId={persona.id} />
       )}
+
+      {persona.citas?.length ? (
+        <div className="panel">
+          <h2>Citas</h2>
+          <p className="panel__nota">
+            Lo acordado entre la persona y quien la acompaña. El detalle de cada una vive en la
+            agenda.
+          </p>
+          <div className="tabla-envoltorio">
+            <table className="tabla">
+              <thead>
+                <tr>
+                  <th>Cuándo</th>
+                  <th>Modalidad</th>
+                  <th>Profesional</th>
+                  <th>Estado</th>
+                  <th>Consentimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {persona.citas.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <Link href={`/portal/agenda/${c.id}`} className="tabla__principal">
+                        {c.inicioLocal || enBogota(c.inicio)}
+                      </Link>
+                    </td>
+                    <td>{c.modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'}</td>
+                    <td>{nombrePropio(c.profesional?.nombre) || '—'}</td>
+                    <td>
+                      <Etiqueta estado={c.estado} texto={c.estadoLegible} />
+                    </td>
+                    <td>{c.consentSigned ? 'Firmado' : 'Pendiente'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
 
       {persona.asignacion?.estado === 'ACTIVA' ? (
         <div className="panel">
