@@ -123,6 +123,17 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           asignacion={persona.asignacion}
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
         />
+      ) : persona.status === 'CERRADO' ? (
+        /* Cerrado no es «sin asignar»: ofrecer candidatos aquí invitaría a
+           reabrir por accidente. Si de verdad hay que retomar, primero se
+           reabre a conciencia proponiendo una asignación nueva desde cero. */
+        <div className="panel">
+          <h2>Caso cerrado</h2>
+          <p className="panel__nota">
+            El acompañamiento terminó; el motivo quedó en la auditoría. Si esta persona vuelve a
+            necesitar la red, lo indicado es una solicitud nueva.
+          </p>
+        </div>
       ) : (
         <PanelEmparejamiento personaId={persona.id} />
       )}
