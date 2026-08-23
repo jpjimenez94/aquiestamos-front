@@ -9,8 +9,14 @@ export const site = {
   tagline: 'Red de acompañamiento psicológico y atención en crisis',
   description:
     'Aquí Estamos es una red de profesionales de la salud mental voluntarios que se unen para acercar acompañamiento psicológico, orientación y recursos a personas y comunidades que los necesitan en el marco del terremoto del 10 de agosto de 2026.',
-  whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '573136295251',
-  whatsappDisplay: process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ?? '313 629 5251',
+  /**
+   * El número oficial vive SOLO aquí, sin variable de entorno a propósito:
+   * el mismo dato en dos sitios (código y Vercel) fue exactamente lo que
+   * dejó el número viejo en producción cuando se actualizó uno y no el otro.
+   * Cambiarlo es editar estas dos líneas, y el deploy hace el resto.
+   */
+  whatsappNumber: '573136295251',
+  whatsappDisplay: '313 629 5251',
   instagramUrl:
     process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? 'https://www.instagram.com/aquiestamos.red',
   instagramHandle: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? '@aquiestamos.red',
