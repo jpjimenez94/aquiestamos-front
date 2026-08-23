@@ -33,7 +33,9 @@ describe('mensaje de propuesta al profesional', () => {
   })
 
   it('enumera los días como se dicen', () => {
-    expect(mensajeDePropuesta(base)).toContain('lunes, miércoles y viernes en la tarde')
+    expect(mensajeDePropuesta(base)).toContain(
+      'lunes, miércoles y viernes en la tarde (de 12:00 p. m. a 6:00 p. m.)',
+    )
   })
 
   /**
@@ -302,9 +304,10 @@ describe('cuadrar el horario con la persona', () => {
     expect(texto).not.toMatch(/d{7,}/)
   })
 
-  it('lista los horarios que el profesional puso él mismo', () => {
+  it('lista los horarios que el profesional puso él mismo, con las horas', () => {
     expect(texto).toContain('martes y jueves')
-    expect(texto).toContain('en la tarde')
+    // "en la tarde" a secas obliga a adivinar; el paréntesis lo resuelve.
+    expect(texto).toContain('en la tarde (de 12:00 p. m. a 6:00 p. m.)')
     expect(texto).toContain('después de las 4 mejor')
   })
 

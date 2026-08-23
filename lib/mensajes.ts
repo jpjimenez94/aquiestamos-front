@@ -26,10 +26,16 @@ const DIA_LARGO: Record<string, string> = {
   DOMINGO: 'domingo',
 }
 
+/**
+ * Con las horas entre paréntesis: "en la noche" a secas obliga a la persona a
+ * adivinar si eso es a las 7 o a las 11. Los rangos son los mismos que define
+ * el backend en `timezone.service.js` (FRANJAS) — si allá cambian, cambian
+ * aquí también.
+ */
 const FRANJA_LARGA: Record<string, string> = {
-  MANANA: 'en la mañana',
-  TARDE: 'en la tarde',
-  NOCHE: 'en la noche',
+  MANANA: 'en la mañana (de 8:00 a. m. a 12:00 p. m.)',
+  TARDE: 'en la tarde (de 12:00 p. m. a 6:00 p. m.)',
+  NOCHE: 'en la noche (de 6:00 p. m. a 9:00 p. m.)',
 }
 
 const MODALIDAD_LARGA: Record<string, string> = {
