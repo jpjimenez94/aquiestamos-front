@@ -197,7 +197,7 @@ export function DecidirPropuestaForm({ patientId }: { patientId: string }) {
             <label className="field__label" htmlFor="nota">
               ¿Algo más que debamos tener en cuenta? (opcional)
             </label>
-            <p className="tamizaje__ayuda" style={{ marginLeft: 0 }}>
+            <p className="tamizaje__ayuda">
               Por ejemplo: «después de las 4 mejor», o «los jueves solo si es virtual».
             </p>
             <input
@@ -216,7 +216,7 @@ export function DecidirPropuestaForm({ patientId }: { patientId: string }) {
           <label className="field__label" htmlFor="motivo">
             ¿Por qué no puedes?
           </label>
-          <p className="tamizaje__ayuda" style={{ marginLeft: 0 }}>
+          <p className="tamizaje__ayuda">
             No es para justificarte. Nos sirve para saber si el problema es de este caso —queda
             lejos, el horario no da— o de cómo estamos repartiendo el trabajo.
           </p>

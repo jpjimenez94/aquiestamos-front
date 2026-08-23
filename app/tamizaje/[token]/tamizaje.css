@@ -104,7 +104,7 @@
 }
 
 .tamizaje__ayuda {
-  margin: -4px 0 10px 36px;
+  margin: -4px 0 10px;
   font-size: 0.85rem;
   color: var(--color-text-light);
 }
@@ -113,6 +113,15 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* El sangrado existe para alinear la ayuda y las opciones con el TEXTO de la
+   pregunta, dejando libre la columna del círculo con el número. Donde no hay
+   número no hay nada que esquivar: la propuesta al profesional reutiliza estas
+   preguntas sin numerarlas, y ahí el sangrado era un escalón contra el que no
+   choca nada. Se venía tapando con un `style` a mano en cada párrafo. */
+.tamizaje__pregunta:has(.tamizaje__numero) .tamizaje__ayuda,
+.tamizaje__pregunta:has(.tamizaje__numero) .tamizaje__opciones {
   margin-left: 36px;
 }
 

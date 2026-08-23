@@ -1,0 +1,53 @@
+/* ---------------------------------------------------------------------------
+   Acceso al caso — lo que abre el profesional desde el enlace que le llega
+   por WhatsApp.
+
+   Vive bajo /portal pero FUERA del grupo `(interno)`: aquí no hay barra
+   lateral y quien entra todavía no ha iniciado sesión. Por eso no puede
+   vestirse con `.portal`, que es una rejilla de dos columnas (236px de barra
+   + contenido). Sin barra que ocupe la primera, el contenido se metía en esos
+   236px y las tarjetas caían una a cada lado.
+   --------------------------------------------------------------------------- */
+
+.caso {
+  min-height: 100dvh;
+  padding: 28px 16px 60px;
+  background-color: var(--color-bg-default);
+}
+
+/* Una columna, del mismo ancho que el tamizaje: son la misma situación
+   —alguien decidiendo algo importante, casi siempre desde el teléfono— y no
+   tiene sentido que se vean distintas. */
+.caso__contenido {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* La puerta solo pide un correo, así que va más angosta que el resto. */
+.caso__puerta {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.caso__intro {
+  margin-bottom: 22px;
+}
+
+.caso__intro h1 {
+  margin: 0 0 8px;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.caso__intro p {
+  margin: 0;
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* La separación entre tarjetas vive aquí y no en un `style` repetido en cada
+   una: si mañana hay que apretarlas, se aprieta en un solo sitio. */
+.caso__contenido > .panel + .panel {
+  margin-top: 20px;
+}
