@@ -69,10 +69,13 @@ export function PanelDelCaso({
   persona,
   asignacion,
   enlaceCaso,
+  proximaCita,
 }: {
   persona: Persona
   asignacion: Asignacion
   enlaceCaso: string
+  /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
+  proximaCita?: { cuando: string; modalidad: string } | null
 }) {
   const [copiado, setCopiado] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -185,8 +188,11 @@ export function PanelDelCaso({
             telefono={asignacion.profesional.telefono}
             texto={mensajeDeCitaAlProfesional({
               profesional: asignacion.profesional.nombre,
-              cuando: 'la fecha acordada',
-              modalidad: persona.preferredModality,
+              // La fecha real de la cita, no un «la fecha acordada» genérico.
+              // Y la modalidad de LA CITA, no la preferencia de la persona:
+              // «le da igual» no es un dato para quien debe presentarse.
+              cuando: proximaCita?.cuando ?? 'la fecha acordada',
+              modalidad: proximaCita?.modalidad ?? persona.preferredModality,
               enlace: enlaceCaso,
             })}
             copiado={copiado === 'cita-prof'}

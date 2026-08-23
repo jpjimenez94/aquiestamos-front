@@ -370,6 +370,17 @@ describe('confirmación de la cita al profesional', () => {
   it('le avisa de que la persona lo está esperando a él', () => {
     expect(texto).toContain('tú vas a contactarla')
   })
+
+  /**
+   * El pedido de después va en tres preguntas concretas, no en un «cuéntanos
+   * cómo te fue»: la tercera es la que decide si se agenda otra o se cierra.
+   */
+  it('pide las tres respuestas que permiten cerrar la cita', () => {
+    expect(texto).toContain('1. Si la sesión se pudo hacer o no.')
+    expect(texto).toContain('2. Cómo te fue.')
+    expect(texto).toContain('3. Si crees que necesita más sesiones')
+    expect(texto).toContain('cerramos esta cita')
+  })
 })
 
 describe('mensaje de consentimiento', () => {

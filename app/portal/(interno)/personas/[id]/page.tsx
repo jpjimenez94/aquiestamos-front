@@ -53,6 +53,7 @@ type Reporte = {
   id: string
   outcome: string
   resultadoLegible: string
+  queSigueLegible?: string | null
   modality: string | null
   meetsAt: string | null
   contactDifficulties: string | null
@@ -134,6 +135,19 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           persona={persona}
           asignacion={persona.asignacion}
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+          proximaCita={(() => {
+            // La cita abierta más próxima: es la que se le confirma al
+            // profesional. Vienen de la más próxima a la más lejana.
+            const abierta = persona.citas?.find(
+              (c) => c.estado === 'PROGRAMADA' || c.estado === 'CONFIRMADA',
+            )
+            return abierta
+              ? {
+                  cuando: abierta.inicioLocal || enBogota(abierta.inicio),
+                  modalidad: abierta.modalidad,
+                }
+              : null
+          })()}
         />
       ) : persona.status === 'CERRADO' ? (
         /* Cerrado no es «sin asignar»: ofrecer candidatos aquí invitaría a
@@ -202,7 +216,10 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               {persona.reportes.map((r) => (
                 <li key={r.id} className="bitacora__entrada">
                   <div className="bitacora__cabecera">
-                    <strong>{r.resultadoLegible}</strong>
+                    <strong>
+                      {r.resultadoLegible}
+                      {r.queSigueLegible ? ` · ${r.queSigueLegible}` : ''}
+                    </strong>
                     <span className="bitacora__fecha">{enBogota(r.createdAt)}</span>
                   </div>
                   {r.modality || r.meetsAt ? (

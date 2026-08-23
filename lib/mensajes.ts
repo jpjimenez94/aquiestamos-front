@@ -575,7 +575,18 @@ export function mensajeDeCitaAlProfesional(d: {
     '',
     'Le dijimos que tú vas a contactarla para ese momento, así que te está esperando.',
     '',
-    'Cuando pase, cuéntanos cómo te fue desde ese mismo enlace. Eso es lo que nos permite saber en qué va el caso sin tener que llamarte a preguntar.',
+    /**
+     * El pedido de después de la sesión va en tres preguntas concretas, no en
+     * un «cuéntanos cómo te fue»: con esas tres coordinación cierra la cita y
+     * decide lo que sigue sin llamar a nadie. La tercera es la que faltaba —
+     * sin ella no había forma de saber si agendar otra o cerrar el caso.
+     */
+    'Cuando pase la sesión, entra a ese mismo enlace y cuéntanos tres cosas:',
+    '1. Si la sesión se pudo hacer o no.',
+    '2. Cómo te fue.',
+    '3. Si crees que necesita más sesiones, o con esta fue suficiente.',
+    '',
+    'Con eso cerramos esta cita y cuadramos la siguiente si hace falta, sin tener que llamarte a preguntar.',
     '',
     'Gracias por tu tiempo.',
   ]

@@ -21,13 +21,25 @@ import { reportarCasoAction } from './actions'
  */
 
 const RESULTADOS = [
-  { value: 'CITA_ACORDADA', label: 'Hablamos y quedamos en una cita' },
   { value: 'YA_ATENDIDA', label: 'Ya la acompañé' },
+  { value: 'CITA_ACORDADA', label: 'Hablamos y quedamos en una cita' },
+  { value: 'NO_ASISTIO', label: 'Teníamos sesión y no se presentó' },
   { value: 'SIGO_INTENTANDO', label: 'Sigo intentando contactarla' },
   { value: 'NO_CONTESTA', label: 'La busqué y no contesta' },
   { value: 'DATOS_ERRADOS', label: 'El número o el correo no corresponden' },
   { value: 'NO_QUIERE', label: 'No quiere el acompañamiento o ya no lo necesita' },
   { value: 'OTRO', label: 'Otra cosa' },
+] as const
+
+/**
+ * LA pregunta del cierre. «Ya la acompañé» a secas no dice si el
+ * acompañamiento terminó o apenas empezó; esto es lo que le permite a
+ * coordinación agendar la siguiente sesión o cerrar el caso sin llamar.
+ */
+const QUE_SIGUE = [
+  { value: 'NECESITA_MAS', label: 'Necesita más sesiones' },
+  { value: 'SUFICIENTE', label: 'Con esta fue suficiente' },
+  { value: 'NO_SABE', label: 'Todavía no lo sé' },
 ] as const
 
 const MODALIDAD = [
@@ -42,6 +54,7 @@ const VACIO = {
   outcome: '',
   modality: '',
   meetsAt: '',
+  followUp: '',
   contactDifficulties: '',
   notes: '',
 }
@@ -72,6 +85,8 @@ export function ReporteCasoForm({ patientId }: { patientId: string }) {
     if (esCitaFutura && !form.meetsAt) found.meetsAt = 'Dinos para cuándo quedaron'
     if (form.outcome === 'OTRO' && !form.notes.trim())
       found.notes = 'Cuéntanos brevemente qué pasó'
+    if (form.outcome === 'YA_ATENDIDA' && !form.followUp)
+      found.followUp = 'Dinos si necesita más sesiones o con esta fue suficiente'
     return found
   }
 
@@ -146,6 +161,17 @@ export function ReporteCasoForm({ patientId }: { patientId: string }) {
           value={form.meetsAt}
           error={errors.meetsAt}
           onChange={(v) => update('meetsAt', v)}
+        />
+      ) : null}
+
+      {form.outcome === 'YA_ATENDIDA' ? (
+        <RadioField
+          label="¿Qué sigue?"
+          required
+          options={QUE_SIGUE}
+          value={form.followUp}
+          error={errors.followUp}
+          onChange={(v) => update('followUp', v)}
         />
       ) : null}
 

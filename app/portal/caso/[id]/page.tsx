@@ -174,7 +174,10 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
               {paciente.reportes.map((r: any) => (
                 <li key={r.id} className="bitacora__entrada">
                   <div className="bitacora__cabecera">
-                    <strong>{r.resultadoLegible}</strong>
+                    <strong>
+                    {r.resultadoLegible}
+                    {r.queSigueLegible ? ` · ${r.queSigueLegible}` : ''}
+                  </strong>
                     <span className="bitacora__fecha">{enBogota(r.createdAt)}</span>
                   </div>
                   {r.modality || r.meetsAt ? (

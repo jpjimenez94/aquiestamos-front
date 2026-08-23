@@ -50,6 +50,7 @@ export async function reportarCasoAction(
     outcome: string
     modality: string
     meetsAt: string
+    followUp: string
     contactDifficulties: string
     notes: string
   },
