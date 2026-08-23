@@ -187,3 +187,14 @@
   .proc-paso::before { left: 13px; }
   .proc-paso__numero { width: 28px; height: 28px; font-size: 0.8rem; }
 }
+
+/* ---------- Imprimir / guardar PDF ---------- */
+
+/* Al imprimir la guía se queda sola: sin barra lateral, sin botones. */
+@media print {
+  .portal { display: block; }
+  .portal__lateral,
+  .portal__barra,
+  .boton-mini { display: none !important; }
+  .panel { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+}

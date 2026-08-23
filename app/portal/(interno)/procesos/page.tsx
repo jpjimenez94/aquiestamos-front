@@ -1,4 +1,5 @@
 import { Cabecera, Etiqueta } from '../componentes'
+import { DiagramaDelFlujo } from './DiagramaDelFlujo'
 import './procesos.css'
 
 export const metadata = { title: 'Cómo funciona la red' }
@@ -81,6 +82,8 @@ export default function ProcesosPage() {
           <span className="proc-viaje__etapa"><span>5</span>Sesión, reporte y cierre</span>
         </div>
       </div>
+
+      <DiagramaDelFlujo />
 
       <div className="panel" style={{ marginTop: 20 }}>
         <h2>1 · Solicitud y tamizaje</h2>
