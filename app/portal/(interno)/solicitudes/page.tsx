@@ -3,6 +3,7 @@ import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componente
 import { BotonEliminarSolicitud } from './BotonEliminarSolicitud'
 import { BotonTamizaje } from './BotonTamizaje'
 import { ResultadoTamizaje } from './ResultadoTamizaje'
+import { nombrePropio } from '@/lib/nombre'
 
 export const metadata = { title: 'Solicitudes' }
 
@@ -95,7 +96,7 @@ export default async function SolicitudesPage({
               {solicitudes.map((s) => (
                 <tr key={s.id}>
                   <td>
-                    <span className="tabla__principal">{s.name}</span>
+                    <span className="tabla__principal">{nombrePropio(s.name)}</span>
                     <span className="tabla__secundario">
                       {s.phone}
                       {s.isMinor ? ' · menor de edad' : ''}

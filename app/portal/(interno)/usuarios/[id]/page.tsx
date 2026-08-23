@@ -7,6 +7,7 @@ import { ButtonLink } from '@/components/ui/Button'
 import { EditarUsuarioForm } from '@/components/forms/EditarUsuarioForm'
 import { CambiarClaveForm } from '@/components/forms/CambiarClaveForm'
 import { EliminarUsuarioForm } from '@/components/forms/EliminarUsuarioForm'
+import { nombrePropio } from '@/lib/nombre'
 
 type Cuenta = {
   id: string
@@ -38,7 +39,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     <>
       <Cabecera
         titulo="Gestionar cuenta"
-        descripcion={`Administrando el acceso de ${usuario.name}.`}
+        descripcion={`Administrando el acceso de ${nombrePropio(usuario.name)}.`}
         acciones={
           <ButtonLink href="/portal/usuarios" variant="default" icon={<ChevronLeft size={16} />}>
             Volver

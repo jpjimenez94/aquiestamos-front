@@ -2,6 +2,7 @@ import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import Link from 'next/link'
 import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
+import { nombrePropio } from '@/lib/nombre'
 
 export const metadata = { title: 'Postulaciones' }
 
@@ -91,7 +92,7 @@ export default async function PostulacionesPage({
               {postulaciones.map((p) => (
                 <tr key={p.id}>
                   <td>
-                    <span className="tabla__principal">{p.fullName}</span>
+                    <span className="tabla__principal">{nombrePropio(p.fullName)}</span>
                     <span className="tabla__secundario">
                       {p.city ?? 'Sin ciudad'} · {p.phone}
                     </span>

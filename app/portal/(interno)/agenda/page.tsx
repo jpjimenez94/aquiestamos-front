@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react'
+import { nombrePropio } from '@/lib/nombre'
 
 export const metadata = { title: 'Agenda y Gestión de Casos' }
 
@@ -192,7 +193,7 @@ export default async function AgendaPage({
               porAsignar.map((p) => (
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                    <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                     <Etiqueta estado={p.priority} texto={PRIORIDAD_LABEL[p.priority] ?? p.priority} />
                   </div>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
@@ -222,7 +223,7 @@ export default async function AgendaPage({
             ) : (
               enVerificacion.map((p) => (
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #dc2626' }}>
-                  <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                  <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
                     Psicólogo: <strong>{p.asignacion?.profesional.nombre}</strong>
                   </span>
@@ -249,7 +250,7 @@ export default async function AgendaPage({
             ) : (
               listasParaAgendar.map((p) => (
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #0284c7' }}>
-                  <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                  <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
                     Con: {p.asignacion?.profesional.nombre}
                   </span>
@@ -313,7 +314,7 @@ export default async function AgendaPage({
             ) : (
               enAcompanamiento.map((p) => (
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card">
-                  <strong style={{ fontSize: '0.9rem' }}>{p.fullName}</strong>
+                  <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
                     Psicólogo: {p.asignacion?.profesional.nombre ?? 'Asignado'}
                   </span>

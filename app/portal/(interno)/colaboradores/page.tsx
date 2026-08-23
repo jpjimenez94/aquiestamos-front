@@ -1,6 +1,7 @@
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
 import { FiltrosDirectorio } from './FiltrosDirectorio'
+import { nombrePropio } from '@/lib/nombre'
 
 export const metadata = { title: 'Voluntariado de apoyo' }
 
@@ -118,7 +119,7 @@ export default async function ColaboradoresPage({
               {colaboradores.map((c) => (
                 <tr key={c.id}>
                   <td>
-                    <span className="tabla__principal">{c.fullName}</span>
+                    <span className="tabla__principal">{nombrePropio(c.fullName)}</span>
                     <span className="tabla__secundario">
                       {c.phone} · {c.email}
                     </span>

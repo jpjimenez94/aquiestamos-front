@@ -8,6 +8,7 @@ import { DecidirPropuestaForm } from './DecidirPropuestaForm'
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
 import { Dato, Etiqueta } from '../../(interno)/componentes'
 import { enBogota } from '@/lib/portal'
+import { nombrePropio } from '@/lib/nombre'
 
 /**
  * Esta pantalla usa las tarjetas del portal (`panel`, `datos`, `tabla`) y no
@@ -138,7 +139,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     <main className="caso">
       <div className="caso__contenido">
         <header className="caso__intro">
-          <h1>{paciente.fullName}</h1>
+          <h1>{nombrePropio(paciente.fullName)}</h1>
           <p>{paciente.city} · Asignado a ti</p>
         </header>
 

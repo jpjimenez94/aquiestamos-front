@@ -9,6 +9,7 @@ import {
   GUIA_DE_PRIORIDAD,
   REGLAS_DE_LECTURA,
 } from '@/lib/mensajes'
+import { nombreDePila } from '@/lib/nombre'
 
 /**
  * El mensaje que abre el tamizaje.
@@ -104,7 +105,7 @@ export function BotonTamizaje({
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ClipboardList size={20} style={{ color: 'var(--color-blue)' }} />
                 <h3 id="tamizaje-titulo" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>
-                  Preguntas para saber cómo está {nombre.trim().split(/\s+/)[0]}
+                  Preguntas para saber cómo está {nombreDePila(nombre)}
                 </h3>
               </div>
               <button

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { portalFetch } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
+import { nombrePropio } from '@/lib/nombre'
 
 export const metadata = { title: 'Profesionales' }
 
@@ -56,7 +57,7 @@ export default async function ProfesionalesPage() {
                 <tr key={p.id}>
                   <td>
                     <Link href={`/portal/profesionales/${p.id}`} className="tabla__principal">
-                      {p.fullName}
+                      {nombrePropio(p.fullName)}
                     </Link>
                     <span className="tabla__secundario">
                       {p.profession} · {p.city}

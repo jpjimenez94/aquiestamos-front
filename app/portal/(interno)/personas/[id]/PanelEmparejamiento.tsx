@@ -14,6 +14,7 @@ import {
   Sparkles,
   ChevronDown,
 } from 'lucide-react'
+import { nombrePropio } from '@/lib/nombre'
 
 type Candidato = {
   id: string
@@ -172,7 +173,7 @@ export function PanelEmparejamiento({ personaId }: { personaId: string }) {
                   </span>
 
                   <span style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--color-text-default, #0f172a)' }}>
-                    {c.fullName}
+                    {nombrePropio(c.fullName)}
                   </span>
 
                   {index === 0 && (

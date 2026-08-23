@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
+import { nombrePropio } from "@/lib/nombre";
 
 type Enlace = {
   href: string;
@@ -236,7 +237,7 @@ export function LateralPortal({ usuario }: { usuario: Usuario }) {
 
         <div className="portal__pie">
           <div className="portal__quien">
-            <strong>{usuario.name}</strong>
+            <strong>{nombrePropio(usuario.name)}</strong>
             <span className="portal__rol">
               {NOMBRE_ROL[usuario.role] ?? usuario.role}
             </span>

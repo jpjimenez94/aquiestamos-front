@@ -4,6 +4,7 @@ import { Cabecera, Etiqueta, Vacio } from '../componentes'
 import { BotonSeguimientoWhatsApp } from './BotonSeguimientoWhatsApp'
 import { ModalSeguimientoGeneral } from './ModalSeguimientoGeneral'
 import { UserCheck } from 'lucide-react'
+import { nombrePropio } from '@/lib/nombre'
 
 export const metadata = { title: 'Personas acompañadas' }
 
@@ -123,7 +124,7 @@ export default async function PersonasPage({
                 <tr key={p.id}>
                   <td>
                     <Link href={`/portal/personas/${p.id}`} className="tabla__principal">
-                      {p.fullName}
+                      {nombrePropio(p.fullName)}
                     </Link>
                     <span className="tabla__secundario">
                       {p.phone}

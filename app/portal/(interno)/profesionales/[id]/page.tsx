@@ -4,6 +4,7 @@ import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { EditorDisponibilidad } from './EditorDisponibilidad'
 import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
+import { nombrePropio } from '@/lib/nombre'
 
 type Profesional = {
   id: string
@@ -83,7 +84,7 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
   return (
     <>
       <Cabecera
-        titulo={p.fullName}
+        titulo={nombrePropio(p.fullName)}
         descripcion={`${p.profession} · ${p.city}`}
         acciones={
           <Link className="boton-mini" href="/portal/profesionales">

@@ -4,6 +4,7 @@ import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
+import { nombrePropio } from '@/lib/nombre'
 
 /**
  * Los estados en los que la negociación sigue abierta. Es el reflejo de
@@ -72,7 +73,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <Cabecera
-        titulo={persona.fullName}
+        titulo={nombrePropio(persona.fullName)}
         descripcion={`${persona.city} · lleva ${persona.diasEsperando} ${persona.diasEsperando === 1 ? 'día' : 'días'} en la red`}
         acciones={
           <Link className="boton-mini" href="/portal/personas">

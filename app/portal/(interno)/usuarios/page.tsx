@@ -3,6 +3,7 @@ import { UserPlus } from 'lucide-react'
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
 import { ButtonLink } from '@/components/ui/Button'
+import { nombrePropio } from '@/lib/nombre'
 
 export const metadata = { title: 'Cuentas' }
 
@@ -57,7 +58,7 @@ export default async function UsuariosPage() {
               {cuentas.map((c) => (
                 <tr key={c.id}>
                   <td>
-                    <span className="tabla__principal">{c.name}</span>
+                    <span className="tabla__principal">{nombrePropio(c.name)}</span>
                     <span className="tabla__secundario">{c.email}</span>
                   </td>
                   <td>{ROL[c.role] ?? c.role}</td>

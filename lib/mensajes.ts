@@ -1,4 +1,5 @@
 import { LINEAS_EMERGENCIA } from './consentimiento'
+import { nombreDePila } from './nombre'
 import { paraWhatsapp } from './telefono'
 
 /**
@@ -81,7 +82,7 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
   const cuando = [dias, franjas].filter(Boolean).join(' ')
 
   // Solo el nombre de pila: en un saludo, el apellido sobra.
-  const nombre = d.profesional.trim().split(/\s+/)[0]
+  const nombre = nombreDePila(d.profesional)
 
   /**
    * Lo que NO sabemos se dice, no se calla.
@@ -373,7 +374,7 @@ export function mensajeDeTamizaje({
   enlace: string
 }): string {
   // Solo el nombre de pila, igual que en el mensaje al profesional.
-  const primero = String(nombre ?? '').trim().split(/\s+/)[0] || 'hola'
+  const primero = nombreDePila(nombre) || 'hola'
 
   return [
     `Hola ${primero}, te escribimos de la Red Aquí Estamos.`,
@@ -462,7 +463,7 @@ export function mensajeParaCuadrarHorario(d: {
   franjas: string[]
   nota?: string | null
 }): string {
-  const nombre = String(d.persona ?? '').trim().split(/\s+/)[0] || 'hola'
+  const nombre = nombreDePila(d.persona) || 'hola'
   const dias = enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase()))
   const franjas = enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase()))
 
@@ -498,7 +499,7 @@ export function mensajeDeCitaConfirmada(d: {
   cuando: string
   modalidad?: string | null
 }): string {
-  const nombre = String(d.persona ?? '').trim().split(/\s+/)[0] || 'hola'
+  const nombre = nombreDePila(d.persona) || 'hola'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
 
   return [
@@ -508,7 +509,7 @@ export function mensajeDeCitaConfirmada(d: {
     `· Cuándo: ${d.cuando}`,
     modalidad ? `· Modalidad: ${modalidad}` : null,
     '',
-    `${d.profesional.trim().split(/\s+/)[0]} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
+    `${nombreDePila(d.profesional)} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
     '',
     'Si te surge algo y no puedes, escríbenos por aquí con tiempo y lo movemos. No pasa nada.',
     '',
@@ -530,7 +531,7 @@ export function mensajeDeCitaAlProfesional(d: {
   modalidad?: string | null
   enlace: string
 }): string {
-  const nombre = String(d.profesional ?? '').trim().split(/\s+/)[0] || 'hola'
+  const nombre = nombreDePila(d.profesional) || 'hola'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
 
   return [
