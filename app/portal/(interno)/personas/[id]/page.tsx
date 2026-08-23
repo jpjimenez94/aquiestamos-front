@@ -135,6 +135,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           persona={persona}
           asignacion={persona.asignacion}
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+          hayReportes={(persona.reportes?.length ?? 0) > 0}
           proximaCita={(() => {
             // La cita abierta más próxima: es la que se le confirma al
             // profesional. Vienen de la más próxima a la más lejana.

@@ -70,12 +70,15 @@ export function PanelDelCaso({
   asignacion,
   enlaceCaso,
   proximaCita,
+  hayReportes = false,
 }: {
   persona: Persona
   asignacion: Asignacion
   enlaceCaso: string
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
   proximaCita?: { cuando: string; modalidad: string } | null
+  /** Si el profesional ya reportó algo. Sin reporte no se habilita el cierre. */
+  hayReportes?: boolean
 }) {
   const [copiado, setCopiado] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -198,7 +201,16 @@ export function PanelDelCaso({
             copiado={copiado === 'cita-prof'}
             alCopiar={(t) => copiar('cita-prof', t)}
           />
-          <BotonCerrarCaso asignacionId={asignacion.id} onError={setError} />
+          {/* Cerrar sin haber leído nada del profesional es cerrar a ciegas:
+              el botón se habilita cuando existe al menos un reporte suyo. */}
+          {hayReportes ? (
+            <BotonCerrarCaso asignacionId={asignacion.id} onError={setError} />
+          ) : (
+            <p className="panel__nota" style={{ marginTop: 16 }}>
+              El cierre se habilita cuando el profesional reporte desde su enlace qué pasó con
+              la sesión.
+            </p>
+          )}
         </>
       ) : null}
 
