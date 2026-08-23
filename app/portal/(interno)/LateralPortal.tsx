@@ -17,6 +17,7 @@ import {
   LogOut,
   Menu,
   X,
+  BookOpen,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
@@ -25,7 +26,8 @@ type Enlace = {
   href: string;
   texto: string;
   icono: React.ReactNode;
-  permiso: string;
+  /** Sin permiso, el enlace es para todo el que tenga sesión. */
+  permiso?: string;
   /** Si se indica, el enlace solo aparece para estos roles. */
   soloRoles?: Usuario["role"][];
 };
@@ -111,6 +113,18 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Auditoría",
         icono: <ScrollText size={17} />,
         permiso: "auditoria:leer",
+      },
+    ],
+  },
+  {
+    titulo: "Guía",
+    enlaces: [
+      {
+        // Sin permiso a propósito: la guía de procesos es para todo el que
+        // tenga sesión, incluido quien solo lee y el profesional.
+        href: "/portal/procesos",
+        texto: "Cómo funciona la red",
+        icono: <BookOpen size={17} />,
       },
     ],
   },
@@ -207,7 +221,7 @@ export function LateralPortal({ usuario }: { usuario: Usuario }) {
           {GRUPOS.map((grupo) => {
             const visibles = grupo.enlaces.filter(
               (e) =>
-                puede(usuario, e.permiso) &&
+                (!e.permiso || puede(usuario, e.permiso)) &&
                 (!e.soloRoles || e.soloRoles.includes(usuario.role)),
             );
             if (visibles.length === 0) return null;

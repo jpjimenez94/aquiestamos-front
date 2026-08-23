@@ -1,0 +1,189 @@
+/* ---------------------------------------------------------------------------
+   Cómo funciona la red — la guía de procesos del portal.
+
+   Los diagramas son HTML y CSS del portal, no una librería: pesan nada, se
+   leen en el teléfono y hablan el mismo idioma visual que el resto. Cada
+   proceso es una columna de pasos con una línea que los une; lo que se sale
+   del camino feliz (relojes, liberaciones) va como desvío de color al lado
+   del paso, no como rombo de diagrama de flujo.
+   --------------------------------------------------------------------------- */
+
+.proc-intro {
+  max-width: 70ch;
+  color: var(--color-text-light);
+  margin: 0 0 6px;
+}
+
+/* ---------- La cinta del viaje completo ---------- */
+
+.proc-viaje {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 18px 0 8px;
+}
+
+.proc-viaje__etapa {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.proc-viaje__etapa span {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--navbar-background-color);
+  color: #fff6eb;
+  font-size: 0.7rem;
+}
+
+.proc-viaje__flecha {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+}
+
+/* ---------- Un proceso: la columna de pasos ---------- */
+
+.proc-flujo {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 6px;
+}
+
+.proc-paso {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  position: relative;
+  padding-bottom: 22px;
+}
+
+/* La línea que une los pasos: vive detrás de los números. */
+.proc-paso::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 34px;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border-default);
+}
+
+.proc-paso:last-child { padding-bottom: 0; }
+.proc-paso:last-child::before { display: none; }
+
+.proc-paso__numero {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navbar-background-color);
+  color: #fff6eb;
+  font-weight: 700;
+  font-size: 0.9rem;
+  position: relative;
+  z-index: 1;
+}
+
+.proc-paso__cuerpo { padding-top: 4px; min-width: 0; }
+
+.proc-paso__quien {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  margin-bottom: 2px;
+}
+
+.proc-paso__titulo {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.proc-paso__detalle {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-text-light);
+  max-width: 62ch;
+}
+
+/* ---------- Los desvíos: lo que pasa fuera del camino feliz ---------- */
+
+.proc-desvios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.proc-desvio {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  max-width: 100%;
+}
+
+.proc-desvio strong { white-space: nowrap; }
+
+.proc-desvio[data-tono='reloj'] {
+  background: #f7ecd8;
+  border-color: #e3cba0;
+  color: #6b4a12;
+}
+
+.proc-desvio[data-tono='alerta'] {
+  background: #f6e3e0;
+  border-color: #e5b5ae;
+  color: #7c2626;
+}
+
+.proc-desvio[data-tono='logro'] {
+  background: #e4efe8;
+  border-color: #b9d5c6;
+  color: #1d4a37;
+}
+
+/* ---------- La tira de estados (las máquinas, en una línea) ---------- */
+
+.proc-estados {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 4px;
+  font-size: 0.8rem;
+}
+
+.proc-estados .etiqueta { font-size: 0.76rem; }
+
+.proc-estados__flecha { color: var(--color-text-light); }
+
+/* En pantallas chicas los pasos respiran un poco menos. */
+@media (max-width: 640px) {
+  .proc-paso { grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
+  .proc-paso::before { left: 13px; }
+  .proc-paso__numero { width: 28px; height: 28px; font-size: 0.8rem; }
+}
