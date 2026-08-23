@@ -43,6 +43,31 @@ function Flujo({ pasos }: { pasos: Paso[] }) {
   )
 }
 
+/**
+ * Una etapa que se abre y se cierra. Es un <details> nativo: colapsa sin
+ * JavaScript, el estado lo recuerda el navegador dentro de la página, y el
+ * lector abre solo lo que le interesa en vez de desplazar seis pantallas.
+ */
+function Etapa({
+  titulo,
+  abierta = false,
+  children,
+}: {
+  titulo: string
+  abierta?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <details className="panel proc-etapa" open={abierta || undefined}>
+      <summary>
+        <h2>{titulo}</h2>
+        <span className="proc-etapa__chevron" aria-hidden>›</span>
+      </summary>
+      <div className="proc-etapa__contenido">{children}</div>
+    </details>
+  )
+}
+
 function Estados({ cadena }: { cadena: { estado: string; texto: string }[] }) {
   return (
     <div className="proc-estados">
@@ -62,6 +87,18 @@ export default function ProcesosPage() {
       <Cabecera
         titulo="Cómo funciona la red"
         descripcion="El viaje de un caso de punta a punta: quién hace qué, qué corre solo y qué se espera en cada tramo."
+        acciones={
+          <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}>
+            {/* El manual técnico: mismo contenido, en formato documento con
+                flujogramas. Lo sirve una ruta con sesión y se puede bajar. */}
+            <a className="boton-mini" href="/api/portal/manual-procesos" target="_blank" rel="noopener noreferrer">
+              Manual técnico
+            </a>
+            <a className="boton-mini" href="/api/portal/manual-procesos?descargar=1">
+              Descargar manual
+            </a>
+          </span>
+        }
       />
 
       <div className="panel">
@@ -85,8 +122,7 @@ export default function ProcesosPage() {
 
       <DiagramaDelFlujo />
 
-      <div className="panel" style={{ marginTop: 20 }}>
-        <h2>1 · Solicitud y tamizaje</h2>
+      <Etapa titulo="1 · Solicitud y tamizaje">
         <p className="proc-intro">
           La entrada de quien pide ayuda. El tamizaje decide la prioridad con lo que la persona
           cuenta hoy, y nadie se queda por fuera por no responder.
@@ -117,10 +153,9 @@ export default function ProcesosPage() {
             },
           ]}
         />
-      </div>
+      </Etapa>
 
-      <div className="panel" style={{ marginTop: 20 }}>
-        <h2>2 · Entrada de profesionales</h2>
+      <Etapa titulo="2 · Entrada de profesionales">
         <p className="proc-intro">
           La otra puerta del sitio. La tarjeta profesional es un trámite del profesional — vive en
           Postulaciones y nunca es una etapa del caso.
@@ -148,10 +183,9 @@ export default function ProcesosPage() {
             },
           ]}
         />
-      </div>
+      </Etapa>
 
-      <div className="panel" style={{ marginTop: 20 }}>
-        <h2>3 · La asignación es una negociación</h2>
+      <Etapa titulo="3 · La asignación es una negociación">
         <p className="proc-intro">
           Entre coordinación, el profesional y la persona. Puede fallar en cada tramo, y por eso
           cada tramo tiene estado, mensaje y reloj.
@@ -196,10 +230,9 @@ export default function ProcesosPage() {
           a diez personas a la vez y todas «cabrían». Al liberarse, se libera todo junto: el cupo, el
           candado de una negociación por persona y el enlace del caso.
         </p>
-      </div>
+      </Etapa>
 
-      <div className="panel" style={{ marginTop: 20 }}>
-        <h2>4 · La cita y el consentimiento</h2>
+      <Etapa titulo="4 · La cita y el consentimiento">
         <p className="proc-intro">
           La sesión dura 45 minutos y deja 30 de descanso. Antes de empezar, el consentimiento tiene
           que estar firmado.
@@ -242,10 +275,9 @@ export default function ProcesosPage() {
             },
           ]}
         />
-      </div>
+      </Etapa>
 
-      <div className="panel" style={{ marginTop: 20 }}>
-        <h2>5 · Seguimiento y cierre</h2>
+      <Etapa titulo="5 · Seguimiento y cierre">
         <p className="proc-intro">
           El profesional reporta, coordinación lee y decide. Cerrar siempre es un humano con motivo
           — nunca el sistema.
@@ -275,10 +307,9 @@ export default function ProcesosPage() {
             },
           ]}
         />
-      </div>
+      </Etapa>
 
-      <div className="panel" style={{ marginTop: 20 }}>
-        <h2>Lo que corre solo</h2>
+      <Etapa titulo="Lo que corre solo">
         <p className="proc-intro">
           Los relojes de la red. Todos revisan cada hora, todos avisan lo que hicieron y todo queda
           en auditoría. Los umbrales se cambian por configuración, sin tocar código.
@@ -316,7 +347,7 @@ export default function ProcesosPage() {
           respuesta») con el mismo umbral que usa el reloj: dos sitios contando días serían un sitio
           mintiendo.
         </p>
-      </div>
+      </Etapa>
     </>
   )
 }

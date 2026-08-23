@@ -188,11 +188,47 @@
   .proc-paso__numero { width: 28px; height: 28px; font-size: 0.8rem; }
 }
 
+/* ---------- Etapas que se abren y se cierran ---------- */
+
+.proc-etapa summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.proc-etapa summary::-webkit-details-marker { display: none; }
+
+.proc-etapa summary h2 { margin: 0; }
+
+.proc-etapa summary:focus-visible {
+  outline: 2px solid var(--navbar-background-color);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.proc-etapa__chevron {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-text-light);
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+
+.proc-etapa[open] .proc-etapa__chevron { transform: rotate(-90deg); }
+
+.proc-etapa__contenido { margin-top: 14px; }
+
 /* ---------- Imprimir / guardar PDF ---------- */
 
 /* Al imprimir la guía se queda sola: sin barra lateral, sin botones. */
 @media print {
   .portal { display: block; }
+  /* Las etapas se abren por JS en beforeprint; aquí solo se limpia el chevron. */
+  .proc-etapa__chevron { display: none; }
   .portal__lateral,
   .portal__barra,
   .boton-mini { display: none !important; }

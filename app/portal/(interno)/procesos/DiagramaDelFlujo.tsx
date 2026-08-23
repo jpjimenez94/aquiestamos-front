@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Download, Printer } from 'lucide-react'
 
 /**
@@ -104,6 +104,20 @@ export function DiagramaDelFlujo() {
   const contenedor = useRef<SVGSVGElement>(null)
   const [copiado, setCopiado] = useState(false)
 
+  /**
+   * Antes de imprimir se abren todas las etapas: un PDF con secciones
+   * cerradas no documenta nada. Cubre también el Ctrl+P del navegador.
+   */
+  useEffect(() => {
+    const abrirTodo = () => {
+      document.querySelectorAll<HTMLDetailsElement>('details.proc-etapa').forEach((d) => {
+        d.open = true
+      })
+    }
+    window.addEventListener('beforeprint', abrirTodo)
+    return () => window.removeEventListener('beforeprint', abrirTodo)
+  }, [])
+
   function descargar() {
     const svg = contenedor.current
     if (!svg) return
@@ -169,8 +183,8 @@ export function DiagramaDelFlujo() {
           {/* ---------- fila 2: la propuesta ---------- */}
           <Flecha d="M 629 84 V 130" />
           <Caja x={524} y={132} w={210} titulo="Propuesta al profesional" detalle="WhatsApp con su enlace" tono="espera" />
-          <Nota x={820} y={162} texto="2 días o" tono="alerta" />
-          <Nota x={820} y={175} texto="se libera" tono="alerta" />
+          <Nota x={853} y={162} texto="2 días o" tono="alerta" />
+          <Nota x={853} y={175} texto="se libera" tono="alerta" />
 
           {/* rechazo / silencio: vuelve a la cola */}
           <Flecha d="M 745 159 H 800 V 57 H 740" tono="alerta" />
@@ -179,8 +193,8 @@ export function DiagramaDelFlujo() {
           <Flecha d="M 629 186 V 232" />
           <Nota x={655} y={212} texto="acepta con sus días y franjas" />
           <Caja x={524} y={234} w={210} titulo="Cuadrar horario" detalle="coordinación ↔ la persona" tono="espera" />
-          <Nota x={820} y={264} texto="3 días o" tono="alerta" />
-          <Nota x={820} y={277} texto="se libera" tono="alerta" />
+          <Nota x={853} y={264} texto="3 días o" tono="alerta" />
+          <Nota x={853} y={277} texto="se libera" tono="alerta" />
           <Flecha d="M 745 261 H 810 V 57 H 740" tono="alerta" />
 
           {/* ---------- fila 4: la cita ---------- */}
@@ -198,9 +212,9 @@ export function DiagramaDelFlujo() {
           <Flecha d="M 524 465 H 470" />
           <Caja x={250} y={438} w={220} titulo="El profesional reporta" detalle="qué pasó y qué sigue" />
 
-          {/* necesita más: vuelve a cuadrar */}
-          <Flecha d="M 360 438 V 261 H 522" />
-          <Nota x={360} y={352} texto="«necesita más sesiones»" />
+          {/* necesita más: vuelve a cuadrar, por fuera de las cajas */}
+          <Flecha d="M 250 465 H 208 V 261 H 522" />
+          <Nota x={352} y={253} texto="«necesita más sesiones»" />
 
           {/* ---------- fila 6: el cierre ---------- */}
           <Flecha d="M 360 492 V 538" />
