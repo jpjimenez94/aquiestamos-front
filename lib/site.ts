@@ -9,8 +9,8 @@ export const site = {
   tagline: 'Red de acompañamiento psicológico y atención en crisis',
   description:
     'Aquí Estamos es una red de profesionales de la salud mental voluntarios que se unen para acercar acompañamiento psicológico, orientación y recursos a personas y comunidades que los necesitan en el marco del terremoto del 10 de agosto de 2026.',
-  whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '573234199846',
-  whatsappDisplay: process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ?? '3234199846',
+  whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '573136295251',
+  whatsappDisplay: process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ?? '313 629 5251',
   instagramUrl:
     process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? 'https://www.instagram.com/aquiestamos.red',
   instagramHandle: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? '@aquiestamos.red',
