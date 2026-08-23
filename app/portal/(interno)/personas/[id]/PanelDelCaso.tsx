@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Archive, Check, Copy, MessageCircle, CalendarCheck, RotateCcw, Clock } from 'lucide-react'
+import { Check, Copy, MessageCircle, CalendarCheck, RotateCcw, Clock } from 'lucide-react'
 import {
   mensajeDePropuesta,
   mensajeParaCuadrarHorario,
@@ -70,15 +70,12 @@ export function PanelDelCaso({
   asignacion,
   enlaceCaso,
   proximaCita,
-  hayReportes = false,
 }: {
   persona: Persona
   asignacion: Asignacion
   enlaceCaso: string
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
   proximaCita?: { cuando: string; modalidad: string } | null
-  /** Si el profesional ya reportó algo. Sin reporte no se habilita el cierre. */
-  hayReportes?: boolean
 }) {
   const [copiado, setCopiado] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -201,16 +198,6 @@ export function PanelDelCaso({
             copiado={copiado === 'cita-prof'}
             alCopiar={(t) => copiar('cita-prof', t)}
           />
-          {/* Cerrar sin haber leído nada del profesional es cerrar a ciegas:
-              el botón se habilita cuando existe al menos un reporte suyo. */}
-          {hayReportes ? (
-            <BotonCerrarCaso asignacionId={asignacion.id} onError={setError} />
-          ) : (
-            <p className="panel__nota" style={{ marginTop: 16 }}>
-              El cierre se habilita cuando el profesional reporte desde su enlace qué pasó con
-              la sesión.
-            </p>
-          )}
         </>
       ) : null}
 
@@ -376,130 +363,3 @@ function BotonCancelar({
   )
 }
 
-/**
- * PASO 4 — El acompañamiento terminó, o ya no va a pasar. Cerrar es la única
- * salida de ACTIVA y es una decisión de quien coordina, nunca del sistema:
- * los reportes del profesional («ya la acompañé», «no contesta») son la
- * información, no el gatillo. «Ya la acompañé» a veces significa que terminó
- * y a veces que apenas empezó, y eso solo lo sabe un humano leyéndolos.
- *
- * CERRADA es final: reabrir no existe, lo que existe es proponer una
- * asignación nueva. Por eso pide motivo y confirma antes.
- */
-const MOTIVOS_CIERRE = [
-  'Acompañamiento completado',
-  'La persona desistió o ya no lo necesita',
-  'No fue posible volver a contactarla',
-  'Se remitió a otro servicio',
-  'Otro',
-] as const
-
-function BotonCerrarCaso({
-  asignacionId,
-  onError,
-}: {
-  asignacionId: string
-  onError: (m: string) => void
-}) {
-  const router = useRouter()
-  const [confirmando, setConfirmando] = useState(false)
-  const [motivo, setMotivo] = useState<string>('')
-  const [detalle, setDetalle] = useState('')
-  const [enviando, setEnviando] = useState(false)
-
-  async function cerrar() {
-    if (!motivo) {
-      onError('Elige por qué se cierra.')
-      return
-    }
-    if (motivo === 'Otro' && detalle.trim().length < 3) {
-      onError('Cuéntanos por qué se cierra.')
-      return
-    }
-
-    // El motivo guardado es la opción y, si hay, el matiz. Máximo 300 en el
-    // backend; el recorte del detalle deja sitio de sobra.
-    const texto =
-      motivo === 'Otro'
-        ? detalle.trim().slice(0, 280)
-        : detalle.trim()
-          ? `${motivo}: ${detalle.trim()}`.slice(0, 300)
-          : motivo
-
-    setEnviando(true)
-    try {
-      const r = await fetch(`/api/portal/appointments/asignaciones/${asignacionId}/cerrar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ motivo: texto }),
-      })
-      const d = await r.json()
-      if (!r.ok || !d.success) {
-        onError(d.message ?? 'No se pudo cerrar el caso')
-        return
-      }
-      router.refresh()
-    } catch {
-      onError('No pudimos conectarnos con el servidor')
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  if (!confirmando) {
-    return (
-      <div className="mensaje__acciones" style={{ marginTop: 16 }}>
-        <button className="boton-mini" type="button" onClick={() => setConfirmando(true)}>
-          <Archive size={14} />
-          Cerrar caso
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <strong style={{ fontSize: '0.9rem' }}>¿Por qué se cierra?</strong>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {MOTIVOS_CIERRE.map((m) => (
-          <button
-            key={m}
-            className="boton-mini"
-            data-tono={motivo === m ? 'principal' : undefined}
-            type="button"
-            aria-pressed={motivo === m}
-            onClick={() => setMotivo(m)}
-          >
-            {m}
-          </button>
-        ))}
-      </div>
-      <input
-        className="input"
-        style={{ maxWidth: 380 }}
-        placeholder={motivo === 'Otro' ? '¿Qué pasó?' : 'Algún detalle (opcional)'}
-        maxLength={280}
-        value={detalle}
-        onChange={(e) => setDetalle(e.target.value)}
-      />
-      <p className="panel__nota" style={{ margin: 0 }}>
-        Cerrar es definitivo: el profesional libera el cupo y el caso sale del tablero. Si algún
-        día hace falta retomar, se propone una asignación nueva.
-      </p>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <button
-          className="boton-mini"
-          data-tono="peligro"
-          type="button"
-          onClick={cerrar}
-          disabled={enviando}
-        >
-          {enviando ? 'Cerrando…' : 'Sí, cerrar el caso'}
-        </button>
-        <button className="boton-mini" type="button" onClick={() => setConfirmando(false)}>
-          Volver
-        </button>
-      </div>
-    </div>
-  )
-}

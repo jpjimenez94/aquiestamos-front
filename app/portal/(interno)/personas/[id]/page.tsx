@@ -4,6 +4,7 @@ import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
+import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { nombrePropio } from '@/lib/nombre'
 
 /**
@@ -135,7 +136,6 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           persona={persona}
           asignacion={persona.asignacion}
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
-          hayReportes={(persona.reportes?.length ?? 0) > 0}
           proximaCita={(() => {
             // La cita abierta más próxima: es la que se le confirma al
             // profesional. Vienen de la más próxima a la más lejana.
@@ -248,6 +248,13 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               escribirle.
             </Vacio>
           )}
+
+          {/* Cerrar es la decisión que se toma DESPUÉS de leer el reporte, y
+              el botón vive donde está la lectura. Sin reporte, no hay botón:
+              cerrar sin haber leído al profesional es cerrar a ciegas. */}
+          {persona.reportes?.length && persona.asignacion ? (
+            <BotonCerrarCaso asignacionId={persona.asignacion.id} />
+          ) : null}
         </div>
       ) : null}
     </>
