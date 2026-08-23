@@ -177,6 +177,14 @@ export default async function AgendaPage({
       porCuadrarHorario: Paciente[]
       citasAbiertas: Cita[]
       enAcompanamiento: Paciente[]
+      cerrados: {
+        id: string
+        fullName: string
+        city: string
+        cerradoEl: string
+        motivo: string | null
+        profesional: string | null
+      }[]
     }>('/dashboard/tablero')
 
     const porAsignar = tableroRes.data?.porAsignar ?? []
@@ -184,6 +192,7 @@ export default async function AgendaPage({
     const porCuadrarHorario = tableroRes.data?.porCuadrarHorario ?? []
     const citasAbiertas = tableroRes.data?.citasAbiertas ?? []
     const enAcompanamiento = tableroRes.data?.enAcompanamiento ?? []
+    const cerrados = tableroRes.data?.cerrados ?? []
 
     return (
       <>
@@ -365,8 +374,37 @@ export default async function AgendaPage({
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card">
                   <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
-                    Psicólogo: {p.asignacion?.profesional.nombre ?? 'Asignado'}
+                    Psicólogo: {nombrePropio(p.asignacion?.profesional.nombre) || 'Asignado'}
                   </span>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Columna 6: cerrar no es desaparecer. Los últimos, en gris. */}
+          <div className="pipeline-columna" style={{ opacity: 0.85 }}>
+            <div className="pipeline-columna__cabecera">
+              <span className="pipeline-columna__titulo">
+                <History size={15} style={{ color: '#6b7280' }} />
+                Cerrados recientes
+              </span>
+              <span className="pipeline-columna__contador">{cerrados.length}</span>
+            </div>
+            {cerrados.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Ningún caso cerrado todavía</span>
+            ) : (
+              cerrados.map((p) => (
+                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #9ca3af' }}>
+                  <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    {p.profesional ? `Acompañó: ${nombrePropio(p.profesional)} · ` : ''}
+                    {enBogota(p.cerradoEl)}
+                  </span>
+                  {p.motivo ? (
+                    <span className="tabla__secundario" style={{ fontSize: '0.74rem', fontStyle: 'italic' }}>
+                      {p.motivo}
+                    </span>
+                  ) : null}
                 </Link>
               ))
             )}
