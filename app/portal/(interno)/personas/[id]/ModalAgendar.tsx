@@ -75,11 +75,14 @@ export function ModalAgendar({
 
       if (!respuesta.ok || !datos.success) {
         // Si lo que estorba es la franja declarada, se ofrece el desvío en vez
-        // de dejar a quien coordina adivinando qué marcar.
+        // de dejar a quien coordina adivinando qué marcar. Aquí ya se sabe que
+        // el horario tampoco está en lo que ofreció para este caso —eso el
+        // backend lo deja pasar solo—, así que la casilla es para cuando él
+        // confirmó este momento concreto por otro canal.
         if (datos.details?.codigo === 'FUERA_DE_FRANJA') {
           setFueraDeFranja(true)
           setError(
-            `${datos.message} El profesional aceptó este horario desde su enlace, así que puedes agendarlo igual: marca la casilla y vuelve a intentarlo.`,
+            `${datos.message} Si el profesional te confirmó este horario concreto, marca la casilla y vuelve a intentarlo.`,
           )
           return
         }
@@ -241,9 +244,9 @@ export function ModalAgendar({
                       size={14}
                       style={{ verticalAlign: '-2px', marginRight: 4, color: 'var(--color-red)' }}
                     />
-                    Este horario está fuera de las franjas que el profesional tiene cargadas, pero
-                    él aceptó este momento desde su enlace. Agendar igual queda registrado en la
-                    auditoría con tu nombre.
+                    Este horario no está ni en la agenda del profesional ni en lo que ofreció
+                    para este caso. Márcalo solo si él te confirmó este momento concreto. Queda
+                    registrado en la auditoría con tu nombre.
                   </span>
                 </label>
               ) : null}
