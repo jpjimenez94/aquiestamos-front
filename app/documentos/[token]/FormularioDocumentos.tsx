@@ -16,6 +16,7 @@ function CampoArchivo({
   clave,
   onClave,
   onError,
+  opcional = false,
 }: {
   token: string
   etiqueta: string
@@ -23,6 +24,7 @@ function CampoArchivo({
   clave: string | null
   onClave: (clave: string | null) => void
   onError: (m: string | null) => void
+  opcional?: boolean
 }) {
   const [subiendo, setSubiendo] = useState(false)
   const [nombre, setNombre] = useState<string | null>(null)
@@ -62,7 +64,7 @@ function CampoArchivo({
 
   return (
     <div>
-      <label className="field__label">{etiqueta} *</label>
+      <label className="field__label">{etiqueta}{opcional ? '' : ' *'}</label>
       <p className="tamizaje__ayuda">{ayuda}</p>
       <label
         className="tamizaje__opcion"
@@ -94,6 +96,7 @@ export function FormularioDocumentos({
   const [enviado, setEnviado] = useState(false)
   const [claveTarjeta, setClaveTarjeta] = useState<string | null>(null)
   const [claveIdentidad, setClaveIdentidad] = useState<string | null>(null)
+  const [claveIdentidadRespaldo, setClaveIdentidadRespaldo] = useState<string | null>(null)
   const [numero, setNumero] = useState(numeroActual ?? '')
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
@@ -133,6 +136,7 @@ export function FormularioDocumentos({
       const r = await enviarDocumentosAction(token, {
         claveTarjeta,
         claveIdentidad,
+        claveIdentidadRespaldo: claveIdentidadRespaldo ?? '',
         numeroTarjeta: numero.trim(),
       })
       if (!r.success) {
@@ -165,11 +169,21 @@ export function FormularioDocumentos({
 
       <CampoArchivo
         token={token}
-        etiqueta="Documento de identidad"
-        ayuda="Cédula o documento equivalente, por ambas caras o en PDF."
+        etiqueta="Documento de identidad — cara de adelante"
+        ayuda="Cédula o documento equivalente. Si subes un PDF con ambas caras, el respaldo de abajo no hace falta."
         clave={claveIdentidad}
         onClave={setClaveIdentidad}
         onError={setError}
+      />
+
+      <CampoArchivo
+        token={token}
+        etiqueta="Documento de identidad — respaldo (si aplica)"
+        ayuda="La cara de atrás, si la de adelante fue una foto."
+        clave={claveIdentidadRespaldo}
+        onClave={setClaveIdentidadRespaldo}
+        onError={setError}
+        opcional
       />
 
       <div>

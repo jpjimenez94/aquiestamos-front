@@ -29,6 +29,7 @@ type Profesional = {
   professionalCardDocumentUrl: string | null
   professionalCardVerified: boolean
   identityDocumentUrl: string | null
+  identityDocumentBackUrl: string | null
   documentsSubmittedAt: string | null
   status: string
   enlaceDocumentos: string | null
@@ -88,6 +89,7 @@ export default async function VerificacionesPage() {
                       numero: p.professionalCardNumber,
                       claveTarjeta: p.professionalCardDocumentUrl,
                       claveIdentidad: p.identityDocumentUrl,
+                      claveIdentidadRespaldo: p.identityDocumentBackUrl,
                       subioEl: p.documentsSubmittedAt ? enBogota(p.documentsSubmittedAt) : '',
                     }}
                   />

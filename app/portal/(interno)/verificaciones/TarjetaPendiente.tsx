@@ -81,6 +81,7 @@ export function TarjetaPendiente({
     numero: string | null
     claveTarjeta: string | null
     claveIdentidad: string | null
+    claveIdentidadRespaldo: string | null
     subioEl: string
   }
 }) {
@@ -119,6 +120,9 @@ export function TarjetaPendiente({
       <div className="verificacion__docs">
         <Miniatura clave={profesional.claveTarjeta} etiqueta="Tarjeta / certificado" />
         <Miniatura clave={profesional.claveIdentidad} etiqueta="Identidad" />
+        {profesional.claveIdentidadRespaldo ? (
+          <Miniatura clave={profesional.claveIdentidadRespaldo} etiqueta="Identidad (respaldo)" />
+        ) : null}
       </div>
 
       <div className="verificacion__datos">

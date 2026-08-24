@@ -39,7 +39,12 @@ export async function subirArchivoAction(token: string, formData: FormData) {
 
 export async function enviarDocumentosAction(
   token: string,
-  datos: { claveTarjeta: string; claveIdentidad: string; numeroTarjeta: string },
+  datos: {
+    claveTarjeta: string
+    claveIdentidad: string
+    claveIdentidadRespaldo: string
+    numeroTarjeta: string
+  },
 ) {
   try {
     const respuesta = await fetch(
