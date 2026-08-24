@@ -1,38 +1,8 @@
-import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
-import Link from 'next/link'
-import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
-import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
-import { nombrePropio } from '@/lib/nombre'
+import { portalFetch, usuarioActual, puede } from '@/lib/portal'
+import { Cabecera, Vacio, Paginacion, leerPagina } from '../componentes'
+import { TablaPostulaciones, type Postulacion } from './TablaPostulaciones'
 
 export const metadata = { title: 'Postulaciones' }
-
-type Postulacion = {
-  enlaceDocumentos?: string | null
-  id: string
-  fullName: string
-  email: string
-  phone: string
-  city: string | null
-  profession: string | null
-  yearsExperience: string | null
-  populations: string[]
-  modality: string
-  availableDays: string[]
-  status: string
-  createdAt: string
-  /** ID del profesional creado si ya fue aprobado (auto-aprobación) */
-  professionalId?: string | null
-  professionalCardVerified?: boolean
-  professionalCardNumber?: string | null
-  professionalCardDocumentUrl?: string | null
-}
-
-const EXPERIENCIA: Record<string, string> = {
-  MENOS_DE_1: '< 1 año',
-  ENTRE_1_Y_3: '1–3 años',
-  ENTRE_3_Y_5: '3–5 años',
-  MAS_DE_5: '+5 años',
-}
 
 const POR_PAGINA = 25
 
@@ -46,10 +16,6 @@ export default async function PostulacionesPage({
     usuarioActual(),
   ])
 
-  // Quien agenda NO ve el modulo de profesionales: es una decision expresa de
-  // la red, escrita en la matriz de permisos. Antes estos controles se le
-  // pintaban igual y al tocarlos recibia un 403 que la pagina traducia a "no
-  // encontramos esta pagina", que ademas es mentira: la ficha existe.
   const veProfesionales = puede(usuario, 'profesional:leer')
   const editaProfesionales = puede(usuario, 'profesional:verificar-tarjeta')
 
@@ -75,71 +41,11 @@ export default async function PostulacionesPage({
             : 'Todavía no se ha postulado nadie.'}
         </Vacio>
       ) : (
-        <div className="tabla-envoltorio">
-          <table className="tabla">
-            <thead>
-              <tr>
-                <th>Profesional</th>
-                <th>Profesión</th>
-                <th>Experiencia</th>
-                <th>Modalidad</th>
-                <th>Recibida</th>
-                <th>Tarjeta Profesional</th>
-                <th>Estado</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {postulaciones.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <span className="tabla__principal">{nombrePropio(p.fullName)}</span>
-                    <span className="tabla__secundario">
-                      {p.city ?? 'Sin ciudad'} · {p.phone}
-                    </span>
-                  </td>
-                  <td>
-                    {p.profession ?? '—'}
-                    <span className="tabla__secundario">
-                      {p.populations?.slice(0, 3).join(', ')}
-                      {p.populations?.length > 3 ? '…' : ''}
-                    </span>
-                  </td>
-                  <td>{EXPERIENCIA[p.yearsExperience ?? ''] ?? '—'}</td>
-                  <td style={{ textTransform: 'capitalize' }}>{p.modality.toLowerCase()}</td>
-                  <td className="tabla__numero">{enBogota(p.createdAt, false)}</td>
-                  <td>
-                    {p.professionalId && editaProfesionales ? (
-                      <BotonVerificarTarjeta
-                        profesionalId={p.professionalId}
-                        profesionalNombre={p.fullName}
-                        profesionalTelefono={p.phone}
-                        verificada={p.professionalCardVerified}
-                        numero={p.professionalCardNumber}
-                        documentoUrl={p.professionalCardDocumentUrl}
-                        enlaceDocumentos={p.enlaceDocumentos ?? null}
-                      />
-                    ) : (
-                      <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
-                        —
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <Etiqueta estado={p.status} />
-                  </td>
-                  <td className="tabla__acciones">
-                    {p.professionalId && veProfesionales ? (
-                      <Link className="boton-mini" href={`/portal/profesionales/${p.professionalId}`}>
-                        Ver ficha
-                      </Link>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TablaPostulaciones
+          postulaciones={postulaciones}
+          veProfesionales={veProfesionales}
+          editaProfesionales={editaProfesionales}
+        />
       )}
 
       {respuesta.success ? (
