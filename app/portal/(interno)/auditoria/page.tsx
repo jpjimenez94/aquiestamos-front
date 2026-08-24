@@ -1,18 +1,11 @@
 import Link from 'next/link'
-import { portalFetch, enBogota } from '@/lib/portal'
+import { portalFetch } from '@/lib/portal'
 import { Cabecera, Vacio } from '../componentes'
+import { TablaAuditoria, type EntradaAuditoria } from './TablaAuditoria'
 
 export const metadata = { title: 'Auditoría' }
 
-type Entrada = {
-  id: string
-  actor: string | null
-  accion: string
-  entidad: string
-  entidadId: string | null
-  fecha: string
-  ip: string | null
-}
+type Entrada = EntradaAuditoria
 
 const ACCION: Record<string, string> = {
   acceder: 'Entró al portal',
@@ -192,43 +185,7 @@ export default async function AuditoriaPage({
             {total} {total === 1 ? 'registro' : 'registros'}
             {hayFiltros ? ' con estos filtros' : ''} · página {page} de {paginas}
           </p>
-          <div className="tabla-envoltorio">
-            <table className="tabla">
-              <thead>
-                <tr>
-                  <th>Cuándo</th>
-                  <th>Quién</th>
-                  <th>Qué hizo</th>
-                  <th>Sobre</th>
-                  <th>IP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entradas.map((e) => (
-                  <tr key={e.id}>
-                    <td className="tabla__numero">{enBogota(e.fecha)}</td>
-                    <td>
-                      {e.actor ?? (
-                        <span className="tabla__secundario">
-                          {['acceder', 'acceso_fallido', 'salir'].includes(e.accion)
-                            ? 'sin cuenta'
-                            : 'el sistema'}
-                        </span>
-                      )}
-                    </td>
-                    <td>{ACCION[e.accion] ?? e.accion}</td>
-                    <td>
-                      {MODULOS.find((m) => m.value === e.entidad)?.label ?? e.entidad}
-                      {e.entidadId ? (
-                        <span className="tabla__secundario">{e.entidadId.slice(0, 8)}…</span>
-                      ) : null}
-                    </td>
-                    <td className="tabla__secundario">{e.ip ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TablaAuditoria entradas={entradas} modulos={MODULOS} accionMap={ACCION} />
 
           {paginas > 1 ? (
             <div className="paginacion" style={{ display: 'flex', gap: 8, marginTop: 14 }}>
