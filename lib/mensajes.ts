@@ -121,7 +121,7 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     // llegar, y este mensaje le va a llegar a la misma persona muchas veces.
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
-    'Tenemos un acompañamiento para proponerte. Mira si puedes tomarlo:',
+    'Queremos proponerte un acompañamiento. Cuéntanos si puedes tomarlo:',
     '',
     `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
@@ -400,7 +400,7 @@ export function mensajeDeTamizaje({
     '',
     enlace,
     '',
-    'Cuando las respondas, avísanos por aquí y seguimos: así podemos acompañarte lo antes posible.',
+    'Cuando las respondas, avísanos por aquí: así podemos acompañarte lo antes posible.',
     '',
     'No es un diagnóstico ni una evaluación, y no hay respuestas buenas o malas: solo nos ayudan a saber en qué orden acompañar. Lo que respondas queda entre tú y el equipo de la red.',
     '',
@@ -487,7 +487,7 @@ export function mensajeParaCuadrarHorario(d: {
     '',
     `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`,
     '',
-    dias || franjas ? 'Nos dijo que puede en estos momentos:' : 'Estamos cuadrando el horario.',
+    dias || franjas ? 'Estos son los horarios en los que puede atenderte:' : 'Estamos cuadrando el horario.',
     dias ? `· ${dias}` : null,
     franjas ? `· ${franjas}` : null,
     d.nota ? `· ${d.nota}` : null,
@@ -592,7 +592,7 @@ export function mensajeDePedirDocumentos(d: {
      * Abre agradeciendo y sin género: le llega igual a quien acaba de
      * postularse que a quien lleva tiempo y aún no sube sus documentos.
      */
-    'Gracias por querer acompañar: recibimos tu postulación y nos alegra contar contigo.',
+    'Recibimos tu postulación para acompañar en la red. Gracias por dar este paso: nos alegra contar contigo.',
     '',
     'Para dejar tu perfil listo y poder asignarte acompañamientos, nos faltan dos documentos. Es por la seguridad de todos — de quienes acompañan y de quienes son acompañados:',
     ...pedido,
@@ -654,7 +654,7 @@ export function mensajeDeSeguimientoAlProfesional(d: {
   return [
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
-    '¿Cómo va el acompañamiento que tienes con nosotros? Si ya hubo contacto o sesión, cuéntanos desde tu enlace del caso: con eso sabemos en qué va sin escribirte a cada rato.',
+    '¿Cómo va el acompañamiento que tienes a cargo? Si ya hubo contacto o sesión, cuéntanos desde tu enlace del caso: así sabemos en qué va sin estar preguntándote.',
     d.enlace ? d.enlace : null,
     '',
     'Y si algo se ha complicado —la persona no contesta, no has podido tú, lo que sea— dínoslo por aquí y lo resolvemos juntos. Para eso estamos.',
@@ -697,7 +697,7 @@ export function mensajeDeSeguimientoGeneral(): string {
   return [
     'Hola, te escribimos de Red Aquí Estamos.',
     '',
-    'Un recordatorio corto: si tienes un acompañamiento con nosotros, entra a tu enlace del caso y cuéntanos en qué va — si ya hubo contacto, si hay sesión agendada, o si algo se complicó.',
+    'Un recordatorio corto: si tienes un acompañamiento a cargo, entra a tu enlace del caso y cuéntanos en qué va — si ya hubo contacto, si hay sesión agendada, o si algo se complicó.',
     '',
     'Con eso el equipo sabe en qué va cada caso sin escribirte a cada rato. Y si necesitas algo de nosotros, respóndenos por aquí.',
     '',

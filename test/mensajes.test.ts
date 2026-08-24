@@ -97,7 +97,7 @@ describe('mensaje de propuesta al profesional', () => {
    */
   it('pregunta si puede, en vez de darlo por hecho', () => {
     const texto = mensajeDePropuesta(base)
-    expect(texto).toContain('Mira si puedes tomarlo')
+    expect(texto).toContain('Cuéntanos si puedes tomarlo')
     expect(texto).not.toContain('Te asignamos')
   })
 
