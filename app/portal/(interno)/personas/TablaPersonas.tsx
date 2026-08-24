@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, UserCheck, Calendar, RotateCcw, MessageSquare } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
+import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonSeguimientoWhatsApp } from './BotonSeguimientoWhatsApp'
 import { BotonEliminarPersona } from './BotonEliminarPersona'
 import { ModalNotasSeguimiento, type NotaSeguimiento } from './ModalNotasSeguimiento'
@@ -119,6 +120,9 @@ export function TablaPersonas({
   const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('esperando')
   const [direccion, setDireccion] = useState<Direccion>('desc')
 
+  const [pagina, setPagina] = useState(1)
+  const [porPagina, setPorPagina] = useState(25)
+
   function alternarOrden(col: ColumnaOrden) {
     if (columnaOrden === col) {
       setDireccion(direccion === 'asc' ? 'desc' : 'asc')
@@ -146,6 +150,7 @@ export function TablaPersonas({
     setFiltroCiudad('')
     setFiltroPrioridad('')
     setFiltroEstado('')
+    setPagina(1)
   }
 
   const listaFiltrada = useMemo(() => {
@@ -251,6 +256,14 @@ export function TablaPersonas({
       return direccion === 'asc' ? cmp : -cmp
     })
   }, [listaFiltrada, columnaOrden, direccion])
+
+  const totalFiltradas = listaOrdenada.length
+  const totalPaginas = Math.max(1, Math.ceil(totalFiltradas / porPagina))
+  const paginaAjustada = Math.min(pagina, totalPaginas)
+  const listaPaginada = useMemo(() => {
+    const start = (paginaAjustada - 1) * porPagina
+    return listaOrdenada.slice(start, start + porPagina)
+  }, [listaOrdenada, paginaAjustada, porPagina])
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
@@ -379,7 +392,10 @@ export function TablaPersonas({
                   type="text"
                   placeholder="Nombre/teléfono..."
                   value={filtroPersona}
-                  onChange={(e) => setFiltroPersona(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroPersona(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -388,14 +404,20 @@ export function TablaPersonas({
                   type="text"
                   placeholder="Profesional..."
                   value={filtroProfesional}
-                  onChange={(e) => setFiltroProfesional(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroProfesional(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroCita}
-                  onChange={(e) => setFiltroCita(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroCita(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -411,7 +433,10 @@ export function TablaPersonas({
                   type="text"
                   placeholder="Filtrar notas/autor..."
                   value={filtroNotas}
-                  onChange={(e) => setFiltroNotas(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroNotas(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -420,7 +445,10 @@ export function TablaPersonas({
                   type="text"
                   placeholder="Ciudad..."
                   value={filtroCiudad}
-                  onChange={(e) => setFiltroCiudad(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroCiudad(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -429,7 +457,10 @@ export function TablaPersonas({
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroPrioridad}
-                  onChange={(e) => setFiltroPrioridad(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroPrioridad(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -441,7 +472,10 @@ export function TablaPersonas({
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroEstado}
-                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroEstado(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todos</option>
@@ -468,7 +502,7 @@ export function TablaPersonas({
             </tr>
           </thead>
           <tbody>
-            {listaOrdenada.length === 0 ? (
+            {listaPaginada.length === 0 ? (
               <tr>
                 <td colSpan={10} style={{ textAlign: 'center', padding: 24 }}>
                   <Vacio>
@@ -479,7 +513,7 @@ export function TablaPersonas({
                 </td>
               </tr>
             ) : (
-              listaOrdenada.map((p) => {
+              listaPaginada.map((p) => {
                 const cita = p.cita
 
                 return (
@@ -618,6 +652,18 @@ export function TablaPersonas({
           </tbody>
         </table>
       </div>
+
+      <PaginacionTabla
+        pagina={paginaAjustada}
+        porPagina={porPagina}
+        totalFiltrado={totalFiltradas}
+        totalGeneral={personas.length}
+        alCambiarPagina={setPagina}
+        alCambiarPorPagina={(n) => {
+          setPorPagina(n)
+          setPagina(1)
+        }}
+      />
     </>
   )
 }

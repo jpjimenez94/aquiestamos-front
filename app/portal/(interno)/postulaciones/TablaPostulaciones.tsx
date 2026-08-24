@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
+import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
@@ -80,6 +81,9 @@ export function TablaPostulaciones({
   const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('fecha')
   const [direccion, setDireccion] = useState<Direccion>('desc')
 
+  const [pagina, setPagina] = useState(1)
+  const [porPagina, setPorPagina] = useState(25)
+
   function alternarOrden(col: ColumnaOrden) {
     if (columnaOrden === col) {
       setDireccion(direccion === 'asc' ? 'desc' : 'asc')
@@ -107,6 +111,7 @@ export function TablaPostulaciones({
     setFiltroFecha('')
     setFiltroTarjeta('')
     setFiltroEstado('')
+    setPagina(1)
   }
 
   const listaFiltrada = useMemo(() => {
@@ -197,6 +202,14 @@ export function TablaPostulaciones({
       return direccion === 'asc' ? cmp : -cmp
     })
   }, [listaFiltrada, columnaOrden, direccion])
+
+  const totalFiltradas = listaOrdenada.length
+  const totalPaginas = Math.max(1, Math.ceil(totalFiltradas / porPagina))
+  const paginaAjustada = Math.min(pagina, totalPaginas)
+  const listaPaginada = useMemo(() => {
+    const start = (paginaAjustada - 1) * porPagina
+    return listaOrdenada.slice(start, start + porPagina)
+  }, [listaOrdenada, paginaAjustada, porPagina])
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
@@ -314,7 +327,10 @@ export function TablaPostulaciones({
                   type="text"
                   placeholder="Nombre, ciudad..."
                   value={filtroProfesional}
-                  onChange={(e) => setFiltroProfesional(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroProfesional(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -323,14 +339,20 @@ export function TablaPostulaciones({
                   type="text"
                   placeholder="Profesión, población..."
                   value={filtroProfesion}
-                  onChange={(e) => setFiltroProfesion(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroProfesion(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroExperiencia}
-                  onChange={(e) => setFiltroExperiencia(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroExperiencia(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -343,7 +365,10 @@ export function TablaPostulaciones({
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroModalidad}
-                  onChange={(e) => setFiltroModalidad(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroModalidad(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -357,14 +382,20 @@ export function TablaPostulaciones({
                   type="text"
                   placeholder="Fecha..."
                   value={filtroFecha}
-                  onChange={(e) => setFiltroFecha(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroFecha(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroTarjeta}
-                  onChange={(e) => setFiltroTarjeta(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroTarjeta(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -375,7 +406,10 @@ export function TablaPostulaciones({
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroEstado}
-                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroEstado(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todos</option>
@@ -400,7 +434,7 @@ export function TablaPostulaciones({
             </tr>
           </thead>
           <tbody>
-            {listaOrdenada.length === 0 ? (
+            {listaPaginada.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ textAlign: 'center', padding: 24 }}>
                   <Vacio>
@@ -411,7 +445,7 @@ export function TablaPostulaciones({
                 </td>
               </tr>
             ) : (
-              listaOrdenada.map((p) => (
+              listaPaginada.map((p) => (
                 <tr key={p.id}>
                   <td>
                     <span className="tabla__principal">{nombrePropio(p.fullName)}</span>
@@ -462,6 +496,18 @@ export function TablaPostulaciones({
           </tbody>
         </table>
       </div>
+
+      <PaginacionTabla
+        pagina={paginaAjustada}
+        porPagina={porPagina}
+        totalFiltrado={totalFiltradas}
+        totalGeneral={postulaciones.length}
+        alCambiarPagina={setPagina}
+        alCambiarPorPagina={(n) => {
+          setPorPagina(n)
+          setPagina(1)
+        }}
+      />
     </>
   )
 }

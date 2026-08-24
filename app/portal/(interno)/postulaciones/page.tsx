@@ -1,29 +1,19 @@
 import { portalFetch, usuarioActual, puede } from '@/lib/portal'
-import { Cabecera, Vacio, Paginacion, leerPagina } from '../componentes'
+import { Cabecera, Vacio } from '../componentes'
 import { TablaPostulaciones, type Postulacion } from './TablaPostulaciones'
 
 export const metadata = { title: 'Postulaciones' }
 
-const POR_PAGINA = 25
-
-export default async function PostulacionesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ pagina?: string }>
-}) {
-  const [pagina, usuario] = await Promise.all([
-    searchParams.then((p) => leerPagina(p.pagina)),
+export default async function PostulacionesPage() {
+  const [usuario, respuesta] = await Promise.all([
     usuarioActual(),
+    portalFetch<Postulacion[]>('/volunteers?all=true'),
   ])
 
   const veProfesionales = puede(usuario, 'profesional:leer')
   const editaProfesionales = puede(usuario, 'profesional:verificar-tarjeta')
 
-  const respuesta = await portalFetch<Postulacion[]>(
-    `/volunteers?page=${pagina}&perPage=${POR_PAGINA}`,
-  )
   const postulaciones = respuesta.data ?? []
-  const total = Number(respuesta.meta?.total ?? postulaciones.length)
 
   return (
     <>
@@ -35,11 +25,7 @@ export default async function PostulacionesPage({
       {!respuesta.success ? (
         <Vacio>{respuesta.message ?? 'No pudimos cargar las postulaciones.'}</Vacio>
       ) : postulaciones.length === 0 ? (
-        <Vacio>
-          {pagina > 1
-            ? 'Esta página ya no tiene postulaciones.'
-            : 'Todavía no se ha postulado nadie.'}
-        </Vacio>
+        <Vacio>Todavía no se ha postulado nadie.</Vacio>
       ) : (
         <TablaPostulaciones
           postulaciones={postulaciones}
@@ -47,15 +33,6 @@ export default async function PostulacionesPage({
           editaProfesionales={editaProfesionales}
         />
       )}
-
-      {respuesta.success ? (
-        <Paginacion
-          pagina={pagina}
-          porPagina={POR_PAGINA}
-          total={total}
-          ruta="/portal/postulaciones"
-        />
-      ) : null}
     </>
   )
 }

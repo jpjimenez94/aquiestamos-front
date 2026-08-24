@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
+import { PaginacionTabla } from '../PaginacionTabla'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
 
@@ -78,6 +79,9 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
   const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('fecha')
   const [direccion, setDireccion] = useState<Direccion>('desc')
 
+  const [pagina, setPagina] = useState(1)
+  const [porPagina, setPorPagina] = useState(25)
+
   function alternarOrden(col: ColumnaOrden) {
     if (columnaOrden === col) {
       setDireccion(direccion === 'asc' ? 'desc' : 'asc')
@@ -105,6 +109,7 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
     setFiltroDisponibilidad('')
     setFiltroFecha('')
     setFiltroEstado('')
+    setPagina(1)
   }
 
   const listaFiltrada = useMemo(() => {
@@ -193,6 +198,14 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
       return direccion === 'asc' ? cmp : -cmp
     })
   }, [listaFiltrada, columnaOrden, direccion])
+
+  const totalFiltradas = listaOrdenada.length
+  const totalPaginas = Math.max(1, Math.ceil(totalFiltradas / porPagina))
+  const paginaAjustada = Math.min(pagina, totalPaginas)
+  const listaPaginada = useMemo(() => {
+    const start = (paginaAjustada - 1) * porPagina
+    return listaOrdenada.slice(start, start + porPagina)
+  }, [listaOrdenada, paginaAjustada, porPagina])
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
@@ -301,7 +314,10 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Nombre, teléfono..."
                   value={filtroPersona}
-                  onChange={(e) => setFiltroPersona(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroPersona(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -310,14 +326,20 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Disciplina, área..."
                   value={filtroDisciplina}
-                  onChange={(e) => setFiltroDisciplina(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroDisciplina(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroExperiencia}
-                  onChange={(e) => setFiltroExperiencia(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroExperiencia(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -332,7 +354,10 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Ciudad/modalidad..."
                   value={filtroCiudad}
-                  onChange={(e) => setFiltroCiudad(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroCiudad(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -341,7 +366,10 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Día/habilidades..."
                   value={filtroDisponibilidad}
-                  onChange={(e) => setFiltroDisponibilidad(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroDisponibilidad(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -350,14 +378,20 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Fecha..."
                   value={filtroFecha}
-                  onChange={(e) => setFiltroFecha(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroFecha(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroEstado}
-                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroEstado(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todos</option>
@@ -382,7 +416,7 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
             </tr>
           </thead>
           <tbody>
-            {listaOrdenada.length === 0 ? (
+            {listaPaginada.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ textAlign: 'center', padding: 24 }}>
                   <Vacio>
@@ -393,7 +427,7 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                 </td>
               </tr>
             ) : (
-              listaOrdenada.map((c) => (
+              listaPaginada.map((c) => (
                 <tr key={c.id}>
                   <td>
                     <span className="tabla__principal">{nombrePropio(c.fullName)}</span>
@@ -439,6 +473,18 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
           </tbody>
         </table>
       </div>
+
+      <PaginacionTabla
+        pagina={paginaAjustada}
+        porPagina={porPagina}
+        totalFiltrado={totalFiltradas}
+        totalGeneral={colaboradores.length}
+        alCambiarPagina={setPagina}
+        alCambiarPorPagina={(n) => {
+          setPorPagina(n)
+          setPagina(1)
+        }}
+      />
     </>
   )
 }

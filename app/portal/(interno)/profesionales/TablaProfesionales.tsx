@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
+import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 import { nombrePropio } from '@/lib/nombre'
 
@@ -53,6 +54,9 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
   const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('profesional')
   const [direccion, setDireccion] = useState<Direccion>('asc')
 
+  const [pagina, setPagina] = useState(1)
+  const [porPagina, setPorPagina] = useState(25)
+
   function alternarOrden(col: ColumnaOrden) {
     if (columnaOrden === col) {
       setDireccion(direccion === 'asc' ? 'desc' : 'asc')
@@ -78,6 +82,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
     setFiltroCupo('')
     setFiltroTarjeta('')
     setFiltroEstado('')
+    setPagina(1)
   }
 
   const listaFiltrada = useMemo(() => {
@@ -162,6 +167,14 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
       return direccion === 'asc' ? cmp : -cmp
     })
   }, [listaFiltrada, columnaOrden, direccion])
+
+  const totalFiltradas = listaOrdenada.length
+  const totalPaginas = Math.max(1, Math.ceil(totalFiltradas / porPagina))
+  const paginaAjustada = Math.min(pagina, totalPaginas)
+  const listaPaginada = useMemo(() => {
+    const start = (paginaAjustada - 1) * porPagina
+    return listaOrdenada.slice(start, start + porPagina)
+  }, [listaOrdenada, paginaAjustada, porPagina])
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
@@ -269,7 +282,10 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                   type="text"
                   placeholder="Filtrar nombre/ciudad..."
                   value={filtroProfesional}
-                  onChange={(e) => setFiltroProfesional(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroProfesional(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -278,14 +294,20 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                   type="text"
                   placeholder="Filtrar población..."
                   value={filtroPoblaciones}
-                  onChange={(e) => setFiltroPoblaciones(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroPoblaciones(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 8px' }}>
                 <select
                   value={filtroModalidad}
-                  onChange={(e) => setFiltroModalidad(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroModalidad(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -297,7 +319,10 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
               <th style={{ padding: '6px 8px' }}>
                 <select
                   value={filtroCupo}
-                  onChange={(e) => setFiltroCupo(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroCupo(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -308,7 +333,10 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
               <th style={{ padding: '6px 8px' }}>
                 <select
                   value={filtroTarjeta}
-                  onChange={(e) => setFiltroTarjeta(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroTarjeta(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -319,7 +347,10 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
               <th style={{ padding: '6px 8px' }}>
                 <select
                   value={filtroEstado}
-                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  onChange={(e) => {
+                    setFiltroEstado(e.target.value)
+                    setPagina(1)
+                  }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todos</option>
@@ -345,7 +376,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
             </tr>
           </thead>
           <tbody>
-            {listaOrdenada.length === 0 ? (
+            {listaPaginada.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: 24 }}>
                   <Vacio>
@@ -356,7 +387,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                 </td>
               </tr>
             ) : (
-              listaOrdenada.map((p) => (
+              listaPaginada.map((p) => (
                 <tr key={p.id}>
                   <td>
                     <Link href={`/portal/profesionales/${p.id}`} className="tabla__principal">
@@ -418,6 +449,18 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
           </tbody>
         </table>
       </div>
+
+      <PaginacionTabla
+        pagina={paginaAjustada}
+        porPagina={porPagina}
+        totalFiltrado={totalFiltradas}
+        totalGeneral={profesionales.length}
+        alCambiarPagina={setPagina}
+        alCambiarPorPagina={(n) => {
+          setPorPagina(n)
+          setPagina(1)
+        }}
+      />
     </>
   )
 }
