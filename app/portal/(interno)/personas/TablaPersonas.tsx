@@ -7,7 +7,7 @@ import { Etiqueta, Vacio } from '../componentes'
 import { BotonSeguimientoWhatsApp } from './BotonSeguimientoWhatsApp'
 import { BotonEliminarPersona } from './BotonEliminarPersona'
 import { nombrePropio } from '@/lib/nombre'
-import { enBogota } from '@/lib/portal'
+import { enBogota } from '@/lib/fechas'
 
 export type Persona = {
   id: string

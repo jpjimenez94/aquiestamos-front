@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, X } from 'lucide-react'
-import { enBogota } from '@/lib/portal'
+import { enBogota } from '@/lib/fechas'
 import { Vacio } from '../componentes'
 
 export type EntradaAuditoria = {
