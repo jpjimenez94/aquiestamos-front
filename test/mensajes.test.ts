@@ -322,10 +322,6 @@ describe('cuadrar el horario con la persona', () => {
   it('deja salida si ninguno le sirve', () => {
     expect(texto).toContain('dinos tú cuándo puedes')
   })
-
-  it('lleva la línea de crisis: sigue habiendo alguien esperando ayuda', () => {
-    expect(texto).toContain(LINEA_DE_CRISIS)
-  })
 })
 
 describe('confirmación de la cita a la persona', () => {
@@ -397,20 +393,16 @@ describe('mensaje de consentimiento', () => {
     enlace: 'https://redaquiestamos.org/consentimiento/abc.def',
   })
 
-  it('saluda por el nombre de pila y lleva el enlace completo', () => {
+  it('saluda por el nombre de pila, especifica que se hace desde cualquier dispositivo y lleva el enlace completo', () => {
     expect(texto).toContain('Hola Camilo')
     expect(texto).toContain('con Juan')
+    expect(texto).toContain('desde cualquier dispositivo en nuestro sitio web oficial:')
     expect(texto).toContain('https://redaquiestamos.org/consentimiento/abc.def')
   })
 
   it('dice que es requisito, sin sonar a amenaza', () => {
     expect(texto).toContain('Es el paso que nos permite empezar')
     expect(texto).toContain('escríbenos por aquí')
-  })
-
-  it('lleva la línea de crisis, como todo mensaje a la persona', () => {
-    expect(texto).toContain('123')
-    expect(texto).toContain('106')
   })
 })
 
@@ -427,7 +419,7 @@ describe('mensajes de seguimiento', () => {
     expect(texto).toContain('lo resolvemos juntos')
   })
 
-  it('el de la persona pregunta sin reprochar y lleva la línea de crisis', async () => {
+  it('el de la persona pregunta sin reprochar', async () => {
     const { mensajeDeSeguimientoALaPersona } = await import('../lib/mensajes')
     const texto = mensajeDeSeguimientoALaPersona({
       persona: 'camilo torres',
@@ -435,8 +427,6 @@ describe('mensajes de seguimiento', () => {
     })
     expect(texto).toContain('Hola Camilo')
     expect(texto).toContain('¿ya pudiste hablar con Ana')
-    expect(texto).toContain('123')
-    expect(texto).toContain('106')
     // sin reproche: nada de «recuerda» ni de ponerla en falta
     expect(texto.toLowerCase()).not.toContain('recuerda')
   })
@@ -481,7 +471,7 @@ describe('formato de WhatsApp', () => {
 })
 
 describe('mensaje de la encuesta del cierre', () => {
-  it('agradece, deja claro que es opcional y lleva la línea de crisis', async () => {
+  it('agradece y deja claro que es opcional', async () => {
     const { mensajeDeEncuesta } = await import('../lib/mensajes')
     const texto = mensajeDeEncuesta({
       persona: 'camilo torres',
@@ -491,8 +481,6 @@ describe('mensaje de la encuesta del cierre', () => {
     expect(texto).toContain('*dos preguntas*')
     expect(texto).toContain('si no la respondes, no pasa nada')
     expect(texto).toContain('/encuesta/abc')
-    expect(texto).toContain('123')
-    expect(texto).toContain('106')
   })
 })
 
@@ -592,8 +580,6 @@ describe('mensajeDeConsentimientoFirmadoALaPersona (Paso 9b)', () => {
     expect(texto).toContain('*Cuándo:* lunes, 24 de agosto a las 3:00 p. m.')
     expect(texto).toContain('*Modalidad:* presencial')
     expect(texto).toContain('Andrés se pondrá en contacto contigo unos *15 minutos antes*')
-    expect(texto).toContain('123')
-    expect(texto).toContain('106')
     expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
   })
 })

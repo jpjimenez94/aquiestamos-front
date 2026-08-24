@@ -502,8 +502,6 @@ export function mensajeParaCuadrarHorario(d: {
     d.nota ? `· ${d.nota}` : null,
     '',
     '*¿Cuál de esos te sirve?* Respóndenos por aquí y lo dejamos agendado. Si ninguno te queda bien, dinos tú cuándo puedes y lo miramos.',
-    '',
-    LINEA_DE_CRISIS,
   ]
     .filter((l) => l !== null)
     .join('\n')
@@ -536,8 +534,6 @@ export function mensajeDeCitaConfirmada(d: {
     `${nombreDePila(d.profesional)} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
     '',
     'Si te surge algo y no puedes, escríbenos por aquí con tiempo y lo movemos. No pasa nada.',
-    '',
-    LINEA_DE_CRISIS,
   ]
     .filter((l) => l !== null)
     .join('\n')
@@ -558,14 +554,12 @@ export function mensajeDeConsentimiento(d: {
   const nombre = nombreDePila(d.persona) || 'hola'
 
   return [
-    `Hola ${nombre}, antes de tu sesión con ${nombreDePila(d.profesional)} te pedimos leer y firmar el consentimiento informado. Es corto y se hace desde el teléfono:`,
+    `Hola ${nombre}, antes de tu sesión con ${nombreDePila(d.profesional)} te pedimos leer y firmar el consentimiento informado. Es corto y se hace desde cualquier dispositivo en nuestro sitio web oficial:`,
     d.enlace,
     '',
     'Es el paso que nos permite empezar: explica cómo funciona el acompañamiento y cómo cuidamos lo que nos cuentes. Te toma un par de minutos.',
     '',
     'Si algo no te queda claro, escríbenos por aquí y te lo explicamos con gusto.',
-    '',
-    LINEA_DE_CRISIS,
   ].join('\n')
 }
 
@@ -650,8 +644,6 @@ export function mensajeDeEncuesta(d: { persona: string; enlace: string }): strin
     d.enlace,
     '',
     'Es completamente opcional: si no la respondes, no pasa nada. Y si más adelante vuelves a necesitarnos, aquí estamos.',
-    '',
-    LINEA_DE_CRISIS,
   ].join('\n')
 }
 
@@ -703,8 +695,6 @@ export function mensajeDeSeguimientoALaPersona(d: {
     `Queríamos saber cómo vas: ¿ya pudiste hablar con ${nombreDePila(d.profesional)}, o sigue pendiente?`,
     '',
     'Lo que necesites —mover un horario, contarnos algo, o simplemente decirnos que sigues ahí— respóndenos por aquí. Estamos para acompañarte.',
-    '',
-    LINEA_DE_CRISIS,
   ].join('\n')
 }
 
@@ -851,8 +841,6 @@ export function mensajeDeConsentimientoFirmadoALaPersona(d: {
     `${nombreProf} se pondrá en contacto contigo unos *15 minutos antes* de la hora acordada para iniciar la sesión. No tienes que hacer nada más.`,
     '',
     'Si te surge alguna duda o necesitas mover el horario, escríbenos por aquí con tiempo.',
-    '',
-    LINEA_DE_CRISIS,
   ]
     .filter((l) => l !== null)
     .join('\n')
