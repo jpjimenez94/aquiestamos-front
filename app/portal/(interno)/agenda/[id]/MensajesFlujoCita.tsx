@@ -7,6 +7,7 @@ import {
   mensajeDeConsentimiento,
   mensajeDeConsentimientoFirmadoALaPersona,
   mensajeDeCitaConfirmadaAlProfesional,
+  mensajeDeExcusasYReagendamiento,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 
@@ -70,6 +71,13 @@ export function MensajesFlujoCita({
     enlace: enlaceCaso,
   })
 
+  const mensajeExcusasReagendar = mensajeDeExcusasYReagendamiento({
+    persona: pacienteNombre,
+    profesional: profesionalNombre,
+    cuandoAnterior: fechaHoraBogota,
+    motivo: 'un compromiso médico/personal de última hora',
+  })
+
   return (
     <>
       <div className="panel">
@@ -116,6 +124,19 @@ export function MensajesFlujoCita({
           titulo="Paso 10 · Instrucciones y despacho de la cita al profesional"
           telefono={profesionalTelefono}
           texto={mensajeProfesional}
+        />
+      </div>
+
+      <div className="panel">
+        <h2>¿El profesional tuvo un imprevisto en su agenda?</h2>
+        <p className="panel__nota">
+          Si el profesional te avisa de un compromiso personal/médico inesperado a esa hora, envíale este mensaje de disculpas a la persona para acordar un nuevo espacio.
+        </p>
+
+        <Mensaje
+          titulo="Reagendamiento · Excusas y solicitud de nuevo espacio a la persona"
+          telefono={pacienteTelefono}
+          texto={mensajeExcusasReagendar}
         />
       </div>
     </>

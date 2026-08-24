@@ -508,6 +508,50 @@ export function mensajeParaCuadrarHorario(d: {
 }
 
 /**
+ * REAGENDAMIENTO · Excusas a la persona acompañada por imprevisto / cambio de agenda del profesional.
+ *
+ * Cuando el profesional avisa de un compromiso de fuerza mayor o cita médica
+ * en el horario pactado, coordinación le escribe a la persona disculpándose,
+ * confirmándole que el mismo profesional sigue comprometido en atenderla, y
+ * proponiéndole los nuevos espacios disponibles.
+ */
+export function mensajeDeExcusasYReagendamiento(d: {
+  persona: string
+  profesional: string
+  cuandoAnterior?: string | null
+  motivo?: string | null
+  dias?: string[]
+  franjas?: string[]
+  nota?: string | null
+}): string {
+  const nombrePers = nombreDePila(d.persona) || 'hola'
+  const nombreProf = nombreDePila(d.profesional) || 'el profesional'
+  const dias = d.dias?.length ? enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase())) : null
+  const franjas = d.franjas?.length ? enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase())) : null
+
+  const razon = d.motivo?.trim() || 'un compromiso personal de fuerza mayor'
+  const referenciaHorario = d.cuandoAnterior ? ` que teníamos acordado (${d.cuandoAnterior})` : ''
+
+  return [
+    `Hola ${nombrePers}, te escribimos de la Red Aquí Estamos.`,
+    '',
+    `Queremos pedirte una disculpa sincera: ${nombreProf} tuvo ${razon} y se le cruza con el horario${referenciaHorario}.`,
+    '',
+    `${nombreProf} sigue a cargo de tu acompañamiento y está con total disposición de atenderte. Estos son los horarios que nos confirmó disponibles para reprogramar tu sesión:`,
+    dias ? `· Días: ${dias}` : null,
+    franjas ? `· Momentos del día: ${franjas}` : null,
+    d.nota ? `· ${d.nota}` : null,
+    !dias && !franjas && !d.nota ? '· Podemos agendarla a la misma hora en otro día, o en el espacio que te quede mejor.' : null,
+    '',
+    '*¿Cuál de estos espacios te sirve mejor?* Respóndenos por aquí y dejamos la cita reprogramada de una vez. Si ninguno te queda bien, cuéntanos qué otros momentos te sirven y lo coordinamos.',
+    '',
+    'Muchas gracias por tu comprensión y paciencia.',
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
+/**
  * PASO 3 · A la persona acompañada: quedó agendada.
  *
  * Con la fecha, la hora y el nombre de quien la va a acompañar, y diciéndole

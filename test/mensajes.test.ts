@@ -584,4 +584,31 @@ describe('mensajeDeConsentimientoFirmadoALaPersona (Paso 9b)', () => {
   })
 })
 
+describe('mensajeDeExcusasYReagendamiento', () => {
+  it('incluye disculpas, motivo de cambio de agenda, nuevos horarios y mantiene el tono empático', async () => {
+    const { mensajeDeExcusasYReagendamiento } = await import('../lib/mensajes')
+    const texto = mensajeDeExcusasYReagendamiento({
+      persona: 'Pierangely',
+      profesional: 'Andrés Gómez',
+      cuandoAnterior: 'miércoles, 26 de agosto a las 3:00 p. m.',
+      motivo: 'un compromiso médico personal de última hora',
+      dias: ['JUEVES', 'VIERNES'],
+      franjas: ['TARDE'],
+      nota: 'puede a la misma hora 3:00 p. m.',
+    })
+
+    expect(texto).toContain('Hola Pierangely')
+    expect(texto).toContain('Queremos pedirte una disculpa sincera')
+    expect(texto).toContain('un compromiso médico personal de última hora')
+    expect(texto).toContain('miércoles, 26 de agosto a las 3:00 p. m.')
+    expect(texto).toContain('Andrés sigue a cargo de tu acompañamiento')
+    expect(texto).toContain('jueves y viernes')
+    expect(texto).toContain('tarde')
+    expect(texto).toContain('puede a la misma hora 3:00 p. m.')
+    expect(texto).toContain('*¿Cuál de estos espacios te sirve mejor?*')
+    expect(texto).toContain('Muchas gracias por tu comprensión y paciencia')
+    expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
+  })
+})
+
 

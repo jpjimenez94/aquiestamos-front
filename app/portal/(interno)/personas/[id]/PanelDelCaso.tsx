@@ -6,6 +6,7 @@ import { Check, Copy, MessageCircle, CalendarCheck, RotateCcw, Clock } from 'luc
 import {
   mensajeDePropuesta,
   mensajeParaCuadrarHorario,
+  mensajeDeExcusasYReagendamiento,
   mensajeDeCitaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
@@ -162,6 +163,22 @@ export function PanelDelCaso({
             })}
             copiado={copiado === 'cuadrar'}
             alCopiar={(t) => copiar('cuadrar', t)}
+          />
+
+          <Mensaje
+            titulo="2b · Si el profesional tuvo un imprevisto: excusas y nuevos horarios"
+            nota="Para cuando el profesional no pudo en la fecha acordada y te dio nuevos espacios."
+            telefono={persona.phone}
+            texto={mensajeDeExcusasYReagendamiento({
+              persona: persona.fullName,
+              profesional: asignacion.profesional.nombre,
+              motivo: 'un compromiso médico/personal de última hora',
+              dias: asignacion.diasQuePuede,
+              franjas: asignacion.franjasQuePuede,
+              nota: asignacion.nota,
+            })}
+            copiado={copiado === 'excusas'}
+            alCopiar={(t) => copiar('excusas', t)}
           />
 
           <div className="mensaje__acciones" style={{ marginTop: 16 }}>
