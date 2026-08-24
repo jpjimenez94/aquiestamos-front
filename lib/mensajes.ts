@@ -10,6 +10,11 @@ import { paraWhatsapp } from './telefono'
  * de copiar, el enlace de WhatsApp y —más adelante— el correo. Si el texto se
  * escribiera en cada uno, se irían separando.
  *
+ * CON FORMATO DE WHATSAPP, con moderación: *asteriscos* = negrita al
+ * enviarse. Solo en lo que el ojo debe encontrar primero — la fecha de la
+ * cita, los números de crisis, la prioridad. Un mensaje todo en negrita no
+ * subraya nada.
+ *
  * SIN EMOJIS, a propósito: viajan dentro de una URL de wa.me y según el
  * dispositivo llegan como un cuadro vacío o un signo roto — justo en mensajes
  * donde el tono importa. La calidez va en las palabras, que llegan siempre.
@@ -49,7 +54,7 @@ const MODALIDAD_LARGA: Record<string, string> = {
 }
 
 const URGENCIA: Record<string, string> = {
-  ALTA: 'Es un caso de prioridad alta: si puedes, respóndenos hoy mismo.',
+  ALTA: 'Es un caso de *prioridad alta*: si puedes, respóndenos hoy mismo.',
   MEDIA: 'Te pedimos responder en los próximos días.',
   BAJA: 'Puedes responder cuando tengas un momento esta semana.',
 }
@@ -361,7 +366,7 @@ export function numeroDePregunta(clave: ClaveTamizaje): number {
  * tiene que viajar en el mismo mensaje que la pregunta.
  */
 export const LINEA_DE_CRISIS = `Si en este momento estás en peligro o sientes que puedes hacerte daño, no esperes nuestra respuesta: llama al ${LINEAS_EMERGENCIA.map(
-  (l) => `${l.numero} (${l.nombre.toLowerCase()})`,
+  (l) => `*${l.numero}* (${l.nombre.toLowerCase()})`,
 ).join(' o al ')}. Son gratuitas y atienden a toda hora.`
 
 /**
@@ -391,7 +396,7 @@ export function mensajeDeTamizaje({
     '',
     'Recibimos tu solicitud de acompañamiento y ya estamos buscando quién te acompañe. Gracias por dar este paso.',
     '',
-    `Para saber qué tan pronto necesitamos llamarte, te dejamos ${PREGUNTAS_TAMIZAJE.length} preguntas cortas. Se responden en un minuto, tocando una opción en cada una:`,
+    `Para saber qué tan pronto necesitamos llamarte, te dejamos *${PREGUNTAS_TAMIZAJE.length} preguntas cortas*. Se responden en un minuto, tocando una opción en cada una:`,
     '',
     enlace,
     '',
@@ -487,7 +492,7 @@ export function mensajeParaCuadrarHorario(d: {
     franjas ? `· ${franjas}` : null,
     d.nota ? `· ${d.nota}` : null,
     '',
-    '¿Cuál de esos te sirve? Respóndenos por aquí y lo dejamos agendado. Si ninguno te queda bien, dinos tú cuándo puedes y lo miramos.',
+    '*¿Cuál de esos te sirve?* Respóndenos por aquí y lo dejamos agendado. Si ninguno te queda bien, dinos tú cuándo puedes y lo miramos.',
     '',
     LINEA_DE_CRISIS,
   ]
@@ -515,9 +520,9 @@ export function mensajeDeCitaConfirmada(d: {
   return [
     `Listo, ${nombre}. Tu acompañamiento quedó agendado.`,
     '',
-    `· Con: ${d.profesional}`,
-    `· Cuándo: ${d.cuando}`,
-    modalidad ? `· Modalidad: ${modalidad}` : null,
+    `· *Con:* ${d.profesional}`,
+    `· *Cuándo:* ${d.cuando}`,
+    modalidad ? `· *Modalidad:* ${modalidad}` : null,
     '',
     `${nombreDePila(d.profesional)} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
     '',
@@ -642,8 +647,8 @@ export function mensajeDeCitaAlProfesional(d: {
   return [
     `Hola ${nombre}, ya cuadramos el horario.`,
     '',
-    `· Cuándo: ${d.cuando}`,
-    modalidad ? `· Modalidad: ${modalidad}` : null,
+    `· *Cuándo:* ${d.cuando}`,
+    modalidad ? `· *Modalidad:* ${modalidad}` : null,
     '',
     'Los datos de contacto de la persona están en tu enlace. Entras con el mismo correo:',
     d.enlace,
@@ -656,7 +661,7 @@ export function mensajeDeCitaAlProfesional(d: {
      * decide lo que sigue sin llamar a nadie. La tercera es la que faltaba —
      * sin ella no había forma de saber si agendar otra o cerrar el caso.
      */
-    'Cuando pase la sesión, entra a ese mismo enlace y cuéntanos tres cosas:',
+    'Cuando pase la sesión, entra a ese mismo enlace y cuéntanos *tres cosas*:',
     '1. Si la sesión se pudo hacer o no.',
     '2. Cómo te fue.',
     '3. Si crees que necesita más sesiones, o con esta fue suficiente.',

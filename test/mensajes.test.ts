@@ -450,3 +450,26 @@ describe('mensajes de seguimiento', () => {
     }
   })
 })
+
+describe('formato de WhatsApp', () => {
+  /**
+   * *asteriscos* = negrita al enviarse. Solo en lo que el ojo debe encontrar
+   * primero: si esto falla, alguien quitó el resaltado de los números de
+   * crisis o de la fecha de la cita.
+   */
+  it('los números de crisis van en negrita', async () => {
+    const { LINEA_DE_CRISIS } = await import('../lib/mensajes')
+    expect(LINEA_DE_CRISIS).toContain('*123*')
+    expect(LINEA_DE_CRISIS).toContain('*106*')
+  })
+
+  it('la fecha de la cita va en negrita para la persona y el profesional', async () => {
+    const m = await import('../lib/mensajes')
+    expect(
+      m.mensajeDeCitaConfirmada({ persona: 'Ana', profesional: 'Luis', cuando: 'lunes 3 pm' }),
+    ).toContain('*Cuándo:* lunes 3 pm')
+    expect(
+      m.mensajeDeCitaAlProfesional({ profesional: 'Luis', cuando: 'lunes 3 pm', enlace: 'x' }),
+    ).toContain('*Cuándo:* lunes 3 pm')
+  })
+})
