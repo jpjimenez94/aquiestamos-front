@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { portalFetch, enBogota } from '@/lib/portal'
+import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { BotonEncuesta } from './BotonEncuesta'
+import { BotonEliminarPersona } from '../BotonEliminarPersona'
 import { nombrePropio } from '@/lib/nombre'
 
 /**
@@ -82,7 +83,10 @@ const FRANJA: Record<string, string> = {
 
 export default async function PersonaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const respuesta = await portalFetch<Persona>(`/patients/${id}`)
+  const [respuesta, usuario] = await Promise.all([
+    portalFetch<Persona>(`/patients/${id}`),
+    usuarioActual(),
+  ])
 
   if (!respuesta.success || !respuesta.data) notFound()
   const persona = respuesta.data
@@ -98,9 +102,19 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
         titulo={nombrePropio(persona.fullName)}
         descripcion={`${persona.city} · lleva ${persona.diasEsperando} ${persona.diasEsperando === 1 ? 'día' : 'días'} en la red`}
         acciones={
-          <Link className="boton-mini" href="/portal/personas">
-            Volver
-          </Link>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {puede(usuario, 'paciente:borrar') ? (
+              <BotonEliminarPersona
+                personaId={persona.id}
+                personaNombre={persona.fullName}
+                redireccionarA="/portal/personas"
+                variante="boton"
+              />
+            ) : null}
+            <Link className="boton-mini" href="/portal/personas">
+              Volver
+            </Link>
+          </div>
         }
       />
 
