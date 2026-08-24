@@ -7,6 +7,7 @@ import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { BotonEncuesta } from './BotonEncuesta'
 import { BotonEliminarPersona } from '../BotonEliminarPersona'
+import { ModalNotasSeguimiento, type NotaSeguimiento } from '../ModalNotasSeguimiento'
 import { nombrePropio } from '@/lib/nombre'
 
 /**
@@ -39,6 +40,13 @@ type Persona = {
   asignacion: Asignacion | null
   reportes: Reporte[]
   citas: CitaDeLaPersona[]
+  notasSeguimiento?: NotaSeguimiento[]
+  totalNotas?: number
+  ultimaNota?: {
+    nota: string
+    autor: string
+    fecha: string
+  } | null
   encuesta: {
     enlace: string
     respondida: boolean
@@ -150,6 +158,15 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             <Etiqueta estado={persona.priority} texto={persona.prioridadLegible} />
           </Dato>
           <Dato etiqueta="Recibida">{enBogota(persona.createdAt)}</Dato>
+          <Dato etiqueta="Notas de seguimiento">
+            <ModalNotasSeguimiento
+              personaId={persona.id}
+              personaNombre={persona.fullName}
+              notasIniciales={persona.notasSeguimiento}
+              totalNotas={persona.totalNotas}
+              ultimaNota={persona.ultimaNota}
+            />
+          </Dato>
         </div>
       </div>
 

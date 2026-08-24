@@ -2,10 +2,11 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowUpDown, ArrowUp, ArrowDown, X, UserCheck, Calendar, RotateCcw } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, UserCheck, Calendar, RotateCcw, MessageSquare } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { BotonSeguimientoWhatsApp } from './BotonSeguimientoWhatsApp'
 import { BotonEliminarPersona } from './BotonEliminarPersona'
+import { ModalNotasSeguimiento, type NotaSeguimiento } from './ModalNotasSeguimiento'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
 
@@ -51,6 +52,15 @@ export type Persona = {
     } | null
   } | null
   comentarios?: string | null
+  notasSeguimiento?: NotaSeguimiento[]
+  totalNotas?: number
+  ultimaNota?: {
+    id?: string
+    nota: string
+    autor: string
+    fecha: string
+    fechaLocal?: string
+  } | null
 }
 
 const DIA_CORTO: Record<string, string> = {
@@ -67,7 +77,7 @@ type ColumnaOrden =
   | 'persona'
   | 'profesional'
   | 'cita'
-  | 'comentarios'
+  | 'notas'
   | 'ciudad'
   | 'esperando'
   | 'prioridad'
@@ -101,7 +111,7 @@ export function TablaPersonas({
   const [filtroPersona, setFiltroPersona] = useState('')
   const [filtroProfesional, setFiltroProfesional] = useState('')
   const [filtroCita, setFiltroCita] = useState('')
-  const [filtroComentarios, setFiltroComentarios] = useState('')
+  const [filtroNotas, setFiltroNotas] = useState('')
   const [filtroCiudad, setFiltroCiudad] = useState('')
   const [filtroPrioridad, setFiltroPrioridad] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
@@ -122,7 +132,7 @@ export function TablaPersonas({
     filtroPersona.trim() ||
       filtroProfesional.trim() ||
       filtroCita ||
-      filtroComentarios.trim() ||
+      filtroNotas.trim() ||
       filtroCiudad.trim() ||
       filtroPrioridad ||
       filtroEstado,
@@ -132,7 +142,7 @@ export function TablaPersonas({
     setFiltroPersona('')
     setFiltroProfesional('')
     setFiltroCita('')
-    setFiltroComentarios('')
+    setFiltroNotas('')
     setFiltroCiudad('')
     setFiltroPrioridad('')
     setFiltroEstado('')
@@ -161,10 +171,15 @@ export function TablaPersonas({
         if (filtroCita === 'REALIZADA' && p.cita?.estado !== 'REALIZADA') return false
       }
 
-      if (filtroComentarios.trim()) {
-        const q = filtroComentarios.toLowerCase().trim()
-        const notas = (p.comentarios || p.cita?.notas || p.asignacion?.notaDisponibilidad || '').toLowerCase()
-        if (!notas.includes(q)) return false
+      if (filtroNotas.trim()) {
+        const q = filtroNotas.toLowerCase().trim()
+        const matchUltima = (p.ultimaNota?.nota || '').toLowerCase().includes(q)
+        const matchAutor = (p.ultimaNota?.autor || '').toLowerCase().includes(q)
+        const matchHistorial = p.notasSeguimiento?.some(
+          (n) => n.nota.toLowerCase().includes(q) || n.autor.toLowerCase().includes(q),
+        )
+        const matchComentarios = (p.comentarios || '').toLowerCase().includes(q)
+        if (!matchUltima && !matchAutor && !matchHistorial && !matchComentarios) return false
       }
 
       if (filtroCiudad.trim()) {
@@ -187,7 +202,7 @@ export function TablaPersonas({
     filtroPersona,
     filtroProfesional,
     filtroCita,
-    filtroComentarios,
+    filtroNotas,
     filtroCiudad,
     filtroPrioridad,
     filtroEstado,
@@ -212,10 +227,10 @@ export function TablaPersonas({
           cmp = tA - tB
           break
         }
-        case 'comentarios': {
-          const comA = a.comentarios || a.cita?.notas || ''
-          const comB = b.comentarios || b.cita?.notas || ''
-          cmp = comA.localeCompare(comB, 'es', { sensitivity: 'base' })
+        case 'notas': {
+          const tA = a.ultimaNota?.fecha ? new Date(a.ultimaNota.fecha).getTime() : 0
+          const tB = b.ultimaNota?.fecha ? new Date(b.ultimaNota.fecha).getTime() : 0
+          cmp = tA - tB || (a.totalNotas ?? 0) - (b.totalNotas ?? 0)
           break
         }
         case 'ciudad':
@@ -304,18 +319,18 @@ export function TablaPersonas({
                 </span>
               </th>
               <th
-                onClick={() => alternarOrden('comentarios')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
-                title="Ordenar por Comentarios / Notas"
+                onClick={() => alternarOrden('notas')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
+                title="Ordenar por Notas de seguimiento"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Comentarios y Notas
-                  <IconoOrden col="comentarios" />
+                  Notas de seguimiento
+                  <IconoOrden col="notas" />
                 </span>
               </th>
               <th
                 onClick={() => alternarOrden('ciudad')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '9%' }}
                 title="Ordenar por Ciudad"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -323,10 +338,10 @@ export function TablaPersonas({
                   <IconoOrden col="ciudad" />
                 </span>
               </th>
-              <th style={{ width: '8%' }}>Disponibilidad</th>
+              <th style={{ width: '7%' }}>Disponibilidad</th>
               <th
                 onClick={() => alternarOrden('esperando')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '8%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '7%' }}
                 title="Ordenar por Tiempo de espera"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -394,9 +409,9 @@ export function TablaPersonas({
               <th style={{ padding: '6px 6px' }}>
                 <input
                   type="text"
-                  placeholder="Filtrar notas..."
-                  value={filtroComentarios}
-                  onChange={(e) => setFiltroComentarios(e.target.value)}
+                  placeholder="Filtrar notas/autor..."
+                  value={filtroNotas}
+                  onChange={(e) => setFiltroNotas(e.target.value)}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -466,7 +481,6 @@ export function TablaPersonas({
             ) : (
               listaOrdenada.map((p) => {
                 const cita = p.cita
-                const comentarios = p.comentarios || cita?.notas || p.asignacion?.notaDisponibilidad
 
                 return (
                   <tr key={p.id}>
@@ -539,26 +553,15 @@ export function TablaPersonas({
                       )}
                     </td>
 
-                    {/* Columna Comentarios y Notas */}
+                    {/* Columna Notas de seguimiento (con modal interactivo) */}
                     <td style={{ maxWidth: 220 }}>
-                      {comentarios ? (
-                        <span
-                          style={{
-                            fontSize: '0.8rem',
-                            color: '#334155',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            lineHeight: 1.35,
-                          }}
-                          title={comentarios}
-                        >
-                          {comentarios}
-                        </span>
-                      ) : (
-                        <span className="tabla__secundario">—</span>
-                      )}
+                      <ModalNotasSeguimiento
+                        personaId={p.id}
+                        personaNombre={p.fullName}
+                        notasIniciales={p.notasSeguimiento}
+                        totalNotas={p.totalNotas}
+                        ultimaNota={p.ultimaNota}
+                      />
                     </td>
 
                     <td>{p.city}</td>
