@@ -28,6 +28,8 @@ type SeccionTarjetaProps = {
   documentoUrl?: string | null
   /** Solo lectura tambien abre esta ficha, pero no verifica nada. */
   puedeVerificar?: boolean
+  /** El enlace por el que el profesional sube sus documentos él mismo. */
+  enlaceDocumentos?: string | null
 }
 
 function esImagen(url: string) {
@@ -46,6 +48,7 @@ export function SeccionTarjetaProfesional({
   numero = '',
   documentoUrl = '',
   puedeVerificar = false,
+  enlaceDocumentos = null,
 }: SeccionTarjetaProps) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [copiadoMsg, setCopiadoMsg] = useState(false)
@@ -56,6 +59,7 @@ export function SeccionTarjetaProfesional({
   const mensajeWhatsApp = mensajeDePedirDocumentos({
     profesional: profesionalNombre,
     tipo: tipoPerfil,
+    enlace: enlaceDocumentos,
   })
 
   // El indicativo lo decide `paraWhatsapp`: pegarle 57 a lo que no empiece por

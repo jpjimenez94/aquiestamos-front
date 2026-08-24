@@ -1416,3 +1416,80 @@ body.sin-desplazamiento {
   color: var(--color-text-light);
   font-size: 0.84rem;
 }
+
+/* ---------- Verificaciones: el documento a la vista, los datos al lado ---------- */
+
+.verificacion {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  padding: 14px;
+  background: var(--color-bg-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+}
+
+.verificacion__docs {
+  display: flex;
+  gap: 10px;
+}
+
+.verificacion__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.miniatura {
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+}
+
+.miniatura img,
+.miniatura__pdf {
+  width: 110px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-card-bg);
+}
+
+.miniatura__pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--color-text-light);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.miniatura__etiqueta {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+}
+
+.miniatura--vacia {
+  width: 110px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--color-border-default);
+  border-radius: 8px;
+}
+
+@media (max-width: 560px) {
+  .verificacion { grid-template-columns: 1fr; }
+}

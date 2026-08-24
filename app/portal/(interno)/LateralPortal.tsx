@@ -19,6 +19,7 @@ import {
   X,
   BookOpen,
   BarChart3,
+  BadgeCheck,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
@@ -60,6 +61,12 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Voluntariado de apoyo",
         icono: <HeartHandshake size={17} />,
         permiso: "colaborador:leer",
+      },
+      {
+        href: "/portal/verificaciones",
+        texto: "Verificaciones",
+        icono: <BadgeCheck size={17} />,
+        permiso: "profesional:verificar-tarjeta",
       },
     ],
   },

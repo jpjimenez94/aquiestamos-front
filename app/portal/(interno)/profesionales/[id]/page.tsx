@@ -7,6 +7,7 @@ import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
 import { nombrePropio } from '@/lib/nombre'
 
 type Profesional = {
+  enlaceDocumentos?: string | null
   id: string
   fullName: string
   email: string
@@ -118,6 +119,7 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
         numero={p.professionalCardNumber}
         documentoUrl={p.professionalCardDocumentUrl}
         puedeVerificar={puede(usuario, 'profesional:verificar-tarjeta')}
+        enlaceDocumentos={p.enlaceDocumentos ?? null}
       />
 
       <div className="panel">

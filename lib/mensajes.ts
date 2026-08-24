@@ -561,39 +561,48 @@ export function mensajeDeConsentimiento(d: {
 }
 
 /**
- * DOCUMENTOS · Al profesional: comparte tu tarjeta o tu certificado.
+ * DOCUMENTOS · Al profesional: sube tu tarjeta y tu identidad por tu enlace.
  *
- * Vivía duplicado en dos componentes, en un solo párrafo sin aire y con un
- * emoji que llegaba roto. Tres variantes según lo que se sabe del perfil;
- * el porqué va primero (es un requisito legal, no un capricho) y el qué en
- * viñetas con negrita, para responderse con una foto sin releer nada.
+ * El porqué va primero y sin rodeos: es por la seguridad de todos — de
+ * quienes acompañan y de quienes son acompañados. Con enlace, el documento
+ * viaja del teléfono directo al almacenamiento privado y WhatsApp nunca lo
+ * toca; sin enlace (fallback), se pide como respuesta al mensaje.
  */
 export function mensajeDePedirDocumentos(d: {
   profesional: string
+  enlace?: string | null
   tipo?: 'general' | 'graduado' | 'estudiante'
 }): string {
   const nombre = nombreDePila(d.profesional) || 'hola'
 
   const pedido =
     d.tipo === 'graduado'
-      ? ['· Tu *número de tarjeta profesional* y una foto o PDF del soporte.']
+      ? ['· Tu *tarjeta profesional* (foto o PDF) y su número.']
       : d.tipo === 'estudiante'
         ? ['· Tu *certificado de estudios*, constancia de matrícula de últimos semestres o carné estudiantil vigente.']
         : [
-            '· Si ya eres graduado/a: foto o PDF de tu *tarjeta profesional*.',
-            '· Si estás en formación: tu *certificado de estudios* o constancia de matrícula de últimos semestres.',
+            '· Si ya eres graduado/a: tu *tarjeta profesional* (foto o PDF).',
+            '· Si estás en formación: tu *certificado de estudios* o constancia de matrícula.',
           ]
 
   return [
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
-    'Para poder asignarte acompañamientos nos falta un documento de tu perfil. Es un requisito legal del acompañamiento psicológico:',
+    'Para poder asignarte acompañamientos necesitamos dos documentos. Es por la seguridad de todos — de quienes acompañan y de quienes son acompañados:',
     ...pedido,
+    '· Tu *documento de identidad*.',
     '',
-    'Nos lo puedes mandar respondiendo a este mensaje. Solo lo ve el equipo de la red y se guarda en un almacenamiento privado.',
+    d.enlace
+      ? 'Se suben desde tu teléfono, en este enlace personal:'
+      : 'Nos los puedes mandar respondiendo a este mensaje.',
+    d.enlace ?? null,
+    '',
+    'Van directo a un almacenamiento privado y cifrado, con la seguridad más alta: solo los ve el equipo de la red, y cada consulta queda registrada.',
     '',
     'Gracias por tu tiempo.',
-  ].join('\n')
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
 }
 
 /**

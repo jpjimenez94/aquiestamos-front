@@ -497,17 +497,24 @@ describe('mensaje de pedir documentos', () => {
     expect(texto).toContain('Hola Maria')
     expect(texto.split('\n').length).toBeGreaterThan(5)
     expect(texto).toContain('*tarjeta profesional*')
-    expect(texto).toContain('requisito legal')
+    expect(texto).toContain('seguridad de todos')
     expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
   })
 
   it('cada variante pide exactamente lo suyo', async () => {
     const { mensajeDePedirDocumentos } = await import('../lib/mensajes')
     const graduado = mensajeDePedirDocumentos({ profesional: 'Ana', tipo: 'graduado' })
-    expect(graduado).toContain('*número de tarjeta profesional*')
+    expect(graduado).toContain('*tarjeta profesional* (foto o PDF) y su número')
     expect(graduado).not.toContain('certificado de estudios')
     const estudiante = mensajeDePedirDocumentos({ profesional: 'Ana', tipo: 'estudiante' })
     expect(estudiante).toContain('*certificado de estudios*')
     expect(estudiante).not.toContain('tarjeta profesional*')
+    const conEnlace = mensajeDePedirDocumentos({
+      profesional: 'Ana',
+      enlace: 'https://redaquiestamos.org/documentos/abc',
+    })
+    expect(conEnlace).toContain('/documentos/abc')
+    expect(conEnlace).toContain('*documento de identidad*')
+    expect(conEnlace).toContain('seguridad más alta')
   })
 })
