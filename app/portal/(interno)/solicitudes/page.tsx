@@ -1,5 +1,6 @@
 import { portalFetch, enBogota, usuarioActual } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio, Paginacion, leerPagina } from '../componentes'
+import { BotonAdmitirSolicitud } from './BotonAdmitirSolicitud'
 import { BotonEliminarSolicitud } from './BotonEliminarSolicitud'
 import { BotonTamizaje } from './BotonTamizaje'
 import { ResultadoTamizaje } from './ResultadoTamizaje'
@@ -131,6 +132,13 @@ export default async function SolicitudesPage({
                       enlace={s.tamizaje?.enlace ?? null}
                       yaRespondio={Boolean(s.tamizaje?.respuesta)}
                     />
+                    {esAdmin && (
+                      <BotonAdmitirSolicitud
+                        solicitudId={s.id}
+                        nombrePersona={s.name}
+                        yaAdmitida={s.status !== 'NUEVO'}
+                      />
+                    )}
                     {esAdmin && (
                       <BotonEliminarSolicitud
                         solicitudId={s.id}
