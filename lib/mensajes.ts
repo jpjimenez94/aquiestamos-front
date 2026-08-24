@@ -588,7 +588,13 @@ export function mensajeDePedirDocumentos(d: {
   return [
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
-    'Para poder asignarte acompañamientos necesitamos dos documentos. Es por la seguridad de todos — de quienes acompañan y de quienes son acompañados:',
+    /**
+     * Abre agradeciendo y sin género: le llega igual a quien acaba de
+     * postularse que a quien lleva tiempo y aún no sube sus documentos.
+     */
+    'Gracias por querer acompañar: recibimos tu postulación y nos alegra contar contigo.',
+    '',
+    'Para dejar tu perfil listo y poder asignarte acompañamientos, nos faltan dos documentos. Es por la seguridad de todos — de quienes acompañan y de quienes son acompañados:',
     ...pedido,
     '· Tu *documento de identidad*.',
     '',
