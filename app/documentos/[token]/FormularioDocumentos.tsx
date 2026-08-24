@@ -44,8 +44,19 @@ function CampoArchivo({
       }
       onClave(r.clave)
       setNombre(archivo.name)
+    } catch {
+      /**
+       * Si la petición ni siquiera llega (archivo más grande que el límite
+       * del servidor, conexión caída), la promesa revienta. Sin este catch,
+       * la persona elegía su foto y no pasaba NADA: ni error ni confirmación.
+       */
+      onClave(null)
+      setNombre(null)
+      onError('No se pudo subir. Si el archivo es muy pesado, prueba con una foto más liviana; si no, revisa tu señal.')
     } finally {
       setSubiendo(false)
+      // El mismo archivo se puede volver a elegir tras un error.
+      e.target.value = ''
     }
   }
 
