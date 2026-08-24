@@ -7,6 +7,7 @@ import { nombrePropio } from '@/lib/nombre'
 export const metadata = { title: 'Profesionales' }
 
 type Profesional = {
+  enlaceDocumentos?: string | null
   id: string
   fullName: string
   phone?: string
@@ -84,6 +85,7 @@ export default async function ProfesionalesPage() {
                       verificada={p.professionalCardVerified}
                       numero={p.professionalCardNumber}
                       documentoUrl={p.professionalCardDocumentUrl}
+                      enlaceDocumentos={p.enlaceDocumentos ?? null}
                     />
                   </td>
                   <td>

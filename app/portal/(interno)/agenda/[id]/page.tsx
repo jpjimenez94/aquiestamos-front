@@ -27,6 +27,7 @@ type Cita = {
   motivoCancelacion: string | null
   reprogramadaA: string | null
   consentimiento?: { enlace: string }
+  enlaceDocumentos?: string | null
   profesional: {
     id: string
     nombre?: string
@@ -195,6 +196,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         consentSigned={cita.consentSigned ?? false}
         consentSignedDocumentUrl={cita.consentSignedDocumentUrl ?? ''}
         consentSignedAt={cita.consentSignedAt ?? null}
+        enlaceDocumentos={cita.enlaceDocumentos ?? null}
       />
     </>
   )

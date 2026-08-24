@@ -7,6 +7,7 @@ import { nombrePropio } from '@/lib/nombre'
 export const metadata = { title: 'Postulaciones' }
 
 type Postulacion = {
+  enlaceDocumentos?: string | null
   id: string
   fullName: string
   email: string
@@ -116,6 +117,7 @@ export default async function PostulacionesPage({
                         verificada={p.professionalCardVerified}
                         numero={p.professionalCardNumber}
                         documentoUrl={p.professionalCardDocumentUrl}
+                        enlaceDocumentos={p.enlaceDocumentos ?? null}
                       />
                     ) : (
                       <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>

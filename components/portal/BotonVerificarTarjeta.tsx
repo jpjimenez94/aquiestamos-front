@@ -8,6 +8,7 @@ type BotonVerificarTarjetaProps = {
   profesionalId: string
   profesionalNombre: string
   profesionalTelefono?: string | null
+  enlaceDocumentos?: string | null
   verificada?: boolean
   numero?: string | null
   documentoUrl?: string | null
@@ -18,6 +19,7 @@ export function BotonVerificarTarjeta({
   profesionalId,
   profesionalNombre,
   profesionalTelefono,
+  enlaceDocumentos,
   verificada = false,
   numero,
   documentoUrl,
@@ -90,6 +92,7 @@ export function BotonVerificarTarjeta({
         numeroActual={numero}
         documentoUrlActual={documentoUrl}
         verificadaActual={verificada}
+        enlaceDocumentos={enlaceDocumentos}
         abierto={modalAbierto}
         onCerrar={() => setModalAbierto(false)}
       />

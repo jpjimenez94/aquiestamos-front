@@ -26,6 +26,8 @@ type ModalTarjetaProps = {
   numeroActual?: string | null
   documentoUrlActual?: string | null
   verificadaActual?: boolean
+  /** El enlace por el que el profesional sube sus documentos él mismo. */
+  enlaceDocumentos?: string | null
   abierto: boolean
   onCerrar: () => void
 }
@@ -45,6 +47,7 @@ export function ModalTarjetaProfesional({
   numeroActual = '',
   documentoUrlActual = '',
   verificadaActual = false,
+  enlaceDocumentos = null,
   abierto,
   onCerrar,
 }: ModalTarjetaProps) {
@@ -65,6 +68,7 @@ export function ModalTarjetaProfesional({
   const mensajeWhatsApp = mensajeDePedirDocumentos({
     profesional: profesionalNombre,
     tipo: tipoPerfil,
+    enlace: enlaceDocumentos,
   })
 
   // El indicativo lo decide `paraWhatsapp`: pegarle 57 a lo que no empiece por

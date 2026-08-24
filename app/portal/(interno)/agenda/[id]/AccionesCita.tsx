@@ -29,6 +29,7 @@ export function AccionesCita({
   consentSigned,
   consentSignedDocumentUrl,
   consentSignedAt,
+  enlaceDocumentos,
 }: {
   citaId: string
   estado: string
@@ -43,6 +44,7 @@ export function AccionesCita({
   consentSigned: boolean
   consentSignedDocumentUrl?: string
   consentSignedAt?: string | null
+  enlaceDocumentos?: string | null
 }) {
   const router = useRouter()
   const [cargando, setCargando] = useState<string | null>(null)
@@ -224,6 +226,7 @@ export function AccionesCita({
         verificadaActual={profesionalVerificado}
         abierto={modalTarjetaAbierto}
         onCerrar={() => setModalTarjetaAbierto(false)}
+        enlaceDocumentos={enlaceDocumentos ?? null}
       />
     </>
   )
