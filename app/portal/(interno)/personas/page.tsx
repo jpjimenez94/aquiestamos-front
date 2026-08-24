@@ -50,6 +50,9 @@ export default async function PersonasPage({
 }: {
   searchParams: Promise<{ sinAsignar?: string }>
 }) {
+  // El enlace del caso sale de la configuración del sitio, no del navegador:
+  // misma cicatriz que el tamizaje y la ficha.
+  const enlaceDelSitio = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
   const { sinAsignar } = await searchParams
   const filtro = sinAsignar === 'true'
 
@@ -186,6 +189,7 @@ export default async function PersonasPage({
                           pacienteTelefono={p.phone}
                           profesionalNombre={p.asignacion.profesional.nombre}
                           profesionalTelefono={p.asignacion.profesional.telefono}
+                          enlaceCaso={`${enlaceDelSitio}/portal/caso/${p.id}`}
                         />
                       )}
                       <Link className="boton-mini" href={`/portal/personas/${p.id}`}>

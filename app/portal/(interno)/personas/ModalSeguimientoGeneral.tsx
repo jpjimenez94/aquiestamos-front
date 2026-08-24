@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { MessageSquare, Copy, Check, X, Send } from 'lucide-react'
 import { paraWhatsapp } from '@/lib/telefono'
+import { mensajeDeSeguimientoGeneral } from '@/lib/mensajes'
 
 type CasoAsignado = {
   pacienteNombre: string
@@ -15,7 +16,9 @@ export function ModalSeguimientoGeneral({ casos }: { casos: CasoAsignado[] }) {
   const [abierto, setAbierto] = useState(false)
   const [copiado, setCopiado] = useState(false)
 
-  const mensajeBase = `¡Hola profesional de Aquí Estamos 💚! Te saludamos desde la coordinación. Te recordamos hacer seguimiento a los casos de acompañamiento que tienes asignados, contactar a la persona para agendar su sesión y actualizar el reporte de avance a través de tu enlace de caso. Si necesitas apoyo o tienes alguna novedad, por favor avísanos. ¡Muchas gracias por tu compromiso!`
+  // El texto vive en lib/mensajes.ts con todos los demás: sin emoji (llega
+  // roto según el dispositivo) y en la voz de la red.
+  const mensajeBase = mensajeDeSeguimientoGeneral()
 
   function copiar() {
     navigator.clipboard.writeText(mensajeBase)

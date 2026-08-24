@@ -3,12 +3,18 @@
 import { useState } from 'react'
 import { MessageSquare, Copy, Check, X, Phone, UserCheck } from 'lucide-react'
 import { paraWhatsapp } from '@/lib/telefono'
+import {
+  mensajeDeSeguimientoAlProfesional,
+  mensajeDeSeguimientoALaPersona,
+} from '@/lib/mensajes'
 
 type BotonSeguimientoProps = {
   pacienteNombre: string
   pacienteTelefono: string
   profesionalNombre: string
   profesionalTelefono?: string | null
+  /** El enlace del caso, para que el mensaje al profesional lo lleve. */
+  enlaceCaso?: string | null
 }
 
 export function BotonSeguimientoWhatsApp({
@@ -16,6 +22,7 @@ export function BotonSeguimientoWhatsApp({
   pacienteTelefono,
   profesionalNombre,
   profesionalTelefono,
+  enlaceCaso,
 }: BotonSeguimientoProps) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [copiadoProf, setCopiadoProf] = useState(false)
@@ -27,9 +34,22 @@ export function BotonSeguimientoWhatsApp({
   const telProf = paraWhatsapp(profesionalTelefono)
   const telPac = paraWhatsapp(pacienteTelefono)
 
-  const mensajeProfesional = `¡Hola ${profesionalNombre}! Te saludamos del equipo de coordinación de Aquí Estamos 💚. Te escribimos para hacer seguimiento al caso de acompañamiento de ${pacienteNombre} (Tel: ${pacienteTelefono}). Por favor cuéntanos cómo va el contacto o recuerda agendar la sesión y actualizar el estado de avance en tu enlace. ¡Muchas gracias por tu valioso apoyo voluntario!`
+  /**
+   * Los textos viven en lib/mensajes.ts con todos los demás. La versión
+   * anterior de este componente tenía los suyos propios — con emoji que llega
+   * roto según el dispositivo y, peor, con el nombre y el TELÉFONO de la
+   * persona dentro del chat del profesional: la única pantalla de la red
+   * saltándose la regla de que esos datos van detrás del enlace.
+   */
+  const mensajeProfesional = mensajeDeSeguimientoAlProfesional({
+    profesional: profesionalNombre,
+    enlace: enlaceCaso,
+  })
 
-  const mensajePaciente = `¡Hola ${pacienteNombre}! Te saludamos de la Red Aquí Estamos 💚. Te escribimos para hacer seguimiento a tu asignación con el/la profesional ${profesionalNombre}. Queremos confirmar si ya lograste ponerte en contacto con él/ella o si requieres algún apoyo de nuestra parte.`
+  const mensajePaciente = mensajeDeSeguimientoALaPersona({
+    persona: pacienteNombre,
+    profesional: profesionalNombre,
+  })
 
   const linkWaProf = telProf
     ? `https://wa.me/${telProf}?text=${encodeURIComponent(mensajeProfesional)}`

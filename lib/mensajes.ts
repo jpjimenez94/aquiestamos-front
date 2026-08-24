@@ -10,6 +10,10 @@ import { paraWhatsapp } from './telefono'
  * de copiar, el enlace de WhatsApp y —más adelante— el correo. Si el texto se
  * escribiera en cada uno, se irían separando.
  *
+ * SIN EMOJIS, a propósito: viajan dentro de una URL de wa.me y según el
+ * dispositivo llegan como un cuadro vacío o un signo roto — justo en mensajes
+ * donde el tono importa. La calidez va en las palabras, que llegan siempre.
+ *
  * Decisión importante: el mensaje NO lleva el nombre ni el teléfono de la
  * persona acompañada. Esos datos solo se ven al abrir el enlace y confirmar el
  * correo del profesional. Mandarlos también por WhatsApp los sacaría de esa
@@ -112,7 +116,7 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     // llegar, y este mensaje le va a llegar a la misma persona muchas veces.
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
-    'Tenemos un acompañamiento que podría encajarte y queremos saber si puedes tomarlo.',
+    'Tenemos un acompañamiento para proponerte. Mira si puedes tomarlo:',
     '',
     `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
@@ -385,15 +389,15 @@ export function mensajeDeTamizaje({
   return [
     `Hola ${primero}, te escribimos de la Red Aquí Estamos.`,
     '',
-    'Recibimos tu solicitud de acompañamiento psicológico y ya estamos buscándote profesional.',
+    'Recibimos tu solicitud de acompañamiento y ya estamos buscando quién te acompañe. Gracias por dar este paso.',
     '',
     `Para saber qué tan pronto necesitamos llamarte, te dejamos ${PREGUNTAS_TAMIZAJE.length} preguntas cortas. Se responden en un minuto, tocando una opción en cada una:`,
     '',
     enlace,
     '',
-    'Confírmanos por aquí cuando las hayas respondido, por favor, así te asignamos ayuda lo más pronto posible.',
+    'Cuando las respondas, avísanos por aquí y seguimos: así podemos acompañarte lo antes posible.',
     '',
-    'No es un diagnóstico y quien te escribe no es tu psicólogo: son preguntas para saber en qué orden acompañar. Lo que respondas queda entre tú y el equipo de la red.',
+    'No es un diagnóstico ni una evaluación, y no hay respuestas buenas o malas: solo nos ayudan a saber en qué orden acompañar. Lo que respondas queda entre tú y el equipo de la red.',
     '',
     LINEA_DE_CRISIS,
   ].join('\n')
@@ -540,12 +544,83 @@ export function mensajeDeConsentimiento(d: {
   const nombre = nombreDePila(d.persona) || 'hola'
 
   return [
-    `Hola ${nombre}, antes de tu sesión con ${nombreDePila(d.profesional)} necesitamos que leas y firmes el consentimiento informado. Es corto y se hace desde el teléfono:`,
+    `Hola ${nombre}, antes de tu sesión con ${nombreDePila(d.profesional)} te pedimos leer y firmar el consentimiento informado. Es corto y se hace desde el teléfono:`,
     d.enlace,
     '',
-    'Sin esto no podemos dar inicio a la sesión. Si algo no te queda claro, escríbenos por aquí y te lo explicamos.',
+    'Es el paso que nos permite empezar: explica cómo funciona el acompañamiento y cómo cuidamos lo que nos cuentes. Te toma un par de minutos.',
+    '',
+    'Si algo no te queda claro, escríbenos por aquí y te lo explicamos con gusto.',
     '',
     LINEA_DE_CRISIS,
+  ].join('\n')
+}
+
+/**
+ * SEGUIMIENTO · Al profesional, sobre su caso.
+ *
+ * Vivía suelto en un componente, con emoji, y con el nombre y el TELÉFONO de
+ * la persona acompañada dentro del chat — la única pantalla de la red
+ * rompiendo la regla de que esos datos van detrás del enlace, nunca por
+ * WhatsApp. El tono pregunta antes de recordar: quien acompaña es voluntario,
+ * no un contratista al que se le cobra el avance.
+ */
+export function mensajeDeSeguimientoAlProfesional(d: {
+  profesional: string
+  enlace?: string | null
+}): string {
+  const nombre = nombreDePila(d.profesional) || 'hola'
+
+  return [
+    `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
+    '',
+    '¿Cómo va el acompañamiento que tienes con nosotros? Si ya hubo contacto o sesión, cuéntanos desde tu enlace del caso: con eso sabemos en qué va sin escribirte a cada rato.',
+    d.enlace ? d.enlace : null,
+    '',
+    'Y si algo se ha complicado —la persona no contesta, no has podido tú, lo que sea— dínoslo por aquí y lo resolvemos juntos. Para eso estamos.',
+    '',
+    'Gracias por tu tiempo.',
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
+/**
+ * SEGUIMIENTO · A la persona acompañada: ¿cómo vas?
+ *
+ * Pregunta abierta y sin reproche: si el contacto no se ha dado, la causa
+ * puede ser el profesional, el teléfono o que la persona no está bien — y el
+ * mensaje no debe hacerla sentir en falta por ninguna de las tres.
+ */
+export function mensajeDeSeguimientoALaPersona(d: {
+  persona: string
+  profesional: string
+}): string {
+  const nombre = nombreDePila(d.persona) || 'hola'
+
+  return [
+    `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
+    '',
+    `Queríamos saber cómo vas: ¿ya pudiste hablar con ${nombreDePila(d.profesional)}, o sigue pendiente?`,
+    '',
+    'Lo que necesites —mover un horario, contarnos algo, o simplemente decirnos que sigues ahí— respóndenos por aquí. Estamos para acompañarte.',
+    '',
+    LINEA_DE_CRISIS,
+  ].join('\n')
+}
+
+/**
+ * SEGUIMIENTO · Recordatorio general a profesionales (se manda uno a uno).
+ * Genérico a propósito: no nombra casos, así el mismo texto sirve para todos.
+ */
+export function mensajeDeSeguimientoGeneral(): string {
+  return [
+    'Hola, te escribimos de Red Aquí Estamos.',
+    '',
+    'Un recordatorio corto: si tienes un acompañamiento con nosotros, entra a tu enlace del caso y cuéntanos en qué va — si ya hubo contacto, si hay sesión agendada, o si algo se complicó.',
+    '',
+    'Con eso el equipo sabe en qué va cada caso sin escribirte a cada rato. Y si necesitas algo de nosotros, respóndenos por aquí.',
+    '',
+    'Gracias por tu tiempo.',
   ].join('\n')
 }
 

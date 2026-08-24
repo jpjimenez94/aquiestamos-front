@@ -97,7 +97,7 @@ describe('mensaje de propuesta al profesional', () => {
    */
   it('pregunta si puede, en vez de darlo por hecho', () => {
     const texto = mensajeDePropuesta(base)
-    expect(texto).toContain('queremos saber si puedes tomarlo')
+    expect(texto).toContain('Mira si puedes tomarlo')
     expect(texto).not.toContain('Te asignamos')
   })
 
@@ -155,8 +155,8 @@ describe('mensaje de tamizaje', () => {
   })
 
   it('pide que confirmen cuando hayan respondido', () => {
-    expect(texto).toContain('Confírmanos por aquí cuando las hayas respondido')
-    expect(texto).toContain('lo más pronto posible')
+    expect(texto).toContain('avísanos por aquí')
+    expect(texto).toContain('lo antes posible')
   })
 
   /**
@@ -173,7 +173,8 @@ describe('mensaje de tamizaje', () => {
 
   it('dice que no es un diagnóstico y que quien escribe no es el psicólogo', () => {
     expect(texto).toContain('No es un diagnóstico')
-    expect(texto).toContain('no es tu psicólogo')
+    expect(texto).toContain('No es un diagnóstico ni una evaluación')
+    expect(texto).toContain('no hay respuestas buenas o malas')
   })
 
   it('aguanta un nombre vacío sin dejar el saludo a medias', () => {
@@ -397,12 +398,55 @@ describe('mensaje de consentimiento', () => {
   })
 
   it('dice que es requisito, sin sonar a amenaza', () => {
-    expect(texto).toContain('Sin esto no podemos dar inicio')
+    expect(texto).toContain('Es el paso que nos permite empezar')
     expect(texto).toContain('escríbenos por aquí')
   })
 
   it('lleva la línea de crisis, como todo mensaje a la persona', () => {
     expect(texto).toContain('123')
     expect(texto).toContain('106')
+  })
+})
+
+describe('mensajes de seguimiento', () => {
+  it('el del profesional NO lleva el nombre ni el teléfono de la persona', async () => {
+    const { mensajeDeSeguimientoAlProfesional } = await import('../lib/mensajes')
+    const texto = mensajeDeSeguimientoAlProfesional({
+      profesional: 'Ana María Pérez',
+      enlace: 'https://redaquiestamos.org/portal/caso/abc',
+    })
+    expect(texto).toContain('Hola Ana')
+    expect(texto).toContain('/portal/caso/abc')
+    expect(texto).not.toMatch(/\d{7,}/)
+    expect(texto).toContain('lo resolvemos juntos')
+  })
+
+  it('el de la persona pregunta sin reprochar y lleva la línea de crisis', async () => {
+    const { mensajeDeSeguimientoALaPersona } = await import('../lib/mensajes')
+    const texto = mensajeDeSeguimientoALaPersona({
+      persona: 'camilo torres',
+      profesional: 'Ana María Pérez',
+    })
+    expect(texto).toContain('Hola Camilo')
+    expect(texto).toContain('¿ya pudiste hablar con Ana')
+    expect(texto).toContain('123')
+    expect(texto).toContain('106')
+    // sin reproche: nada de «recuerda» ni de ponerla en falta
+    expect(texto.toLowerCase()).not.toContain('recuerda')
+  })
+
+  /** Los emojis viajan en una URL y según el dispositivo llegan rotos. */
+  it('ningún mensaje de la red lleva emojis', async () => {
+    const m = await import('../lib/mensajes')
+    const textos = [
+      m.mensajeDeSeguimientoAlProfesional({ profesional: 'Ana', enlace: 'x' }),
+      m.mensajeDeSeguimientoALaPersona({ persona: 'Ana', profesional: 'Luis' }),
+      m.mensajeDeSeguimientoGeneral(),
+      m.mensajeDeTamizaje({ nombre: 'Ana', enlace: 'x' }),
+      m.mensajeDeConsentimiento({ persona: 'Ana', profesional: 'Luis', enlace: 'x' }),
+    ]
+    for (const t of textos) {
+      expect(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(t)).toBe(false)
+    }
   })
 })
