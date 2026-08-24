@@ -515,6 +515,7 @@ describe('mensaje de pedir documentos', () => {
     })
     expect(conEnlace).toContain('/documentos/abc')
     expect(conEnlace).toContain('*documento de identidad*')
-    expect(conEnlace).toContain('seguridad más alta')
+    expect(conEnlace).toContain('redaquiestamos.org')
+    expect(conEnlace).toContain('verificar siempre está bien')
   })
 })

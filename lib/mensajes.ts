@@ -598,13 +598,23 @@ export function mensajeDePedirDocumentos(d: {
     ...pedido,
     '· Tu *documento de identidad*.',
     '',
+    /**
+     * Lenguaje anti-phishing a propósito: se nombra el dominio real, no se
+     * engolosina el enlace («personal», «exclusivo»), y se le da permiso a
+     * la persona de desconfiar y verificar por este mismo chat — que es
+     * exactamente lo que un estafador nunca ofrece.
+     */
     d.enlace
-      ? 'Se suben desde tu teléfono, en este enlace personal:'
+      ? 'Los puedes subir en esta página de nuestro sitio, redaquiestamos.org:'
       : 'Nos los puedes mandar respondiendo a este mensaje.',
     d.enlace ?? null,
     '',
-    'Van directo a un almacenamiento privado y cifrado, con la seguridad más alta: solo los ve el equipo de la red, y cada consulta queda registrada.',
+    'Quedan en un almacenamiento privado y cifrado: solo los ve el equipo de la red, y cada consulta queda registrada.',
     '',
+    d.enlace
+      ? 'Si este mensaje te genera dudas, respóndenos por aquí antes de abrir el enlace: verificar siempre está bien.'
+      : null,
+    d.enlace ? '' : null,
     'Gracias por tu tiempo.',
   ]
     .filter((l) => l !== null)
