@@ -24,6 +24,8 @@ type ModalTarjetaProps = {
   profesionalTelefono?: string | null
   numeroActual?: string | null
   documentoUrlActual?: string | null
+  identityDocumentUrlActual?: string | null
+  identityDocumentBackUrlActual?: string | null
   verificadaActual?: boolean
   /** El enlace por el que el profesional sube sus documentos él mismo. */
   enlaceDocumentos?: string | null
@@ -45,6 +47,8 @@ export function ModalTarjetaProfesional({
   profesionalTelefono,
   numeroActual = '',
   documentoUrlActual = '',
+  identityDocumentUrlActual = null,
+  identityDocumentBackUrlActual = null,
   verificadaActual = false,
   enlaceDocumentos = null,
   abierto,
@@ -242,38 +246,56 @@ export function ModalTarjetaProfesional({
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/*
-            Aquí ya no se teclea el número ni se sube el archivo: eso lo hace
-            el profesional por su propio enlace, directo al bucket privado.
-            Este modal pide (mensaje de arriba), muestra el soporte si ya
-            existe, y aprueba. La excepción en papel vive en Verificaciones.
-          */}
-          {documentoUrl ? (
+          {/* Soportes cargados */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: 12, borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
             <div>
-              <DocumentoPrivado clave={documentoUrl} etiqueta="Abrir el soporte cargado" />
+              <strong style={{ fontSize: '0.82rem', display: 'block', marginBottom: 4, color: '#334155' }}>
+                Soporte TP / Estudios:
+              </strong>
+              {documentoUrlActual ? (
+                <DocumentoPrivado clave={documentoUrlActual} etiqueta="Abrir soporte TP" />
+              ) : (
+                <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                  Sin soporte cargado
+                </span>
+              )}
             </div>
-          ) : (
-            <p className="panel__nota" style={{ margin: 0 }}>
-              Aún no ha subido su soporte. Mándale el mensaje de arriba: el enlace le permite
-              subirlo desde el teléfono, directo al almacenamiento privado.
-            </p>
-          )}
 
-          {/*
-            Ya no hay miniatura ni <iframe> con el documento incrustado.
-            El archivo vive en un bucket privado y para verlo hace falta una URL
-            firmada que dura un minuto; pintarla al abrir el modal significaría
-            pedir —y auditar— la consulta de un documento de identidad que quizá
-            nadie iba a mirar. Se pide cuando alguien hace clic.
-          */}
-          {documentoUrl ? (
+            <div>
+              <strong style={{ fontSize: '0.82rem', display: 'block', marginBottom: 4, color: '#334155' }}>
+                Documento de Identidad:
+              </strong>
+              {identityDocumentUrlActual || identityDocumentBackUrlActual ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {identityDocumentUrlActual ? (
+                    <DocumentoPrivado clave={identityDocumentUrlActual} etiqueta="Abrir documento (anverso)" />
+                  ) : null}
+                  {identityDocumentBackUrlActual ? (
+                    <DocumentoPrivado clave={identityDocumentBackUrlActual} etiqueta="Abrir documento (reverso)" />
+                  ) : null}
+                </div>
+              ) : (
+                <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                  Sin documento cargado
+                </span>
+              )}
+            </div>
+          </div>
+
+          {!documentoUrlActual && !identityDocumentUrlActual ? (
+            <p className="panel__nota" style={{ margin: 0 }}>
+              Aún no ha subido sus documentos. Mándale el mensaje de arriba: el enlace le permite
+              subirlos desde el teléfono, directo al almacenamiento privado.
+            </p>
+          ) : null}
+
+          {documentoUrlActual || identityDocumentUrlActual ? (
             <div style={{ padding: 10, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
               <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
-                <Eye size={13} /> Hay un soporte cargado.
+                <Eye size={13} /> Documentos en almacenamiento privado cifrado.
               </span>
               <span className="tabla__secundario" style={{ fontSize: '0.76rem' }}>
-                Se guarda en un almacenamiento privado. Cada vez que alguien lo abre queda
-                registrado quién y cuándo.
+                Cada vez que alguien abre un documento queda registrado quién y cuándo en la auditoría.
               </span>
             </div>
           ) : null}

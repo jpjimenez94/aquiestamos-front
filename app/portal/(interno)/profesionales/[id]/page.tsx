@@ -20,6 +20,9 @@ type Profesional = {
   professionalCardNumber?: string | null
   professionalCardDocumentUrl?: string | null
   professionalCardVerified?: boolean
+  identityDocumentUrl?: string | null
+  identityDocumentBackUrl?: string | null
+  documentsSubmittedAt?: string | null
   status: string
   estadoLegible: string
   maxActiveCases: number
@@ -118,6 +121,9 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
         verificada={p.professionalCardVerified}
         numero={p.professionalCardNumber}
         documentoUrl={p.professionalCardDocumentUrl}
+        identityDocumentUrl={p.identityDocumentUrl}
+        identityDocumentBackUrl={p.identityDocumentBackUrl}
+        subioEl={p.documentsSubmittedAt ? enBogota(p.documentsSubmittedAt) : null}
         puedeVerificar={puede(usuario, 'profesional:verificar-tarjeta')}
         enlaceDocumentos={p.enlaceDocumentos ?? null}
       />

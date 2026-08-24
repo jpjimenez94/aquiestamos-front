@@ -26,6 +26,9 @@ type SeccionTarjetaProps = {
   verificada?: boolean
   numero?: string | null
   documentoUrl?: string | null
+  identityDocumentUrl?: string | null
+  identityDocumentBackUrl?: string | null
+  subioEl?: string | null
   /** Solo lectura tambien abre esta ficha, pero no verifica nada. */
   puedeVerificar?: boolean
   /** El enlace por el que el profesional sube sus documentos él mismo. */
@@ -47,6 +50,9 @@ export function SeccionTarjetaProfesional({
   verificada = false,
   numero = '',
   documentoUrl = '',
+  identityDocumentUrl = null,
+  identityDocumentBackUrl = null,
+  subioEl = null,
   puedeVerificar = false,
   enlaceDocumentos = null,
 }: SeccionTarjetaProps) {
@@ -226,10 +232,10 @@ export function SeccionTarjetaProfesional({
           </div>
 
           <div>
-            <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'block' }}>Soporte Adjunto</span>
+            <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'block' }}>Soporte TP / Certificado</span>
             {documentoUrl ? (
               <div style={{ marginTop: 4 }}>
-                <DocumentoPrivado clave={documentoUrl} etiqueta="Ver soporte completo" />
+                <DocumentoPrivado clave={documentoUrl} etiqueta="Ver soporte de TP / estudios" />
               </div>
             ) : (
               <span className="tabla__secundario" style={{ fontSize: '0.85rem', display: 'block', marginTop: 4 }}>
@@ -237,17 +243,30 @@ export function SeccionTarjetaProfesional({
               </span>
             )}
           </div>
+
+          <div>
+            <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'block' }}>Documento de Identidad</span>
+            {identityDocumentUrl || identityDocumentBackUrl ? (
+              <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {identityDocumentUrl ? (
+                  <DocumentoPrivado clave={identityDocumentUrl} etiqueta="Ver documento (anverso)" />
+                ) : null}
+                {identityDocumentBackUrl ? (
+                  <DocumentoPrivado clave={identityDocumentBackUrl} etiqueta="Ver documento (reverso)" />
+                ) : null}
+              </div>
+            ) : (
+              <span className="tabla__secundario" style={{ fontSize: '0.85rem', display: 'block', marginTop: 4 }}>
+                Sin archivo
+              </span>
+            )}
+            {subioEl ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.74rem', display: 'block', marginTop: 4 }}>
+                Subido: {subioEl}
+              </span>
+            ) : null}
+          </div>
         </div>
-
-        {/*
-          Ya no hay miniatura del documento incrustada.
-
-          El soporte vive en un almacenamiento privado y para verlo hace falta
-          una URL firmada que dura un minuto. Pintarla al cargar la ficha
-          significaria pedir —y dejar en la auditoria— la consulta de un
-          documento de identidad que quiza nadie iba a mirar. Se pide cuando
-          alguien hace clic.
-        */}
       </div>
 
       <ModalTarjetaProfesional
@@ -256,7 +275,10 @@ export function SeccionTarjetaProfesional({
         profesionalTelefono={profesionalTelefono}
         numeroActual={numero}
         documentoUrlActual={documentoUrl}
+        identityDocumentUrlActual={identityDocumentUrl}
+        identityDocumentBackUrlActual={identityDocumentBackUrl}
         verificadaActual={verificada}
+        enlaceDocumentos={enlaceDocumentos}
         abierto={modalAbierto}
         onCerrar={() => setModalAbierto(false)}
       />
