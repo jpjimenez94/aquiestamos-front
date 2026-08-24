@@ -4,6 +4,7 @@ import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { EditorDisponibilidad } from './EditorDisponibilidad'
 import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
+import { BotonCambiarEstadoProfesional } from './BotonCambiarEstadoProfesional'
 import { nombrePropio } from '@/lib/nombre'
 
 type Profesional = {
@@ -100,7 +101,16 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
       <div className="panel">
         <div className="datos">
           <Dato etiqueta="Estado">
-            <Etiqueta estado={p.status} texto={p.estadoLegible} />
+            {puede(usuario, 'profesional:editar') ? (
+              <BotonCambiarEstadoProfesional
+                profesionalId={p.id}
+                profesionalNombre={p.fullName}
+                estadoActual={p.status}
+                estadoLegible={p.estadoLegible}
+              />
+            ) : (
+              <Etiqueta estado={p.status} texto={p.estadoLegible} />
+            )}
           </Dato>
           <Dato etiqueta="Carga">
             {p.carga} de {p.maxActiveCases} acompañamientos
