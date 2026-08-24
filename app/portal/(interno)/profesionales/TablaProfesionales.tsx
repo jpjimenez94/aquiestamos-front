@@ -12,6 +12,7 @@ export type Profesional = {
   enlaceDocumentos?: string | null
   id: string
   fullName: string
+  email?: string | null
   phone?: string
   profession: string
   city: string
@@ -429,6 +430,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                       profesionalId={p.id}
                       profesionalNombre={p.fullName}
                       profesionalTelefono={p.phone}
+                      profesionalEmail={p.email}
                       verificada={p.professionalCardVerified}
                       numero={p.professionalCardNumber}
                       documentoUrl={p.professionalCardDocumentUrl}

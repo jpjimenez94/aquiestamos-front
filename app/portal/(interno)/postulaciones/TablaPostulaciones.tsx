@@ -6,6 +6,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
+import { BotonPedirDocumentosEmail } from '@/components/portal/BotonPedirDocumentosEmail'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
 
@@ -469,6 +470,7 @@ export function TablaPostulaciones({
                         profesionalId={p.professionalId}
                         profesionalNombre={p.fullName}
                         profesionalTelefono={p.phone}
+                        profesionalEmail={p.email}
                         verificada={p.professionalCardVerified}
                         numero={p.professionalCardNumber}
                         documentoUrl={p.professionalCardDocumentUrl}
@@ -483,7 +485,16 @@ export function TablaPostulaciones({
                   <td>
                     <Etiqueta estado={p.status} />
                   </td>
-                  <td className="tabla__acciones">
+                  <td className="tabla__acciones" style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
+                    {!p.professionalCardVerified && p.professionalId && editaProfesionales ? (
+                      <BotonPedirDocumentosEmail
+                        profesionalId={p.professionalId}
+                        profesionalEmail={p.email}
+                        profesionalNombre={p.fullName}
+                        enlaceDocumentos={p.enlaceDocumentos}
+                        texto="Enviar correo"
+                      />
+                    ) : null}
                     {p.professionalId && veProfesionales ? (
                       <Link className="boton-mini" href={`/portal/profesionales/${p.professionalId}`}>
                         Ver ficha

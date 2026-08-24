@@ -8,6 +8,7 @@ type BotonVerificarTarjetaProps = {
   profesionalId: string
   profesionalNombre: string
   profesionalTelefono?: string | null
+  profesionalEmail?: string | null
   enlaceDocumentos?: string | null
   verificada?: boolean
   numero?: string | null
@@ -19,6 +20,7 @@ export function BotonVerificarTarjeta({
   profesionalId,
   profesionalNombre,
   profesionalTelefono,
+  profesionalEmail,
   enlaceDocumentos,
   verificada = false,
   numero,
@@ -89,6 +91,7 @@ export function BotonVerificarTarjeta({
         profesionalId={profesionalId}
         profesionalNombre={profesionalNombre}
         profesionalTelefono={profesionalTelefono}
+        profesionalEmail={profesionalEmail}
         numeroActual={numero}
         documentoUrlActual={documentoUrl}
         verificadaActual={verificada}

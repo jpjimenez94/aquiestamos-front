@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import { paraWhatsapp } from '@/lib/telefono'
 import { mensajeDePedirDocumentos } from '@/lib/mensajes'
 import { DocumentoPrivado } from './DocumentoPrivado'
+import { BotonPedirDocumentosEmail } from './BotonPedirDocumentosEmail'
 import {
   ShieldCheck,
   FileText,
   Check,
   Copy,
   MessageSquare,
+  Mail,
   X,
   ExternalLink,
   Eye,
@@ -22,6 +24,7 @@ type ModalTarjetaProps = {
   profesionalId: string
   profesionalNombre: string
   profesionalTelefono?: string | null
+  profesionalEmail?: string | null
   numeroActual?: string | null
   documentoUrlActual?: string | null
   identityDocumentUrlActual?: string | null
@@ -45,6 +48,7 @@ export function ModalTarjetaProfesional({
   profesionalId,
   profesionalNombre,
   profesionalTelefono,
+  profesionalEmail,
   numeroActual = '',
   documentoUrlActual = '',
   identityDocumentUrlActual = null,
@@ -242,6 +246,42 @@ export function ModalTarjetaProfesional({
                 </a>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Sección de Solicitud por Correo Electrónico */}
+        <div style={{ padding: 12, borderRadius: 8, background: '#f0f9ff', border: '1px solid #bae6fd', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
+            <strong style={{ fontSize: '0.84rem', color: '#0369a1', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Mail size={14} /> Solicitar Soporte por Correo Electrónico
+            </strong>
+            {profesionalEmail && (
+              <span style={{ fontSize: '0.78rem', color: '#0284c7', fontWeight: 600 }}>
+                {profesionalEmail}
+              </span>
+            )}
+          </div>
+          <p style={{ margin: '0 0 10px', fontSize: '0.78rem', color: '#0369a1' }}>
+            Envía una notificación formal por correo al profesional con su enlace seguro para que suba su tarjeta profesional (o certificado) y documento de identidad.
+          </p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <BotonPedirDocumentosEmail
+              profesionalId={profesionalId}
+              profesionalEmail={profesionalEmail}
+              profesionalNombre={profesionalNombre}
+              enlaceDocumentos={enlaceDocumentos}
+              texto="Enviar correo de solicitud"
+            />
+            {profesionalEmail && (
+              <a
+                href={`mailto:${profesionalEmail}?subject=${encodeURIComponent('Carga de documentos para tu perfil · Red Aquí Estamos')}&body=${encodeURIComponent(mensajeWhatsApp.replace(/\*/g, ''))}`}
+                className="boton-mini"
+                style={{ fontSize: '0.74rem', padding: '3px 8px', textDecoration: 'none' }}
+                title="Abrir en tu programa de correo predeterminado"
+              >
+                Abrir en mi cliente de correo
+              </a>
+            )}
           </div>
         </div>
 
