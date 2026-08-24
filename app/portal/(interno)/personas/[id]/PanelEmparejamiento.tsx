@@ -59,6 +59,10 @@ export function PanelEmparejamiento({ personaId }: { personaId: string }) {
   const [mostrarMas, setMostrarMas] = useState(false)
 
   useEffect(() => {
+    if (!personaId || personaId === 'undefined' || personaId === 'null') {
+      setCandidatos([])
+      return
+    }
     let vigente = true
     fetch(`/api/portal/patients/${personaId}/candidatos`)
       .then((r) => r.json())
