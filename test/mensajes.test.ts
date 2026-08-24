@@ -489,3 +489,25 @@ describe('mensaje de la encuesta del cierre', () => {
     expect(texto).toContain('106')
   })
 })
+
+describe('mensaje de pedir documentos', () => {
+  it('tiene saltos de línea, negrita en los documentos y cero emojis', async () => {
+    const { mensajeDePedirDocumentos } = await import('../lib/mensajes')
+    const texto = mensajeDePedirDocumentos({ profesional: 'maria fernanda marin', tipo: 'general' })
+    expect(texto).toContain('Hola Maria')
+    expect(texto.split('\n').length).toBeGreaterThan(5)
+    expect(texto).toContain('*tarjeta profesional*')
+    expect(texto).toContain('requisito legal')
+    expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
+  })
+
+  it('cada variante pide exactamente lo suyo', async () => {
+    const { mensajeDePedirDocumentos } = await import('../lib/mensajes')
+    const graduado = mensajeDePedirDocumentos({ profesional: 'Ana', tipo: 'graduado' })
+    expect(graduado).toContain('*número de tarjeta profesional*')
+    expect(graduado).not.toContain('certificado de estudios')
+    const estudiante = mensajeDePedirDocumentos({ profesional: 'Ana', tipo: 'estudiante' })
+    expect(estudiante).toContain('*certificado de estudios*')
+    expect(estudiante).not.toContain('tarjeta profesional*')
+  })
+})
