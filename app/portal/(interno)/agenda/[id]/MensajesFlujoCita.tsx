@@ -98,8 +98,8 @@ export function MensajesFlujoCita({
 
         {consentimientoFirmado ? (
           <div style={{ marginTop: 14 }}>
-            <p className="panel__nota" style={{ color: 'var(--color-green, #059669)', fontWeight: 500, margin: '0 0 8px' }}>
-              ✓ Paso 9 · El consentimiento ya está firmado.
+            <p className="panel__nota" style={{ color: 'var(--color-green, #059669)', fontWeight: 600, margin: '0 0 8px' }}>
+              ✓ Paso 9 · El consentimiento informado ya está firmado (no es necesario volver a solicitarlo en reagendamientos o citas posteriores).
             </p>
             <Mensaje
               titulo="Paso 9b · Confirmación de consentimiento recibido a la persona"
