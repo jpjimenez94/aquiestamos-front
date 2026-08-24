@@ -508,6 +508,37 @@ export function mensajeParaCuadrarHorario(d: {
 }
 
 /**
+ * REAGENDAMIENTO · Al profesional: pedirle su nueva disponibilidad tras un imprevisto.
+ *
+ * Cuando el profesional avisa de un compromiso personal o cita médica en el
+ * horario anterior, coordinación le escribe pidiéndole qué otros días y horas
+ * tiene libres para armar la propuesta de horarios a la persona acompañada.
+ */
+export function mensajeDePedirNuevaDisponibilidadAlProfesional(d: {
+  profesional: string
+  persona: string
+  cuandoAnterior?: string | null
+  enlace?: string | null
+}): string {
+  const nombreProf = nombreDePila(d.profesional) || 'hola'
+  const nombrePers = nombreDePila(d.persona) || 'la persona'
+  const horarioRef = d.cuandoAnterior ? ` que teníamos acordado (${d.cuandoAnterior})` : ''
+
+  return [
+    `Hola ${nombreProf}, te escribimos de la Red Aquí Estamos sobre el caso de ${nombrePers}.`,
+    '',
+    `Entendemos que te surgió un imprevisto con el horario${horarioRef}. No te preocupes.`,
+    '',
+    `Cuéntanos por favor qué otros días y horas tienes disponibles esta o la próxima semana para coordinar con ${nombrePers} y dejar la cita reprogramada:`,
+    d.enlace ? `Puedes consultar el caso en tu enlace seguro: ${d.enlace}` : null,
+    '',
+    'Quedamos muy atentos a tu respuesta para armar la propuesta de horarios. ¡Muchas gracias por tu compromiso!',
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
+/**
  * REAGENDAMIENTO · Excusas a la persona acompañada por imprevisto / cambio de agenda del profesional.
  *
  * Cuando el profesional avisa de un compromiso de fuerza mayor o cita médica

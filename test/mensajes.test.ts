@@ -584,6 +584,26 @@ describe('mensajeDeConsentimientoFirmadoALaPersona (Paso 9b)', () => {
   })
 })
 
+describe('mensajeDePedirNuevaDisponibilidadAlProfesional', () => {
+  it('solicita al profesional sus nuevos días y horas disponibles tras un imprevisto', async () => {
+    const { mensajeDePedirNuevaDisponibilidadAlProfesional } = await import('../lib/mensajes')
+    const texto = mensajeDePedirNuevaDisponibilidadAlProfesional({
+      profesional: 'Andrés Gómez',
+      persona: 'Pierangely',
+      cuandoAnterior: 'miércoles, 26 de agosto a las 3:00 p. m.',
+      enlace: 'https://redaquiestamos.org/portal/caso/p-123',
+    })
+
+    expect(texto).toContain('Hola Andrés')
+    expect(texto).toContain('Pierangely')
+    expect(texto).toContain('miércoles, 26 de agosto a las 3:00 p. m.')
+    expect(texto).toContain('qué otros días y horas tienes disponibles')
+    expect(texto).toContain('https://redaquiestamos.org/portal/caso/p-123')
+    expect(texto).toContain('¡Muchas gracias por tu compromiso!')
+    expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
+  })
+})
+
 describe('mensajeDeExcusasYReagendamiento', () => {
   it('incluye disculpas, motivo de cambio de agenda, nuevos horarios y mantiene el tono empático', async () => {
     const { mensajeDeExcusasYReagendamiento } = await import('../lib/mensajes')
