@@ -58,6 +58,8 @@ type Paciente = {
   isMinor: boolean
   createdAt: string
   diasEsperando: number
+  /** Solo en Por Asignar: prioridad ALTA con demasiados días sin profesional. */
+  slaVencido?: boolean
   asignacion: {
     id: string
     desde: string
@@ -242,7 +244,12 @@ export default async function AgendaPage({
               <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin casos pendientes</span>
             ) : (
               porAsignar.map((p) => (
-                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card">
+                <Link
+                  key={p.id}
+                  href={`/portal/personas/${p.id}`}
+                  className="pipeline-card"
+                  style={p.slaVencido ? { borderLeft: '3px solid #dc2626', background: '#fef2f2' } : undefined}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                     <Etiqueta estado={p.priority} texto={PRIORIDAD_LABEL[p.priority] ?? p.priority} />
@@ -250,6 +257,11 @@ export default async function AgendaPage({
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
                     {p.city} · {p.diasEsperando}d en espera
                   </span>
+                  {p.slaVencido ? (
+                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#dc2626' }}>
+                      Prioridad alta sin asignar hace {p.diasEsperando} días
+                    </span>
+                  ) : null}
                   {p.isMinor && (
                     <span style={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600 }}>
                       Menor de edad
