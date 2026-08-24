@@ -768,3 +768,59 @@ export function mensajeDeCitaAlProfesional(d: {
     .filter((l) => l !== null)
     .join('\n')
 }
+
+const CANAL_CONTACTO: Record<string, string> = {
+  WHATSAPP: 'WhatsApp',
+  LLAMADA: 'llamada telefónica',
+  CORREO: 'correo electrónico',
+}
+
+/**
+ * PASO 10 · Al profesional: la cita está confirmada y el consentimiento firmado.
+ *
+ * Entrega formal del caso al profesional:
+ *   - Informa que el consentimiento informado ya está firmado y la cita confirmada.
+ *   - Especifica fecha, hora, modalidad y el canal preferido de la persona.
+ *   - Enfatiza su responsabilidad de dar el primer paso de contacto y la puntualidad/compromiso.
+ *   - Proporciona el enlace seguro para consultar los datos protegidos y reportar post-sesión.
+ *   - Solicita confirmar de recibido el mensaje.
+ */
+export function mensajeDeCitaConfirmadaAlProfesional(d: {
+  profesional: string
+  persona: string
+  cuando: string
+  modalidad?: string | null
+  canalContacto?: string | null
+  enlace: string
+}): string {
+  const nombreProf = nombreDePila(d.profesional) || 'hola'
+  const nombrePers = nombreDePila(d.persona) || 'la persona acompañada'
+  const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+  const canal = d.canalContacto ? CANAL_CONTACTO[d.canalContacto] ?? d.canalContacto.toLowerCase() : 'WhatsApp'
+
+  return [
+    `Hola ${nombreProf}, la cita ya está confirmada y lista para iniciar.`,
+    '',
+    `· *Persona acompañada:* ${nombrePers}`,
+    `· *Cuándo:* ${d.cuando}`,
+    modalidad ? `· *Modalidad:* ${modalidad}` : null,
+    `· *Canal preferido de la persona:* ${canal}`,
+    '· *Consentimiento informado:* Firmado por la persona',
+    '',
+    '*Tu responsabilidad en este acompañamiento:*',
+    `1. Tú das el primer paso: ponte en contacto con ella por ${canal} para iniciar la sesión en la fecha y hora acordadas. Ella ya sabe que la vas a contactar.`,
+    '2. Compromiso y puntualidad: la persona te está esperando. Si te surge un imprevisto de fuerza mayor, avísanos de inmediato por aquí para no dejarla esperando y poder reagendar a tiempo.',
+    '',
+    'Los datos de contacto y la información del caso están en tu enlace seguro:',
+    d.enlace,
+    '',
+    'Al terminar la sesión, entra a ese mismo enlace para registrar el reporte de cierre (si se realizó, cómo fue y si necesita más sesiones).',
+    '',
+    'Por favor *respóndenos a este mensaje confirmando que lo recibiste y lo tienes agendado*.',
+    '',
+    'Gracias por tu compromiso y por acompañar en la red.',
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+

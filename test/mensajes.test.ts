@@ -525,3 +525,53 @@ describe('mensaje de pedir documentos', () => {
     expect(conEnlace).toContain('verificar siempre está bien')
   })
 })
+
+describe('mensajeDeCitaConfirmadaAlProfesional (Paso 10)', () => {
+  it('incluye el nombre del profesional, nombre de la persona, fecha, canal preferido y enlace seguro', async () => {
+    const { mensajeDeCitaConfirmadaAlProfesional } = await import('../lib/mensajes')
+    const texto = mensajeDeCitaConfirmadaAlProfesional({
+      profesional: 'Roberto Gómez',
+      persona: 'María Camila Restrepo',
+      cuando: 'jueves, 28 de agosto a las 4:00 p. m.',
+      modalidad: 'VIRTUAL',
+      canalContacto: 'WHATSAPP',
+      enlace: 'https://redaquiestamos.org/portal/caso/p-123',
+    })
+
+    expect(texto).toContain('Hola Roberto')
+    expect(texto).toContain('María')
+    expect(texto).toContain('jueves, 28 de agosto a las 4:00 p. m.')
+    expect(texto).toContain('*Modalidad:* virtual')
+    expect(texto).toContain('*Canal preferido de la persona:* WhatsApp')
+    expect(texto).toContain('*Consentimiento informado:* Firmado por la persona')
+    expect(texto).toContain('Tú das el primer paso')
+    expect(texto).toContain('Compromiso y puntualidad')
+    expect(texto).toContain('https://redaquiestamos.org/portal/caso/p-123')
+    expect(texto).toContain('confirmando que lo recibiste')
+    expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
+  })
+
+  it('soporta llamada telefónica y correo como canales preferidos', async () => {
+    const { mensajeDeCitaConfirmadaAlProfesional } = await import('../lib/mensajes')
+    const llamada = mensajeDeCitaConfirmadaAlProfesional({
+      profesional: 'Laura',
+      persona: 'Carlos',
+      cuando: 'viernes 10:00 a. m.',
+      canalContacto: 'LLAMADA',
+      enlace: 'https://redaquiestamos.org/portal/caso/p-456',
+    })
+    expect(llamada).toContain('*Canal preferido de la persona:* llamada telefónica')
+    expect(llamada).toContain('por llamada telefónica para iniciar la sesión')
+
+    const correo = mensajeDeCitaConfirmadaAlProfesional({
+      profesional: 'Laura',
+      persona: 'Carlos',
+      cuando: 'viernes 10:00 a. m.',
+      canalContacto: 'CORREO',
+      enlace: 'https://redaquiestamos.org/portal/caso/p-456',
+    })
+    expect(correo).toContain('*Canal preferido de la persona:* correo electrónico')
+    expect(correo).toContain('por correo electrónico para iniciar la sesión')
+  })
+})
+

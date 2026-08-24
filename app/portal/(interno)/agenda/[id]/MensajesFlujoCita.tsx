@@ -5,34 +5,38 @@ import { Copy, Check, MessageSquare } from 'lucide-react'
 import {
   mensajeDeCitaConfirmada,
   mensajeDeConsentimiento,
+  mensajeDeCitaConfirmadaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 
 /**
- * Los dos mensajes que salen desde el detalle de la cita: la confirmación a
- * la persona (paso 8) y la solicitud de firma del consentimiento (paso 9).
- *
- * Los textos viven en `lib/mensajes.ts` con todos los demás, no aquí: este
- * archivo tenía sus propias plantillas —con emoji, sin línea de crisis y con
- * un enlace de consentimiento que llevaba a una página que no existía— y era
- * la única pantalla de la red hablando con otra voz.
+ * Los mensajes que salen desde el detalle de la cita:
+ *   - Confirmación a la persona (Paso 8)
+ *   - Solicitud de firma del consentimiento (Paso 9)
+ *   - Instrucciones y despacho al profesional con consentimiento y canal preferido (Paso 10)
  */
 export function MensajesFlujoCita({
   pacienteNombre,
   pacienteTelefono,
   profesionalNombre,
+  profesionalTelefono,
   fechaHoraBogota,
   modalidad,
   enlaceConsentimiento,
   consentimientoFirmado,
+  canalContacto,
+  enlaceCaso,
 }: {
   pacienteNombre: string
   pacienteTelefono: string
   profesionalNombre: string
+  profesionalTelefono: string
   fechaHoraBogota: string
   modalidad: string
   enlaceConsentimiento: string | null
   consentimientoFirmado: boolean
+  canalContacto?: string | null
+  enlaceCaso: string
 }) {
   const mensajeConfirmacion = mensajeDeCitaConfirmada({
     persona: pacienteNombre,
@@ -49,27 +53,57 @@ export function MensajesFlujoCita({
       })
     : null
 
+  const mensajeProfesional = mensajeDeCitaConfirmadaAlProfesional({
+    profesional: profesionalNombre,
+    persona: pacienteNombre,
+    cuando: fechaHoraBogota,
+    modalidad,
+    canalContacto,
+    enlace: enlaceCaso,
+  })
+
   return (
-    <div className="panel">
-      <h2>Mensajes para la persona</h2>
-      <p className="panel__nota">
-        Confirmarle la cita y pedirle la firma del consentimiento. Van por WhatsApp, como todo.
-      </p>
-
-      <Mensaje titulo="Paso 8 · Confirmarle la cita" telefono={pacienteTelefono} texto={mensajeConfirmacion} />
-
-      {consentimientoFirmado ? (
-        <p className="panel__nota" style={{ marginTop: 14 }}>
-          Paso 9 · El consentimiento ya está firmado: no hay nada que pedir.
+    <>
+      <div className="panel">
+        <h2>Mensajes para la persona</h2>
+        <p className="panel__nota">
+          Confirmarle la cita y pedirle la firma del consentimiento. Van por WhatsApp, como todo.
         </p>
-      ) : mensajeFirma ? (
+
+        <Mensaje titulo="Paso 8 · Confirmarle la cita" telefono={pacienteTelefono} texto={mensajeConfirmacion} />
+
+        {consentimientoFirmado ? (
+          <p className="panel__nota" style={{ marginTop: 14, color: 'var(--color-green, #059669)', fontWeight: 500 }}>
+            ✓ Paso 9 · El consentimiento ya está firmado: no hay nada que pedir.
+          </p>
+        ) : mensajeFirma ? (
+          <Mensaje
+            titulo="Paso 9 · Pedirle la firma del consentimiento"
+            telefono={pacienteTelefono}
+            texto={mensajeFirma}
+          />
+        ) : null}
+      </div>
+
+      <div className="panel">
+        <h2>Mensajes para el profesional</h2>
+        <p className="panel__nota">
+          Entrega de la cita confirmada al profesional con el canal preferido de la persona, sus responsabilidades de contacto/asistencia y el enlace seguro al caso.
+        </p>
+
+        {!consentimientoFirmado ? (
+          <p className="panel__nota" style={{ marginTop: 8, color: '#d97706', fontWeight: 500 }}>
+            ⚠ Ojo: el consentimiento de la persona aún está pendiente. Se recomienda despachar este mensaje cuando esté firmado.
+          </p>
+        ) : null}
+
         <Mensaje
-          titulo="Paso 9 · Pedirle la firma del consentimiento"
-          telefono={pacienteTelefono}
-          texto={mensajeFirma}
+          titulo="Paso 10 · Instrucciones y despacho de la cita al profesional"
+          telefono={profesionalTelefono}
+          texto={mensajeProfesional}
         />
-      ) : null}
-    </div>
+      </div>
+    </>
   )
 }
 

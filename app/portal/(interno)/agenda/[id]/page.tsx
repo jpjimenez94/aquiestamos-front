@@ -42,6 +42,7 @@ type Cita = {
     telefono?: string
     city?: string
     isMinor?: boolean
+    canalPreferido?: string | null
   }
 }
 
@@ -170,15 +171,18 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Plantillas de Mensajes de WhatsApp (Pasos 8 y 9) */}
+      {/* Plantillas de Mensajes de WhatsApp (Pasos 8, 9 y 10) */}
       <MensajesFlujoCita
         pacienteNombre={cita.paciente.nombre ?? 'Persona'}
         pacienteTelefono={cita.paciente.telefono ?? ''}
         profesionalNombre={cita.profesional.nombre ?? 'Psicólogo'}
+        profesionalTelefono={cita.profesional.telefono ?? ''}
         fechaHoraBogota={enBogota(cita.inicio)}
         modalidad={cita.modalidad}
         enlaceConsentimiento={cita.consentimiento?.enlace ?? null}
         consentimientoFirmado={cita.consentSigned === true}
+        canalContacto={cita.paciente.canalPreferido ?? null}
+        enlaceCaso={`${(process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')}/portal/caso/${cita.paciente.id}`}
       />
 
       {/* Acciones de la Cita */}
