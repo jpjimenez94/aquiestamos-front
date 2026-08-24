@@ -394,15 +394,24 @@ export function mensajeDeTamizaje({
   return [
     `Hola ${primero}, te escribimos de la Red Aquí Estamos.`,
     '',
-    'Recibimos tu solicitud de acompañamiento y ya estamos buscando quién te acompañe. Gracias por dar este paso.',
+    /**
+     * Lo lee alguien que acaba de pedir ayuda; el tono importa más que en
+     * ningún otro mensaje. Tres cosas que este texto NO debe hacer:
+     *   - hablar de lo que NOSOTROS necesitamos («para saber qué tan pronto
+     *     necesitamos llamarte»): se habla de la persona, no de la operación;
+     *   - contarle que está en una fila («saber en qué orden acompañar»);
+     *   - condicionar la ayuda a que conteste («así podemos acompañarte lo
+     *     antes posible»).
+     */
+    'Recibimos tu solicitud de acompañamiento. Gracias por dar este paso: pedir compañía no siempre es fácil. Ya estamos buscando a la persona que va a acompañarte.',
     '',
-    `Para saber qué tan pronto necesitamos llamarte, te dejamos *${PREGUNTAS_TAMIZAJE.length} preguntas cortas*. Se responden en un minuto, tocando una opción en cada una:`,
+    `Mientras tanto, nos gustaría conocerte un poco mejor para acompañarte bien desde el comienzo. Son *${PREGUNTAS_TAMIZAJE.length} preguntas cortas* en nuestro sitio, redaquiestamos.org — se responden en un minuto, tocando una opción en cada una:`,
     '',
     enlace,
     '',
-    'Cuando las respondas, avísanos por aquí: así podemos acompañarte lo antes posible.',
+    'No hay respuestas buenas ni malas, y no es una evaluación ni un diagnóstico: lo que respondas queda entre tú y el equipo de la red.',
     '',
-    'No es un diagnóstico ni una evaluación, y no hay respuestas buenas o malas: solo nos ayudan a saber en qué orden acompañar. Lo que respondas queda entre tú y el equipo de la red.',
+    'Cuando las respondas, cuéntanos por aquí.',
     '',
     LINEA_DE_CRISIS,
   ].join('\n')

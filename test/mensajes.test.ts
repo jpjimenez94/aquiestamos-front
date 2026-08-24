@@ -154,9 +154,16 @@ describe('mensaje de tamizaje', () => {
     expect(texto).toContain(`${PREGUNTAS_TAMIZAJE.length} preguntas cortas`)
   })
 
-  it('pide que confirmen cuando hayan respondido', () => {
-    expect(texto).toContain('avísanos por aquí')
-    expect(texto).toContain('lo antes posible')
+  /**
+   * Pide el aviso sin condicionar la ayuda a que conteste: el «así podemos
+   * acompañarte lo antes posible» de antes era presión sutil sobre alguien
+   * que acaba de pedir ayuda. Si vuelve, esta prueba falla.
+   */
+  it('pide que confirmen cuando hayan respondido, sin presionar', () => {
+    expect(texto).toContain('cuéntanos por aquí')
+    expect(texto).not.toContain('lo antes posible')
+    expect(texto).not.toContain('necesitamos llamarte')
+    expect(texto).not.toContain('en qué orden')
   })
 
   /**
@@ -172,9 +179,8 @@ describe('mensaje de tamizaje', () => {
   })
 
   it('dice que no es un diagnóstico y que quien escribe no es el psicólogo', () => {
-    expect(texto).toContain('No es un diagnóstico')
-    expect(texto).toContain('No es un diagnóstico ni una evaluación')
-    expect(texto).toContain('no hay respuestas buenas o malas')
+    expect(texto).toContain('ni un diagnóstico')
+    expect(texto).toContain('No hay respuestas buenas ni malas')
   })
 
   it('aguanta un nombre vacío sin dejar el saludo a medias', () => {
