@@ -111,7 +111,7 @@ export default function ProcesosPage() {
       <div className="panel">
         <h2>El viaje completo</h2>
         <p className="proc-intro">
-          Cinco etapas. Las esperas tienen reloj: si alguien no responde, el sistema libera solo y
+          Seis etapas. Las esperas tienen reloj: si alguien no responde, el sistema libera solo y
           el caso vuelve a la cola en vez de quedarse quieto.
         </p>
         <div className="proc-viaje">
@@ -121,9 +121,11 @@ export default function ProcesosPage() {
           <span className="proc-viaje__flecha">→</span>
           <span className="proc-viaje__etapa"><span>3</span>Se le propone un profesional</span>
           <span className="proc-viaje__flecha">→</span>
-          <span className="proc-viaje__etapa"><span>4</span>Cita y consentimiento</span>
+          <span className="proc-viaje__etapa"><span>4</span>Cita propuesta</span>
           <span className="proc-viaje__flecha">→</span>
-          <span className="proc-viaje__etapa"><span>5</span>Sesión, reporte y cierre</span>
+          <span className="proc-viaje__etapa"><span>5</span>Citas confirmadas</span>
+          <span className="proc-viaje__flecha">→</span>
+          <span className="proc-viaje__etapa"><span>6</span>Sesión, reporte y cierre</span>
         </div>
       </div>
 
@@ -242,24 +244,21 @@ export default function ProcesosPage() {
         </p>
       </Etapa>
 
-      <Etapa titulo="4 · La cita y el consentimiento">
+      <Etapa titulo="4 · Cita propuesta">
         <p className="proc-intro">
-          La sesión dura 45 minutos y deja 30 de descanso. Antes de empezar, el consentimiento tiene
-          que estar firmado.
+          Coordinación agenda preliminarmente según los horarios y franjas ofrecidas por el profesional
+          y le presenta la propuesta de horario a la persona acompañada.
         </p>
-        <DiagramaCita />
         <Estados
           cadena={[
-            { estado: 'PROGRAMADA', texto: 'Programada' },
-            { estado: 'CONFIRMADA', texto: 'Confirmada' },
-            { estado: 'REALIZADA', texto: 'Realizada' },
+            { estado: 'PROGRAMADA', texto: 'Programada / Propuesta' },
           ]}
         />
         <Flujo
           pasos={[
             {
               quien: 'Coordinación',
-              titulo: 'Agenda fecha y modalidad',
+              titulo: 'Agenda fecha y modalidad preliminar',
               detalle: 'El sistema valida contra lo que el profesional ofreció para este caso y contra su agenda general: cualquiera de las dos deja pasar.',
               desvios: [
                 { tono: 'reloj', titulo: 'Fuera de ambas:', texto: 'el error dice qué ofreció; la casilla de excepción queda en auditoría.' },
@@ -268,13 +267,39 @@ export default function ProcesosPage() {
             },
             {
               quien: 'Coordinación',
+              titulo: 'Propone el horario a la persona',
+              detalle: 'Envía mensaje por WhatsApp con los detalles de fecha y hora propuesta para que la persona confirme su asistencia o solicite ajuste.',
+              desvios: [
+                { tono: 'logro', titulo: 'Al confirmar:', texto: 'el caso pasa inmediatamente a la columna 5 de Citas Confirmadas.' },
+              ],
+            },
+          ]}
+        />
+      </Etapa>
+
+      <Etapa titulo="5 · Citas confirmadas y consentimiento">
+        <p className="proc-intro">
+          La cita ha sido confirmada. La sesión dura 45 minutos y deja 30 de descanso. Antes de empezar, el consentimiento tiene
+          que estar firmado (o heredado si se trata de una reprogramación).
+        </p>
+        <DiagramaCita />
+        <Estados
+          cadena={[
+            { estado: 'CONFIRMADA', texto: 'Confirmada' },
+            { estado: 'REALIZADA', texto: 'Realizada' },
+          ]}
+        />
+        <Flujo
+          pasos={[
+            {
+              quien: 'Coordinación',
               titulo: 'Confirma a los dos por WhatsApp',
-              detalle: 'A la persona: quedó agendada y él la contacta. Al profesional: quedó para tal día, y las tres cosas que debe contar después de la sesión.',
+              detalle: 'A la persona: quedó confirmada y el canal acordado. Al profesional: recordatorio con fecha, canal y pautas de reporte.',
             },
             {
               quien: 'La persona',
               titulo: 'Firma el consentimiento desde su teléfono',
-              detalle: 'Un enlace personal con el consentimiento en 4 puntos cortos. Su nombre tecleado es la firma; si es menor, firma su acudiente. Qué versión aceptó queda en auditoría.',
+              detalle: 'Un enlace personal con el consentimiento en 4 puntos cortos. Su nombre tecleado es la firma; si es menor, firma su acudiente. Al reprogramar, el consentimiento firmado previo se conserva automáticamente.',
               desvios: [
                 { tono: 'logro', titulo: 'Firmado:', texto: 'ya nadie lo edita. Para la firma en papel de una sesión presencial, coordinación sube el escaneo.' },
               ],
@@ -282,13 +307,13 @@ export default function ProcesosPage() {
             {
               quien: 'El día de la sesión',
               titulo: 'La cita termina en uno de cuatro finales',
-              detalle: 'Realizada, no asistió, cancelada con motivo, o reprogramada — al reprogramar la cita no se edita: se cierra y apunta a la nueva.',
+              detalle: 'Realizada, no asistió, cancelada con motivo, o reprogramada — al reprogramar la cita no se edita: se cierra y apunta a la nueva conservando la validez del consentimiento.',
             },
           ]}
         />
       </Etapa>
 
-      <Etapa titulo="5 · Seguimiento y cierre">
+      <Etapa titulo="6 · Seguimiento y cierre">
         <p className="proc-intro">
           El profesional reporta, coordinación lee y decide. Cerrar siempre es un humano con motivo
           — nunca el sistema.

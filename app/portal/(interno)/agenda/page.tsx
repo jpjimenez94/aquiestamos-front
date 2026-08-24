@@ -193,6 +193,8 @@ export default async function AgendaPage({
     const esperandoProfesional = tableroRes.data?.esperandoProfesional ?? []
     const porCuadrarHorario = tableroRes.data?.porCuadrarHorario ?? []
     const citasAbiertas = tableroRes.data?.citasAbiertas ?? []
+    const citasPropuestas = citasAbiertas.filter((c) => c.estado === 'PROGRAMADA')
+    const citasConfirmadas = citasAbiertas.filter((c) => c.estado === 'CONFIRMADA')
     const enAcompanamiento = tableroRes.data?.enAcompanamiento ?? []
     const cerrados = tableroRes.data?.cerrados ?? []
 
@@ -333,20 +335,20 @@ export default async function AgendaPage({
             )}
           </div>
 
-          {/* Columna 4: hay horario sobre la mesa. PROGRAMADA = propuesto a la persona; CONFIRMADA = la persona confirmó. */}
+          {/* Columna 4: Cita propuesta (PROGRAMADA) */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#7c3aed' }} />
-                4. Cita propuesta / confirmada
+                4. Cita propuesta
               </span>
-              <span className="pipeline-columna__contador">{citasAbiertas.length}</span>
+              <span className="pipeline-columna__contador">{citasPropuestas.length}</span>
             </div>
-            {citasAbiertas.length === 0 ? (
-              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin citas programadas</span>
+            {citasPropuestas.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin citas propuestas</span>
             ) : (
-              citasAbiertas.map((c) => (
-                <Link key={c.id} href={`/portal/agenda/${c.id}`} className="pipeline-card">
+              citasPropuestas.map((c) => (
+                <Link key={c.id} href={`/portal/agenda/${c.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #7c3aed' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <strong style={{ fontSize: '0.88rem' }}>{c.paciente.nombre ?? 'Paciente'}</strong>
                     <Etiqueta estado={c.estado} texto={ESTADO_CITA_LABEL[c.estado] ?? c.estado} />
@@ -370,12 +372,49 @@ export default async function AgendaPage({
             )}
           </div>
 
-          {/* Columna 5: En Acompañamiento */}
+          {/* Columna 5: Citas confirmadas (CONFIRMADA) */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <CheckCircle2 size={15} style={{ color: '#059669' }} />
-                5. En acompañamiento / seguimiento
+                5. Citas confirmadas
+              </span>
+              <span className="pipeline-columna__contador">{citasConfirmadas.length}</span>
+            </div>
+            {citasConfirmadas.length === 0 ? (
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin citas confirmadas</span>
+            ) : (
+              citasConfirmadas.map((c) => (
+                <Link key={c.id} href={`/portal/agenda/${c.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #059669' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>{c.paciente.nombre ?? 'Paciente'}</strong>
+                    <Etiqueta estado={c.estado} texto={ESTADO_CITA_LABEL[c.estado] ?? c.estado} />
+                  </div>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    {enBogota(c.inicio)} · {c.profesional.nombre}
+                  </span>
+                  <div style={{ marginTop: 2 }}>
+                    {c.consentSigned ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.74rem', fontWeight: 600 }}>
+                        <FileCheck2 size={13} /> Consentimiento firmado
+                      </span>
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#d97706', fontSize: '0.74rem', fontWeight: 600 }}>
+                        <FileClock size={13} /> Falta consentimiento
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Columna 6: En Acompañamiento */}
+          <div className="pipeline-columna">
+            <div className="pipeline-columna__cabecera">
+              <span className="pipeline-columna__titulo">
+                <UserCheck size={15} style={{ color: '#0284c7' }} />
+                6. En acompañamiento / seguimiento
               </span>
               <span className="pipeline-columna__contador">{enAcompanamiento.length}</span>
             </div>
@@ -393,7 +432,7 @@ export default async function AgendaPage({
             )}
           </div>
 
-          {/* Columna 6: cerrar no es desaparecer. Los últimos, en gris. */}
+          {/* Columna 7: cerrar no es desaparecer. Los últimos, en gris. */}
           <div className="pipeline-columna" style={{ opacity: 0.85 }}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
