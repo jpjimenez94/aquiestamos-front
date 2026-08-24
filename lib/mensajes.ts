@@ -561,6 +561,42 @@ export function mensajeDeConsentimiento(d: {
 }
 
 /**
+ * DOCUMENTOS · Al profesional: comparte tu tarjeta o tu certificado.
+ *
+ * Vivía duplicado en dos componentes, en un solo párrafo sin aire y con un
+ * emoji que llegaba roto. Tres variantes según lo que se sabe del perfil;
+ * el porqué va primero (es un requisito legal, no un capricho) y el qué en
+ * viñetas con negrita, para responderse con una foto sin releer nada.
+ */
+export function mensajeDePedirDocumentos(d: {
+  profesional: string
+  tipo?: 'general' | 'graduado' | 'estudiante'
+}): string {
+  const nombre = nombreDePila(d.profesional) || 'hola'
+
+  const pedido =
+    d.tipo === 'graduado'
+      ? ['· Tu *número de tarjeta profesional* y una foto o PDF del soporte.']
+      : d.tipo === 'estudiante'
+        ? ['· Tu *certificado de estudios*, constancia de matrícula de últimos semestres o carné estudiantil vigente.']
+        : [
+            '· Si ya eres graduado/a: foto o PDF de tu *tarjeta profesional*.',
+            '· Si estás en formación: tu *certificado de estudios* o constancia de matrícula de últimos semestres.',
+          ]
+
+  return [
+    `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
+    '',
+    'Para poder asignarte acompañamientos nos falta un documento de tu perfil. Es un requisito legal del acompañamiento psicológico:',
+    ...pedido,
+    '',
+    'Nos lo puedes mandar respondiendo a este mensaje. Solo lo ve el equipo de la red y se guarda en un almacenamiento privado.',
+    '',
+    'Gracias por tu tiempo.',
+  ].join('\n')
+}
+
+/**
  * CIERRE · A la persona: la encuesta breve, opcional de verdad.
  *
  * Mismos lineamientos que todo mensaje a la persona: nombre de pila, sin

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { paraWhatsapp } from '@/lib/telefono'
+import { mensajeDePedirDocumentos } from '@/lib/mensajes'
 import { DocumentoPrivado } from './DocumentoPrivado'
 import {
   ShieldCheck,
@@ -59,13 +60,12 @@ export function ModalTarjetaProfesional({
 
   if (!abierto) return null
 
-  const mensajes = {
-    general: `¡Hola ${profesionalNombre}! Te saludamos de la coordinación de la Red Aquí Estamos 💚. Para poder asignarte casos de acompañamiento y cumplir con los requisitos legales del voluntariado, necesitamos que por favor nos compartas foto o PDF de tu Tarjeta Profesional (si ya eres graduado/a) o tu Certificado de estudios / constancia de matrícula de últimos semestres (si estás en formación). Puedes enviárnoslo respondiendo a este mensaje. ¡Muchas gracias por tu valioso apoyo voluntario!`,
-    graduado: `¡Hola ${profesionalNombre}! Te saludamos de la coordinación de la Red Aquí Estamos 💚. Para poder agendarte casos de acompañamiento y cumplir con los requisitos legales de atención psicológica, necesitamos que por favor nos compartas tu número de Tarjeta Profesional y una foto o archivo PDF del soporte. Puedes enviárnosla respondiendo a este mensaje. ¡Muchas gracias por tu valioso apoyo voluntario!`,
-    estudiante: `¡Hola ${profesionalNombre}! Te saludamos de la coordinación de la Red Aquí Estamos 💚. Para poder asignarte casos de acompañamiento y validar tu perfil en formación, necesitamos que por favor nos compartas tu certificado de estudios, constancia de matrícula de últimos semestres o carné estudiantil vigente. Puedes enviárnoslo respondiendo a este mensaje. ¡Muchas gracias por tu valioso apoyo voluntario!`,
-  }
-
-  const mensajeWhatsApp = mensajes[tipoPerfil]
+  // El texto vive en lib/mensajes.ts con todos los demás: con saltos de
+  // línea, negrita donde el ojo debe caer y sin emojis (llegaban rotos).
+  const mensajeWhatsApp = mensajeDePedirDocumentos({
+    profesional: profesionalNombre,
+    tipo: tipoPerfil,
+  })
 
   // El indicativo lo decide `paraWhatsapp`: pegarle 57 a lo que no empiece por
   // 57 rompe cualquier número extranjero.
