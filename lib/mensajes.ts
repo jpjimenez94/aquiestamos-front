@@ -561,6 +561,31 @@ export function mensajeDeConsentimiento(d: {
 }
 
 /**
+ * CIERRE · A la persona: la encuesta breve, opcional de verdad.
+ *
+ * Mismos lineamientos que todo mensaje a la persona: nombre de pila, sin
+ * emojis, negrita solo donde el ojo debe caer, línea de crisis al final. Y
+ * un cuidado extra: deja claro que no responder no tiene consecuencia — una
+ * encuesta que se siente obligatoria, en este contexto, es una carga más.
+ */
+export function mensajeDeEncuesta(d: { persona: string; enlace: string }): string {
+  const nombre = nombreDePila(d.persona) || 'hola'
+
+  return [
+    `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
+    '',
+    'Tu acompañamiento quedó cerrado. Gracias por confiar en la red: fue un gusto estar contigo en esto.',
+    '',
+    'Si quieres, cuéntanos cómo te fue. Son *dos preguntas*, toma menos de un minuto y nos ayuda a acompañar mejor a quien viene después:',
+    d.enlace,
+    '',
+    'Es completamente opcional: si no la respondes, no pasa nada. Y si más adelante vuelves a necesitarnos, aquí estamos.',
+    '',
+    LINEA_DE_CRISIS,
+  ].join('\n')
+}
+
+/**
  * SEGUIMIENTO · Al profesional, sobre su caso.
  *
  * Vivía suelto en un componente, con emoji, y con el nombre y el TELÉFONO de

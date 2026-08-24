@@ -5,6 +5,7 @@ import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
+import { BotonEncuesta } from './BotonEncuesta'
 import { nombrePropio } from '@/lib/nombre'
 
 /**
@@ -37,6 +38,13 @@ type Persona = {
   asignacion: Asignacion | null
   reportes: Reporte[]
   citas: CitaDeLaPersona[]
+  encuesta: {
+    enlace: string
+    respondida: boolean
+    ayudo: 'SI' | 'ALGO' | 'NO' | null
+    recomendaria: boolean | null
+    comentario: string | null
+  } | null
 }
 
 type CitaDeLaPersona = {
@@ -160,6 +168,27 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             El acompañamiento terminó; el motivo quedó en la auditoría. Si esta persona vuelve a
             necesitar la red, lo indicado es una solicitud nueva.
           </p>
+          {persona.encuesta?.respondida ? (
+            <div className="caso-horarios" style={{ marginTop: 12 }}>
+              <strong>Lo que respondió en la encuesta:</strong>
+              <span>
+                {persona.encuesta.ayudo === 'SI'
+                  ? 'Le sirvió'
+                  : persona.encuesta.ayudo === 'ALGO'
+                    ? 'Algo le sirvió'
+                    : 'No le sirvió'}
+                {' · '}
+                {persona.encuesta.recomendaria ? 'lo recomendaría' : 'no lo recomendaría'}
+              </span>
+              {persona.encuesta.comentario ? <em>{persona.encuesta.comentario}</em> : null}
+            </div>
+          ) : persona.encuesta ? (
+            <BotonEncuesta
+              persona={persona.fullName}
+              telefono={persona.phone}
+              enlace={persona.encuesta.enlace}
+            />
+          ) : null}
         </div>
       ) : (
         <PanelEmparejamiento personaId={persona.id} />

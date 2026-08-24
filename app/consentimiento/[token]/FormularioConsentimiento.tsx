@@ -9,12 +9,24 @@ import { firmarConsentimientoAction } from './actions'
  * después qué aceptó exactamente quien firmó en agosto si el texto cambia en
  * noviembre — misma regla que la autorización de datos.
  */
-const VERSION = 'sesion-2026-08'
+const VERSION = 'sesion-2026-08-2'
 
 /**
  * El texto del consentimiento, punto por punto y en el idioma de la red: sin
  * párrafos de contrato que nadie lee. Cada punto es una frase que la persona
  * puede entender desde el teléfono y con poca cabeza.
+ */
+/**
+ * Versión sesion-2026-08-2 — revisada contra el marco colombiano:
+ *   · Ley 1090/2006 (secreto profesional del psicólogo y sus excepciones,
+ *     consentimiento informado) y Ley 1616/2013 (derechos en salud mental).
+ *   · Ley 1581/2012 y Decreto 1377/2013: los datos de salud son SENSIBLES y
+ *     su autorización debe ser explícita, informando que no es obligatoria.
+ *   · La confidencialidad tiene DOS límites legales, no uno: el riesgo serio
+ *     y el requerimiento formal de autoridad competente. Decir «un solo
+ *     límite» era jurídicamente impreciso.
+ * Cambios de texto = versión nueva, nunca editar esta: cada firma guarda la
+ * versión exacta que la persona aceptó.
  */
 const PUNTOS = [
   {
@@ -25,7 +37,7 @@ const PUNTOS = [
   {
     titulo: 'Confidencialidad',
     texto:
-      'Lo que hables en la sesión es confidencial. Tiene un solo límite, y es por tu protección: si hay riesgo serio para tu vida o la de otra persona, el profesional puede activar ayuda.',
+      'Lo que hables en la sesión es confidencial y está protegido por el secreto profesional. Solo tiene dos límites, ambos previstos por la ley: si hay riesgo serio para tu vida o la de otra persona, el profesional puede activar ayuda; y si una autoridad competente lo exige formalmente.',
   },
   {
     titulo: 'Es voluntario',
@@ -35,7 +47,12 @@ const PUNTOS = [
   {
     titulo: 'Tus datos',
     texto:
-      'Usamos tus datos solo para coordinar el acompañamiento, como dice nuestra política de datos. La red no guarda historia clínica de tus sesiones.',
+      'Tus datos de salud son sensibles según la ley colombiana y no estás obligado a autorizar su uso; si aceptas, los usamos solo para coordinar tu acompañamiento, como dice nuestra política de datos. Puedes pedir verlos, corregirlos o eliminarlos cuando quieras. La red no guarda historia clínica de tus sesiones.',
+  },
+  {
+    titulo: 'Tu firma',
+    texto:
+      'Al escribir tu nombre y aceptar, queda registrado qué versión de este texto aceptaste y cuándo. Si algo no te queda claro, pregúntanos por WhatsApp antes de firmar: con gusto te lo explicamos.',
   },
 ]
 

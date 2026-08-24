@@ -473,3 +473,19 @@ describe('formato de WhatsApp', () => {
     ).toContain('*Cuándo:* lunes 3 pm')
   })
 })
+
+describe('mensaje de la encuesta del cierre', () => {
+  it('agradece, deja claro que es opcional y lleva la línea de crisis', async () => {
+    const { mensajeDeEncuesta } = await import('../lib/mensajes')
+    const texto = mensajeDeEncuesta({
+      persona: 'camilo torres',
+      enlace: 'https://redaquiestamos.org/encuesta/abc',
+    })
+    expect(texto).toContain('Hola Camilo')
+    expect(texto).toContain('*dos preguntas*')
+    expect(texto).toContain('si no la respondes, no pasa nada')
+    expect(texto).toContain('/encuesta/abc')
+    expect(texto).toContain('123')
+    expect(texto).toContain('106')
+  })
+})
