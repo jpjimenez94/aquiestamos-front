@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   BookOpen,
+  BarChart3,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
@@ -113,6 +114,13 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Auditoría",
         icono: <ScrollText size={17} />,
         permiso: "auditoria:leer",
+      },
+      {
+        // Solo ADMIN y LECTURA: el permiso lo decide, y AGENDADOR no lo tiene.
+        href: "/portal/metricas",
+        texto: "Métricas",
+        icono: <BarChart3 size={17} />,
+        permiso: "metricas:leer",
       },
     ],
   },
