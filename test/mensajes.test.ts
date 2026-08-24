@@ -545,6 +545,7 @@ describe('mensajeDeCitaConfirmadaAlProfesional (Paso 10)', () => {
     expect(texto).toContain('*Canal preferido de la persona:* WhatsApp')
     expect(texto).toContain('*Consentimiento informado:* Firmado por la persona')
     expect(texto).toContain('Tú das el primer paso')
+    expect(texto).toContain('unos *15 minutos antes* de la cita')
     expect(texto).toContain('Compromiso y puntualidad')
     expect(texto).toContain('https://redaquiestamos.org/portal/caso/p-123')
     expect(texto).toContain('confirmando que lo recibiste')
@@ -561,7 +562,7 @@ describe('mensajeDeCitaConfirmadaAlProfesional (Paso 10)', () => {
       enlace: 'https://redaquiestamos.org/portal/caso/p-456',
     })
     expect(llamada).toContain('*Canal preferido de la persona:* llamada telefónica')
-    expect(llamada).toContain('por llamada telefónica para iniciar la sesión')
+    expect(llamada).toContain('por llamada telefónica unos *15 minutos antes*')
 
     const correo = mensajeDeCitaConfirmadaAlProfesional({
       profesional: 'Laura',
@@ -571,7 +572,30 @@ describe('mensajeDeCitaConfirmadaAlProfesional (Paso 10)', () => {
       enlace: 'https://redaquiestamos.org/portal/caso/p-456',
     })
     expect(correo).toContain('*Canal preferido de la persona:* correo electrónico')
-    expect(correo).toContain('por correo electrónico para iniciar la sesión')
+    expect(correo).toContain('por correo electrónico unos *15 minutos antes*')
   })
 })
+
+describe('mensajeDeConsentimientoFirmadoALaPersona (Paso 9b)', () => {
+  it('confirma a la persona que el consentimiento fue recibido y que la contactarán 15 min antes', async () => {
+    const { mensajeDeConsentimientoFirmadoALaPersona } = await import('../lib/mensajes')
+    const texto = mensajeDeConsentimientoFirmadoALaPersona({
+      persona: 'Pierangely',
+      profesional: 'Andrés Gómez',
+      cuando: 'lunes, 24 de agosto a las 3:00 p. m.',
+      modalidad: 'PRESENCIAL',
+    })
+
+    expect(texto).toContain('Hola Pierangely')
+    expect(texto).toContain('confirmamos que recibimos tu consentimiento informado firmado')
+    expect(texto).toContain('*Con:* Andrés Gómez')
+    expect(texto).toContain('*Cuándo:* lunes, 24 de agosto a las 3:00 p. m.')
+    expect(texto).toContain('*Modalidad:* presencial')
+    expect(texto).toContain('Andrés se pondrá en contacto contigo unos *15 minutos antes*')
+    expect(texto).toContain('123')
+    expect(texto).toContain('106')
+    expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
+  })
+})
+
 

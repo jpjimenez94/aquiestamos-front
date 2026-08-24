@@ -808,7 +808,7 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
     '· *Consentimiento informado:* Firmado por la persona',
     '',
     '*Tu responsabilidad en este acompañamiento:*',
-    `1. Tú das el primer paso: ponte en contacto con ella por ${canal} para iniciar la sesión en la fecha y hora acordadas. Ella ya sabe que la vas a contactar.`,
+    `1. Tú das el primer paso: ponte en contacto con ella por ${canal} unos *15 minutos antes* de la cita para coordinar el inicio de la sesión en la fecha y hora acordadas. Ella ya sabe que la vas a contactar.`,
     '2. Compromiso y puntualidad: la persona te está esperando. Si te surge un imprevisto de fuerza mayor, avísanos de inmediato por aquí para no dejarla esperando y poder reagendar a tiempo.',
     '',
     'Los datos de contacto y la información del caso están en tu enlace seguro:',
@@ -823,4 +823,39 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
     .filter((l) => l !== null)
     .join('\n')
 }
+
+/**
+ * CONFIRMACIÓN · A la persona: recibimos tu consentimiento informado firmado.
+ *
+ * Se le confirma que todo está listo para su sesión y que el profesional la contactará
+ * unos 15 minutos antes de la hora pactada.
+ */
+export function mensajeDeConsentimientoFirmadoALaPersona(d: {
+  persona: string
+  profesional: string
+  cuando: string
+  modalidad?: string | null
+}): string {
+  const nombrePers = nombreDePila(d.persona) || 'hola'
+  const nombreProf = nombreDePila(d.profesional) || 'el profesional'
+  const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+
+  return [
+    `Hola ${nombrePers}, confirmamos que recibimos tu consentimiento informado firmado.`,
+    '',
+    'Todo está listo para tu acompañamiento:',
+    `· *Con:* ${d.profesional}`,
+    `· *Cuándo:* ${d.cuando}`,
+    modalidad ? `· *Modalidad:* ${modalidad}` : null,
+    '',
+    `${nombreProf} se pondrá en contacto contigo unos *15 minutos antes* de la hora acordada para iniciar la sesión. No tienes que hacer nada más.`,
+    '',
+    'Si te surge alguna duda o necesitas mover el horario, escríbenos por aquí con tiempo.',
+    '',
+    LINEA_DE_CRISIS,
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
 

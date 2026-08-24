@@ -5,6 +5,7 @@ import { Copy, Check, MessageSquare } from 'lucide-react'
 import {
   mensajeDeCitaConfirmada,
   mensajeDeConsentimiento,
+  mensajeDeConsentimientoFirmadoALaPersona,
   mensajeDeCitaConfirmadaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
@@ -53,6 +54,13 @@ export function MensajesFlujoCita({
       })
     : null
 
+  const mensajeConsentimientoRecibido = mensajeDeConsentimientoFirmadoALaPersona({
+    persona: pacienteNombre,
+    profesional: profesionalNombre,
+    cuando: fechaHoraBogota,
+    modalidad,
+  })
+
   const mensajeProfesional = mensajeDeCitaConfirmadaAlProfesional({
     profesional: profesionalNombre,
     persona: pacienteNombre,
@@ -67,15 +75,22 @@ export function MensajesFlujoCita({
       <div className="panel">
         <h2>Mensajes para la persona</h2>
         <p className="panel__nota">
-          Confirmarle la cita y pedirle la firma del consentimiento. Van por WhatsApp, como todo.
+          Confirmarle la cita y gestionar la firma del consentimiento. Van por WhatsApp, como todo.
         </p>
 
         <Mensaje titulo="Paso 8 · Confirmarle la cita" telefono={pacienteTelefono} texto={mensajeConfirmacion} />
 
         {consentimientoFirmado ? (
-          <p className="panel__nota" style={{ marginTop: 14, color: 'var(--color-green, #059669)', fontWeight: 500 }}>
-            ✓ Paso 9 · El consentimiento ya está firmado: no hay nada que pedir.
-          </p>
+          <div style={{ marginTop: 14 }}>
+            <p className="panel__nota" style={{ color: 'var(--color-green, #059669)', fontWeight: 500, margin: '0 0 8px' }}>
+              ✓ Paso 9 · El consentimiento ya está firmado.
+            </p>
+            <Mensaje
+              titulo="Paso 9b · Confirmación de consentimiento recibido a la persona"
+              telefono={pacienteTelefono}
+              texto={mensajeConsentimientoRecibido}
+            />
+          </div>
         ) : mensajeFirma ? (
           <Mensaje
             titulo="Paso 9 · Pedirle la firma del consentimiento"
