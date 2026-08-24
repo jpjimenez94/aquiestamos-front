@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, X, UserCheck, Calendar, MessageSquare } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, UserCheck, Calendar, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { BotonSeguimientoWhatsApp } from './BotonSeguimientoWhatsApp'
 import { BotonEliminarPersona } from './BotonEliminarPersona'
@@ -75,6 +75,20 @@ type ColumnaOrden =
 
 type Direccion = 'asc' | 'desc'
 
+const estiloInputFiltro: React.CSSProperties = {
+  width: '100%',
+  padding: '5px 8px',
+  fontSize: '0.74rem',
+  border: '1px solid var(--color-border-default, #cbd5e1)',
+  borderRadius: '6px',
+  backgroundColor: '#ffffff',
+  color: 'var(--color-text-main, #1e293b)',
+  outline: 'none',
+  boxSizing: 'border-box',
+  minHeight: '28px',
+  fontWeight: 'normal',
+}
+
 export function TablaPersonas({
   personas,
   enlaceDelSitio,
@@ -84,12 +98,13 @@ export function TablaPersonas({
   enlaceDelSitio: string
   puedeBorrar?: boolean
 }) {
-  const [busqueda, setBusqueda] = useState('')
-  const [filtroEstado, setFiltroEstado] = useState('')
-  const [filtroPrioridad, setFiltroPrioridad] = useState('')
-  const [filtroAsignacion, setFiltroAsignacion] = useState('')
+  const [filtroPersona, setFiltroPersona] = useState('')
+  const [filtroProfesional, setFiltroProfesional] = useState('')
   const [filtroCita, setFiltroCita] = useState('')
-  const [filtroModalidad, setFiltroModalidad] = useState('')
+  const [filtroComentarios, setFiltroComentarios] = useState('')
+  const [filtroCiudad, setFiltroCiudad] = useState('')
+  const [filtroPrioridad, setFiltroPrioridad] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('')
 
   const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('esperando')
   const [direccion, setDireccion] = useState<Direccion>('desc')
@@ -104,56 +119,64 @@ export function TablaPersonas({
   }
 
   const hayFiltros = Boolean(
-    busqueda.trim() ||
-      filtroEstado ||
-      filtroPrioridad ||
-      filtroAsignacion ||
+    filtroPersona.trim() ||
+      filtroProfesional.trim() ||
       filtroCita ||
-      filtroModalidad,
+      filtroComentarios.trim() ||
+      filtroCiudad.trim() ||
+      filtroPrioridad ||
+      filtroEstado,
   )
 
   function limpiarFiltros() {
-    setBusqueda('')
-    setFiltroEstado('')
-    setFiltroPrioridad('')
-    setFiltroAsignacion('')
+    setFiltroPersona('')
+    setFiltroProfesional('')
     setFiltroCita('')
-    setFiltroModalidad('')
+    setFiltroComentarios('')
+    setFiltroCiudad('')
+    setFiltroPrioridad('')
+    setFiltroEstado('')
   }
 
   const listaFiltrada = useMemo(() => {
     return personas.filter((p) => {
-      if (busqueda.trim()) {
-        const q = busqueda.toLowerCase().trim()
+      if (filtroPersona.trim()) {
+        const q = filtroPersona.toLowerCase().trim()
         const matchNombre = p.fullName.toLowerCase().includes(q)
         const matchTelefono = p.phone?.includes(q)
-        const matchCiudad = p.city?.toLowerCase().includes(q)
-        const matchProfesional = p.asignacion?.profesional?.nombre?.toLowerCase().includes(q)
-        const matchNotas = p.comentarios?.toLowerCase().includes(q) || p.cita?.notas?.toLowerCase().includes(q)
-        if (!matchNombre && !matchTelefono && !matchCiudad && !matchProfesional && !matchNotas) {
-          return false
-        }
+        if (!matchNombre && !matchTelefono) return false
       }
 
-      if (filtroEstado && p.status !== filtroEstado) {
-        return false
+      if (filtroProfesional.trim()) {
+        const q = filtroProfesional.toLowerCase().trim()
+        const matchProf = p.asignacion?.profesional?.nombre?.toLowerCase().includes(q)
+        if (!matchProf) return false
+      }
+
+      if (filtroCita) {
+        if (filtroCita === 'CON_CITA' && !p.cita) return false
+        if (filtroCita === 'SIN_CITA' && p.cita) return false
+        if (filtroCita === 'PROGRAMADA' && p.cita?.estado !== 'PROGRAMADA') return false
+        if (filtroCita === 'CONFIRMADA' && p.cita?.estado !== 'CONFIRMADA') return false
+        if (filtroCita === 'REALIZADA' && p.cita?.estado !== 'REALIZADA') return false
+      }
+
+      if (filtroComentarios.trim()) {
+        const q = filtroComentarios.toLowerCase().trim()
+        const notas = (p.comentarios || p.cita?.notas || p.asignacion?.notaDisponibilidad || '').toLowerCase()
+        if (!notas.includes(q)) return false
+      }
+
+      if (filtroCiudad.trim()) {
+        const q = filtroCiudad.toLowerCase().trim()
+        if (!p.city?.toLowerCase().includes(q)) return false
       }
 
       if (filtroPrioridad && p.priority !== filtroPrioridad) {
         return false
       }
 
-      if (filtroAsignacion) {
-        if (filtroAsignacion === 'ASIGNADO' && !p.asignacion?.profesional) return false
-        if (filtroAsignacion === 'SIN_ASIGNAR' && p.asignacion?.profesional) return false
-      }
-
-      if (filtroCita) {
-        if (filtroCita === 'CON_CITA' && !p.cita) return false
-        if (filtroCita === 'SIN_CITA' && p.cita) return false
-      }
-
-      if (filtroModalidad && p.preferredModality !== filtroModalidad) {
+      if (filtroEstado && p.status !== filtroEstado) {
         return false
       }
 
@@ -161,12 +184,13 @@ export function TablaPersonas({
     })
   }, [
     personas,
-    busqueda,
-    filtroEstado,
-    filtroPrioridad,
-    filtroAsignacion,
+    filtroPersona,
+    filtroProfesional,
     filtroCita,
-    filtroModalidad,
+    filtroComentarios,
+    filtroCiudad,
+    filtroPrioridad,
+    filtroEstado,
   ])
 
   const listaOrdenada = useMemo(() => {
@@ -215,7 +239,7 @@ export function TablaPersonas({
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
-      return <ArrowUpDown size={12} style={{ opacity: 0.4, marginLeft: 4 }} />
+      return <ArrowUpDown size={12} style={{ opacity: 0.35, marginLeft: 4 }} />
     }
     return direccion === 'asc' ? (
       <ArrowUp size={12} style={{ color: 'var(--color-primary, #059669)', marginLeft: 4 }} />
@@ -226,213 +250,221 @@ export function TablaPersonas({
 
   return (
     <>
-      <div
-        className="filtros"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 8,
-          marginBottom: 16,
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ position: 'relative', minWidth: 220, flex: '1 1 220px' }}>
-          <input
-            className="input"
-            type="text"
-            placeholder="Buscar por nombre, teléfono, ciudad, profesional, notas..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: '100%', paddingLeft: 30 }}
-          />
-          <Search
-            size={14}
-            style={{
-              position: 'absolute',
-              left: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              opacity: 0.5,
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-
-        <select
-          className="input"
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          style={{ minWidth: 140 }}
-        >
-          <option value="">Todos los estados</option>
-          <option value="NUEVO">Nuevo</option>
-          <option value="EN_ADMISION">En admisión</option>
-          <option value="ASIGNADO">Asignado</option>
-          <option value="EN_ACOMPANAMIENTO">En acompañamiento</option>
-          <option value="CERRADO">Cerrado</option>
-        </select>
-
-        <select
-          className="input"
-          value={filtroPrioridad}
-          onChange={(e) => setFiltroPrioridad(e.target.value)}
-          style={{ minWidth: 120 }}
-        >
-          <option value="">Prioridad</option>
-          <option value="ALTA">Alta</option>
-          <option value="MEDIA">Media</option>
-          <option value="BAJA">Baja</option>
-        </select>
-
-        <select
-          className="input"
-          value={filtroAsignacion}
-          onChange={(e) => setFiltroAsignacion(e.target.value)}
-          style={{ minWidth: 140 }}
-        >
-          <option value="">Asignación</option>
-          <option value="ASIGNADO">Con profesional</option>
-          <option value="SIN_ASIGNAR">Sin asignar</option>
-        </select>
-
-        <select
-          className="input"
-          value={filtroCita}
-          onChange={(e) => setFiltroCita(e.target.value)}
-          style={{ minWidth: 130 }}
-        >
-          <option value="">Cita en agenda</option>
-          <option value="CON_CITA">Con cita</option>
-          <option value="SIN_CITA">Sin cita</option>
-        </select>
-
-        <select
-          className="input"
-          value={filtroModalidad}
-          onChange={(e) => setFiltroModalidad(e.target.value)}
-          style={{ minWidth: 130 }}
-        >
-          <option value="">Modalidad</option>
-          <option value="PRESENCIAL">Presencial</option>
-          <option value="VIRTUAL">Virtual</option>
-          <option value="INDIFERENTE">Indiferente</option>
-        </select>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <p className="panel__nota" style={{ margin: 0, fontSize: '0.82rem' }}>
+          <strong>{listaOrdenada.length}</strong> {listaOrdenada.length === 1 ? 'persona' : 'personas'}
+          {hayFiltros ? ` (filtrado de ${personas.length} en total)` : ''}
+        </p>
 
         {hayFiltros ? (
           <button
             type="button"
             className="boton-mini"
             onClick={limpiarFiltros}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.76rem' }}
           >
-            <X size={13} />
-            Limpiar filtros
+            <RotateCcw size={12} />
+            Restablecer filtros
           </button>
         ) : null}
       </div>
 
-      <p className="panel__nota" style={{ margin: '0 0 10px', fontSize: '0.8rem' }}>
-        {listaOrdenada.length} {listaOrdenada.length === 1 ? 'persona' : 'personas'}
-        {hayFiltros ? ` de ${personas.length} registradas` : ''}
-      </p>
+      <div className="tabla-envoltorio">
+        <table className="tabla">
+          <thead>
+            <tr>
+              <th
+                onClick={() => alternarOrden('persona')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '18%' }}
+                title="Ordenar por Persona"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Persona Acompañada
+                  <IconoOrden col="persona" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('profesional')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
+                title="Ordenar por Profesional"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Profesional Asignado
+                  <IconoOrden col="profesional" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('cita')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
+                title="Ordenar por Cita en Agenda"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Cita en Agenda
+                  <IconoOrden col="cita" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('comentarios')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
+                title="Ordenar por Comentarios / Notas"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Comentarios y Notas
+                  <IconoOrden col="comentarios" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('ciudad')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}
+                title="Ordenar por Ciudad"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Ciudad
+                  <IconoOrden col="ciudad" />
+                </span>
+              </th>
+              <th style={{ width: '8%' }}>Disponibilidad</th>
+              <th
+                onClick={() => alternarOrden('esperando')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '8%' }}
+                title="Ordenar por Tiempo de espera"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Esperando
+                  <IconoOrden col="esperando" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('prioridad')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '7%' }}
+                title="Ordenar por Prioridad"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Prioridad
+                  <IconoOrden col="prioridad" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('estado')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '8%' }}
+                title="Ordenar por Estado"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Estado
+                  <IconoOrden col="estado" />
+                </span>
+              </th>
+              <th style={{ width: puedeBorrar ? '10%' : '7%', textAlign: 'right' }}>Acciones</th>
+            </tr>
 
-      {listaOrdenada.length === 0 ? (
-        <Vacio>
-          {hayFiltros
-            ? 'Ninguna persona coincide con los filtros aplicados.'
-            : 'Todavía no hay personas admitidas.'}
-        </Vacio>
-      ) : (
-        <div className="tabla-envoltorio">
-          <table className="tabla">
-            <thead>
+            {/* Fila de filtros por columna */}
+            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+              <th style={{ padding: '6px 6px' }}>
+                <input
+                  type="text"
+                  placeholder="Nombre/teléfono..."
+                  value={filtroPersona}
+                  onChange={(e) => setFiltroPersona(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <input
+                  type="text"
+                  placeholder="Profesional..."
+                  value={filtroProfesional}
+                  onChange={(e) => setFiltroProfesional(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <select
+                  value={filtroCita}
+                  onChange={(e) => setFiltroCita(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todas</option>
+                  <option value="CON_CITA">Con cita</option>
+                  <option value="SIN_CITA">Sin cita</option>
+                  <option value="PROGRAMADA">Programada</option>
+                  <option value="CONFIRMADA">Confirmada</option>
+                  <option value="REALIZADA">Realizada</option>
+                </select>
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <input
+                  type="text"
+                  placeholder="Filtrar notas..."
+                  value={filtroComentarios}
+                  onChange={(e) => setFiltroComentarios(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <input
+                  type="text"
+                  placeholder="Ciudad..."
+                  value={filtroCiudad}
+                  onChange={(e) => setFiltroCiudad(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 6px' }} />
+              <th style={{ padding: '6px 6px' }} />
+              <th style={{ padding: '6px 6px' }}>
+                <select
+                  value={filtroPrioridad}
+                  onChange={(e) => setFiltroPrioridad(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todas</option>
+                  <option value="ALTA">Alta</option>
+                  <option value="MEDIA">Media</option>
+                  <option value="BAJA">Baja</option>
+                </select>
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <select
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todos</option>
+                  <option value="NUEVO">Nuevo</option>
+                  <option value="EN_ADMISION">En admisión</option>
+                  <option value="ASIGNADO">Asignado</option>
+                  <option value="EN_ACOMPANAMIENTO">Acompañamiento</option>
+                  <option value="CERRADO">Cerrado</option>
+                </select>
+              </th>
+              <th style={{ padding: '6px 6px', textAlign: 'right' }}>
+                {hayFiltros ? (
+                  <button
+                    type="button"
+                    onClick={limpiarFiltros}
+                    className="boton-mini"
+                    style={{ padding: '4px 6px', color: 'var(--color-red, #dc2626)' }}
+                    title="Limpiar filtros"
+                  >
+                    <X size={13} />
+                  </button>
+                ) : null}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {listaOrdenada.length === 0 ? (
               <tr>
-                <th
-                  onClick={() => alternarOrden('persona')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Persona"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Persona Acompañada
-                    <IconoOrden col="persona" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('profesional')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Profesional"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Profesional Asignado
-                    <IconoOrden col="profesional" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('cita')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Cita en Agenda"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Cita en Agenda
-                    <IconoOrden col="cita" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('comentarios')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Comentarios / Notas"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Comentarios y Notas
-                    <IconoOrden col="comentarios" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('ciudad')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Ciudad"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Ciudad
-                    <IconoOrden col="ciudad" />
-                  </span>
-                </th>
-                <th>Disponibilidad</th>
-                <th
-                  onClick={() => alternarOrden('esperando')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Tiempo de espera"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Esperando
-                    <IconoOrden col="esperando" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('prioridad')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Prioridad"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Prioridad
-                    <IconoOrden col="prioridad" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('estado')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Estado"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Estado
-                    <IconoOrden col="estado" />
-                  </span>
-                </th>
-                <th style={{ textAlign: 'right' }}>Acciones</th>
+                <td colSpan={10} style={{ textAlign: 'center', padding: 24 }}>
+                  <Vacio>
+                    {hayFiltros
+                      ? 'Ninguna persona coincide con los filtros de columna aplicados.'
+                      : 'Todavía no hay personas admitidas.'}
+                  </Vacio>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {listaOrdenada.map((p) => {
+            ) : (
+              listaOrdenada.map((p) => {
                 const cita = p.cita
                 const comentarios = p.comentarios || cita?.notas || p.asignacion?.notaDisponibilidad
 
@@ -578,11 +610,11 @@ export function TablaPersonas({
                     </td>
                   </tr>
                 )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </>
   )
 }

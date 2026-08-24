@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, X } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { enBogota } from '@/lib/fechas'
 import { Vacio } from '../componentes'
 
@@ -18,6 +18,20 @@ export type EntradaAuditoria = {
 type ColumnaOrden = 'fecha' | 'actor' | 'accion' | 'entidad' | 'ip'
 type Direccion = 'asc' | 'desc'
 
+const estiloInputFiltro: React.CSSProperties = {
+  width: '100%',
+  padding: '5px 8px',
+  fontSize: '0.74rem',
+  border: '1px solid var(--color-border-default, #cbd5e1)',
+  borderRadius: '6px',
+  backgroundColor: '#ffffff',
+  color: 'var(--color-text-main, #1e293b)',
+  outline: 'none',
+  boxSizing: 'border-box',
+  minHeight: '28px',
+  fontWeight: 'normal',
+}
+
 export function TablaAuditoria({
   entradas,
   modulos,
@@ -27,9 +41,11 @@ export function TablaAuditoria({
   modulos: { value: string; label: string }[]
   accionMap: Record<string, string>
 }) {
-  const [busqueda, setBusqueda] = useState('')
+  const [filtroFecha, setFiltroFecha] = useState('')
+  const [filtroActor, setFiltroActor] = useState('')
   const [filtroAccion, setFiltroAccion] = useState('')
   const [filtroModulo, setFiltroModulo] = useState('')
+  const [filtroIp, setFiltroIp] = useState('')
 
   const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('fecha')
   const [direccion, setDireccion] = useState<Direccion>('desc')
@@ -43,12 +59,20 @@ export function TablaAuditoria({
     }
   }
 
-  const hayFiltrosEnPagina = Boolean(busqueda.trim() || filtroAccion || filtroModulo)
+  const hayFiltrosEnPagina = Boolean(
+    filtroFecha.trim() ||
+      filtroActor.trim() ||
+      filtroAccion ||
+      filtroModulo ||
+      filtroIp.trim(),
+  )
 
   function limpiarFiltrosEnPagina() {
-    setBusqueda('')
+    setFiltroFecha('')
+    setFiltroActor('')
     setFiltroAccion('')
     setFiltroModulo('')
+    setFiltroIp('')
   }
 
   const moduloLabelMap = useMemo(() => {
@@ -61,40 +85,34 @@ export function TablaAuditoria({
 
   const listaFiltrada = useMemo(() => {
     return entradas.filter((e) => {
-      if (busqueda.trim()) {
-        const q = busqueda.toLowerCase().trim()
-        const matchActor = (e.actor || 'el sistema sin cuenta').toLowerCase().includes(q)
-        const accionTexto = (accionMap[e.accion] ?? e.accion).toLowerCase()
-        const matchAccion = accionTexto.includes(q)
-        const moduloTexto = (moduloLabelMap.get(e.entidad) ?? e.entidad).toLowerCase()
-        const matchModulo = moduloTexto.includes(q)
-        const matchEntidadId = (e.entidadId || '').toLowerCase().includes(q)
-        const matchIp = (e.ip || '').toLowerCase().includes(q)
+      if (filtroFecha.trim()) {
+        const q = filtroFecha.toLowerCase().trim()
         const matchFecha = enBogota(e.fecha).toLowerCase().includes(q)
+        if (!matchFecha) return false
+      }
 
-        if (
-          !matchActor &&
-          !matchAccion &&
-          !matchModulo &&
-          !matchEntidadId &&
-          !matchIp &&
-          !matchFecha
-        ) {
-          return false
-        }
+      if (filtroActor.trim()) {
+        const q = filtroActor.toLowerCase().trim()
+        const actorTexto = (e.actor || 'el sistema sin cuenta').toLowerCase()
+        if (!actorTexto.includes(q)) return false
       }
 
       if (filtroAccion && e.accion !== filtroAccion) {
         return false
       }
 
-      if (filtroModulo && e.entidad !== filtroModulo) {
-        return false
+      if (filtroModulo) {
+        if (e.entidad !== filtroModulo) return false
+      }
+
+      if (filtroIp.trim()) {
+        const q = filtroIp.toLowerCase().trim()
+        if (!e.ip?.toLowerCase().includes(q)) return false
       }
 
       return true
     })
-  }, [entradas, busqueda, filtroAccion, filtroModulo, accionMap, moduloLabelMap])
+  }, [entradas, filtroFecha, filtroActor, filtroAccion, filtroModulo, filtroIp])
 
   const listaOrdenada = useMemo(() => {
     return [...listaFiltrada].sort((a, b) => {
@@ -137,7 +155,7 @@ export function TablaAuditoria({
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
-      return <ArrowUpDown size={12} style={{ opacity: 0.4, marginLeft: 4 }} />
+      return <ArrowUpDown size={12} style={{ opacity: 0.35, marginLeft: 4 }} />
     }
     return direccion === 'asc' ? (
       <ArrowUp size={12} style={{ color: 'var(--color-primary, #059669)', marginLeft: 4 }} />
@@ -146,7 +164,7 @@ export function TablaAuditoria({
     )
   }
 
-  // Extraer las acciones y entidades únicas presentes en los resultados para filtros rápidos
+  // Extraer las acciones y entidades únicas presentes en los resultados
   const accionesPresentes = useMemo(() => {
     const set = new Set<string>()
     for (const e of entradas) {
@@ -165,148 +183,166 @@ export function TablaAuditoria({
 
   return (
     <>
-      <div
-        className="filtros"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 8,
-          marginBottom: 12,
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ position: 'relative', minWidth: 200, flex: '1 1 200px' }}>
-          <input
-            className="input"
-            type="text"
-            placeholder="Filtrar en esta página por quién, ID, fecha o IP..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: '100%', paddingLeft: 30 }}
-          />
-          <Search
-            size={14}
-            style={{
-              position: 'absolute',
-              left: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              opacity: 0.5,
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-
-        {accionesPresentes.length > 1 ? (
-          <select
-            className="input"
-            value={filtroAccion}
-            onChange={(e) => setFiltroAccion(e.target.value)}
-            style={{ minWidth: 140 }}
-          >
-            <option value="">Todas las acciones en vista</option>
-            {accionesPresentes.map((acc) => (
-              <option key={acc} value={acc}>
-                {accionMap[acc] ?? acc}
-              </option>
-            ))}
-          </select>
-        ) : null}
-
-        {modulosPresentes.length > 1 ? (
-          <select
-            className="input"
-            value={filtroModulo}
-            onChange={(e) => setFiltroModulo(e.target.value)}
-            style={{ minWidth: 150 }}
-          >
-            <option value="">Todos los módulos en vista</option>
-            {modulosPresentes.map((mod) => (
-              <option key={mod} value={mod}>
-                {moduloLabelMap.get(mod) ?? mod}
-              </option>
-            ))}
-          </select>
-        ) : null}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <p className="panel__nota" style={{ margin: 0, fontSize: '0.8rem' }}>
+          Mostrando <strong>{listaOrdenada.length}</strong> de {entradas.length} en esta página
+          {hayFiltrosEnPagina ? ' (filtrados localmente)' : ''}
+        </p>
 
         {hayFiltrosEnPagina ? (
           <button
             type="button"
             className="boton-mini"
             onClick={limpiarFiltrosEnPagina}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.74rem' }}
           >
-            <X size={13} />
-            Limpiar filtro local
+            <RotateCcw size={12} />
+            Restablecer filtro local
           </button>
         ) : null}
       </div>
 
-      {listaOrdenada.length === 0 ? (
-        <Vacio>
-          {hayFiltrosEnPagina
-            ? 'Ningún registro de esta página coincide con los filtros aplicados.'
-            : 'No hay registros en esta vista.'}
-        </Vacio>
-      ) : (
-        <div className="tabla-envoltorio">
-          <table className="tabla">
-            <thead>
+      <div className="tabla-envoltorio">
+        <table className="tabla">
+          <thead>
+            <tr>
+              <th
+                onClick={() => alternarOrden('fecha')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '22%' }}
+                title="Ordenar por Cuándo (Fecha)"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Cuándo
+                  <IconoOrden col="fecha" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('actor')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '24%' }}
+                title="Ordenar por Quién"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Quién
+                  <IconoOrden col="actor" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('accion')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '20%' }}
+                title="Ordenar por Qué hizo"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Qué hizo
+                  <IconoOrden col="accion" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('entidad')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '20%' }}
+                title="Ordenar por Sobre"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Sobre
+                  <IconoOrden col="entidad" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('ip')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '14%' }}
+                title="Ordenar por IP"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  IP
+                  <IconoOrden col="ip" />
+                </span>
+              </th>
+            </tr>
+
+            {/* Fila de filtros por columna */}
+            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+              <th style={{ padding: '6px 6px' }}>
+                <input
+                  type="text"
+                  placeholder="Filtrar fecha/hora..."
+                  value={filtroFecha}
+                  onChange={(e) => setFiltroFecha(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <input
+                  type="text"
+                  placeholder="Filtrar por actor/correo..."
+                  value={filtroActor}
+                  onChange={(e) => setFiltroActor(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <select
+                  value={filtroAccion}
+                  onChange={(e) => setFiltroAccion(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todas</option>
+                  {accionesPresentes.map((acc) => (
+                    <option key={acc} value={acc}>
+                      {accionMap[acc] ?? acc}
+                    </option>
+                  ))}
+                </select>
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <select
+                  value={filtroModulo}
+                  onChange={(e) => setFiltroModulo(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todos</option>
+                  {modulosPresentes.map((mod) => (
+                    <option key={mod} value={mod}>
+                      {moduloLabelMap.get(mod) ?? mod}
+                    </option>
+                  ))}
+                </select>
+              </th>
+              <th style={{ padding: '6px 6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input
+                    type="text"
+                    placeholder="Filtrar IP..."
+                    value={filtroIp}
+                    onChange={(e) => setFiltroIp(e.target.value)}
+                    style={estiloInputFiltro}
+                  />
+                  {hayFiltrosEnPagina ? (
+                    <button
+                      type="button"
+                      onClick={limpiarFiltrosEnPagina}
+                      className="boton-mini"
+                      style={{ padding: '4px 6px', color: 'var(--color-red, #dc2626)' }}
+                      title="Limpiar filtros"
+                    >
+                      <X size={13} />
+                    </button>
+                  ) : null}
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {listaOrdenada.length === 0 ? (
               <tr>
-                <th
-                  onClick={() => alternarOrden('fecha')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Cuándo (Fecha)"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Cuándo
-                    <IconoOrden col="fecha" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('actor')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Quién"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Quién
-                    <IconoOrden col="actor" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('accion')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Qué hizo"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Qué hizo
-                    <IconoOrden col="accion" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('entidad')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Sobre"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Sobre
-                    <IconoOrden col="entidad" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('ip')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por IP"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    IP
-                    <IconoOrden col="ip" />
-                  </span>
-                </th>
+                <td colSpan={5} style={{ textAlign: 'center', padding: 24 }}>
+                  <Vacio>
+                    {hayFiltrosEnPagina
+                      ? 'Ningún registro de esta página coincide con los filtros aplicados.'
+                      : 'No hay registros en esta vista.'}
+                  </Vacio>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {listaOrdenada.map((e) => (
+            ) : (
+              listaOrdenada.map((e) => (
                 <tr key={e.id}>
                   <td className="tabla__numero">{enBogota(e.fecha)}</td>
                   <td>
@@ -327,11 +363,11 @@ export function TablaAuditoria({
                   </td>
                   <td className="tabla__secundario">{e.ip ?? '—'}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </>
   )
 }

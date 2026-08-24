@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, X } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 import { nombrePropio } from '@/lib/nombre'
@@ -28,12 +28,27 @@ export type Profesional = {
 type ColumnaOrden = 'profesional' | 'poblaciones' | 'modalidad' | 'carga' | 'tarjeta' | 'estado'
 type Direccion = 'asc' | 'desc'
 
+const estiloInputFiltro: React.CSSProperties = {
+  width: '100%',
+  padding: '5px 8px',
+  fontSize: '0.76rem',
+  border: '1px solid var(--color-border-default, #cbd5e1)',
+  borderRadius: '6px',
+  backgroundColor: '#ffffff',
+  color: 'var(--color-text-main, #1e293b)',
+  outline: 'none',
+  boxSizing: 'border-box',
+  minHeight: '28px',
+  fontWeight: 'normal',
+}
+
 export function TablaProfesionales({ profesionales }: { profesionales: Profesional[] }) {
-  const [busqueda, setBusqueda] = useState('')
+  const [filtroProfesional, setFiltroProfesional] = useState('')
+  const [filtroPoblaciones, setFiltroPoblaciones] = useState('')
   const [filtroModalidad, setFiltroModalidad] = useState('')
-  const [filtroEstado, setFiltroEstado] = useState('')
-  const [filtroTarjeta, setFiltroTarjeta] = useState('')
   const [filtroCupo, setFiltroCupo] = useState('')
+  const [filtroTarjeta, setFiltroTarjeta] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('')
 
   const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('profesional')
   const [direccion, setDireccion] = useState<Direccion>('asc')
@@ -48,42 +63,44 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
   }
 
   const hayFiltros = Boolean(
-    busqueda.trim() || filtroModalidad || filtroEstado || filtroTarjeta || filtroCupo,
+    filtroProfesional.trim() ||
+      filtroPoblaciones.trim() ||
+      filtroModalidad ||
+      filtroCupo ||
+      filtroTarjeta ||
+      filtroEstado,
   )
 
   function limpiarFiltros() {
-    setBusqueda('')
+    setFiltroProfesional('')
+    setFiltroPoblaciones('')
     setFiltroModalidad('')
-    setFiltroEstado('')
-    setFiltroTarjeta('')
     setFiltroCupo('')
+    setFiltroTarjeta('')
+    setFiltroEstado('')
   }
 
   const listaFiltrada = useMemo(() => {
     return profesionales.filter((p) => {
-      if (busqueda.trim()) {
-        const q = busqueda.toLowerCase().trim()
+      if (filtroProfesional.trim()) {
+        const q = filtroProfesional.toLowerCase().trim()
         const matchNombre = p.fullName.toLowerCase().includes(q)
-        const matchCiudad = p.city.toLowerCase().includes(q)
-        const matchProfesion = p.profession.toLowerCase().includes(q)
-        const matchPoblaciones = p.populations?.some((pop) => pop.toLowerCase().includes(q))
+        const matchCiudad = p.city?.toLowerCase().includes(q)
+        const matchProfesion = p.profession?.toLowerCase().includes(q)
         const matchTelefono = p.phone?.includes(q)
-        if (!matchNombre && !matchCiudad && !matchProfesion && !matchPoblaciones && !matchTelefono) {
+        if (!matchNombre && !matchCiudad && !matchProfesion && !matchTelefono) {
           return false
         }
       }
 
+      if (filtroPoblaciones.trim()) {
+        const q = filtroPoblaciones.toLowerCase().trim()
+        const matchPop = p.populations?.some((pop) => pop.toLowerCase().includes(q))
+        if (!matchPop) return false
+      }
+
       if (filtroModalidad && p.modality !== filtroModalidad) {
         return false
-      }
-
-      if (filtroEstado && p.status !== filtroEstado) {
-        return false
-      }
-
-      if (filtroTarjeta) {
-        if (filtroTarjeta === 'VERIFICADA' && !p.professionalCardVerified) return false
-        if (filtroTarjeta === 'SIN_VERIFICAR' && p.professionalCardVerified) return false
       }
 
       if (filtroCupo) {
@@ -91,9 +108,26 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
         if (filtroCupo === 'SIN_CUPO' && p.carga < p.maxActiveCases) return false
       }
 
+      if (filtroTarjeta) {
+        if (filtroTarjeta === 'VERIFICADA' && !p.professionalCardVerified) return false
+        if (filtroTarjeta === 'SIN_VERIFICAR' && p.professionalCardVerified) return false
+      }
+
+      if (filtroEstado && p.status !== filtroEstado) {
+        return false
+      }
+
       return true
     })
-  }, [profesionales, busqueda, filtroModalidad, filtroEstado, filtroTarjeta, filtroCupo])
+  }, [
+    profesionales,
+    filtroProfesional,
+    filtroPoblaciones,
+    filtroModalidad,
+    filtroCupo,
+    filtroTarjeta,
+    filtroEstado,
+  ])
 
   const listaOrdenada = useMemo(() => {
     return [...listaFiltrada].sort((a, b) => {
@@ -112,7 +146,6 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
           cmp = a.modality.localeCompare(b.modality, 'es', { sensitivity: 'base' })
           break
         case 'carga': {
-          // Ordenar por ocupación o carga absoluta
           cmp = a.carga - b.carga || a.maxActiveCases - b.maxActiveCases
           break
         }
@@ -132,7 +165,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
-      return <ArrowUpDown size={12} style={{ opacity: 0.4, marginLeft: 4 }} />
+      return <ArrowUpDown size={12} style={{ opacity: 0.35, marginLeft: 4 }} />
     }
     return direccion === 'asc' ? (
       <ArrowUp size={12} style={{ color: 'var(--color-primary, #059669)', marginLeft: 4 }} />
@@ -143,179 +176,187 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
 
   return (
     <>
-      <div
-        className="filtros"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 8,
-          marginBottom: 16,
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ position: 'relative', minWidth: 220, flex: '1 1 220px' }}>
-          <input
-            className="input"
-            type="text"
-            placeholder="Buscar por nombre, profesión, ciudad, población..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: '100%', paddingLeft: 30 }}
-          />
-          <Search
-            size={14}
-            style={{
-              position: 'absolute',
-              left: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              opacity: 0.5,
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-
-        <select
-          className="input"
-          value={filtroModalidad}
-          onChange={(e) => setFiltroModalidad(e.target.value)}
-          style={{ minWidth: 150 }}
-        >
-          <option value="">Todas las modalidades</option>
-          <option value="PRESENCIAL">Presencial</option>
-          <option value="VIRTUAL">Virtual</option>
-          <option value="AMBAS">Ambas (Presencial y Virtual)</option>
-        </select>
-
-        <select
-          className="input"
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          style={{ minWidth: 140 }}
-        >
-          <option value="">Todos los estados</option>
-          <option value="ACTIVO">Activo</option>
-          <option value="PAUSADO">Pausado</option>
-          <option value="INACTIVO">Inactivo</option>
-          <option value="PENDIENTE_VALIDACION">Pendiente validación</option>
-        </select>
-
-        <select
-          className="input"
-          value={filtroTarjeta}
-          onChange={(e) => setFiltroTarjeta(e.target.value)}
-          style={{ minWidth: 150 }}
-        >
-          <option value="">Tarjeta Profesional</option>
-          <option value="VERIFICADA">Verificada</option>
-          <option value="SIN_VERIFICAR">Sin verificar</option>
-        </select>
-
-        <select
-          className="input"
-          value={filtroCupo}
-          onChange={(e) => setFiltroCupo(e.target.value)}
-          style={{ minWidth: 130 }}
-        >
-          <option value="">Cupo / Carga</option>
-          <option value="CON_CUPO">Con cupo disponible</option>
-          <option value="SIN_CUPO">Sin cupo (al límite)</option>
-        </select>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <p className="panel__nota" style={{ margin: 0, fontSize: '0.82rem' }}>
+          <strong>{listaOrdenada.length}</strong> {listaOrdenada.length === 1 ? 'profesional' : 'profesionales'}
+          {hayFiltros ? ` (filtrado de ${profesionales.length} en total)` : ''}
+        </p>
 
         {hayFiltros ? (
           <button
             type="button"
             className="boton-mini"
             onClick={limpiarFiltros}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.76rem' }}
           >
-            <X size={13} />
-            Limpiar filtros
+            <RotateCcw size={12} />
+            Restablecer filtros
           </button>
         ) : null}
       </div>
 
-      <p className="panel__nota" style={{ margin: '0 0 10px', fontSize: '0.8rem' }}>
-        {listaOrdenada.length} {listaOrdenada.length === 1 ? 'profesional' : 'profesionales'}
-        {hayFiltros ? ` de ${profesionales.length} registrados` : ''}
-      </p>
+      <div className="tabla-envoltorio">
+        <table className="tabla">
+          <thead>
+            <tr>
+              <th
+                onClick={() => alternarOrden('profesional')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '24%' }}
+                title="Ordenar por Profesional"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Profesional
+                  <IconoOrden col="profesional" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('poblaciones')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '18%' }}
+                title="Ordenar por Poblaciones"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Poblaciones
+                  <IconoOrden col="poblaciones" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('modalidad')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
+                title="Ordenar por Modalidad de apoyo"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Modalidad de apoyo
+                  <IconoOrden col="modalidad" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('carga')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}
+                title="Ordenar por Carga"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Carga
+                  <IconoOrden col="carga" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('tarjeta')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
+                title="Ordenar por Tarjeta Profesional"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Tarjeta Profesional
+                  <IconoOrden col="tarjeta" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('estado')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}
+                title="Ordenar por Estado"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Estado
+                  <IconoOrden col="estado" />
+                </span>
+              </th>
+              <th style={{ width: '8%', textAlign: 'right' }} />
+            </tr>
 
-      {listaOrdenada.length === 0 ? (
-        <Vacio>
-          {hayFiltros
-            ? 'Ningún profesional coincide con los filtros aplicados.'
-            : 'Todavía no hay profesionales registrados.'}
-        </Vacio>
-      ) : (
-        <div className="tabla-envoltorio">
-          <table className="tabla">
-            <thead>
+            {/* Fila de filtros por columna */}
+            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+              <th style={{ padding: '6px 8px' }}>
+                <input
+                  type="text"
+                  placeholder="Filtrar nombre/ciudad..."
+                  value={filtroProfesional}
+                  onChange={(e) => setFiltroProfesional(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 8px' }}>
+                <input
+                  type="text"
+                  placeholder="Filtrar población..."
+                  value={filtroPoblaciones}
+                  onChange={(e) => setFiltroPoblaciones(e.target.value)}
+                  style={estiloInputFiltro}
+                />
+              </th>
+              <th style={{ padding: '6px 8px' }}>
+                <select
+                  value={filtroModalidad}
+                  onChange={(e) => setFiltroModalidad(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todas</option>
+                  <option value="PRESENCIAL">Presencial</option>
+                  <option value="VIRTUAL">Virtual</option>
+                  <option value="AMBAS">Ambas</option>
+                </select>
+              </th>
+              <th style={{ padding: '6px 8px' }}>
+                <select
+                  value={filtroCupo}
+                  onChange={(e) => setFiltroCupo(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todas</option>
+                  <option value="CON_CUPO">Con cupo</option>
+                  <option value="SIN_CUPO">Sin cupo</option>
+                </select>
+              </th>
+              <th style={{ padding: '6px 8px' }}>
+                <select
+                  value={filtroTarjeta}
+                  onChange={(e) => setFiltroTarjeta(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todas</option>
+                  <option value="VERIFICADA">Verificada</option>
+                  <option value="SIN_VERIFICAR">Sin verificar</option>
+                </select>
+              </th>
+              <th style={{ padding: '6px 8px' }}>
+                <select
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  style={estiloInputFiltro}
+                >
+                  <option value="">Todos</option>
+                  <option value="ACTIVO">Activo</option>
+                  <option value="PAUSADO">Pausado</option>
+                  <option value="INACTIVO">Inactivo</option>
+                  <option value="PENDIENTE_VALIDACION">Pendiente</option>
+                </select>
+              </th>
+              <th style={{ padding: '6px 8px', textAlign: 'right' }}>
+                {hayFiltros ? (
+                  <button
+                    type="button"
+                    onClick={limpiarFiltros}
+                    className="boton-mini"
+                    style={{ padding: '4px 6px', color: 'var(--color-red, #dc2626)' }}
+                    title="Limpiar filtros"
+                  >
+                    <X size={13} />
+                  </button>
+                ) : null}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {listaOrdenada.length === 0 ? (
               <tr>
-                <th
-                  onClick={() => alternarOrden('profesional')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Profesional"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Profesional
-                    <IconoOrden col="profesional" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('poblaciones')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Poblaciones"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Poblaciones
-                    <IconoOrden col="poblaciones" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('modalidad')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Modalidad de apoyo"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Modalidad de apoyo
-                    <IconoOrden col="modalidad" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('carga')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Carga"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Carga
-                    <IconoOrden col="carga" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('tarjeta')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Tarjeta Profesional"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Tarjeta Profesional
-                    <IconoOrden col="tarjeta" />
-                  </span>
-                </th>
-                <th
-                  onClick={() => alternarOrden('estado')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title="Ordenar por Estado"
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Estado
-                    <IconoOrden col="estado" />
-                  </span>
-                </th>
-                <th />
+                <td colSpan={7} style={{ textAlign: 'center', padding: 24 }}>
+                  <Vacio>
+                    {hayFiltros
+                      ? 'Ningún profesional coincide con los filtros de columna aplicados.'
+                      : 'Todavía no hay profesionales registrados.'}
+                  </Vacio>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {listaOrdenada.map((p) => (
+            ) : (
+              listaOrdenada.map((p) => (
                 <tr key={p.id}>
                   <td>
                     <Link href={`/portal/profesionales/${p.id}`} className="tabla__principal">
@@ -372,11 +413,11 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                     </Link>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </>
   )
 }
