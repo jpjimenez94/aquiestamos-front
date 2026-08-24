@@ -155,7 +155,18 @@ export function SeccionTarjetaProfesional({
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#14532d', fontStyle: 'italic', flex: 1 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.78rem',
+                  color: '#14532d',
+                  fontStyle: 'italic',
+                  flex: 1,
+                  minWidth: 0,
+                  overflowWrap: 'anywhere',
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
                 &ldquo;{mensajeWhatsApp}&rdquo;
               </p>
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>

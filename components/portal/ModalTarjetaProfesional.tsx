@@ -7,7 +7,6 @@ import { mensajeDePedirDocumentos } from '@/lib/mensajes'
 import { DocumentoPrivado } from './DocumentoPrivado'
 import {
   ShieldCheck,
-  Upload,
   FileText,
   Check,
   Copy,
@@ -52,11 +51,9 @@ export function ModalTarjetaProfesional({
   onCerrar,
 }: ModalTarjetaProps) {
   const router = useRouter()
-  const [numero, setNumero] = useState(numeroActual || '')
   const [documentoUrl, setDocumentoUrl] = useState(documentoUrlActual || '')
   const [verificada, setVerificada] = useState(verificadaActual || false)
   const [tipoPerfil, setTipoPerfil] = useState<'general' | 'graduado' | 'estudiante'>('general')
-  const [subiendoArchivo, setSubiendoArchivo] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null)
   const [copiadoMsg, setCopiadoMsg] = useState(false)
@@ -84,39 +81,6 @@ export function ModalTarjetaProfesional({
     setTimeout(() => setCopiadoMsg(false), 2000)
   }
 
-  async function manejarSubidaArchivo(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setSubiendoArchivo(true)
-    setMensaje(null)
-
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('tipo', 'tarjetas')
-
-    try {
-      const res = await fetch('/api/portal/upload', {
-        method: 'POST',
-        body: formData,
-      })
-      const data = await res.json()
-
-      if (res.ok && data.success) {
-        // Ahora llega una clave, no una URL: el archivo vive en un bucket privado.
-        setDocumentoUrl(data.clave)
-        setVerificada(true)
-        setMensaje({ tipo: 'exito', texto: `Archivo cargado correctamente: ${data.nombreOriginal}` })
-      } else {
-        setMensaje({ tipo: 'error', texto: data.message || 'Error al subir el archivo' })
-      }
-    } catch {
-      setMensaje({ tipo: 'error', texto: 'No se pudo subir el archivo. Intenta de nuevo.' })
-    } finally {
-      setSubiendoArchivo(false)
-    }
-  }
-
   async function guardar() {
     setGuardando(true)
     setMensaje(null)
@@ -125,11 +89,9 @@ export function ModalTarjetaProfesional({
       const res = await fetch(`/api/portal/professionals/${profesionalId}/tarjeta-profesional`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          professionalCardNumber: numero.trim(),
-          professionalCardDocumentUrl: documentoUrl.trim(),
-          professionalCardVerified: verificada,
-        }),
+        // Solo la verificación: el número y el soporte los pone el
+        // profesional por su enlace, y desde aquí no se pisan.
+        body: JSON.stringify({ professionalCardVerified: verificada }),
       })
 
       const data = await res.json()
@@ -230,7 +192,18 @@ export function ModalTarjetaProfesional({
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-            <p style={{ margin: 0, fontSize: '0.78rem', color: '#14532d', fontStyle: 'italic', flex: 1 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.78rem',
+                color: '#14532d',
+                fontStyle: 'italic',
+                flex: 1,
+                minWidth: 0,
+                overflowWrap: 'anywhere',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
               &ldquo;{mensajeWhatsApp}&rdquo;
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
@@ -269,39 +242,22 @@ export function ModalTarjetaProfesional({
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <label className="field__label" htmlFor="tp-numero">
-              Número de Tarjeta Profesional / Registro o Semestre y Universidad
-            </label>
-            <input
-              id="tp-numero"
-              className="input"
-              type="text"
-              placeholder="Ej. TP 123456 (Graduado) o 9º Semestre - Universidad Javeriana (Estudiante)"
-              value={numero}
-              onChange={(e) => setNumero(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="field__label">
-              Soporte Digital (Tarjeta Profesional o Certificado de Matrícula/Estudios)
-            </label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-              <label className="boton-mini" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Upload size={14} />
-                {subiendoArchivo ? 'Subiendo archivo…' : 'Subir archivo'}
-                <input
-                  type="file"
-                  accept="application/pdf,image/png,image/jpeg,image/webp"
-                  style={{ display: 'none' }}
-                  onChange={manejarSubidaArchivo}
-                  disabled={subiendoArchivo}
-                />
-              </label>
-              <DocumentoPrivado clave={documentoUrl} etiqueta="Abrir el soporte" />
+          {/*
+            Aquí ya no se teclea el número ni se sube el archivo: eso lo hace
+            el profesional por su propio enlace, directo al bucket privado.
+            Este modal pide (mensaje de arriba), muestra el soporte si ya
+            existe, y aprueba. La excepción en papel vive en Verificaciones.
+          */}
+          {documentoUrl ? (
+            <div>
+              <DocumentoPrivado clave={documentoUrl} etiqueta="Abrir el soporte cargado" />
             </div>
-          </div>
+          ) : (
+            <p className="panel__nota" style={{ margin: 0 }}>
+              Aún no ha subido su soporte. Mándale el mensaje de arriba: el enlace le permite
+              subirlo desde el teléfono, directo al almacenamiento privado.
+            </p>
+          )}
 
           {/*
             Ya no hay miniatura ni <iframe> con el documento incrustado.
@@ -344,7 +300,7 @@ export function ModalTarjetaProfesional({
             className="boton-mini"
             data-tono="principal"
             onClick={guardar}
-            disabled={guardando || subiendoArchivo}
+            disabled={guardando}
             type="button"
           >
             {guardando ? 'Guardando…' : 'Guardar y Confirmar'}
