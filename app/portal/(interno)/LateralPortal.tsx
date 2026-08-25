@@ -20,6 +20,7 @@ import {
   BookOpen,
   BarChart3,
   BadgeCheck,
+  MapPin,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
@@ -130,6 +131,17 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Métricas",
         icono: <BarChart3 size={17} />,
         permiso: "metricas:leer",
+      },
+    ],
+  },
+  {
+    titulo: "Comunidad",
+    enlaces: [
+      {
+        href: "/portal/lideres",
+        texto: "Líderes Comunitarios",
+        icono: <MapPin size={17} />,
+        permiso: "lideres:leer",
       },
     ],
   },

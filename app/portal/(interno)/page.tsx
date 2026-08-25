@@ -28,6 +28,9 @@ export default async function TableroPage() {
   if (usuario?.role === 'COORDINADOR_CASOS') {
     redirect('/portal/agenda')
   }
+  if (usuario?.role === 'LIDERES_COMUNITARIOS') {
+    redirect('/portal/lideres')
+  }
   if (usuario?.role === 'PROFESIONAL') {
     redirect('/portal/mi-agenda')
   }

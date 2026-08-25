@@ -9,6 +9,7 @@ import { TextField, RadioField, Bloque } from './fields'
 
 const ROLES = [
   { value: 'ADMIN', label: 'Administración (acceso total)' },
+  { value: 'LIDERES_COMUNITARIOS', label: 'Líderes Comunitarios (Centro de mando y Guía)' },
   { value: 'ADMISION', label: 'Admisión (Postulaciones, Solicitudes y Verificaciones)' },
   { value: 'COORDINADOR_CASOS', label: 'Gestión de Casos (Agenda y Personas)' },
   { value: 'AGENDADOR', label: 'Voluntario digital general (Entrada y Agenda)' },
