@@ -6,6 +6,9 @@ export async function responderExperienciaAction(
   token: string,
   datos: {
     howFelt: 'MUY_BIEN' | 'BIEN' | 'REGULAR' | 'INCOMODO'
+    respectfulTreatment?: 'EXCELENTE' | 'ADECUADO' | 'A_MEJORAR' | null
+    gotTools?: 'MUCHA_CLARIDAD' | 'ALGO' | 'POCO_O_NADA' | null
+    sessionQuality?: 'SIN_PROBLEMAS' | 'CON_DIFICULTADES' | 'PREFIERO_OTRA_MODALIDAD' | null
     wantsToContinue: 'SI_MISMO' | 'CAMBIAR' | 'SUFICIENTE'
     comment: string
   },

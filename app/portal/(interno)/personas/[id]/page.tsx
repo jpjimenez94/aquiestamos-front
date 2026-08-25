@@ -23,6 +23,12 @@ type FeedbackDeLaPersona = {
   id: string
   howFelt: 'MUY_BIEN' | 'BIEN' | 'REGULAR' | 'INCOMODO'
   howFeltLegible: string
+  respectfulTreatment?: string | null
+  respectfulTreatmentLegible?: string | null
+  gotTools?: string | null
+  gotToolsLegible?: string | null
+  sessionQuality?: string | null
+  sessionQualityLegible?: string | null
   wantsToContinue: 'SI_MISMO' | 'CAMBIAR' | 'SUFICIENTE'
   wantsToContinueLegible: string
   comment?: string | null
@@ -435,6 +441,24 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                   {f.profesional ? (
                     <p className="bitacora__dato" style={{ marginTop: 6 }}>
                       <em>Profesional:</em> {f.profesional}
+                    </p>
+                  ) : null}
+
+                  {f.respectfulTreatmentLegible ? (
+                    <p className="bitacora__dato" style={{ marginTop: 2 }}>
+                      <em>Trato y puntualidad:</em> {f.respectfulTreatmentLegible}
+                    </p>
+                  ) : null}
+
+                  {f.gotToolsLegible ? (
+                    <p className="bitacora__dato" style={{ marginTop: 2 }}>
+                      <em>Utilidad y herramientas:</em> {f.gotToolsLegible}
+                    </p>
+                  ) : null}
+
+                  {f.sessionQualityLegible ? (
+                    <p className="bitacora__dato" style={{ marginTop: 2 }}>
+                      <em>Calidad de conexión / espacio:</em> {f.sessionQualityLegible}
                     </p>
                   ) : null}
 
