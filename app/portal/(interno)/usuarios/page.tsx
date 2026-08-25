@@ -19,7 +19,9 @@ type Cuenta = {
 
 const ROL: Record<string, string> = {
   ADMIN: 'Administración',
-  AGENDADOR: 'Agenda',
+  AGENDADOR: 'Voluntario Digital (General)',
+  ADMISION: 'Admisión y Verificaciones',
+  COORDINADOR_CASOS: 'Gestión de Casos y Agenda',
   PROFESIONAL: 'Profesional',
   LECTURA: 'Solo lectura',
 }

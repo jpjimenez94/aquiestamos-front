@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { portalFetch, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Indicador, Vacio } from './componentes'
 
@@ -20,6 +21,17 @@ type Tablero = {
 
 export default async function TableroPage() {
   const usuario = await usuarioActual()
+
+  if (usuario?.role === 'ADMISION') {
+    redirect('/portal/solicitudes')
+  }
+  if (usuario?.role === 'COORDINADOR_CASOS') {
+    redirect('/portal/agenda')
+  }
+  if (usuario?.role === 'PROFESIONAL') {
+    redirect('/portal/mi-agenda')
+  }
+
   const respuesta = await portalFetch<Tablero>('/dashboard')
 
   if (!respuesta.success || !respuesta.data) {

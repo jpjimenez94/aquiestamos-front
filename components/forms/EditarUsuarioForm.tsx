@@ -8,10 +8,12 @@ import { FormStatus, type Status } from './FormStatus'
 import { TextField, RadioField, CheckboxGroup } from './fields'
 
 const ROLES = [
-  { value: 'ADMIN', label: 'Administración' },
-  { value: 'AGENDADOR', label: 'Agenda' },
-  { value: 'PROFESIONAL', label: 'Profesional' },
-  { value: 'LECTURA', label: 'Solo lectura' },
+  { value: 'ADMIN', label: 'Administración (acceso total)' },
+  { value: 'ADMISION', label: 'Admisión (Postulaciones, Solicitudes y Verificaciones)' },
+  { value: 'COORDINADOR_CASOS', label: 'Gestión de Casos (Agenda y Personas)' },
+  { value: 'AGENDADOR', label: 'Voluntario digital general (Entrada y Agenda)' },
+  { value: 'PROFESIONAL', label: 'Profesional (Agenda personal)' },
+  { value: 'LECTURA', label: 'Solo lectura (Supervisión)' },
 ]
 
 export function EditarUsuarioForm({ usuario }: { usuario: any }) {

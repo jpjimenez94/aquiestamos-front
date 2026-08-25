@@ -43,6 +43,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Tablero",
         icono: <LayoutDashboard size={17} />,
         permiso: "agenda:leer",
+        soloRoles: ["ADMIN", "AGENDADOR", "LECTURA"],
       },
       {
         href: "/portal/solicitudes",
@@ -84,6 +85,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Profesionales",
         icono: <Stethoscope size={17} />,
         permiso: "profesional:leer",
+        soloRoles: ["ADMIN", "AGENDADOR", "LECTURA"],
       },
     ],
   },
@@ -151,7 +153,9 @@ function puede(usuario: Usuario, permiso: string) {
 
 const NOMBRE_ROL: Record<string, string> = {
   ADMIN: "Administración",
-  AGENDADOR: "Agenda",
+  AGENDADOR: "Voluntario Digital (General)",
+  ADMISION: "Admisión y Verificaciones",
+  COORDINADOR_CASOS: "Gestión de Casos y Agenda",
   PROFESIONAL: "Profesional",
   LECTURA: "Solo lectura",
 };
