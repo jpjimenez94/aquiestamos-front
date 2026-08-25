@@ -890,6 +890,39 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
 }
 
 /**
+ * SEGUIMIENTO · Al profesional: quedó agendada la siguiente sesión de acompañamiento.
+ */
+export function mensajeDeSiguienteCitaConfirmadaAlProfesional(d: {
+  profesional: string
+  persona: string
+  cuando: string
+  modalidad?: string | null
+  enlace: string
+}): string {
+  const nombreProf = nombreDePila(d.profesional) || 'hola'
+  const nombrePers = nombreDePila(d.persona) || 'la persona acompañada'
+  const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+
+  return [
+    `Hola ${nombreProf}, te escribimos de Red Aquí Estamos.`,
+    '',
+    `Quedó agendada tu siguiente sesión de acompañamiento con ${nombrePers}:`,
+    '',
+    `· *Cuándo:* ${d.cuando}`,
+    modalidad ? `· *Modalidad:* ${modalidad}` : null,
+    '',
+    'Puedes consultar la información del caso en tu enlace seguro:',
+    d.enlace,
+    '',
+    'Al terminar la sesión, entra a ese mismo enlace para dejarnos tu reporte de seguimiento.',
+    '',
+    '¡Muchas gracias por tu compromiso y tiempo!',
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
+/**
  * CONFIRMACIÓN · A la persona: recibimos tu consentimiento informado firmado.
  *
  * Se le confirma que todo está listo para su sesión y que el profesional la contactará

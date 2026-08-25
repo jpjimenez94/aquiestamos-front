@@ -6,6 +6,7 @@ import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { BotonEncuesta } from './BotonEncuesta'
+import { BotonNuevaSesion } from './BotonNuevaSesion'
 import { BotonEliminarPersona } from '../BotonEliminarPersona'
 import { ModalNotasSeguimiento, type NotaSeguimiento } from '../ModalNotasSeguimiento'
 import { nombrePropio } from '@/lib/nombre'
@@ -227,7 +228,18 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
 
       {persona.citas?.length ? (
         <div className="panel">
-          <h2>Citas</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <h2 style={{ margin: 0 }}>Citas</h2>
+            {persona.asignacion?.estado === 'ACTIVA' && persona.asignacion.profesional ? (
+              <BotonNuevaSesion
+                persona={persona}
+                profesional={persona.asignacion.profesional}
+                asignacionId={persona.asignacion.id}
+                enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+                texto="+ Agendar nueva sesión"
+              />
+            ) : null}
+          </div>
           <p className="panel__nota">
             Lo acordado entre la persona y quien la acompaña. El detalle de cada una vive en la
             agenda.
@@ -267,7 +279,18 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
 
       {persona.asignacion?.estado === 'ACTIVA' ? (
         <div className="panel">
-          <h2>Qué ha reportado quien acompaña</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <h2 style={{ margin: 0 }}>Qué ha reportado quien acompaña</h2>
+            {persona.asignacion.profesional ? (
+              <BotonNuevaSesion
+                persona={persona}
+                profesional={persona.asignacion.profesional}
+                asignacionId={persona.asignacion.id}
+                enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+                texto="Agendar siguiente sesión"
+              />
+            ) : null}
+          </div>
           <p className="panel__nota">
             Lo que respondió desde su enlace de acceso. Se va sumando: la entrada de
             arriba es la más reciente.
@@ -299,6 +322,21 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                   <p className="bitacora__dato">
                     <em>Lo reportó:</em> {r.profesional ?? r.reportedByEmail}
                   </p>
+
+                  {persona.asignacion?.profesional && (r.outcome === 'CITA_ACORDADA' || r.meetsAt) ? (
+                    <div style={{ marginTop: 6 }}>
+                      <BotonNuevaSesion
+                        persona={persona}
+                        profesional={persona.asignacion.profesional}
+                        asignacionId={persona.asignacion.id}
+                        fechaInicial={r.meetsAt}
+                        modalidadInicial={r.modality}
+                        enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+                        texto={`Agendar cita acordada del reporte ${r.meetsAt ? `(${enBogota(r.meetsAt)})` : ''}`}
+                        variante="destacado"
+                      />
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>

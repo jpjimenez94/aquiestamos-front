@@ -229,6 +229,18 @@ export function PanelDelCaso({
             copiado={copiado === 'cita-prof'}
             alCopiar={(t) => copiar('cita-prof', t)}
           />
+
+          <div className="mensaje__acciones" style={{ marginTop: 14 }}>
+            <button
+              className="boton-mini"
+              data-tono="principal"
+              type="button"
+              onClick={() => setAgendando(true)}
+            >
+              <CalendarCheck size={14} />
+              Agendar nueva sesión
+            </button>
+          </div>
         </>
       ) : null}
 
@@ -247,8 +259,12 @@ export function PanelDelCaso({
       {agendando ? (
         <ModalAgendar
           asignacionId={asignacion.id}
+          personaId={persona.id}
+          profesionalId={asignacion.profesional.id}
           persona={persona}
           profesional={asignacion.profesional}
+          enlaceCaso={enlaceCaso}
+          esNuevaSesion={asignacion.estado === 'ACTIVA'}
           onCerrar={() => setAgendando(false)}
         />
       ) : null}

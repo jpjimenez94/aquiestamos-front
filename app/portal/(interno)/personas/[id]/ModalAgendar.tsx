@@ -2,49 +2,81 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarCheck, X, Check, Copy, MessageCircle, AlertTriangle } from 'lucide-react'
-import { mensajeDeCitaConfirmada, enlaceWhatsapp } from '@/lib/mensajes'
+import { CalendarCheck, X, Check, Copy, MessageCircle, AlertTriangle, User, Stethoscope } from 'lucide-react'
+import {
+  mensajeDeCitaConfirmada,
+  mensajeDeSiguienteCitaConfirmadaAlProfesional,
+  mensajeDeCitaConfirmadaAlProfesional,
+  enlaceWhatsapp,
+} from '@/lib/mensajes'
 import { enBogota } from '@/lib/fechas'
-
-/**
- * Cuadrar el horario que la persona eligió: aquí nace la cita.
- *
- * Esta es la primera pantalla del portal que llega a crear una cita.
- * `POST /api/appointments` existía desde el principio, estaba probado, y no lo
- * llamaba nadie — no había forma de agendar. Encaja aquí de forma natural
- * porque cuadrar el horario y agendar son el mismo gesto.
- *
- * Una sesión dura 45 minutos y la base lo exige, así que el fin se calcula y
- * no se pregunta: preguntarlo solo daría ocasión de equivocarse.
- */
 
 const DURACION_MINUTOS = 45
 
+function formatoDatetimeLocal(isoString?: string | null): string {
+  if (!isoString) return ''
+  try {
+    const d = new Date(isoString)
+    if (Number.isNaN(d.getTime())) return ''
+    const partes = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Bogota',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(d)
+
+    const map = Object.fromEntries(partes.map((p) => [p.type, p.value]))
+    const hour = map.hour === '24' ? '00' : map.hour
+    return `${map.year}-${map.month}-${map.day}T${hour}:${map.minute}`
+  } catch {
+    return ''
+  }
+}
+
 export function ModalAgendar({
   asignacionId,
+  personaId,
+  profesionalId,
   persona,
   profesional,
+  enlaceCaso,
+  fechaInicial,
+  modalidadInicial,
+  esNuevaSesion = false,
   onCerrar,
 }: {
-  asignacionId: string
-  persona: { fullName: string; phone: string; preferredModality: string | null }
-  profesional: { nombre: string }
+  asignacionId?: string
+  personaId?: string
+  profesionalId?: string
+  persona: { id?: string; fullName: string; phone: string; preferredModality?: string | null }
+  profesional: { id?: string; nombre: string; telefono?: string }
+  enlaceCaso?: string
+  fechaInicial?: string | null
+  modalidadInicial?: string | null
+  esNuevaSesion?: boolean
   onCerrar: () => void
 }) {
   const router = useRouter()
-  const [cuando, setCuando] = useState('')
+  const [cuando, setCuando] = useState(() => formatoDatetimeLocal(fechaInicial))
   const [modalidad, setModalidad] = useState(
-    persona.preferredModality === 'PRESENCIAL' ? 'PRESENCIAL' : 'VIRTUAL',
+    modalidadInicial === 'PRESENCIAL' || persona.preferredModality === 'PRESENCIAL'
+      ? 'PRESENCIAL'
+      : 'VIRTUAL',
   )
   const [fueraDeFranja, setFueraDeFranja] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [agendada, setAgendada] = useState<string | null>(null)
-  const [copiado, setCopiado] = useState(false)
+  const [copiadoPersona, setCopiadoPersona] = useState(false)
+  const [copiadoProf, setCopiadoProf] = useState(false)
+  const [pestanaMensaje, setPestanaMensaje] = useState<'persona' | 'profesional'>('persona')
 
   async function agendar() {
     if (!cuando) {
-      setError('Dinos para cuándo quedaron.')
+      setError('Selecciona la fecha y hora de la sesión.')
       return
     }
 
@@ -57,50 +89,67 @@ export function ModalAgendar({
     setGuardando(true)
     setError(null)
 
+    const fin = new Date(inicio.getTime() + DURACION_MINUTOS * 60000)
+
     try {
-      const respuesta = await fetch(
-        `/api/portal/appointments/asignaciones/${asignacionId}/confirmar`,
-        {
+      let respuesta: Response
+      if (asignacionId && !esNuevaSesion) {
+        respuesta = await fetch(
+          `/api/portal/appointments/asignaciones/${asignacionId}/confirmar`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              inicio: inicio.toISOString(),
+              fin: fin.toISOString(),
+              modalidad,
+              fueraDeFranja,
+            }),
+          },
+        )
+      } else {
+        const pId = personaId || persona.id
+        const profId = profesionalId || profesional.id
+        respuesta = await fetch('/api/portal/appointments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            patientId: pId,
+            professionalId: profId,
             inicio: inicio.toISOString(),
-            fin: new Date(inicio.getTime() + DURACION_MINUTOS * 60000).toISOString(),
+            fin: fin.toISOString(),
             modalidad,
+            estado: 'CONFIRMADA',
             fueraDeFranja,
           }),
-        },
-      )
+        })
+      }
+
       const datos = await respuesta.json()
 
       if (!respuesta.ok || !datos.success) {
-        // Si lo que estorba es la franja declarada, se ofrece el desvío en vez
-        // de dejar a quien coordina adivinando qué marcar. Aquí ya se sabe que
-        // el horario tampoco está en lo que ofreció para este caso —eso el
-        // backend lo deja pasar solo—, así que la casilla es para cuando él
-        // confirmó este momento concreto por otro canal.
         if (datos.details?.codigo === 'FUERA_DE_FRANJA') {
           setFueraDeFranja(true)
           setError(
-            `${datos.message} Si el profesional te confirmó este horario concreto, marca la casilla y vuelve a intentarlo.`,
+            `${datos.message} Si el profesional te confirmó este horario concreto, marca la casilla de confirmación y vuelve a intentarlo.`,
           )
           return
         }
-        setError(datos.message ?? 'No se pudo agendar')
+        setError(datos.message ?? 'No se pudo agendar la sesión.')
         return
       }
 
-      // No se cierra: queda el mensaje de confirmación para la persona, que
-      // es lo siguiente que hay que hacer y lo más fácil de olvidar.
       setAgendada(inicio.toISOString())
     } catch {
-      setError('No pudimos conectarnos con el servidor')
+      setError('No pudimos conectarnos con el servidor.')
     } finally {
       setGuardando(false)
     }
   }
 
-  const mensaje = agendada
+  const urlCaso = enlaceCaso || (typeof window !== 'undefined' ? `${window.location.origin}/portal/caso/${persona.id || personaId}` : '')
+
+  const mensajePersona = agendada
     ? mensajeDeCitaConfirmada({
         persona: persona.fullName,
         profesional: profesional.nombre,
@@ -108,13 +157,25 @@ export function ModalAgendar({
         modalidad,
       })
     : ''
-  const whatsapp = agendada ? enlaceWhatsapp(persona.phone, mensaje) : null
+
+  const mensajeProf = agendada
+    ? mensajeDeSiguienteCitaConfirmadaAlProfesional({
+        profesional: profesional.nombre,
+        persona: persona.fullName,
+        cuando: enBogota(agendada),
+        modalidad,
+        enlace: urlCaso,
+      })
+    : ''
+
+  const whatsappPersona = agendada ? enlaceWhatsapp(persona.phone, mensajePersona) : null
+  const whatsappProf = agendada && profesional.telefono ? enlaceWhatsapp(profesional.telefono, mensajeProf) : null
 
   return (
     <div className="modal-telon" onClick={onCerrar}>
       <div
         className="modal-caja"
-        style={{ maxWidth: 560 }}
+        style={{ maxWidth: 580 }}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
@@ -123,7 +184,7 @@ export function ModalAgendar({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <CalendarCheck size={20} style={{ color: 'var(--color-green)' }} />
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>
-              {agendada ? 'Cita agendada' : 'Cuadrar el horario'}
+              {agendada ? 'Cita agendada' : esNuevaSesion ? 'Agendar nueva sesión de acompañamiento' : 'Cuadrar el horario'}
             </h3>
           </div>
           <button className="boton-icono" type="button" aria-label="Cerrar" onClick={onCerrar}>
@@ -133,48 +194,98 @@ export function ModalAgendar({
 
         {agendada ? (
           <>
-            <p className="panel__nota" style={{ marginTop: 4 }}>
-              Quedó para el <strong>{enBogota(agendada)}</strong> con{' '}
-              <strong>{profesional.nombre}</strong>. El caso ya está activo.
+            <div className="aviso-portal" data-tono="verde" style={{ marginTop: 10 }}>
+              Sesión programada para el <strong>{enBogota(agendada)}</strong> ({modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'}) con <strong>{profesional.nombre}</strong>.
+            </div>
+
+            <p className="panel__nota" style={{ marginTop: 12, marginBottom: 8 }}>
+              Envía la confirmación correspondiente a cada una de las partes:
             </p>
 
-            <h4 className="caso-paso" style={{ marginTop: 18 }}>
-              Confírmaselo a la persona
-            </h4>
-            <p className="panel__nota" style={{ marginTop: 0 }}>
-              Lleva la fecha, la hora, el nombre de quien la va a acompañar y —lo que más importa—
-              que el profesional la va a contactar. Sin esa frase se queda esperando sin saber
-              quién da el primer paso.
-            </p>
-
-            <div className="mensaje__acciones">
-              {whatsapp ? (
-                <a
-                  className="boton-mini"
-                  data-tono="principal"
-                  href={whatsapp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle size={14} />
-                  Abrir WhatsApp
-                </a>
-              ) : null}
+            <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--color-borde)', paddingBottom: 8, marginBottom: 12 }}>
               <button
-                className="boton-mini"
                 type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(mensaje)
-                  setCopiado(true)
-                  setTimeout(() => setCopiado(false), 2000)
-                }}
+                className="pestana-boton"
+                data-activo={pestanaMensaje === 'persona'}
+                onClick={() => setPestanaMensaje('persona')}
+                style={{ fontSize: '0.82rem' }}
               >
-                {copiado ? <Check size={14} /> : <Copy size={14} />}
-                {copiado ? 'Copiado' : 'Copiar mensaje'}
+                <User size={14} />
+                1. Persona acompañada ({persona.fullName.split(' ')[0]})
+              </button>
+              <button
+                type="button"
+                className="pestana-boton"
+                data-activo={pestanaMensaje === 'profesional'}
+                onClick={() => setPestanaMensaje('profesional')}
+                style={{ fontSize: '0.82rem' }}
+              >
+                <Stethoscope size={14} />
+                2. Profesional ({profesional.nombre.split(' ')[0]})
               </button>
             </div>
 
-            <pre className="mensaje__texto">{mensaje}</pre>
+            {pestanaMensaje === 'persona' ? (
+              <div>
+                <div className="mensaje__acciones">
+                  {whatsappPersona ? (
+                    <a
+                      className="boton-mini"
+                      data-tono="principal"
+                      href={whatsappPersona}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle size={14} />
+                      WhatsApp a la persona
+                    </a>
+                  ) : null}
+                  <button
+                    className="boton-mini"
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(mensajePersona)
+                      setCopiadoPersona(true)
+                      setTimeout(() => setCopiadoPersona(false), 2000)
+                    }}
+                  >
+                    {copiadoPersona ? <Check size={14} /> : <Copy size={14} />}
+                    {copiadoPersona ? 'Copiado' : 'Copiar mensaje'}
+                  </button>
+                </div>
+                <pre className="mensaje__texto" style={{ maxHeight: 200, overflowY: 'auto' }}>{mensajePersona}</pre>
+              </div>
+            ) : (
+              <div>
+                <div className="mensaje__acciones">
+                  {whatsappProf ? (
+                    <a
+                      className="boton-mini"
+                      data-tono="principal"
+                      href={whatsappProf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle size={14} />
+                      WhatsApp al profesional
+                    </a>
+                  ) : null}
+                  <button
+                    className="boton-mini"
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(mensajeProf)
+                      setCopiadoProf(true)
+                      setTimeout(() => setCopiadoProf(false), 2000)
+                    }}
+                  >
+                    {copiadoProf ? <Check size={14} /> : <Copy size={14} />}
+                    {copiadoProf ? 'Copiado' : 'Copiar mensaje'}
+                  </button>
+                </div>
+                <pre className="mensaje__texto" style={{ maxHeight: 200, overflowY: 'auto' }}>{mensajeProf}</pre>
+              </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18 }}>
               <button
@@ -186,15 +297,14 @@ export function ModalAgendar({
                   router.refresh()
                 }}
               >
-                Listo
+                Listo y continuar
               </button>
             </div>
           </>
         ) : (
           <>
             <p className="panel__nota" style={{ marginTop: 4 }}>
-              Con <strong>{profesional.nombre}</strong>. La sesión dura {DURACION_MINUTOS} minutos
-              y deja 30 de descanso después: eso lo pone el sistema, no hace falta calcularlo.
+              Sesión con <strong>{profesional.nombre}</strong> para <strong>{persona.fullName}</strong>. Duración: {DURACION_MINUTOS} minutos. El consentimiento firmado se conserva automáticamente.
             </p>
 
             {error ? (
@@ -206,7 +316,7 @@ export function ModalAgendar({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
               <div>
                 <label className="field__label" htmlFor="cuando">
-                  ¿Para cuándo quedaron?
+                  Fecha y hora de la sesión
                 </label>
                 <input
                   id="cuando"
@@ -244,9 +354,7 @@ export function ModalAgendar({
                       size={14}
                       style={{ verticalAlign: '-2px', marginRight: 4, color: 'var(--color-red)' }}
                     />
-                    Este horario no está ni en la agenda del profesional ni en lo que ofreció
-                    para este caso. Márcalo solo si él te confirmó este momento concreto. Queda
-                    registrado en la auditoría con tu nombre.
+                    Este horario no está en la disponibilidad habitual declarada del profesional. Márcalo si el profesional o la persona confirmaron este momento.
                   </span>
                 </label>
               ) : null}
@@ -263,7 +371,7 @@ export function ModalAgendar({
                 onClick={agendar}
                 disabled={guardando}
               >
-                {guardando ? 'Agendando…' : 'Agendar la cita'}
+                {guardando ? 'Agendando…' : 'Agendar la sesión'}
               </button>
             </div>
           </>
@@ -272,3 +380,4 @@ export function ModalAgendar({
     </div>
   )
 }
+
