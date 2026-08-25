@@ -107,6 +107,7 @@ export default async function LeaderDetailPage({
           <BotonAccionesLider
             lider={lider as unknown as LiderData}
             catalogoNecesidades={catalogo}
+            esAdmin={usuario.role === 'ADMIN'}
           />
         }
       />

@@ -1,24 +1,31 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Edit2, PhoneCall, MessageCircle } from 'lucide-react'
 import { ModalLider, type CategoriaNecesidad, type LiderData } from '../ModalLider'
 import { ModalBitacoraContacto } from '../ModalBitacoraContacto'
-import { enlaceWhatsapp } from '@/lib/mensajes'
+import { BotonEliminarLider } from '../BotonEliminarLider'
+import { enlaceWhatsapp, mensajeWhatsAppLider } from '@/lib/mensajes'
 
 type Props = {
   lider: LiderData
   catalogoNecesidades: CategoriaNecesidad[]
+  esAdmin?: boolean
 }
 
-export function BotonAccionesLider({ lider, catalogoNecesidades }: Props) {
+export function BotonAccionesLider({ lider, catalogoNecesidades, esAdmin = false }: Props) {
+  const router = useRouter()
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
   const [modalContactoAbierto, setModalContactoAbierto] = useState(false)
 
-  const whatsappUrl = enlaceWhatsapp(
-    lider.phone,
-    `Hola ${lider.name}, te escribimos desde la coordinación de Red Aquí Estamos sobre el apoyo en ${lider.territory}.`,
-  )
+  const mensajeTexto = mensajeWhatsAppLider({
+    nombre: lider.name,
+    territorio: lider.territory,
+    necesidades: lider.needs?.map((n) => n.name),
+  })
+
+  const whatsappUrl = enlaceWhatsapp(lider.phone, mensajeTexto)
 
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -39,6 +46,15 @@ export function BotonAccionesLider({ lider, catalogoNecesidades }: Props) {
           <MessageCircle size={14} />
           WhatsApp
         </a>
+      )}
+
+      {esAdmin && lider.id && (
+        <BotonEliminarLider
+          liderId={lider.id}
+          nombreLider={lider.name}
+          territorio={lider.territory}
+          onEliminado={() => router.push('/portal/lideres')}
+        />
       )}
 
       <button

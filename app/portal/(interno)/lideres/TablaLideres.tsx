@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Search,
@@ -23,9 +23,10 @@ import {
 } from 'lucide-react'
 import { ModalLider, type CategoriaNecesidad, type LiderData } from './ModalLider'
 import { ModalBitacoraContacto } from './ModalBitacoraContacto'
+import { BotonEliminarLider } from './BotonEliminarLider'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { enBogota } from '@/lib/fechas'
-import { enlaceWhatsapp } from '@/lib/mensajes'
+import { enlaceWhatsapp, mensajeWhatsAppLider } from '@/lib/mensajes'
 
 export type LiderFila = {
   id: string
@@ -58,7 +59,7 @@ export type LiderFila = {
 type Props = {
   lideresIniciales: LiderFila[]
   catalogoNecesidades: CategoriaNecesidad[]
-  esAdmin: boolean
+  esAdmin?: boolean
 }
 
 type ColumnaOrden =
@@ -86,7 +87,18 @@ const estiloInputFiltro: React.CSSProperties = {
   fontWeight: 'normal',
 }
 
-export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }: Props) {
+export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin = false }: Props) {
+  // Estado local para eliminación reactiva
+  const [lideres, setLideres] = useState<LiderFila[]>(lideresIniciales)
+
+  useEffect(() => {
+    setLideres(lideresIniciales)
+  }, [lideresIniciales])
+
+  function alEliminar(id: string) {
+    setLideres((prev) => prev.filter((item) => item.id !== id))
+  }
+
   // Filtros globales y por columna
   const [filtroLider, setFiltroLider] = useState('')
   const [filtroTerritorio, setFiltroTerritorio] = useState('')
@@ -144,7 +156,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
   }
 
   const lideresFiltrados = useMemo(() => {
-    return lideresIniciales.filter((l) => {
+    return lideres.filter((l) => {
       // Filtro Líder (nombre, teléfono, email)
       if (filtroLider.trim()) {
         const q = filtroLider.toLowerCase().trim()
@@ -207,7 +219,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
       return true
     })
   }, [
-    lideresIniciales,
+    lideres,
     filtroLider,
     filtroTerritorio,
     filtroImpacto,
@@ -309,7 +321,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
           onClick={() => { setFiltroTipoNecesidad('TODAS'); setPagina(1) }}
           style={filtroTipoNecesidad === 'TODAS' ? { background: '#0f172a', color: '#fff' } : undefined}
         >
-          Todas ({lideresIniciales.length})
+          Todas ({lideres.length})
         </button>
         <button
           type="button"
@@ -322,7 +334,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
           }
         >
           <HeartHandshake size={13} />
-          💚 Psicológicas ({lideresIniciales.filter((l) => l.tienePsicologicas).length})
+          💚 Psicológicas ({lideres.filter((l) => l.tienePsicologicas).length})
         </button>
         <button
           type="button"
@@ -335,7 +347,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
           }
         >
           <Package size={13} />
-          📦 Recursos / Insumos ({lideresIniciales.filter((l) => l.tieneRecursos).length})
+          📦 Recursos / Insumos ({lideres.filter((l) => l.tieneRecursos).length})
         </button>
         <button
           type="button"
@@ -348,7 +360,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
           }
         >
           <Sparkles size={13} />
-          ✨ Ambas ({lideresIniciales.filter((l) => l.tienePsicologicas && l.tieneRecursos).length})
+          ✨ Ambas ({lideres.filter((l) => l.tienePsicologicas && l.tieneRecursos).length})
         </button>
 
         {hayFiltros && (
@@ -419,7 +431,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
                     Último Contacto {renderIconoOrden('contacto')}
                   </span>
                 </th>
-                <th style={{ minWidth: 140, textAlign: 'right' }}>
+                <th style={{ minWidth: 150, textAlign: 'right' }}>
                   Acciones
                 </th>
               </tr>
@@ -578,10 +590,12 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
               ) : (
                 lideresPaginados.map((l) => {
                   const badge = getBadgeStatus(l.status)
-                  const whatsappUrl = enlaceWhatsapp(
-                    l.phone,
-                    `Hola ${l.name}, te escribimos desde la coordinación de Red Aquí Estamos sobre el apoyo en ${l.territory}.`,
-                  )
+                  const mensajeTexto = mensajeWhatsAppLider({
+                    nombre: l.name,
+                    territorio: l.territory,
+                    necesidades: l.needs.map((n) => n.name),
+                  })
+                  const whatsappUrl = enlaceWhatsapp(l.phone, mensajeTexto)
 
                   const psicologicas = l.needs.filter((n) => n.type === 'PSICOLOGICA')
                   const recursos = l.needs.filter((n) => n.type === 'RECURSO')
@@ -818,6 +832,16 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
                           >
                             <Edit2 size={13} />
                           </button>
+
+                          {/* Botón Eliminar (solo Administrador) */}
+                          {esAdmin && (
+                            <BotonEliminarLider
+                              liderId={l.id}
+                              nombreLider={l.name}
+                              territorio={l.territory}
+                              onEliminado={alEliminar}
+                            />
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -834,7 +858,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin }:
         pagina={paginaAjustada}
         porPagina={porPagina}
         totalFiltrado={totalFiltrados}
-        totalGeneral={lideresIniciales.length}
+        totalGeneral={lideres.length}
         alCambiarPagina={setPagina}
         alCambiarPorPagina={(n) => {
           setPorPagina(n)

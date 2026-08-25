@@ -982,5 +982,38 @@ export function mensajeDePedirFeedbackALaPersona(d: {
   ].join('\n')
 }
 
+/**
+ * CONTACTO CON LÍDER COMUNITARIO · Coordinación territorial.
+ *
+ * Mensaje cálido, empático y profesional para establecer articulación con el
+ * líder comunitario y su comunidad.
+ */
+export function mensajeWhatsAppLider(d: {
+  nombre: string
+  territorio: string
+  necesidades?: string[]
+}): string {
+  const nombre = nombreDePila(d.nombre) || d.nombre.trim()
+  const territorio = d.territorio.trim()
+  const listaNecesidades =
+    d.necesidades && d.necesidades.length > 0
+      ? `\n\n📌 *Enfoque prioritario identificado:* ${d.necesidades.slice(0, 3).join(', ')}.`
+      : ''
+
+  return [
+    `¡Hola, ${nombre}! Te saludamos con mucho aprecio desde la coordinación de la *Red Aquí Estamos* (red de apoyo psicosocial y atención en crisis).`,
+    '',
+    `Nos comunicamos contigo reconociendo tu valioso liderazgo en *${territorio}* y queremos articularnos para apoyar a las familias de tu comunidad.${listaNecesidades}`,
+    '',
+    '🤝 *¿Cómo podemos colaborar?*',
+    '• Acompañamiento emocional y primeros auxilios psicológicos para las familias.',
+    '• Orientación y articulación para la atención de necesidades prioritarias.',
+    '',
+    '¿Cómo se encuentran tú y tu comunidad en este momento? ¿En qué momento te quedaría bien que conversemos unos minutos para coordinar el apoyo?',
+    '',
+    '¡Un abrazo solidario y muchas gracias por tu entrega comunitaria!',
+  ].join('\n')
+}
+
 
 
