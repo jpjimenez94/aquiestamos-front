@@ -25,6 +25,13 @@ import {
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
 
+export type ContadoresBadges = {
+  solicitudes?: number;
+  postulaciones?: number;
+  colaboradores?: number;
+  verificaciones?: number;
+};
+
 type Enlace = {
   href: string;
   texto: string;
@@ -33,6 +40,7 @@ type Enlace = {
   permiso?: string;
   /** Si se indica, el enlace solo aparece para estos roles. */
   soloRoles?: Usuario["role"][];
+  badgeKey?: keyof ContadoresBadges;
 };
 
 const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
@@ -51,24 +59,28 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Solicitudes",
         icono: <Inbox size={17} />,
         permiso: "solicitud:leer",
+        badgeKey: "solicitudes",
       },
       {
         href: "/portal/postulaciones",
         texto: "Postulaciones",
         icono: <UserPlus size={17} />,
         permiso: "postulacion:leer",
+        badgeKey: "postulaciones",
       },
       {
         href: "/portal/colaboradores",
         texto: "Voluntariado de apoyo",
         icono: <HeartHandshake size={17} />,
         permiso: "colaborador:leer",
+        badgeKey: "colaboradores",
       },
       {
         href: "/portal/verificaciones",
         texto: "Verificaciones",
         icono: <BadgeCheck size={17} />,
         permiso: "profesional:verificar-tarjeta",
+        badgeKey: "verificaciones",
       },
     ],
   },
@@ -172,9 +184,45 @@ const NOMBRE_ROL: Record<string, string> = {
   LECTURA: "Solo lectura",
 };
 
-export function LateralPortal({ usuario }: { usuario: Usuario }) {
+export function LateralPortal({
+  usuario,
+  contadores: contadoresIniciales = {},
+}: {
+  usuario: Usuario;
+  contadores?: ContadoresBadges;
+}) {
   const ruta = usePathname();
   const router = useRouter();
+
+  const [contadores, setContadores] = useState<ContadoresBadges>(contadoresIniciales);
+
+  useEffect(() => {
+    setContadores(contadoresIniciales);
+  }, [contadoresIniciales]);
+
+  // Actualizar periódicamente los contadores en segundo plano
+  useEffect(() => {
+    let activo = true;
+    async function refrescarBadges() {
+      try {
+        const res = await fetch("/api/portal/dashboard/badges");
+        if (!res.ok) return;
+        const r = await res.json();
+        if (activo && r.success && r.data) {
+          setContadores(r.data);
+        }
+      } catch {
+        // Silencioso
+      }
+    }
+
+    refrescarBadges();
+    const intervalo = setInterval(refrescarBadges, 30000);
+    return () => {
+      activo = false;
+      clearInterval(intervalo);
+    };
+  }, [ruta]);
 
   // En móvil el menú es un panel que se abre. En escritorio siempre está a la
   // vista y este estado no hace nada: lo decide el CSS, no el JavaScript.
@@ -260,21 +308,36 @@ export function LateralPortal({ usuario }: { usuario: Usuario }) {
             return (
               <div key={grupo.titulo}>
                 <p className="portal__grupo">{grupo.titulo}</p>
-                {visibles.map((enlace) => (
-                  <Link
-                    key={enlace.href}
-                    className="portal__enlace"
-                    href={enlace.href}
-                    data-activo={
-                      enlace.href === "/portal"
-                        ? ruta === "/portal"
-                        : ruta.startsWith(enlace.href)
-                    }
-                  >
-                    {enlace.icono}
-                    {enlace.texto}
-                  </Link>
-                ))}
+                {visibles.map((enlace) => {
+                  const cuenta = enlace.badgeKey
+                    ? (contadores[enlace.badgeKey] ?? 0)
+                    : 0;
+
+                  return (
+                    <Link
+                      key={enlace.href}
+                      className="portal__enlace"
+                      href={enlace.href}
+                      data-activo={
+                        enlace.href === "/portal"
+                          ? ruta === "/portal"
+                          : ruta.startsWith(enlace.href)
+                      }
+                    >
+                      {enlace.icono}
+                      <span>{enlace.texto}</span>
+                      {cuenta > 0 ? (
+                        <span
+                          className="portal__enlace-punto"
+                          title={`${cuenta} ${cuenta === 1 ? "pendiente / nuevo" : "pendientes / nuevos"}`}
+                        >
+                          <span className="portal__punto-luz" />
+                          <span>{cuenta}</span>
+                        </span>
+                      ) : null}
+                    </Link>
+                  );
+                })}
               </div>
             );
           })}

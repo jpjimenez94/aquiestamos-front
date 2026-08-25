@@ -123,6 +123,44 @@ body.sin-desplazamiento {
   text-align: center;
 }
 
+.portal__enlace-punto {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.portal__punto-luz {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+  display: inline-block;
+  animation: pulsoPunto 2s infinite ease-in-out;
+}
+
+@keyframes pulsoPunto {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
 .portal__pie {
   margin-top: auto;
   border-top: 1px solid rgba(255, 246, 235, 0.16);
