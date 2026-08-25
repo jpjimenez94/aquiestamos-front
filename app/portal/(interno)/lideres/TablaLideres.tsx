@@ -23,7 +23,7 @@ import {
 import { ModalLider, type CategoriaNecesidad, type LiderData } from './ModalLider'
 import { ModalBitacoraContacto } from './ModalBitacoraContacto'
 import { inactivarLiderAction } from './actions'
-import { enBogota } from '@/lib/portal'
+import { enBogota } from '@/lib/fechas'
 import { enlaceWhatsapp } from '@/lib/mensajes'
 
 export type LiderFila = {
