@@ -954,4 +954,33 @@ export function mensajeDeConsentimientoFirmadoALaPersona(d: {
     .join('\n')
 }
 
+/**
+ * RETROALIMENTACIÓN POST-SESIÓN · A la persona acompañada.
+ *
+ * Se le pide retroalimentación sobre cómo se sintió en la sesión y si desea
+ * continuar con el profesional.
+ */
+export function mensajeDePedirFeedbackALaPersona(d: {
+  persona: string
+  profesional?: string | null
+  enlace: string
+}): string {
+  const nombrePers = nombreDePila(d.persona) || 'hola'
+  const nombreProf = d.profesional ? nombreDePila(d.profesional) : 'el profesional'
+
+  return [
+    `Hola ${nombrePers}, te escribimos de Red Aquí Estamos.`,
+    '',
+    `Esperamos que tu espacio con ${nombreProf} haya sido útil y seguro para ti.`,
+    '',
+    'Nos gustaría conocer brevemente cómo te fue (son *2 preguntas cortas*, toma menos de 1 minuto):',
+    d.enlace,
+    '',
+    'Lo que respondas es *completamente confidencial* y solo lo lee el equipo de coordinación de la red, no quien te acompañó.',
+    '',
+    '¡Muchas gracias por tu tiempo y confianza!',
+  ].join('\n')
+}
+
+
 

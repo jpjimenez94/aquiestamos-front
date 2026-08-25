@@ -631,4 +631,21 @@ describe('mensajeDeExcusasYReagendamiento', () => {
   })
 })
 
+describe('mensajeDePedirFeedbackALaPersona', () => {
+  it('genera el mensaje correcto para pedir retroalimentación de la sesión', async () => {
+    const { mensajeDePedirFeedbackALaPersona } = await import('../lib/mensajes')
+    const texto = mensajeDePedirFeedbackALaPersona({
+      persona: 'Camila Morales',
+      profesional: 'Mauricio Zambrano',
+      enlace: 'https://redaquiestamos.org/experiencia/token-123',
+    })
+
+    expect(texto).toContain('Hola Camila')
+    expect(texto).toContain('Mauricio')
+    expect(texto).toContain('https://redaquiestamos.org/experiencia/token-123')
+    expect(texto).toContain('completamente confidencial')
+    expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
+  })
+})
+
 

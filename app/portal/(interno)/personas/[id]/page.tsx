@@ -7,6 +7,7 @@ import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { BotonEncuesta } from './BotonEncuesta'
 import { BotonNuevaSesion } from './BotonNuevaSesion'
+import { BotonPedirFeedback } from './BotonPedirFeedback'
 import { BotonEliminarPersona } from '../BotonEliminarPersona'
 import { ModalNotasSeguimiento, type NotaSeguimiento } from '../ModalNotasSeguimiento'
 import { nombrePropio } from '@/lib/nombre'
@@ -17,6 +18,17 @@ import { nombrePropio } from '@/lib/nombre'
  * de verdad: si allá cambia, aquí también.
  */
 const VIVOS = ['PROPUESTA', 'ACEPTADA', 'ACTIVA']
+
+type FeedbackDeLaPersona = {
+  id: string
+  howFelt: 'MUY_BIEN' | 'BIEN' | 'REGULAR' | 'INCOMODO'
+  howFeltLegible: string
+  wantsToContinue: 'SI_MISMO' | 'CAMBIAR' | 'SUFICIENTE'
+  wantsToContinueLegible: string
+  comment?: string | null
+  profesional?: string | null
+  createdAt: string
+}
 
 type Persona = {
   id: string
@@ -40,6 +52,8 @@ type Persona = {
   diasEsperando: number
   asignacion: Asignacion | null
   reportes: Reporte[]
+  feedbacks?: FeedbackDeLaPersona[]
+  enlaceFeedback?: string | null
   citas: CitaDeLaPersona[]
   notasSeguimiento?: NotaSeguimiento[]
   totalNotas?: number
@@ -352,6 +366,99 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               cerrar sin haber leído al profesional es cerrar a ciegas. */}
           {persona.reportes?.length && persona.asignacion ? (
             <BotonCerrarCaso asignacionId={persona.asignacion.id} />
+          ) : null}
+        </div>
+      ) : null}
+
+      {persona.asignacion || (persona.feedbacks && persona.feedbacks.length > 0) ? (
+        <div className="panel">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <h2 style={{ margin: 0 }}>Qué ha compartido la persona acompañada</h2>
+          </div>
+          <p className="panel__nota">
+            Retroalimentación confidencial sobre sus sesiones. Solo la lee el equipo de coordinación de la red.
+          </p>
+
+          {persona.feedbacks && persona.feedbacks.length > 0 ? (
+            <ul className="bitacora">
+              {persona.feedbacks.map((f) => (
+                <li key={f.id} className="bitacora__entrada">
+                  <div className="bitacora__cabecera">
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span
+                        style={{
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          background:
+                            f.howFelt === 'MUY_BIEN' || f.howFelt === 'BIEN'
+                              ? '#ecfdf5'
+                              : f.howFelt === 'REGULAR'
+                              ? '#fefce8'
+                              : '#fef2f2',
+                          color:
+                            f.howFelt === 'MUY_BIEN' || f.howFelt === 'BIEN'
+                              ? '#065f46'
+                              : f.howFelt === 'REGULAR'
+                              ? '#854d0e'
+                              : '#991b1b',
+                          border: `1px solid ${
+                            f.howFelt === 'MUY_BIEN' || f.howFelt === 'BIEN'
+                              ? '#a7f3d0'
+                              : f.howFelt === 'REGULAR'
+                              ? '#fde047'
+                              : '#fca5a5'
+                          }`,
+                        }}
+                      >
+                        {f.howFeltLegible}
+                      </span>
+
+                      <span
+                        style={{
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          background: f.wantsToContinue === 'CAMBIAR' ? '#fef2f2' : '#f8fafc',
+                          color: f.wantsToContinue === 'CAMBIAR' ? '#b91c1c' : '#334155',
+                          border: `1px solid ${f.wantsToContinue === 'CAMBIAR' ? '#fecaca' : '#cbd5e1'}`,
+                        }}
+                      >
+                        {f.wantsToContinueLegible}
+                      </span>
+                    </div>
+                    <span className="bitacora__fecha">{enBogota(f.createdAt)}</span>
+                  </div>
+
+                  {f.profesional ? (
+                    <p className="bitacora__dato" style={{ marginTop: 6 }}>
+                      <em>Profesional:</em> {f.profesional}
+                    </p>
+                  ) : null}
+
+                  {f.comment ? (
+                    <p className="bitacora__dato" style={{ marginTop: 4 }}>
+                      <em>Comentario:</em> &ldquo;{f.comment}&rdquo;
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Vacio>
+              La persona aún no ha enviado retroalimentación sobre sus sesiones.
+            </Vacio>
+          )}
+
+          {persona.enlaceFeedback ? (
+            <BotonPedirFeedback
+              persona={persona.fullName}
+              telefono={persona.phone}
+              profesional={persona.asignacion?.profesional?.nombre}
+              enlace={persona.enlaceFeedback}
+            />
           ) : null}
         </div>
       ) : null}

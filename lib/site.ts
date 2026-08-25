@@ -15,8 +15,8 @@ export const site = {
    * dejó el número viejo en producción cuando se actualizó uno y no el otro.
    * Cambiarlo es editar estas dos líneas, y el deploy hace el resto.
    */
-  whatsappNumber: '573136295251',
-  whatsappDisplay: '313 629 5251',
+  whatsappNumber: '573102186299',
+  whatsappDisplay: '310 218 6299',
   instagramUrl:
     process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? 'https://www.instagram.com/aquiestamos.red',
   instagramHandle: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? '@aquiestamos.red',

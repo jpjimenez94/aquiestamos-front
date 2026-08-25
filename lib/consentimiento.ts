@@ -18,8 +18,8 @@ export const RESPONSABLE = {
   /** Pendiente: no hay sede física. */
   direccion: null as string | null,
   /** Provisional hasta que exista un correo dedicado de habeas data. */
-  canal: 'WhatsApp +57 313 629 5251',
-  canalHref: 'https://wa.me/573136295251',
+  canal: 'WhatsApp +57 310 218 6299',
+  canalHref: 'https://wa.me/573102186299',
   retencionMeses: 24,
 } as const
 
