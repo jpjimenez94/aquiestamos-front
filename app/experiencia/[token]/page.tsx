@@ -30,14 +30,16 @@ function Envoltura({ children }: { children: React.ReactNode }) {
   return (
     <main className="tamizaje">
       <div className="tamizaje__caja">
-        <Image
-          className="tamizaje__logo"
-          src="/images/logo.png"
-          alt="Red Aquí Estamos"
-          width={132}
-          height={48}
-          priority
-        />
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+          <Image
+            src="/images/logo.png"
+            alt="Red Aquí Estamos"
+            width={170}
+            height={62}
+            style={{ width: 'auto', height: 'auto', maxWidth: 170 }}
+            priority
+          />
+        </div>
         {children}
       </div>
     </main>
