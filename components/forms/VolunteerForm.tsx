@@ -118,6 +118,10 @@ const VACIO = {
   additionalTrainingOther: '',
   yearsExperience: '',
   professionalCard: '',
+  professionalCardNumber: '',
+  professionalCardDocumentUrl: '',
+  identityDocumentUrl: '',
+  identityDocumentBackUrl: '',
   populations: [] as string[],
   populationOther: '',
   crisisExperience: '',
@@ -132,9 +136,118 @@ const VACIO = {
   communicationsConsent: false,
 }
 
+function CampoArchivoVoluntario({
+  etiqueta,
+  ayuda,
+  clave,
+  onClave,
+  onError,
+  opcional = false,
+}: {
+  etiqueta: string
+  ayuda: string
+  clave: string | null
+  onClave: (clave: string | null) => void
+  onError: (m: string | null) => void
+  opcional?: boolean
+}) {
+  const [subiendo, setSubiendo] = useState(false)
+  const [nombre, setNombre] = useState<string | null>(null)
+
+  async function alElegir(e: React.ChangeEvent<HTMLInputElement>) {
+    const archivo = e.target.files?.[0]
+    if (!archivo) return
+    onError(null)
+    setSubiendo(true)
+    try {
+      const fd = new FormData()
+      fd.set('archivo', archivo)
+      const res = await fetch('/api/volunteers/upload', {
+        method: 'POST',
+        body: fd,
+      })
+      const r = await res.json()
+      if (!res.ok || !r.success) {
+        onClave(null)
+        setNombre(null)
+        onError(r.message || 'No se pudo subir el archivo.')
+        return
+      }
+      onClave(r.data.clave)
+      setNombre(archivo.name)
+    } catch {
+      onClave(null)
+      setNombre(null)
+      onError('No se pudo subir. Si el archivo es muy pesado, prueba con una foto más liviana; si no, revisa tu conexión.')
+    } finally {
+      setSubiendo(false)
+      e.target.value = ''
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label className="field__label" style={{ fontWeight: 600 }}>
+        {etiqueta} {opcional ? <span style={{ color: '#64748b', fontWeight: 400 }}>(Opcional)</span> : null}
+      </label>
+      <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 8px' }}>
+        {ayuda}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <label
+          className="tamizaje__opcion"
+          data-elegida={clave != null}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            padding: '8px 14px',
+            borderRadius: 8,
+            border: clave ? '1px solid #059669' : '1px dashed #cbd5e1',
+            background: clave ? '#ecfdf5' : '#ffffff',
+            color: clave ? '#065f46' : '#334155',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+          }}
+        >
+          <input
+            type="file"
+            accept="application/pdf,image/png,image/jpeg,image/webp"
+            style={{ display: 'none' }}
+            onChange={alElegir}
+            disabled={subiendo}
+          />
+          {subiendo ? 'Subiendo archivo…' : clave ? `✓ Listo: ${nombre}` : '📎 Elegir foto o PDF (máx. 10 MB)'}
+        </label>
+        {clave && (
+          <button
+            type="button"
+            onClick={() => {
+              onClave(null)
+              setNombre(null)
+            }}
+            style={{
+              border: 'none',
+              background: 'none',
+              color: '#dc2626',
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            Quitar archivo
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function VolunteerForm() {
   const [form, setForm] = useState(VACIO)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [docError, setDocError] = useState<string | null>(null)
   const [status, setStatus] = useState<Status>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -219,7 +332,11 @@ export function VolunteerForm() {
         ...form,
         profession: marcoOtraProfesion ? form.professionOther : form.profession,
         additionalTraining: marcoOtraFormacion ? form.additionalTrainingOther : (form.additionalTraining === 'Ninguna' ? '' : form.additionalTraining),
-        consentVersion: VERSION_CONSENTIMIENTO
+        professionalCardNumber: form.professionalCardNumber.trim() || undefined,
+        professionalCardDocumentUrl: form.professionalCardDocumentUrl.trim() || undefined,
+        identityDocumentUrl: form.identityDocumentUrl.trim() || undefined,
+        identityDocumentBackUrl: form.identityDocumentBackUrl.trim() || undefined,
+        consentVersion: VERSION_CONSENTIMIENTO,
       }
 
       const response = await fetch('/api/volunteers', {
@@ -378,6 +495,69 @@ export function VolunteerForm() {
 
       <Bloque
         numero={3}
+        titulo="Documentos de habilitación (Opcional)"
+        descripcion="Si tienes a mano tus documentos, puedes adjuntarlos ahora para agilizar tu verificación. Si no los tienes en este momento, puedes continuar y te los solicitaremos más adelante por WhatsApp."
+      >
+        <div
+          style={{
+            padding: '12px 16px',
+            borderRadius: 8,
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            marginBottom: 16,
+            fontSize: '0.82rem',
+            color: '#475569',
+            lineHeight: 1.5,
+          }}
+        >
+          🔒 <strong>Confidencialidad y Seguridad:</strong> Estos documentos se almacenan en un repositorio privado seguro y se utilizarán únicamente por el equipo de coordinación para verificar tu identidad y habilitación profesional conforme a la Ley 1581 de 2012. No serán compartidos con terceros.
+        </div>
+
+        {docError && (
+          <p style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: 12 }}>
+            {docError}
+          </p>
+        )}
+
+        <CampoArchivoVoluntario
+          etiqueta="Tarjeta Profesional o Certificado"
+          ayuda="Foto o PDF de tu tarjeta profesional, acta de grado o certificado de trámite."
+          clave={form.professionalCardDocumentUrl || null}
+          onClave={(c) => update('professionalCardDocumentUrl', c || '')}
+          onError={setDocError}
+          opcional
+        />
+
+        <TextField
+          label="Número de Tarjeta Profesional"
+          name="professionalCardNumber"
+          hint="Si cuentas con él, escríbelo aquí."
+          placeholder="Ej: 123456"
+          value={form.professionalCardNumber}
+          onChange={(v) => update('professionalCardNumber', v)}
+        />
+
+        <CampoArchivoVoluntario
+          etiqueta="Documento de Identidad (Frente)"
+          ayuda="Foto o PDF de tu cédula de ciudadanía o extranjería."
+          clave={form.identityDocumentUrl || null}
+          onClave={(c) => update('identityDocumentUrl', c || '')}
+          onError={setDocError}
+          opcional
+        />
+
+        <CampoArchivoVoluntario
+          etiqueta="Documento de Identidad (Respaldo)"
+          ayuda="Opcional. No es necesario si subiste un PDF o foto con ambas caras."
+          clave={form.identityDocumentBackUrl || null}
+          onClave={(c) => update('identityDocumentBackUrl', c || '')}
+          onError={setDocError}
+          opcional
+        />
+      </Bloque>
+
+      <Bloque
+        numero={4}
         titulo="Tu disponibilidad"
         descripcion="Cada acompañamiento dura 45 minutos y dejamos 30 de descanso entre uno y otro."
       >
@@ -437,7 +617,7 @@ export function VolunteerForm() {
         ) : null}
       </Bloque>
 
-      <Bloque numero={4} titulo="Autorizaciones">
+      <Bloque numero={5} titulo="Autorizaciones">
         <div className="autorizaciones">
           <p className="autorizaciones__aviso">{AVISO_TRATAMIENTO.profesionales}</p>
           <p className="autorizaciones__aviso">
