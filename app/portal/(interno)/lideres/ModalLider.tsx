@@ -93,7 +93,7 @@ export function ModalLider({
         beneficiariesCount: parseInt(beneficiariesCount, 10) || 0,
         status,
         nextAction: nextAction.trim() || null,
-        nextActionDate: nextActionDate ? new Date(nextActionDate).toISOString() : null,
+        nextActionDate: nextActionDate ? nextActionDate : null,
         notes: notes.trim() || null,
         needIds: selectedNeedIds,
       }
@@ -106,7 +106,12 @@ export function ModalLider({
       }
 
       if (!res.success) {
-        setError(res.message || 'Error al guardar el líder comunitario')
+        const fieldDetails = res.details
+          ? Object.entries(res.details)
+              .map(([k, v]) => `${v}`)
+              .join('. ')
+          : ''
+        setError(fieldDetails || res.message || 'Error al guardar el líder comunitario')
         return
       }
 

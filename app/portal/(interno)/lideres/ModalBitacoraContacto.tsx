@@ -54,13 +54,18 @@ export function ModalBitacoraContacto({
       const payload: ContactoInput = {
         notes: notes.trim(),
         nextActionDefined: nextActionDefined.trim() || null,
-        nextActionDate: nextActionDate ? new Date(nextActionDate).toISOString() : null,
+        nextActionDate: nextActionDate ? nextActionDate : null,
         status,
       }
 
       const res = await agregarContactoAction(lider.id, payload)
       if (!res.success) {
-        setError(res.message || 'Error al registrar el contacto')
+        const fieldDetails = res.details
+          ? Object.entries(res.details)
+              .map(([k, v]) => `${v}`)
+              .join('. ')
+          : ''
+        setError(fieldDetails || res.message || 'Error al registrar el contacto')
         return
       }
 
