@@ -24,6 +24,8 @@ type SeccionTarjetaProps = {
   profesionalNombre: string
   profesionalTelefono?: string | null
   verificada?: boolean
+  verificadaAt?: string | null
+  verificadaPor?: string | null
   numero?: string | null
   documentoUrl?: string | null
   identityDocumentUrl?: string | null
@@ -48,6 +50,8 @@ export function SeccionTarjetaProfesional({
   profesionalNombre,
   profesionalTelefono,
   verificada = false,
+  verificadaAt = null,
+  verificadaPor = null,
   numero = '',
   documentoUrl = '',
   identityDocumentUrl = null,
@@ -214,9 +218,16 @@ export function SeccionTarjetaProfesional({
           <div>
             <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'block' }}>Estado de Verificación</span>
             {verificada ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.9rem', fontWeight: 600, marginTop: 4 }}>
-                <ShieldCheck size={17} /> Documentación Verificada
-              </span>
+              <>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.9rem', fontWeight: 600, marginTop: 4 }}>
+                  <ShieldCheck size={17} /> Documentación Verificada
+                </span>
+                {verificadaAt ? (
+                  <span className="tabla__secundario" style={{ fontSize: '0.74rem', display: 'block', marginTop: 2 }}>
+                    Verificada el {verificadaAt} {verificadaPor ? `· por ${verificadaPor}` : ''}
+                  </span>
+                ) : null}
+              </>
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#dc2626', fontSize: '0.9rem', fontWeight: 600, marginTop: 4 }}>
                 <ShieldAlert size={17} /> Pendiente de Verificación
@@ -278,6 +289,8 @@ export function SeccionTarjetaProfesional({
         identityDocumentUrlActual={identityDocumentUrl}
         identityDocumentBackUrlActual={identityDocumentBackUrl}
         verificadaActual={verificada}
+        verificadaAtActual={verificadaAt}
+        verificadaPorActual={verificadaPor}
         enlaceDocumentos={enlaceDocumentos}
         abierto={modalAbierto}
         onCerrar={() => setModalAbierto(false)}

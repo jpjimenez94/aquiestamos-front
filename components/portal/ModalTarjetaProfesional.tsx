@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { paraWhatsapp } from '@/lib/telefono'
 import { mensajeDePedirDocumentos } from '@/lib/mensajes'
+import { enBogota } from '@/lib/fechas'
 import { DocumentoPrivado } from './DocumentoPrivado'
 import { BotonPedirDocumentosEmail } from './BotonPedirDocumentosEmail'
 import {
@@ -30,6 +31,8 @@ type ModalTarjetaProps = {
   identityDocumentUrlActual?: string | null
   identityDocumentBackUrlActual?: string | null
   verificadaActual?: boolean
+  verificadaAtActual?: string | null
+  verificadaPorActual?: string | null
   /** El enlace por el que el profesional sube sus documentos él mismo. */
   enlaceDocumentos?: string | null
   abierto: boolean
@@ -54,6 +57,8 @@ export function ModalTarjetaProfesional({
   identityDocumentUrlActual = null,
   identityDocumentBackUrlActual = null,
   verificadaActual = false,
+  verificadaAtActual = null,
+  verificadaPorActual = null,
   enlaceDocumentos = null,
   abierto,
   onCerrar,
@@ -337,6 +342,13 @@ export function ModalTarjetaProfesional({
               <span className="tabla__secundario" style={{ fontSize: '0.76rem' }}>
                 Cada vez que alguien abre un documento queda registrado quién y cuándo en la auditoría.
               </span>
+            </div>
+          ) : null}
+
+          {verificadaActual && verificadaAtActual ? (
+            <div style={{ padding: '8px 12px', borderRadius: 6, background: '#ecfdf5', border: '1px solid #a7f3d0', fontSize: '0.8rem', color: '#065f46' }}>
+              <strong>Verificación registrada:</strong> {enBogota(verificadaAtActual)}
+              {verificadaPorActual ? ` · por ${verificadaPorActual}` : ''}
             </div>
           ) : null}
 

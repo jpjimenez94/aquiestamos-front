@@ -21,6 +21,8 @@ type Profesional = {
   professionalCardNumber?: string | null
   professionalCardDocumentUrl?: string | null
   professionalCardVerified?: boolean
+  professionalCardVerifiedAt?: string | null
+  professionalCardVerifiedBy?: string | null
   identityDocumentUrl?: string | null
   identityDocumentBackUrl?: string | null
   documentsSubmittedAt?: string | null
@@ -129,6 +131,8 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
         profesionalNombre={p.fullName}
         profesionalTelefono={p.phone}
         verificada={p.professionalCardVerified}
+        verificadaAt={p.professionalCardVerifiedAt}
+        verificadaPor={p.professionalCardVerifiedBy}
         numero={p.professionalCardNumber}
         documentoUrl={p.professionalCardDocumentUrl}
         identityDocumentUrl={p.identityDocumentUrl}

@@ -7,6 +7,7 @@ import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 import { nombrePropio } from '@/lib/nombre'
+import { enBogota } from '@/lib/fechas'
 
 export type Profesional = {
   enlaceDocumentos?: string | null
@@ -19,6 +20,8 @@ export type Profesional = {
   modality: string
   populations: string[]
   professionalCardVerified?: boolean
+  professionalCardVerifiedAt?: string | null
+  professionalCardVerifiedBy?: string | null
   professionalCardNumber?: string | null
   professionalCardDocumentUrl?: string | null
   status: string
@@ -158,7 +161,9 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
         case 'tarjeta': {
           const verA = a.professionalCardVerified ? 1 : 0
           const verB = b.professionalCardVerified ? 1 : 0
-          cmp = verA - verB || (a.professionalCardNumber || '').localeCompare(b.professionalCardNumber || '')
+          const dateA = a.professionalCardVerifiedAt || ''
+          const dateB = b.professionalCardVerifiedAt || ''
+          cmp = verA - verB || dateA.localeCompare(dateB) || (a.professionalCardNumber || '').localeCompare(b.professionalCardNumber || '')
           break
         }
         case 'estado':
@@ -432,10 +437,17 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                       profesionalTelefono={p.phone}
                       profesionalEmail={p.email}
                       verificada={p.professionalCardVerified}
+                      verificadaAt={p.professionalCardVerifiedAt}
+                      verificadaPor={p.professionalCardVerifiedBy}
                       numero={p.professionalCardNumber}
                       documentoUrl={p.professionalCardDocumentUrl}
                       enlaceDocumentos={p.enlaceDocumentos ?? null}
                     />
+                    {p.professionalCardVerified && p.professionalCardVerifiedAt ? (
+                      <span className="tabla__secundario" style={{ fontSize: '0.72rem', marginTop: 3, display: 'block' }}>
+                        Verificada: {enBogota(p.professionalCardVerifiedAt, false)}
+                      </span>
+                    ) : null}
                   </td>
                   <td>
                     <Etiqueta estado={p.status} texto={p.estadoLegible} />
