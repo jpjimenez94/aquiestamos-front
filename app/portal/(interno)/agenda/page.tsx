@@ -60,6 +60,19 @@ type Paciente = {
   diasEsperando: number
   /** Solo en Por Asignar: prioridad ALTA con demasiados días sin profesional. */
   slaVencido?: boolean
+  ultimaCita?: {
+    id: string
+    inicio: string
+    fin?: string | null
+    estado: string
+    modalidad: string
+  } | null
+  ultimoReporte?: {
+    id: string
+    outcome: string
+    fecha: string
+    notas?: string | null
+  } | null
   asignacion: {
     id: string
     desde: string
@@ -77,6 +90,17 @@ type Paciente = {
       professionalCardDocumentUrl?: string
     }
   } | null
+}
+
+const OUTCOME_LABEL: Record<string, string> = {
+  YA_ATENDIDA: 'Ya la acompañó',
+  CITA_ACORDADA: 'Quedaron en una cita',
+  NO_ASISTIO: 'No asistió a la sesión',
+  SIGO_INTENTANDO: 'Sigue intentando contactar',
+  NO_CONTESTA: 'No contesta',
+  DATOS_ERRADOS: 'Datos errados',
+  NO_QUIERE: 'No desea acompañamiento',
+  OTRO: 'Otro reporte',
 }
 
 const DIA_CORTO: Record<string, string> = {
@@ -178,6 +202,8 @@ export default async function AgendaPage({
       esperandoProfesional: Paciente[]
       porCuadrarHorario: Paciente[]
       citasAbiertas: Cita[]
+      citasPropuestas?: Cita[]
+      citasConfirmadas?: Cita[]
       enAcompanamiento: Paciente[]
       cerrados: {
         id: string
@@ -193,8 +219,8 @@ export default async function AgendaPage({
     const esperandoProfesional = tableroRes.data?.esperandoProfesional ?? []
     const porCuadrarHorario = tableroRes.data?.porCuadrarHorario ?? []
     const citasAbiertas = tableroRes.data?.citasAbiertas ?? []
-    const citasPropuestas = citasAbiertas.filter((c) => c.estado === 'PROGRAMADA')
-    const citasConfirmadas = citasAbiertas.filter((c) => c.estado === 'CONFIRMADA')
+    const citasPropuestas = tableroRes.data?.citasPropuestas ?? citasAbiertas.filter((c) => c.estado === 'PROGRAMADA')
+    const citasConfirmadas = tableroRes.data?.citasConfirmadas ?? citasAbiertas.filter((c) => c.estado === 'CONFIRMADA')
     const enAcompanamiento = tableroRes.data?.enAcompanamiento ?? []
     const cerrados = tableroRes.data?.cerrados ?? []
 
@@ -409,7 +435,7 @@ export default async function AgendaPage({
             )}
           </div>
 
-          {/* Columna 6: En Acompañamiento */}
+          {/* Columna 6: En Acompañamiento / Seguimiento */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
@@ -422,11 +448,55 @@ export default async function AgendaPage({
               <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin acompañamientos activos</span>
             ) : (
               enAcompanamiento.map((p) => (
-                <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card">
-                  <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
+                <Link
+                  key={p.id}
+                  href={`/portal/personas/${p.id}`}
+                  className="pipeline-card"
+                  style={{ borderLeft: '3px solid #0284c7' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
+                    {p.ultimoReporte ? (
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          color: '#059669',
+                          fontWeight: 600,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3,
+                        }}
+                      >
+                        <CheckCircle2 size={12} /> Con reporte
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          color: '#d97706',
+                          fontWeight: 600,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3,
+                        }}
+                      >
+                        <Clock size={12} /> Esperando reporte
+                      </span>
+                    )}
+                  </div>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
-                    Psicólogo: {nombrePropio(p.asignacion?.profesional.nombre) || 'Asignado'}
+                    Psicólogo: <strong>{nombrePropio(p.asignacion?.profesional.nombre) || 'Asignado'}</strong>
                   </span>
+                  {p.ultimaCita ? (
+                    <span className="tabla__secundario" style={{ fontSize: '0.74rem', marginTop: 2 }}>
+                      Sesión: {enBogota(p.ultimaCita.inicio)} ({p.ultimaCita.modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'})
+                    </span>
+                  ) : null}
+                  {p.ultimoReporte?.outcome ? (
+                    <span style={{ fontSize: '0.74rem', color: '#4b5563', fontStyle: 'italic', marginTop: 2 }}>
+                      {OUTCOME_LABEL[p.ultimoReporte.outcome] ?? p.ultimoReporte.outcome}
+                    </span>
+                  ) : null}
                 </Link>
               ))
             )}
