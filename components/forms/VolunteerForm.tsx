@@ -46,9 +46,36 @@ const DIAS = [
 ] as const
 
 const FRANJAS = [
-  { value: 'MANANA', label: 'Mañana', horario: '8 a. m. – 12 m.', icon: '🌅' },
-  { value: 'TARDE', label: 'Tarde', horario: '12 m. – 6 p. m.', icon: '☀️' },
-  { value: 'NOCHE', label: 'Noche', horario: '6 – 9 p. m.', icon: '🌙' },
+  {
+    value: 'MANANA',
+    label: 'Mañana',
+    horario: '8 a. m. – 12 m.',
+    bg: '#fffdf0',
+    bgActive: '#fef3c7',
+    border: '#fde68a',
+    borderActive: '#d97706',
+    text: '#92400e',
+  },
+  {
+    value: 'TARDE',
+    label: 'Tarde',
+    horario: '12 m. – 6 p. m.',
+    bg: '#fff7ed',
+    bgActive: '#ffedd5',
+    border: '#fed7aa',
+    borderActive: '#ea580c',
+    text: '#9a3412',
+  },
+  {
+    value: 'NOCHE',
+    label: 'Noche',
+    horario: '6 – 9 p. m.',
+    bg: '#f8faff',
+    bgActive: '#e0e7ff',
+    border: '#c7d2fe',
+    borderActive: '#4f46e5',
+    text: '#3730a3',
+  },
 ] as const
 
 const ANOS_EXPERIENCIA = [
@@ -946,7 +973,7 @@ export function VolunteerForm() {
             <label className="field__label">
               ¿En qué franjas del día? <span style={{ color: '#dc2626' }}>*</span>
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
               {FRANJAS.map((f) => {
                 const activa = form.availableSlots.includes(f.value)
                 return (
@@ -955,17 +982,40 @@ export function VolunteerForm() {
                     type="button"
                     onClick={() => alternarFranja(f.value)}
                     style={{
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      border: activa ? '1.5px solid #059669' : '1px solid #cbd5e1',
-                      background: activa ? '#ecfdf5' : '#ffffff',
-                      color: activa ? '#065f46' : '#334155',
+                      padding: '12px 14px',
+                      borderRadius: 10,
+                      border: activa ? `2px solid ${f.borderActive}` : `1px solid ${f.border}`,
+                      background: activa ? f.bgActive : f.bg,
+                      color: activa ? f.text : '#334155',
                       textAlign: 'left',
                       cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: activa ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{f.icon} {f.label}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{f.horario}</div>
+                    <div
+                      style={{
+                        fontWeight: activa ? 700 : 600,
+                        fontSize: '0.88rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        color: activa ? f.text : '#1e293b',
+                      }}
+                    >
+                      <span>{f.label}</span>
+                      {activa && <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>✓</span>}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.74rem',
+                        color: activa ? f.text : '#64748b',
+                        opacity: activa ? 0.95 : 0.85,
+                        marginTop: 3,
+                      }}
+                    >
+                      {f.horario}
+                    </div>
                   </button>
                 )
               })}
