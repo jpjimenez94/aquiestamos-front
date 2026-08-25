@@ -267,6 +267,7 @@ export function VolunteerForm() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [docError, setDocError] = useState<string | null>(null)
   const [acordeonDocsAbierto, setAcordeonDocsAbierto] = useState(false)
+  const [uploadDisponible, setUploadDisponible] = useState<'pendiente' | 'disponible' | 'no_disponible'>('pendiente')
   const [status, setStatus] = useState<Status>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -279,6 +280,23 @@ export function VolunteerForm() {
   function scrollToTop() {
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  async function abrirAcordeonDocs() {
+    const abierto = !acordeonDocsAbierto
+    setAcordeonDocsAbierto(abierto)
+    // Solo verifica disponibilidad la primera vez que se abre
+    if (abierto && uploadDisponible === 'pendiente') {
+      try {
+        // Intentamos hacer una petición vacía: si el endpoint existe responde
+        // 400 (sin archivo), no 404. Si no existe responde 404. Con eso basta.
+        const r = await fetch('/api/volunteers/upload', { method: 'POST' })
+        setUploadDisponible(r.status !== 404 ? 'disponible' : 'no_disponible')
+      } catch {
+        // Error de red: asumimos que no está disponible por ahora
+        setUploadDisponible('no_disponible')
+      }
     }
   }
 
@@ -1064,7 +1082,7 @@ export function VolunteerForm() {
           >
             <button
               type="button"
-              onClick={() => setAcordeonDocsAbierto((prev) => !prev)}
+              onClick={abrirAcordeonDocs}
               style={{
                 width: '100%',
                 padding: '14px 16px',
@@ -1110,49 +1128,91 @@ export function VolunteerForm() {
                   🔒 <strong>Confidencialidad:</strong> Uso exclusivo del equipo de coordinación para validar tu identidad y tarjeta profesional conforme a la Ley 1581 de 2012.
                 </div>
 
-                {docError && (
-                  <p style={{ color: '#dc2626', fontSize: '0.82rem', marginBottom: 10 }}>{docError}</p>
+                {/* Si el endpoint de subida no está disponible, mostramos el fallback de WhatsApp */}
+                {uploadDisponible === 'no_disponible' ? (
+                  <div
+                    style={{
+                      padding: '14px 16px',
+                      borderRadius: 10,
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      fontSize: '0.82rem',
+                      color: '#166534',
+                      lineHeight: 1.5,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10,
+                    }}
+                  >
+                    <span style={{ fontSize: '1.1rem' }}>📲</span>
+                    <div>
+                      <strong style={{ display: 'block', marginBottom: 4 }}>
+                        Envía tus documentos por WhatsApp
+                      </strong>
+                      Cuando completes tu registro, nuestro equipo te contactará para solicitarlos.
+                      También puedes enviarlos directamente al{' '}
+                      <a
+                        href="https://wa.me/573102186299"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#059669', fontWeight: 600, textDecoration: 'underline' }}
+                      >
+                        +57 310 218 6299
+                      </a>
+                      {' '}indicando tu nombre y número de tarjeta profesional.
+                    </div>
+                  </div>
+                ) : uploadDisponible === 'pendiente' ? (
+                  <p style={{ fontSize: '0.82rem', color: '#64748b', textAlign: 'center', padding: '10px 0' }}>
+                    Verificando disponibilidad…
+                  </p>
+                ) : (
+                  <>
+                    {docError && (
+                      <p style={{ color: '#dc2626', fontSize: '0.82rem', marginBottom: 10 }}>{docError}</p>
+                    )}
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+                      <CampoArchivoVoluntario
+                        etiqueta="Tarjeta Profesional o Certificado"
+                        ayuda="Foto o PDF de tarjeta, acta de grado o certificado."
+                        clave={form.professionalCardDocumentUrl || null}
+                        onClave={(c) => update('professionalCardDocumentUrl', c || '')}
+                        onError={setDocError}
+                        opcional
+                      />
+
+                      <TextField
+                        label="Número de Tarjeta Profesional"
+                        name="professionalCardNumber"
+                        hint="Opcional."
+                        placeholder="Ej: 123456"
+                        value={form.professionalCardNumber}
+                        onChange={(v) => update('professionalCardNumber', v)}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, marginTop: 10 }}>
+                      <CampoArchivoVoluntario
+                        etiqueta="Cédula de Ciudadanía (Frente)"
+                        ayuda="Foto o PDF de tu documento de identidad."
+                        clave={form.identityDocumentUrl || null}
+                        onClave={(c) => update('identityDocumentUrl', c || '')}
+                        onError={setDocError}
+                        opcional
+                      />
+
+                      <CampoArchivoVoluntario
+                        etiqueta="Cédula de Ciudadanía (Respaldo)"
+                        ayuda="Opcional si subiste ambas caras en el anterior."
+                        clave={form.identityDocumentBackUrl || null}
+                        onClave={(c) => update('identityDocumentBackUrl', c || '')}
+                        onError={setDocError}
+                        opcional
+                      />
+                    </div>
+                  </>
                 )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-                  <CampoArchivoVoluntario
-                    etiqueta="Tarjeta Profesional o Certificado"
-                    ayuda="Foto o PDF de tarjeta, acta de grado o certificado."
-                    clave={form.professionalCardDocumentUrl || null}
-                    onClave={(c) => update('professionalCardDocumentUrl', c || '')}
-                    onError={setDocError}
-                    opcional
-                  />
-
-                  <TextField
-                    label="Número de Tarjeta Profesional"
-                    name="professionalCardNumber"
-                    hint="Opcional."
-                    placeholder="Ej: 123456"
-                    value={form.professionalCardNumber}
-                    onChange={(v) => update('professionalCardNumber', v)}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, marginTop: 10 }}>
-                  <CampoArchivoVoluntario
-                    etiqueta="Cédula de Ciudadanía (Frente)"
-                    ayuda="Foto o PDF de tu documento de identidad."
-                    clave={form.identityDocumentUrl || null}
-                    onClave={(c) => update('identityDocumentUrl', c || '')}
-                    onError={setDocError}
-                    opcional
-                  />
-
-                  <CampoArchivoVoluntario
-                    etiqueta="Cédula de Ciudadanía (Respaldo)"
-                    ayuda="Opcional si subiste ambas caras en el anterior."
-                    clave={form.identityDocumentBackUrl || null}
-                    onClave={(c) => update('identityDocumentBackUrl', c || '')}
-                    onError={setDocError}
-                    opcional
-                  />
-                </div>
               </div>
             )}
           </div>
