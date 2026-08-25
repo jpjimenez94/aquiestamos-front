@@ -270,6 +270,8 @@ export function VolunteerForm() {
   const [uploadDisponible, setUploadDisponible] = useState<'pendiente' | 'disponible' | 'no_disponible'>('pendiente')
   const [status, setStatus] = useState<Status>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [enviado, setEnviado] = useState(false)
+  const [nombreEnviado, setNombreEnviado] = useState('')
 
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -278,9 +280,7 @@ export function VolunteerForm() {
   const marcoOtraProfesion = form.profession === 'Otra'
 
   function scrollToTop() {
-    if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function abrirAcordeonDocs() {
@@ -441,9 +441,13 @@ export function VolunteerForm() {
         return
       }
 
+      // Guardamos el primer nombre antes de limpiar el form
+      const primerNombre = form.fullName.trim().split(' ')[0]
+      setNombreEnviado(primerNombre)
       setForm(VACIO)
       setPaso(1)
-      setStatus({ type: 'success', message: payload.message })
+      setEnviado(true)
+      scrollToTop()
     } catch {
       setStatus({
         type: 'error',
@@ -452,6 +456,126 @@ export function VolunteerForm() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // ─── Pantalla de confirmación post-envío ────────────────────────────────────
+  if (enviado) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: '40px 24px',
+          borderRadius: 16,
+          border: '1px solid #bbf7d0',
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+          gap: 20,
+        }}
+      >
+        {/* Ícono animado */}
+        <div
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: '#059669',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2.4rem',
+            boxShadow: '0 8px 24px rgba(5,150,105,0.25)',
+          }}
+        >
+          💚
+        </div>
+
+        {/* Mensaje principal */}
+        <div>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#065f46', margin: '0 0 10px' }}>
+            ¡Gracias por tu apoyo, {nombreEnviado}!
+          </h2>
+          <p style={{ fontSize: '1rem', color: '#047857', margin: '0 0 6px', lineHeight: 1.6 }}>
+            Recibimos tu registro exitosamente. Tu disposición para acompañar a quienes más lo
+            necesitan hace parte de algo muy grande.
+          </p>
+          <p style={{ fontSize: '0.88rem', color: '#065f46', margin: 0, lineHeight: 1.5 }}>
+            En los próximos días, alguien de nuestro equipo se comunicará contigo por WhatsApp
+            para coordinar los siguientes pasos.
+          </p>
+        </div>
+
+        {/* Qué sigue */}
+        <div
+          style={{
+            background: '#ffffff',
+            border: '1px solid #d1fae5',
+            borderRadius: 12,
+            padding: '16px 20px',
+            textAlign: 'left',
+            width: '100%',
+            maxWidth: 420,
+          }}
+        >
+          <strong style={{ fontSize: '0.88rem', color: '#065f46', display: 'block', marginBottom: 10 }}>
+            ¿Qué pasa ahora?
+          </strong>
+          <ol style={{ margin: 0, paddingLeft: 20, fontSize: '0.84rem', color: '#374151', lineHeight: 1.7 }}>
+            <li>Revisamos tu perfil y te asignamos a comunidades afines.</li>
+            <li>Te contactamos por WhatsApp para coordinar tu vinculación.</li>
+            <li>¡Empezamos a acompañar juntos!</li>
+          </ol>
+        </div>
+
+        {/* Botones */}
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 4 }}>
+          <a
+            href="https://wa.me/573102186299"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '11px 20px',
+              borderRadius: 10,
+              background: '#059669',
+              color: '#ffffff',
+              fontWeight: 600,
+              fontSize: '0.88rem',
+              textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(5,150,105,0.3)',
+            }}
+          >
+            💬 Escribirnos por WhatsApp
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              setEnviado(false)
+              setNombreEnviado('')
+              setStatus(null)
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '11px 20px',
+              borderRadius: 10,
+              border: '1.5px solid #059669',
+              background: '#ffffff',
+              color: '#059669',
+              fontWeight: 600,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+            }}
+          >
+            Registrar otra persona
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
