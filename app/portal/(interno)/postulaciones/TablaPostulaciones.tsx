@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 import { BotonPedirDocumentosEmail } from '@/components/portal/BotonPedirDocumentosEmail'
+import { BotonEliminarPostulacion } from './BotonEliminarPostulacion'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
 
@@ -63,14 +64,26 @@ const estiloInputFiltro: React.CSSProperties = {
 }
 
 export function TablaPostulaciones({
-  postulaciones,
+  postulaciones: listaInicial,
   veProfesionales = false,
   editaProfesionales = false,
+  eliminaPostulaciones = false,
 }: {
   postulaciones: Postulacion[]
   veProfesionales?: boolean
   editaProfesionales?: boolean
+  eliminaPostulaciones?: boolean
 }) {
+  const [postulaciones, setPostulaciones] = useState<Postulacion[]>(listaInicial)
+
+  useEffect(() => {
+    setPostulaciones(listaInicial)
+  }, [listaInicial])
+
+  function alEliminar(id: string) {
+    setPostulaciones((prev) => prev.filter((item) => item.id !== id))
+  }
+
   const [filtroProfesional, setFiltroProfesional] = useState('')
   const [filtroProfesion, setFiltroProfesion] = useState('')
   const [filtroExperiencia, setFiltroExperiencia] = useState('')
@@ -499,6 +512,13 @@ export function TablaPostulaciones({
                       <Link className="boton-mini" href={`/portal/profesionales/${p.professionalId}`}>
                         Ver ficha
                       </Link>
+                    ) : null}
+                    {eliminaPostulaciones ? (
+                      <BotonEliminarPostulacion
+                        postulacionId={p.id}
+                        nombreProfesional={p.fullName}
+                        onEliminada={alEliminar}
+                      />
                     ) : null}
                   </td>
                 </tr>

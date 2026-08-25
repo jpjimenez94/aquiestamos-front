@@ -12,6 +12,7 @@ export default async function PostulacionesPage() {
 
   const veProfesionales = puede(usuario, 'profesional:leer')
   const editaProfesionales = puede(usuario, 'profesional:verificar-tarjeta')
+  const eliminaPostulaciones = puede(usuario, 'postulacion:eliminar')
 
   const postulaciones = respuesta.data ?? []
 
@@ -31,6 +32,7 @@ export default async function PostulacionesPage() {
           postulaciones={postulaciones}
           veProfesionales={veProfesionales}
           editaProfesionales={editaProfesionales}
+          eliminaPostulaciones={eliminaPostulaciones}
         />
       )}
     </>
