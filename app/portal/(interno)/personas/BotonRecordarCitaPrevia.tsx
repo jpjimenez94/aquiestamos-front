@@ -63,12 +63,15 @@ export function BotonRecordarCitaPrevia({
   const horaFormateada = cita.inicioLocal ?? enBogota(cita.inicio)
   const telProf = paraWhatsapp(profesional.telefono)
 
+  const sitioUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
+  const enlaceReunion = cita.meetingUrl ? `${sitioUrl}/sala/${cita.id}?rol=profesional` : null
+
   const mensaje = mensajeRecordatorioPrevioCitaProfesional({
     profesional: profesional.nombre,
     cuando: horaFormateada,
     modalidad: cita.modalidad,
     enlaceCaso,
-    enlaceReunion: cita.meetingUrl,
+    enlaceReunion,
   })
 
   const urlWhatsapp = telProf

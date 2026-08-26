@@ -30,6 +30,15 @@ type Metricas = {
   motivosDeCierre: Record<string, number>
   casosPorProfesional: { nombre: string; casos: number }[]
   citas: { porEstado: Record<string, number>; tasaAsistencia: number | null }
+  telemetriaVirtual?: {
+    totalSesionesVirtuales: number
+    sesionesConIngreso: number
+    sesionesCompletasConAmbos: number
+    tasaConexionAmbos: number | null
+    tasaIngresoPaciente: number | null
+    tasaIngresoProfesional: number | null
+    duracionPromedioMinutos: number | null
+  }
   encuesta: {
     respondidas: number
     leSirvio: number
@@ -148,6 +157,46 @@ export default async function MetricasPage() {
           }
         />
       </div>
+
+      {/* Sección: Telemetría de Sesiones Virtuales */}
+      {m.telemetriaVirtual && m.telemetriaVirtual.totalSesionesVirtuales > 0 ? (
+        <div style={{ marginTop: 28 }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 4, color: '#0f172a' }}>
+            Telemetría de Sesiones Virtuales (Salas de Videollamada)
+          </h2>
+          <p className="panel__nota" style={{ marginBottom: 14 }}>
+            Métricas técnicas en tiempo real: medición de asistencia a la sala, puntualidad y duración efectiva de las sesiones online.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+            <Indicador
+              titulo="Sesiones virtuales"
+              valor={String(m.telemetriaVirtual.totalSesionesVirtuales)}
+              nota="total programadas en modalidad virtual"
+            />
+            <Indicador
+              titulo="Conexión de ambas partes"
+              valor={m.telemetriaVirtual.tasaConexionAmbos != null ? `${m.telemetriaVirtual.tasaConexionAmbos}%` : '—'}
+              nota={`${m.telemetriaVirtual.sesionesCompletasConAmbos} de ${m.telemetriaVirtual.totalSesionesVirtuales} sesiones con ambos conectados`}
+            />
+            <Indicador
+              titulo="Duración promedio"
+              valor={m.telemetriaVirtual.duracionPromedioMinutos != null ? `${m.telemetriaVirtual.duracionPromedioMinutos} min` : '—'}
+              nota="tiempo medido en llamada virtual"
+            />
+            <Indicador
+              titulo="Asistencia de pacientes"
+              valor={m.telemetriaVirtual.tasaIngresoPaciente != null ? `${m.telemetriaVirtual.tasaIngresoPaciente}%` : '—'}
+              nota="pacientes que abrieron su enlace"
+            />
+            <Indicador
+              titulo="Asistencia de psicólogos"
+              valor={m.telemetriaVirtual.tasaIngresoProfesional != null ? `${m.telemetriaVirtual.tasaIngresoProfesional}%` : '—'}
+              nota="profesionales que abrieron su enlace"
+            />
+          </div>
+        </div>
+      ) : null}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14, marginTop: 18 }}>
         <Tabla

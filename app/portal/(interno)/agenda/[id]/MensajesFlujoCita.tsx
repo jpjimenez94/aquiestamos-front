@@ -29,6 +29,7 @@ export function MensajesFlujoCita({
   consentimientoFirmado,
   canalContacto,
   enlaceCaso,
+  enlaceReunion,
 }: {
   pacienteNombre: string
   pacienteTelefono: string
@@ -40,12 +41,14 @@ export function MensajesFlujoCita({
   consentimientoFirmado: boolean
   canalContacto?: string | null
   enlaceCaso: string
+  enlaceReunion?: string | null
 }) {
   const mensajeConfirmacion = mensajeDeCitaConfirmada({
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
     modalidad,
+    enlaceReunion,
   })
 
   const mensajeFirma = enlaceConsentimiento
@@ -70,6 +73,7 @@ export function MensajesFlujoCita({
     modalidad,
     canalContacto,
     enlace: enlaceCaso,
+    enlaceReunion,
   })
 
   const mensajePedirNuevaDispProf = mensajeDePedirNuevaDisponibilidadAlProfesional({

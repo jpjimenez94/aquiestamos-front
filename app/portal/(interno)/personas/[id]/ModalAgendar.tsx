@@ -143,7 +143,10 @@ export function ModalAgendar({
         return
       }
 
-      setEnlaceGenerado(datos.data?.meetingUrl || meetingUrl.trim() || null)
+      const createdId = datos.data?.id
+      const sitio = typeof window !== 'undefined' ? window.location.origin : ''
+      const urlFinal = createdId ? `${sitio}/sala/${createdId}?rol=paciente` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
+      setEnlaceGenerado(urlFinal)
       setAgendada(inicio.toISOString())
     } catch {
       setError('No pudimos conectarnos con el servidor.')

@@ -5,7 +5,18 @@ import { DocumentoPrivado } from '@/components/portal/DocumentoPrivado'
 import { Cabecera, Dato, Etiqueta } from '../../componentes'
 import { AccionesCita } from './AccionesCita'
 import { MensajesFlujoCita } from './MensajesFlujoCita'
-import { ShieldCheck, ShieldAlert, FileCheck2, FileClock, FileText, Video } from 'lucide-react'
+import {
+  ShieldCheck,
+  ShieldAlert,
+  FileCheck2,
+  FileClock,
+  FileText,
+  Video,
+  Radio,
+  UserCheck2,
+  UserX2,
+  Timer
+} from 'lucide-react'
 
 export const metadata = { title: 'Detalle de Cita' }
 
@@ -18,6 +29,19 @@ type Cita = {
   duracionMinutos: number
   descansoMinutos: number
   modalidad: string
+  meetingUrl?: string | null
+  meetingProvider?: string | null
+  patientFirstJoinedAt?: string | null
+  professionalFirstJoinedAt?: string | null
+  totalCallDurationSeconds?: number
+  totalCallDurationMinutes?: number
+  accessLogs?: {
+    id: string
+    role: string
+    participantName?: string | null
+    joinedAt: string
+    durationSeconds: number
+  }[]
   estado: string
   estadoLegible: string
   siguientesEstados: string[]
@@ -53,6 +77,10 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
   if (!respuesta.success || !respuesta.data) notFound()
   const cita = respuesta.data
 
+  const sitioUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
+  const enlaceCasoProf = `${sitioUrl}/portal/caso/${cita.paciente.id}`
+  const enlaceSalaPaciente = cita.meetingUrl ? `${sitioUrl}/sala/${cita.id}?rol=paciente` : null
+
   return (
     <>
       <Cabecera
@@ -79,6 +107,24 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
           <Dato etiqueta="Modalidad">
             <span style={{ textTransform: 'capitalize' }}>{cita.modalidad.toLowerCase()}</span>
           </Dato>
+          {cita.meetingUrl ? (
+            <Dato etiqueta="Videollamada">
+              <a
+                href={`/sala/${cita.id}?rol=profesional`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="boton-mini"
+                data-tono="principal"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontWeight: 700, padding: '5px 12px' }}
+              >
+                <Video size={15} />
+                Unirse a la sesión virtual
+              </a>
+              <span className="tabla__secundario" style={{ wordBreak: 'break-all', fontSize: '0.78rem', marginTop: 4 }}>
+                {cita.meetingUrl}
+              </span>
+            </Dato>
+          ) : null}
           <Dato etiqueta="Persona acompañada">
             <Link href={`/portal/personas/${cita.paciente.id}`} style={{ fontWeight: 600 }}>
               {cita.paciente.nombre ?? 'Ver ficha'}
@@ -171,6 +217,139 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
+      {/* Panel de Telemetría de la Sesión Virtual */}
+      {cita.modalidad === 'VIRTUAL' || cita.meetingUrl ? (
+        <div className="panel">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+              <Radio size={18} style={{ color: '#059669' }} />
+              Telemetría y Asistencia a la Sala Virtual
+            </h2>
+            {cita.meetingUrl ? (
+              <a
+                href={`/sala/${cita.id}?rol=profesional`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="boton-mini"
+                data-tono="principal"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontWeight: 700 }}
+              >
+                <Video size={14} />
+                Entrar a la sala
+              </a>
+            ) : null}
+          </div>
+          <p className="panel__nota">
+            Rastreo en tiempo real de conexión a la videollamada, ingresos a la sala y tiempo efectivo en sesión.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginTop: 14 }}>
+            {/* Estado Paciente */}
+            <div style={{ padding: 14, borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+              <span className="tabla__secundario" style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Persona Acompañada
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                {cita.patientFirstJoinedAt ? (
+                  <>
+                    <UserCheck2 size={20} style={{ color: '#059669' }} />
+                    <div>
+                      <strong style={{ color: '#059669', fontSize: '0.92rem', display: 'block' }}>Conectó a la sala</strong>
+                      <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>{enBogota(cita.patientFirstJoinedAt)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <UserX2 size={20} style={{ color: '#94a3b8' }} />
+                    <div>
+                      <strong style={{ color: '#64748b', fontSize: '0.92rem', display: 'block' }}>Sin conexión aún</strong>
+                      <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>Aún no abre el enlace</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Estado Psicólogo */}
+            <div style={{ padding: 14, borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+              <span className="tabla__secundario" style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Psicólogo(a)
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                {cita.professionalFirstJoinedAt ? (
+                  <>
+                    <UserCheck2 size={20} style={{ color: '#059669' }} />
+                    <div>
+                      <strong style={{ color: '#059669', fontSize: '0.92rem', display: 'block' }}>Conectó a la sala</strong>
+                      <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>{enBogota(cita.professionalFirstJoinedAt)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <UserX2 size={20} style={{ color: '#94a3b8' }} />
+                    <div>
+                      <strong style={{ color: '#64748b', fontSize: '0.92rem', display: 'block' }}>Sin conexión aún</strong>
+                      <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>Aún no abre el enlace</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Duración de la llamada */}
+            <div style={{ padding: 14, borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+              <span className="tabla__secundario" style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Tiempo en Videollamada
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                <Timer size={20} style={{ color: '#0284c7' }} />
+                <div>
+                  <strong style={{ fontSize: '1.2rem', color: '#0f172a' }}>
+                    {cita.totalCallDurationMinutes ?? 0} min
+                  </strong>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem', display: 'block' }}>
+                    {(cita.totalCallDurationSeconds ?? 0) > 0 ? `${cita.totalCallDurationSeconds}s medidos por telemetría` : 'Esperando inicio'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Historial de Accesos si hay registros */}
+          {cita.accessLogs && cita.accessLogs.length > 0 ? (
+            <div style={{ marginTop: 18 }}>
+              <h3 style={{ fontSize: '0.86rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: 8, fontWeight: 700 }}>
+                Historial de Ingresos a la Sala
+              </h3>
+              <div className="tabla-envoltorio">
+                <table className="tabla">
+                  <thead>
+                    <tr>
+                      <th>Participante</th>
+                      <th>Rol</th>
+                      <th>Hora de ingreso</th>
+                      <th style={{ textAlign: 'right' }}>Tiempo conectado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cita.accessLogs.map((log: any) => (
+                      <tr key={log.id}>
+                        <td><strong>{log.participantName || 'Participante'}</strong></td>
+                        <td><span style={{ fontSize: '0.8rem', fontWeight: 600, color: log.role === 'PACIENTE' ? '#059669' : '#0284c7' }}>{log.role}</span></td>
+                        <td>{enBogota(log.joinedAt)}</td>
+                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                          {log.durationSeconds >= 60 ? `${Math.round(log.durationSeconds / 60)} min` : `${log.durationSeconds} seg`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Plantillas de Mensajes de WhatsApp (Pasos 8, 9 y 10) */}
       <MensajesFlujoCita
         pacienteNombre={cita.paciente.nombre ?? 'Persona'}
@@ -182,7 +361,8 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         enlaceConsentimiento={cita.consentimiento?.enlace ?? null}
         consentimientoFirmado={cita.consentSigned === true}
         canalContacto={cita.paciente.canalPreferido ?? null}
-        enlaceCaso={`${(process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')}/portal/caso/${cita.paciente.id}`}
+        enlaceCaso={enlaceCasoProf}
+        enlaceReunion={enlaceSalaPaciente}
       />
 
       {/* Acciones de la Cita */}
