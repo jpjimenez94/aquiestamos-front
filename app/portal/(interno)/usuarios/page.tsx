@@ -12,6 +12,7 @@ type Cuenta = {
   email: string
   name: string
   role: string
+  roles?: string[]
   active: boolean
   mustChangePassword: boolean
   lastLoginAt: string | null
@@ -20,9 +21,9 @@ type Cuenta = {
 const ROL: Record<string, string> = {
   ADMIN: 'Administración',
   LIDERES_COMUNITARIOS: 'Líderes Comunitarios',
-  AGENDADOR: 'Voluntario Digital (General)',
+  AGENDADOR: 'Voluntario Digital',
   ADMISION: 'Admisión y Verificaciones',
-  COORDINADOR_CASOS: 'Gestión de Casos y Agenda',
+  COORDINADOR_CASOS: 'Gestión de Casos',
   PROFESIONAL: 'Profesional',
   LECTURA: 'Solo lectura',
 }
@@ -51,40 +52,62 @@ export default async function UsuariosPage() {
             <thead>
               <tr>
                 <th>Persona</th>
-                <th>Rol</th>
+                <th>Roles asignados</th>
                 <th>Último acceso</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {cuentas.map((c) => (
-                <tr key={c.id}>
-                  <td>
-                    <span className="tabla__principal">{nombrePropio(c.name)}</span>
-                    <span className="tabla__secundario">{c.email}</span>
-                  </td>
-                  <td>{ROL[c.role] ?? c.role}</td>
-                  <td className="tabla__numero">
-                    {c.lastLoginAt ? enBogota(c.lastLoginAt) : '—'}
-                  </td>
-                  <td>
-                    {c.active ? (
-                      <Etiqueta estado="ACTIVO" texto="Activa" />
-                    ) : (
-                      <Etiqueta estado="INACTIVO" texto="Inactiva" />
-                    )}
-                    {c.mustChangePassword ? (
-                      <span className="tabla__secundario">debe cambiar la clave</span>
-                    ) : null}
-                  </td>
-                  <td>
-                    <Link href={`/portal/usuarios/${c.id}`} style={{ color: 'var(--color-primario)', fontWeight: 500, fontSize: '0.875rem' }}>
-                      Editar
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {cuentas.map((c) => {
+                const rolesList = c.roles && c.roles.length > 0 ? c.roles : [c.role]
+                return (
+                  <tr key={c.id}>
+                    <td>
+                      <span className="tabla__principal">{nombrePropio(c.name)}</span>
+                      <span className="tabla__secundario">{c.email}</span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {rolesList.map((r) => (
+                          <span
+                            key={r}
+                            style={{
+                              fontSize: '0.76rem',
+                              fontWeight: 600,
+                              padding: '2px 8px',
+                              borderRadius: 6,
+                              backgroundColor: r === 'ADMIN' ? '#15162e' : '#f1f5f9',
+                              color: r === 'ADMIN' ? '#fff6eb' : '#334155',
+                              border: '1px solid ' + (r === 'ADMIN' ? '#15162e' : '#e2e8f0'),
+                            }}
+                          >
+                            {ROL[r] ?? r}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="tabla__numero">
+                      {c.lastLoginAt ? enBogota(c.lastLoginAt) : '—'}
+                    </td>
+                    <td>
+                      {c.active ? (
+                        <Etiqueta estado="ACTIVO" texto="Activa" />
+                      ) : (
+                        <Etiqueta estado="INACTIVO" texto="Inactiva" />
+                      )}
+                      {c.mustChangePassword ? (
+                        <span className="tabla__secundario">debe cambiar la clave</span>
+                      ) : null}
+                    </td>
+                    <td>
+                      <Link href={`/portal/usuarios/${c.id}`} style={{ color: 'var(--color-primario)', fontWeight: 500, fontSize: '0.875rem' }}>
+                        Editar
+                      </Link>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

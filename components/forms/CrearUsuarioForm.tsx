@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Save, UserCheck, X, Search, Copy, Check, RefreshCw, MessageSquare, Mail, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormStatus, type Status } from './FormStatus'
-import { TextField, RadioField, Bloque } from './fields'
+import { TextField, RadioField, CheckboxGroup, Bloque } from './fields'
 
 const ROLES = [
   { value: 'ADMIN', label: 'Administración (acceso total)' },
@@ -56,7 +56,7 @@ export function CrearUsuarioForm({
   const [form, setForm] = useState(() => ({
     name: '',
     email: '',
-    role: '',
+    roles: [] as string[],
     password: generarPasswordSegura(),
   }))
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -72,11 +72,27 @@ export function CrearUsuarioForm({
     name: string
     email: string
     role: string
+    roles?: string[]
     password: string
     phone?: string
   } | null>(null)
 
-  function update(key: keyof typeof form, value: string) {
+  function toggleRole(roleVal: string, checked: boolean) {
+    setForm((current) => {
+      const nextRoles = checked
+        ? [...current.roles, roleVal]
+        : current.roles.filter((r) => r !== roleVal)
+      return { ...current, roles: nextRoles }
+    })
+    setErrors((e) => {
+      if (!e.roles) return e
+      const next = { ...e }
+      delete next.roles
+      return next
+    })
+  }
+
+  function update(key: 'name' | 'email' | 'password', value: string) {
     setForm((current) => ({ ...current, [key]: value }))
     setErrors((current) => {
       if (!current[key]) return current
@@ -142,7 +158,7 @@ export function CrearUsuarioForm({
     if (!form.name.trim()) found.name = 'El nombre es obligatorio'
     if (!form.email.trim()) found.email = 'El correo es obligatorio'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) found.email = 'Correo no válido'
-    if (!form.role) found.role = 'Selecciona un rol'
+    if (!form.roles.length) found.roles = 'Debes seleccionar al menos un rol'
     if (!form.password) found.password = 'La contraseña es obligatoria'
     else if (form.password.length < 8) found.password = 'Debe tener al menos 8 caracteres'
     return found
@@ -164,7 +180,7 @@ export function CrearUsuarioForm({
       const response = await fetch('/api/portal/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, role: form.roles[0] || 'AGENDADOR' }),
       })
 
       const payload = await response.json()
@@ -178,7 +194,8 @@ export function CrearUsuarioForm({
       setCuentaCreadaExitosamente({
         name: form.name,
         email: form.email,
-        role: form.role,
+        role: form.roles[0] || 'AGENDADOR',
+        roles: form.roles,
         password: form.password,
         phone: voluntarioSeleccionado?.phone,
       })
@@ -234,7 +251,8 @@ export function CrearUsuarioForm({
 
   // Si la cuenta fue creada exitosamente, mostramos la tarjeta de entrega de credenciales
   if (cuentaCreadaExitosamente) {
-    const rolLabel = ROLES.find((r) => r.value === cuentaCreadaExitosamente.role)?.label ?? cuentaCreadaExitosamente.role
+    const rolesList = cuentaCreadaExitosamente.roles && cuentaCreadaExitosamente.roles.length > 0 ? cuentaCreadaExitosamente.roles : [cuentaCreadaExitosamente.role];
+    const rolLabel = rolesList.map(r => ROLES.find((ro) => ro.value === r)?.label ?? r).join(' · ');
 
     return (
       <div style={{ maxWidth: 640, background: '#fff', border: '2px solid #059669', borderRadius: 14, padding: 24, boxShadow: '0 4px 20px rgba(5,150,105,0.15)', display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -349,7 +367,7 @@ export function CrearUsuarioForm({
             type="button"
             onClick={() => {
               setCuentaCreadaExitosamente(null)
-              setForm({ name: '', email: '', role: '', password: generarPasswordSegura() })
+              setForm({ name: '', email: '', roles: [], password: generarPasswordSegura() })
               setVoluntarioSeleccionado(null)
             }}
             style={{ fontSize: '0.84rem', color: '#059669', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
@@ -450,13 +468,14 @@ export function CrearUsuarioForm({
           error={errors.email}
           onChange={(v) => update('email', v)}
         />
-        <RadioField
-          label="Rol"
+        <CheckboxGroup
+          label="Roles y permisos"
+          hint="Puedes seleccionar uno o varios roles. La cuenta tendrá todos los permisos combinados."
           required
           options={ROLES}
-          value={form.role}
-          error={errors.role}
-          onChange={(v) => update('role', v)}
+          values={form.roles}
+          error={errors.roles}
+          onToggle={toggleRole}
         />
 
         {/* Campo de Contraseña Segura con Generador y Botón de Copiar */}
