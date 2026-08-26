@@ -13,6 +13,7 @@ import {
 } from '@/lib/mensajes'
 import { enBogota } from '@/lib/fechas'
 import { ModalAgendar } from './ModalAgendar'
+import { BotonReasignar } from './BotonReasignar'
 
 /**
  * El caso, según en qué punto va la negociación.
@@ -120,22 +121,32 @@ export function PanelDelCaso({
 
       {/* PASO 1 — Se le propuso y estamos esperando que entre a su enlace. */}
       {asignacion.estado === 'PROPUESTA' ? (
-        <Mensaje
-          titulo="1 · Mándale la propuesta"
-          nota="Lleva el enlace por donde tiene que responder. Los datos de contacto de la persona solo se le abren si acepta."
-          telefono={asignacion.profesional.telefono}
-          texto={mensajeDePropuesta({
-            profesional: asignacion.profesional.nombre,
-            ciudad: persona.city,
-            prioridad: persona.priority,
-            modalidad: persona.preferredModality,
-            dias: persona.availableDays,
-            franjas: persona.availableSlots,
-            enlace: enlaceCaso,
-          })}
-          copiado={copiado === 'propuesta'}
-          alCopiar={(t) => copiar('propuesta', t)}
-        />
+        <>
+          <Mensaje
+            titulo="1 · Mándale la propuesta"
+            nota="Lleva el enlace por donde tiene que responder. Los datos de contacto de la persona solo se le abren si acepta."
+            telefono={asignacion.profesional.telefono}
+            texto={mensajeDePropuesta({
+              profesional: asignacion.profesional.nombre,
+              ciudad: persona.city,
+              prioridad: persona.priority,
+              modalidad: persona.preferredModality,
+              dias: persona.availableDays,
+              franjas: persona.availableSlots,
+              enlace: enlaceCaso,
+            })}
+            copiado={copiado === 'propuesta'}
+            alCopiar={(t) => copiar('propuesta', t)}
+          />
+          <div className="mensaje__acciones" style={{ marginTop: 14 }}>
+            <BotonReasignar
+              asignacionId={asignacion.id}
+              profesionalNombre={asignacion.profesional.nombre}
+              textoBoton="Reasignar a otro profesional"
+              onError={setError}
+            />
+          </div>
+        </>
       ) : null}
 
       {/* PASO 2 — Aceptó y dejó sus horarios. Toca cuadrar con la persona. */}
@@ -205,7 +216,12 @@ export function PanelDelCaso({
               <CalendarCheck size={14} />
               Ya me confirmó: agendar
             </button>
-            <BotonCancelar asignacionId={asignacion.id} onError={setError} />
+            <BotonReasignar
+              asignacionId={asignacion.id}
+              profesionalNombre={asignacion.profesional.nombre}
+              textoBoton="No se pudo cuadrar / Reasignar"
+              onError={setError}
+            />
           </div>
         </>
       ) : null}
@@ -240,6 +256,12 @@ export function PanelDelCaso({
               <CalendarCheck size={14} />
               Agendar nueva sesión
             </button>
+            <BotonReasignar
+              asignacionId={asignacion.id}
+              profesionalNombre={asignacion.profesional.nombre}
+              textoBoton="Reasignar a otro profesional"
+              onError={setError}
+            />
           </div>
         </>
       ) : null}
