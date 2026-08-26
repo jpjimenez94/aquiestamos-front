@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useTransition } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   ArrowUpDown,
   ArrowUp,
@@ -10,9 +11,11 @@ import {
   Calendar,
   Filter,
   Search,
+  Check,
   Clock,
   Shield,
   Activity,
+  Loader2,
 } from 'lucide-react'
 import { enBogota } from '@/lib/fechas'
 import { Vacio } from '../componentes'
@@ -73,6 +76,11 @@ export function TablaAuditoria({
   desdeInicial?: string
   hastaInicial?: string
 }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+
   // Filtros de Rango de Fechas
   const [filtroDesde, setFiltroDesde] = useState(desdeInicial)
   const [filtroHasta, setFiltroHasta] = useState(hastaInicial)
@@ -101,32 +109,61 @@ export function TablaAuditoria({
     }
   }
 
+  // Sincronizar búsqueda con el servidor (para traer registros históricos de la BD)
+  function sincronizarConServidor(d: string, h: string) {
+    const params = new URLSearchParams(searchParams.toString())
+    if (d) params.set('desde', d)
+    else params.delete('desde')
+
+    if (h) params.set('hasta', h)
+    else params.delete('hasta')
+
+    params.delete('page')
+
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`)
+    })
+  }
+
+  // Acción explícita: botón "Aplicar filtros"
+  function handleAplicarFiltros(e?: React.FormEvent) {
+    if (e) e.preventDefault()
+    setPagina(1)
+    sincronizarConServidor(filtroDesde, filtroHasta)
+  }
+
   // Atajos rápidos de rango de fechas
   function aplicarRangoRapido(tipo: 'hoy' | '7dias' | '30dias' | 'esteMes' | 'todo') {
     const ahora = new Date()
     const hoyStr = formatearFechaIsoBogota(ahora)
+    let nuevoDesde = ''
+    let nuevoHasta = ''
 
     if (tipo === 'todo') {
-      setFiltroDesde('')
-      setFiltroHasta('')
+      nuevoDesde = ''
+      nuevoHasta = ''
     } else if (tipo === 'hoy') {
-      setFiltroDesde(hoyStr)
-      setFiltroHasta(hoyStr)
+      nuevoDesde = hoyStr
+      nuevoHasta = hoyStr
     } else if (tipo === '7dias') {
       const hace7 = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000)
-      setFiltroDesde(formatearFechaIsoBogota(hace7))
-      setFiltroHasta(hoyStr)
+      nuevoDesde = formatearFechaIsoBogota(hace7)
+      nuevoHasta = hoyStr
     } else if (tipo === '30dias') {
       const hace30 = new Date(ahora.getTime() - 30 * 24 * 60 * 60 * 1000)
-      setFiltroDesde(formatearFechaIsoBogota(hace30))
-      setFiltroHasta(hoyStr)
+      nuevoDesde = formatearFechaIsoBogota(hace30)
+      nuevoHasta = hoyStr
     } else if (tipo === 'esteMes') {
       const anio = ahora.getFullYear()
       const mes = String(ahora.getMonth() + 1).padStart(2, '0')
-      setFiltroDesde(`${anio}-${mes}-01`)
-      setFiltroHasta(hoyStr)
+      nuevoDesde = `${anio}-${mes}-01`
+      nuevoHasta = hoyStr
     }
+
+    setFiltroDesde(nuevoDesde)
+    setFiltroHasta(nuevoHasta)
     setPagina(1)
+    sincronizarConServidor(nuevoDesde, nuevoHasta)
   }
 
   const hayFiltrosEnPagina = Boolean(
@@ -148,6 +185,7 @@ export function TablaAuditoria({
     setFiltroModulo('')
     setFiltroIp('')
     setPagina(1)
+    sincronizarConServidor('', '')
   }
 
   const moduloLabelMap = useMemo(() => {
@@ -278,14 +316,15 @@ export function TablaAuditoria({
   return (
     <>
       {/* Barra superior de Rango de Fechas y Filtros Rápidos */}
-      <div
+      <form
+        onSubmit={handleAplicarFiltros}
         style={{
           background: '#ffffff',
           border: '1px solid #e2e8f0',
           borderRadius: 12,
-          padding: '14px 16px',
+          padding: '16px 18px',
           marginBottom: 16,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
         }}
       >
         <div
@@ -294,74 +333,93 @@ export function TablaAuditoria({
             flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 12,
+            gap: 14,
           }}
         >
-          {/* Controles de selector Desde / Hasta */}
+          {/* Controles de selector Desde / Hasta + Botón Aplicar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#1e293b', fontWeight: 700, fontSize: '0.86rem' }}>
-              <Calendar size={16} style={{ color: 'var(--color-primary, #059669)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#0f172a', fontWeight: 800, fontSize: '0.88rem' }}>
+              <Calendar size={18} style={{ color: 'var(--color-primary, #059669)' }} />
               <span>Rango de fechas:</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <label style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Desde</label>
+              <label style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>Desde</label>
               <input
                 type="date"
                 value={filtroDesde}
-                onChange={(e) => {
-                  setFiltroDesde(e.target.value)
-                  setPagina(1)
-                }}
+                onChange={(e) => setFiltroDesde(e.target.value)}
                 style={{
-                  padding: '5px 8px',
-                  fontSize: '0.8rem',
-                  borderRadius: 6,
-                  border: '1px solid #cbd5e1',
+                  padding: '6px 10px',
+                  fontSize: '0.82rem',
+                  borderRadius: 8,
+                  border: '1.5px solid #cbd5e1',
                   background: '#f8fafc',
                   color: '#1e293b',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   outline: 'none',
                 }}
               />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <label style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Hasta</label>
+              <label style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>Hasta</label>
               <input
                 type="date"
                 value={filtroHasta}
-                onChange={(e) => {
-                  setFiltroHasta(e.target.value)
-                  setPagina(1)
-                }}
+                onChange={(e) => setFiltroHasta(e.target.value)}
                 style={{
-                  padding: '5px 8px',
-                  fontSize: '0.8rem',
-                  borderRadius: 6,
-                  border: '1px solid #cbd5e1',
+                  padding: '6px 10px',
+                  fontSize: '0.82rem',
+                  borderRadius: 8,
+                  border: '1.5px solid #cbd5e1',
                   background: '#f8fafc',
                   color: '#1e293b',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   outline: 'none',
                 }}
               />
             </div>
+
+            {/* Botón Principal: Aplicar Filtros */}
+            <button
+              type="submit"
+              disabled={isPending}
+              className="boton-mini"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '7px 14px',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                background: '#059669',
+                color: '#ffffff',
+                border: '1.5px solid #047857',
+                borderRadius: 8,
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                cursor: isPending ? 'wait' : 'pointer',
+              }}
+            >
+              {isPending ? <Loader2 size={14} className="anim-spin" /> : <Filter size={14} />}
+              <span>Aplicar filtros</span>
+            </button>
           </div>
 
           {/* Botones de Atajos Rápidos */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, marginRight: 2 }}>Atajos:</span>
             <button
               type="button"
               onClick={() => aplicarRangoRapido('hoy')}
               className="boton-mini"
               style={{
                 fontSize: '0.76rem',
-                padding: '4px 8px',
+                padding: '5px 10px',
                 background: filtroDesde && filtroDesde === filtroHasta ? '#ecfdf5' : '#fff',
                 borderColor: filtroDesde && filtroDesde === filtroHasta ? '#059669' : '#cbd5e1',
                 color: filtroDesde && filtroDesde === filtroHasta ? '#047857' : '#334155',
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
               Hoy
@@ -370,7 +428,7 @@ export function TablaAuditoria({
               type="button"
               onClick={() => aplicarRangoRapido('7dias')}
               className="boton-mini"
-              style={{ fontSize: '0.76rem', padding: '4px 8px' }}
+              style={{ fontSize: '0.76rem', padding: '5px 10px', fontWeight: 600 }}
             >
               Últimos 7 días
             </button>
@@ -378,7 +436,7 @@ export function TablaAuditoria({
               type="button"
               onClick={() => aplicarRangoRapido('30dias')}
               className="boton-mini"
-              style={{ fontSize: '0.76rem', padding: '4px 8px' }}
+              style={{ fontSize: '0.76rem', padding: '5px 10px', fontWeight: 600 }}
             >
               Últimos 30 días
             </button>
@@ -386,7 +444,7 @@ export function TablaAuditoria({
               type="button"
               onClick={() => aplicarRangoRapido('esteMes')}
               className="boton-mini"
-              style={{ fontSize: '0.76rem', padding: '4px 8px' }}
+              style={{ fontSize: '0.76rem', padding: '5px 10px', fontWeight: 600 }}
             >
               Este mes
             </button>
@@ -401,20 +459,21 @@ export function TablaAuditoria({
                   alignItems: 'center',
                   gap: 4,
                   fontSize: '0.76rem',
-                  padding: '4px 8px',
+                  padding: '5px 10px',
                   color: '#dc2626',
                   borderColor: '#fca5a5',
                   background: '#fef2f2',
+                  fontWeight: 700,
                 }}
                 title="Limpiar todos los filtros y rango de fechas"
               >
                 <RotateCcw size={12} />
-                Limpiar filtros
+                Limpiar
               </button>
             )}
           </div>
         </div>
-      </div>
+      </form>
 
       {/* Resumen de Conteo y Tabla */}
       <div className="tabla-envoltorio">
