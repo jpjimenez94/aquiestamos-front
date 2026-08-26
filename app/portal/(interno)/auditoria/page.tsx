@@ -15,6 +15,7 @@ const ACCION: Record<string, string> = {
   editar: 'Editó',
   borrar: 'Dio de baja',
   cambiar_clave: 'Cambió la clave',
+  ingresar_sala: 'Ingresó a sala virtual',
 }
 
 /**
@@ -28,6 +29,7 @@ const MODULOS: { value: string; label: string }[] = [
   { value: 'asignacion', label: 'Asignaciones' },
   { value: 'cita', label: 'Citas' },
   { value: 'cita_consentimiento', label: 'Consentimientos' },
+  { value: 'sesion_virtual', label: 'Sesiones y salas virtuales' },
   { value: 'ReporteDeCaso', label: 'Reportes del profesional' },
   { value: 'CasoCompartido', label: 'Acceso al caso (enlace)' },
   { value: 'profesional', label: 'Profesionales' },
