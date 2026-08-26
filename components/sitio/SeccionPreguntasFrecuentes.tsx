@@ -3,31 +3,59 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
-  HelpCircle,
   Search,
   ChevronDown,
   Brain,
-  HeartHandshake,
+  Heart,
   Users,
-  Building2,
+  Building,
   MessageCircle,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react'
-import { whatsappHref } from '@/lib/site'
+import { whatsappHref, site } from '@/lib/site'
 
 type CategoriaFAQ = 'psicologia' | 'pacientes' | 'voluntarios' | 'fundacion'
 
 interface PreguntaItem {
   id: string
   categoria: CategoriaFAQ
+  badge?: string
   pregunta: string
   respuesta: React.ReactNode
 }
 
-const CATEGORIAS: { id: CategoriaFAQ; label: string; icon: typeof Brain }[] = [
-  { id: 'psicologia', label: 'Profesionales de Psicología', icon: Brain },
-  { id: 'pacientes', label: 'Personas y Familias', icon: HeartHandshake },
-  { id: 'voluntarios', label: 'Voluntarios Generales', icon: Users },
-  { id: 'fundacion', label: 'Sobre la Fundación', icon: Building2 },
+const CATEGORIAS: {
+  id: CategoriaFAQ
+  label: string
+  icon: typeof Brain
+  sublabel: string
+}[] = [
+  {
+    id: 'psicologia',
+    label: 'Profesionales de Psicología',
+    icon: Brain,
+    sublabel: 'ReTHUS, acompañamiento y marco ético',
+  },
+  {
+    id: 'pacientes',
+    label: 'Personas y Familias',
+    icon: Heart,
+    sublabel: 'Solicitud de apoyo, gratuidad y sesiones',
+  },
+  {
+    id: 'voluntarios',
+    label: 'Voluntariado General',
+    icon: Users,
+    sublabel: 'Otras disciplinas y labores de apoyo',
+  },
+  {
+    id: 'fundacion',
+    label: 'Sobre la Fundación',
+    icon: Building,
+    sublabel: 'Misión, datos y marco legal',
+  },
 ]
 
 const PREGUNTAS: PreguntaItem[] = [
@@ -35,17 +63,18 @@ const PREGUNTAS: PreguntaItem[] = [
   {
     id: 'psi-reps-rethus',
     categoria: 'psicologia',
+    badge: 'Marco Legal ReTHUS',
     pregunta: '¿Necesito tener REPS como profesional independiente para hacer parte de la red?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
           <strong>No necesitas tener REPS como profesional independiente</strong> para hacer parte del modelo de acompañamiento de Aquí Estamos.
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Tu <strong>ReTHUS</strong> (Registro Único Nacional del Talento Humano en Salud) y tu <strong>tarjeta profesional vigente</strong> son los requisitos oficiales que debemos verificar.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Tu <strong>ReTHUS</strong> (Registro Único Nacional del Talento Humano en Salud) y tu <strong>tarjeta profesional vigente</strong> son los requisitos profesionales oficiales que verificamos para tu vinculación.
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          El REPS corresponde al prestador institucional y, en nuestro modelo, estamos estructurando la <strong>Fundación Aquí Estamos</strong> como la persona jurídica que organiza, gestiona y presta el acompañamiento. Mientras consolidamos el modelo de habilitación correspondiente, tu participación está orientada al alcance propio del <strong>acompañamiento psicológico, contención emocional y primeros auxilios psicológicos</strong> de Aquí Estamos y no a la prestación independiente de consultas o tratamientos clínicos aislados.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          El REPS corresponde al prestador institucional y, en nuestro modelo, estamos estructurando la <strong>Fundación Aquí Estamos</strong> como la persona jurídica que organiza, gestiona y respalda el acompañamiento. Mientras consolidamos el modelo de habilitación institucional correspondiente, tu participación se encuentra enmarcada en el alcance propio del <strong>acompañamiento psicológico, primeros auxilios emocionales y contención en crisis</strong> de Aquí Estamos, y no en la prestación independiente de consultas o tratamientos clínicos aislados.
         </p>
       </div>
     ),
@@ -53,14 +82,14 @@ const PREGUNTAS: PreguntaItem[] = [
   {
     id: 'psi-registro-confidencialidad',
     categoria: 'psicologia',
-    pregunta: '¿Cómo se maneja el registro de las sesiones y la confidencialidad de los datos?',
+    pregunta: '¿Cómo se maneja el registro de las sesiones y la confidencialidad de la información?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Todo el flujo opera bajo estrictos protocolos de confidencialidad y secreto profesional. El profesional accede al caso mediante un <strong>enlace seguro temporal</strong> con verificación por correo, donde solo visualiza los datos necesarios para brindar la atención.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Todo el proceso se rige bajo estrictos principios de <strong>secreto profesional</strong> y la <strong>Ley 1581 de 2012 (Habeas Data)</strong>.
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Al concluir cada encuentro, el profesional diligencia una bitácora breve sobre el estado del acompañamiento dentro de la plataforma interna. Nunca compartimos números de teléfono ni datos sensibles en correos abiertos ni canales no protegidos, en estricto cumplimiento de la <strong>Ley 1581 de 2012 (Habeas Data)</strong>.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Como profesional, accedes al caso asignado a través de un <strong>enlace seguro con autenticación</strong> donde únicamente se visualizan los datos necesarios para brindar la atención. Al finalizar cada sesión, registras una bitácora breve sobre el estado del proceso en la plataforma interna. Nunca compartimos números de teléfono ni datos sensibles en canales abiertos.
         </p>
       </div>
     ),
@@ -68,14 +97,18 @@ const PREGUNTAS: PreguntaItem[] = [
   {
     id: 'psi-disponibilidad-horarios',
     categoria: 'psicologia',
-    pregunta: '¿Cuánto tiempo debo dedicar y cómo se organiza mi disponibilidad?',
+    pregunta: '¿Cuánto tiempo debo dedicar y cómo se coordina mi disponibilidad?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          El voluntariado es totalmente flexible. Al postularte en <Link href="/quiero-ser-parte" style={{ color: '#059669', fontWeight: 700, textDecoration: 'underline' }}>Quiero dar apoyo psicológico</Link>, tú declaras cuántas horas a la semana puedes donar y en qué días y franjas (mañana, tarde o noche).
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          El voluntariado es flexible y se adapta a tu agenda. Al postularte en{' '}
+          <Link href="/quiero-ser-parte" style={{ color: '#15162e', fontWeight: 700, textDecoration: 'underline' }}>
+            Quiero dar apoyo psicológico
+          </Link>
+          , tú decides cuántas horas semanales puedes aportar y en qué días y franjas horarias (mañanas, tardes o noches).
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Nuestro sistema solo te propone personas que coincidan exactamente con tus días y horas libres. Las sesiones tienen una duración estándar de <strong>45 minutos</strong> y el sistema respeta automáticamente intervalos de descanso entre citas para cuidar tu propio bienestar.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Nuestro sistema solo te propone personas que coincidan exactamente con tus horarios declarados. Las sesiones duran <strong>45 minutos</strong> y la plataforma programa intervalos automáticos de descanso entre citas para cuidar tu bienestar.
         </p>
       </div>
     ),
@@ -85,12 +118,12 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'psicologia',
     pregunta: '¿Qué tipo de casos atiende la Red Aquí Estamos?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Brindamos primeros auxilios emocionales, contención en crisis y acompañamiento psicosocial breve (ciclos de 3 a 4 sesiones).
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Nos enfocamos en <strong>primeros auxilios psicológicos, contención emocional y acompañamiento psicosocial breve</strong> (ciclos de 3 a 4 sesiones).
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          No atendemos urgencias psiquiátricas con riesgo vital inminente ni psicopatologías severas que requieran hospitalización. En caso de detectarse un riesgo alto durante el tamizaje o la sesión, se activa la <strong>ruta de remisión institucional</strong> hacia centros de salud y líneas nacionales de emergencia.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          No atendemos urgencias psiquiátricas con riesgo vital inminente ni psicopatologías severas que requieran hospitalización. En caso de detectarse un riesgo alto durante el tamizaje o la sesión, se activa de inmediato la <strong>ruta de remisión institucional</strong> hacia centros de salud y líneas nacionales de emergencia.
         </p>
       </div>
     ),
@@ -100,11 +133,12 @@ const PREGUNTAS: PreguntaItem[] = [
   {
     id: 'pac-gratuidad',
     categoria: 'pacientes',
+    badge: '100% Gratuito',
     pregunta: '¿El servicio de atención y acompañamiento psicológico tiene algún costo?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          <strong>No, es 100% gratuito.</strong> La Red Aquí Estamos es una iniciativa solidaria y sin ánimo de lucro nacida para facilitar el acceso universal al bienestar emocional y la salud mental sin barreras económicas.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          <strong>No, es completamente gratuito.</strong> La Red Aquí Estamos es una iniciativa solidaria sin ánimo de lucro creada para garantizar que cualquier persona que necesite apoyo emocional pueda recibirlo sin barreras económicas.
         </p>
       </div>
     ),
@@ -114,12 +148,16 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'pacientes',
     pregunta: '¿Cómo solicito una sesión de acompañamiento psicológico?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Solo debes ingresar a <Link href="/atencion-psicologica" style={{ color: '#059669', fontWeight: 700, textDecoration: 'underline' }}>Necesito ayuda</Link> y llenar un formulario muy sencillo con tus datos de contacto y tus horarios de disponibilidad.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Solo debes ingresar a{' '}
+          <Link href="/atencion-psicologica" style={{ color: '#15162e', fontWeight: 700, textDecoration: 'underline' }}>
+            Necesito ayuda
+          </Link>{' '}
+          y diligenciar un formulario breve con tus datos de contacto y tus horarios disponibles.
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Un coordinador de nuestro equipo revisará tu solicitud y te contactará directamente por <strong>WhatsApp o correo</strong> para coordinar el horario de tu primera sesión con un psicólogo/a voluntario/a.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Un coordinador de nuestro equipo revisará tu solicitud y te contactará por <strong>WhatsApp o correo electrónico</strong> para confirmar la fecha y hora de tu primera sesión con un psicólogo/a voluntario/a.
         </p>
       </div>
     ),
@@ -129,9 +167,12 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'pacientes',
     pregunta: '¿Cuántas sesiones de apoyo voy a recibir?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          El programa está diseñado como un proceso de <strong>3 a 4 sesiones de acompañamiento focalizado</strong> con el mismo profesional. Al finalizar el ciclo, si tú y el profesional consideran que necesitas atención especializada a largo plazo, te brindamos orientación sobre redes de salud y opciones complementarias.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          El programa contempla un ciclo de <strong>3 a 4 sesiones de acompañamiento focalizado</strong> con el mismo profesional.
+        </p>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Al concluir este proceso, si tú y el profesional consideran que requieres un tratamiento continuo o especializado a largo plazo, te brindamos orientación sobre redes de salud y servicios complementarios.
         </p>
       </div>
     ),
@@ -141,12 +182,12 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'pacientes',
     pregunta: '¿La atención es virtual o presencial?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          La gran mayoría de las atenciones se realizan de forma <strong>virtual (por videollamada o llamada telefónica)</strong>, permitiendo atender a personas en cualquier departamento de Colombia o en el exterior.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          La gran mayoría de las atenciones se realizan de manera <strong>virtual (por videollamada o llamada telefónica)</strong>, permitiendo brindar apoyo a personas en cualquier municipio de Colombia o en el exterior.
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          En caso de organizarse jornadas o brigadas comunitarias presenciales en puntos específicos, se informará con anticipación en nuestras redes oficiales.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          En caso de realizarse jornadas o brigadas comunitarias presenciales en puntos específicos, se informará oportunamente en nuestros canales oficiales.
         </p>
       </div>
     ),
@@ -154,16 +195,23 @@ const PREGUNTAS: PreguntaItem[] = [
   {
     id: 'pac-emergencias-graves',
     categoria: 'pacientes',
+    badge: 'Atención de Emergencias',
     pregunta: '¿Qué debo hacer en caso de una emergencia vital o crisis inmediata?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Si tú o una persona cercana se encuentra en riesgo inminente, con ideación suicida activa o peligro para su integridad física, <strong>debes acudir de inmediato al centro de urgencias de salud más cercano</strong> o comunicarte con las líneas gratuitas de emergencia nacional:
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Si tú o una persona cercana se encuentra en riesgo inminente, con ideación suicida activa o peligro para su integridad física, <strong>debes acudir de inmediato al centro de salud o urgencias más cercano</strong> o comunicarte con las líneas gratuitas de emergencia nacional:
         </p>
-        <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.6 }}>
-          <li><strong>Línea Nacional de Emergencias:</strong> 123</li>
-          <li><strong>Línea de Orientación en Salud Mental (Minsalud):</strong> 106 / 192</li>
-          <li><strong>Línea Púrpura (Mujeres):</strong> 018000 112 137</li>
+        <ul style={{ margin: 0, paddingLeft: 22, lineHeight: 1.7 }}>
+          <li>
+            <strong>Línea Nacional de Emergencias:</strong> 123
+          </li>
+          <li>
+            <strong>Línea de Orientación en Salud Mental (Minsalud):</strong> 106 / 192
+          </li>
+          <li>
+            <strong>Línea Púrpura (Mujeres en Bogotá):</strong> 018000 112 137
+          </li>
         </ul>
       </div>
     ),
@@ -175,12 +223,16 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'voluntarios',
     pregunta: 'No soy psicólogo/a, ¿cómo puedo sumarme como voluntario/a?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          ¡Tu apoyo es indispensable! En nuestro programa <Link href="/quiero-apoyar" style={{ color: '#059669', fontWeight: 700, textDecoration: 'underline' }}>Quiero apoyar (Voluntariado General)</Link> recibimos a profesionales y estudiantes de <strong>derecho, medicina, enfermería, trabajo social, diseño gráfico, comunicación social, ingeniería de sistemas, administración, logística y gestión comunitaria</strong>.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          ¡Tu talento es fundamental para la red! En nuestro programa{' '}
+          <Link href="/quiero-apoyar" style={{ color: '#15162e', fontWeight: 700, textDecoration: 'underline' }}>
+            Quiero apoyar (Voluntariado General)
+          </Link>{' '}
+          recibimos a profesionales y estudiantes de <strong>derecho, medicina, enfermería, trabajo social, diseño gráfico, comunicaciones, ingeniería de sistemas, administración, logística y gestión comunitaria</strong>.
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Ayudamos a la fundación en tareas internas de validación documental, coordinación de agendas, creación de piezas pedagógicas, llamadas de seguimiento y soporte operativo.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Apoyamos en labores internas de verificación de perfiles, gestión de agendas, creación de piezas pedagógicas, llamadas de seguimiento y soporte organizativo.
         </p>
       </div>
     ),
@@ -190,12 +242,12 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'voluntarios',
     pregunta: '¿Cómo me asignan las labores o turnos de apoyo?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Cuando el equipo de coordinación genera una tarea que coincide con tu disponibilidad horaria y disciplina, te llegará una invitación personalizada a tu correo o WhatsApp con un enlace único (<code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, fontSize: '0.86rem' }}>/turno/...</code>).
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Cuando el equipo de coordinación genera una tarea que coincide con tu disponibilidad horaria y disciplina, te llegará una invitación personalizada a tu correo o WhatsApp con un enlace único (<code style={{ background: '#f5f0eb', padding: '2px 6px', borderRadius: 4, fontSize: '0.86rem', color: '#15162e' }}>/turno/...</code>).
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Al abrir el enlace puedes ver los detalles de la labor, fecha, horario y notas del equipo, y confirmar con un solo clic si aceptas participar.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Al abrir el enlace podrás ver los detalles de la labor, fecha, horario y notas del equipo, y confirmar con un solo clic si aceptas participar.
         </p>
       </div>
     ),
@@ -205,9 +257,9 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'voluntarios',
     pregunta: '¿Entregan certificado de horas de voluntariado?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          <strong>Sí.</strong> La Fundación Aquí Estamos certifica formalmente la participación y las horas de voluntariado dedicadas a las actividades y programas sociales de la red para tu hoja de vida o requisitos académicos.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          <strong>Sí.</strong> La Fundación Aquí Estamos emite certificados oficiales de voluntariado acreditando las horas y actividades desarrolladas en favor de la comunidad para tu hoja de vida o requisitos académicos.
         </p>
       </div>
     ),
@@ -219,9 +271,9 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'fundacion',
     pregunta: '¿Qué es la Red Aquí Estamos y cuál es su misión?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Somos una red colaborativa sin ánimo de lucro que busca facilitar el acceso a la atención psicológica y promover el bienestar emocional a través de la comunidad, la información y el acompañamiento humano, aportando a la reconstrucción del tejido social.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Somos una red colaborativa sin ánimo de lucro que busca facilitar el acceso universal a la atención psicológica y promover el bienestar emocional a través de la comunidad, la información y el acompañamiento humano, aportando a la reconstrucción del tejido social.
         </p>
       </div>
     ),
@@ -231,12 +283,16 @@ const PREGUNTAS: PreguntaItem[] = [
     categoria: 'fundacion',
     pregunta: '¿Cómo protegen mis datos personales y mi privacidad?',
     respuesta: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
           Toda la información registrada se trata bajo estrictos estándares de seguridad informática y en total apego a la <strong>Ley Estatutaria 1581 de 2012</strong> de Protección de Datos Personales (Habeas Data).
         </p>
-        <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Puedes consultar nuestra política completa en <Link href="/politica-de-datos" style={{ color: '#059669', fontWeight: 700, textDecoration: 'underline' }}>Política de datos</Link>. Tus datos nunca son vendidos ni compartidos con terceros comerciales.
+        <p style={{ margin: 0, lineHeight: 1.65 }}>
+          Puedes consultar nuestra política completa en{' '}
+          <Link href="/politica-de-datos" style={{ color: '#15162e', fontWeight: 700, textDecoration: 'underline' }}>
+            Política de datos
+          </Link>
+          . Tus datos nunca son comercializados ni compartidos con terceros.
         </p>
       </div>
     ),
@@ -253,68 +309,74 @@ export function SeccionPreguntasFrecuentes() {
     if (!q) {
       return PREGUNTAS.filter((p) => p.categoria === categoriaActiva)
     }
-    return PREGUNTAS.filter(
-      (p) =>
-        p.pregunta.toLowerCase().includes(q)
-    )
+    return PREGUNTAS.filter((p) => p.pregunta.toLowerCase().includes(q))
   }, [categoriaActiva, busqueda])
 
   function alternarItem(id: string) {
     setItemAbierto((prev) => (prev === id ? null : id))
   }
 
+  const categoriaActualData = CATEGORIAS.find((c) => c.id === categoriaActiva)
+
   return (
-    <section className="content content--wide section" id="preguntas-frecuentes" style={{ scrollMarginTop: 80 }}>
-      {/* Encabezado de la sección */}
-      <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 32px' }}>
+    <section
+      className="content content--wide section"
+      id="preguntas-frecuentes"
+      style={{ scrollMarginTop: 90 }}
+    >
+      {/* Encabezado de la sección al estilo del sitio */}
+      <div style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 36px' }}>
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
-            padding: '4px 14px',
-            borderRadius: 20,
-            background: '#ecfdf5',
-            color: '#059669',
-            fontSize: '0.84rem',
-            fontWeight: 700,
-            marginBottom: 12,
-            border: '1px solid #a7f3d0',
+            gap: 8,
+            padding: '6px 16px',
+            borderRadius: 999,
+            backgroundColor: '#ffffff',
+            border: '1px solid var(--color-border-default)',
+            color: 'var(--color-text-default)',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            marginBottom: 16,
+            boxShadow: 'var(--shadow-card)',
           }}
         >
-          <HelpCircle size={15} />
-          <span>Centro de respuestas</span>
+          <Sparkles size={14} style={{ color: 'var(--color-orange)' }} />
+          <span>Centro de orientación y respuestas</span>
         </div>
-        <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px', lineHeight: 1.25 }}>
+
+        <h2 style={{ fontSize: 'clamp(1.85rem, 4.5vw, 2.5rem)', color: 'var(--color-text-default)', marginBottom: 12 }}>
           Preguntas frecuentes
         </h2>
-        <p style={{ fontSize: '1rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
-          Resolvemos tus dudas sobre cómo recibir atención, sumarte como psicólogo/a voluntario/a o apoyar en labores de la fundación.
+        <p className="text-muted" style={{ fontSize: '1.05rem', lineHeight: 1.6, margin: 0 }}>
+          Resolvemos tus dudas sobre cómo recibir atención, vincularte como profesional voluntario/a o apoyar en labores de la fundación.
         </p>
       </div>
 
-      {/* Barra de búsqueda */}
-      <div style={{ maxWidth: 540, margin: '0 auto 28px', position: 'relative' }}>
+      {/* Buscador armonizado con el fondo crema */}
+      <div style={{ maxWidth: 580, margin: '0 auto 32px', position: 'relative' }}>
         <Search
           size={18}
-          color="#94a3b8"
+          color="var(--color-text-light)"
           style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
         />
         <input
           type="text"
-          placeholder="Buscar una pregunta (ej. REPS, ReTHUS, costo, sesiones...)"
+          placeholder="Buscar una duda (ej. REPS, ReTHUS, costo, sesiones, certificado...)"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           style={{
             width: '100%',
-            padding: '12px 16px 12px 44px',
-            borderRadius: 12,
-            border: '1.5px solid #e2e8f0',
+            padding: '13px 18px 13px 44px',
+            borderRadius: 'var(--border-radii-layout)',
+            border: '1px solid var(--color-border-default)',
             fontSize: '0.94rem',
             outline: 'none',
-            background: '#fff',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-            transition: 'border-color 0.2s',
+            backgroundColor: 'var(--color-card-bg)',
+            color: 'var(--color-text-default)',
+            boxShadow: 'var(--shadow-card)',
+            transition: 'border-color 0.15s ease',
           }}
         />
         {busqueda && (
@@ -326,12 +388,13 @@ export function SeccionPreguntasFrecuentes() {
               right: 12,
               top: '50%',
               transform: 'translateY(-50%)',
-              border: 'none',
-              background: '#f1f5f9',
+              border: '1px solid var(--color-border-default)',
+              backgroundColor: 'var(--color-bg-default)',
               borderRadius: 6,
-              padding: '2px 8px',
-              fontSize: '0.76rem',
-              color: '#64748b',
+              padding: '4px 10px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              color: 'var(--color-text-default)',
               cursor: 'pointer',
             }}
           >
@@ -340,15 +403,14 @@ export function SeccionPreguntasFrecuentes() {
         )}
       </div>
 
-      {/* Pestañas de categorías (solo si no hay búsqueda activa) */}
+      {/* Selector de categorías tipo Cards / Pills del diseño */}
       {!busqueda && (
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            gap: 8,
-            marginBottom: 28,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+            gap: 12,
+            marginBottom: 32,
           }}
         >
           {CATEGORIAS.map((cat) => {
@@ -364,57 +426,85 @@ export function SeccionPreguntasFrecuentes() {
                   if (primero) setItemAbierto(primero.id)
                 }}
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '10px 18px',
-                  borderRadius: 10,
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  border: activa ? '1.5px solid #059669' : '1.5px solid #e2e8f0',
-                  background: activa ? '#059669' : '#fff',
-                  color: activa ? '#fff' : '#475569',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 12,
+                  padding: '14px 16px',
+                  borderRadius: 'var(--border-radii-layout)',
+                  border: activa ? '2px solid #15162e' : '1px solid var(--color-border-default)',
+                  backgroundColor: activa ? '#15162e' : '#ffffff',
+                  color: activa ? '#fff6eb' : 'var(--color-text-default)',
                   cursor: 'pointer',
-                  boxShadow: activa ? '0 2px 8px rgba(5,150,105,0.25)' : 'none',
-                  transition: 'all 0.2s',
+                  textAlign: 'left',
+                  boxShadow: activa ? '0 6px 16px rgba(21, 22, 46, 0.15)' : 'var(--shadow-card)',
+                  transform: activa ? 'translateY(-2px)' : 'none',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <Icono size={16} />
-                <span>{cat.label}</span>
+                <div
+                  style={{
+                    padding: 8,
+                    borderRadius: 8,
+                    backgroundColor: activa ? 'rgba(255, 246, 235, 0.15)' : 'var(--color-bg-default)',
+                    color: activa ? '#fff6eb' : 'var(--color-text-default)',
+                    lineHeight: 0,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icono size={18} />
+                </div>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.92rem', lineHeight: 1.3, marginBottom: 2 }}>
+                    {cat.label}
+                  </strong>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: '0.76rem',
+                      color: activa ? 'rgba(255, 246, 235, 0.75)' : 'var(--color-text-light)',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {cat.sublabel}
+                  </span>
+                </div>
               </button>
             )
           })}
         </div>
       )}
 
-      {/* Lista de Acordeones */}
-      <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Indicador de contexto de búsqueda */}
+      {busqueda && (
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-light)', margin: 0 }}>
+            Resultados de búsqueda para &ldquo;<strong>{busqueda}</strong>&rdquo; ({preguntasFiltradas.length}{' '}
+            {preguntasFiltradas.length === 1 ? 'coincidencia' : 'coincidencias'})
+          </p>
+        </div>
+      )}
+
+      {/* Lista de Acordeones con estilo Notion / Aquí Estamos */}
+      <div style={{ maxWidth: 840, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {preguntasFiltradas.length === 0 ? (
           <div
             style={{
               textAlign: 'center',
-              padding: '36px 20px',
-              background: '#f8fafc',
-              borderRadius: 12,
-              border: '1px dashed #cbd5e1',
+              padding: '40px 24px',
+              backgroundColor: '#ffffff',
+              borderRadius: 'var(--border-radii-layout)',
+              border: '1px dashed var(--color-border-default)',
+              boxShadow: 'var(--shadow-card)',
             }}
           >
-            <p style={{ color: '#64748b', fontSize: '0.94rem', margin: '0 0 10px' }}>
-              No encontramos preguntas que coincidan con &ldquo;{busqueda}&rdquo;.
+            <p style={{ color: 'var(--color-text-light)', fontSize: '0.96rem', margin: '0 0 14px' }}>
+              No encontramos preguntas relacionadas con &ldquo;{busqueda}&rdquo;.
             </p>
             <button
               type="button"
               onClick={() => setBusqueda('')}
-              style={{
-                background: '#059669',
-                color: '#fff',
-                border: 'none',
-                padding: '6px 14px',
-                borderRadius: 6,
-                fontWeight: 700,
-                fontSize: '0.84rem',
-                cursor: 'pointer',
-              }}
+              className="button button--primary"
+              style={{ padding: '8px 18px', fontSize: '0.85rem' }}
             >
               Ver todas las preguntas
             </button>
@@ -426,12 +516,12 @@ export function SeccionPreguntasFrecuentes() {
               <div
                 key={item.id}
                 style={{
-                  background: '#fff',
-                  border: abierta ? '1.5px solid #059669' : '1px solid #e2e8f0',
-                  borderRadius: 12,
+                  backgroundColor: '#ffffff',
+                  border: abierta ? '1.5px solid #15162e' : '1px solid var(--color-border-default)',
+                  borderRadius: 'var(--border-radii-layout)',
                   overflow: 'hidden',
-                  boxShadow: abierta ? '0 4px 14px rgba(5,150,105,0.08)' : '0 1px 3px rgba(0,0,0,0.02)',
-                  transition: 'all 0.2s',
+                  boxShadow: abierta ? '0 6px 18px rgba(0,0,0,0.08)' : 'var(--shadow-card)',
+                  transition: 'all 0.16s ease',
                 }}
               >
                 <button
@@ -440,46 +530,84 @@ export function SeccionPreguntasFrecuentes() {
                   aria-expanded={abierta}
                   style={{
                     width: '100%',
-                    padding: '16px 20px',
+                    padding: '18px 22px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: 12,
-                    background: 'transparent',
+                    gap: 16,
+                    backgroundColor: 'transparent',
                     border: 'none',
                     textAlign: 'left',
                     cursor: 'pointer',
                   }}
                 >
-                  <span
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {item.badge && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          color: '#15162e',
+                          backgroundColor: 'var(--color-bg-default)',
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          width: 'fit-content',
+                        }}
+                      >
+                        <ShieldCheck size={12} color="var(--color-blue)" />
+                        {item.badge}
+                      </span>
+                    )}
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-cormorant), Georgia, serif',
+                        fontSize: '1.22rem',
+                        fontWeight: 600,
+                        color: abierta ? '#15162e' : 'var(--color-text-default)',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {item.pregunta}
+                    </span>
+                  </div>
+
+                  <div
                     style={{
-                      fontSize: '0.98rem',
-                      fontWeight: 700,
-                      color: abierta ? '#065f46' : '#1e293b',
-                      lineHeight: 1.4,
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      backgroundColor: abierta ? '#15162e' : 'var(--color-bg-default)',
+                      color: abierta ? '#fff6eb' : 'var(--color-text-default)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'all 0.15s ease',
                     }}
                   >
-                    {item.pregunta}
-                  </span>
-                  <ChevronDown
-                    size={18}
-                    color={abierta ? '#059669' : '#94a3b8'}
-                    style={{
-                      transform: abierta ? 'rotate(180deg)' : 'none',
-                      transition: 'transform 0.2s ease',
-                      flexShrink: 0,
-                    }}
-                  />
+                    <ChevronDown
+                      size={16}
+                      style={{
+                        transform: abierta ? 'rotate(180deg)' : 'none',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    />
+                  </div>
                 </button>
 
                 {abierta && (
                   <div
                     style={{
-                      padding: '0 20px 18px',
-                      color: '#334155',
-                      fontSize: '0.92rem',
-                      borderTop: '1px solid #f1f5f9',
-                      paddingTop: 14,
+                      padding: '0 22px 22px',
+                      color: 'var(--color-text-default)',
+                      fontSize: '0.94rem',
+                      borderTop: '1px solid rgba(55, 53, 47, 0.08)',
+                      paddingTop: 16,
                     }}
                   >
                     {item.respuesta}
@@ -491,50 +619,61 @@ export function SeccionPreguntasFrecuentes() {
         )}
       </div>
 
-      {/* Tarjeta de soporte / dudas adicionales */}
+      {/* Tarjeta de soporte / dudas adicionales con estilo Notion Callout */}
       <div
+        className="callout"
         style={{
-          maxWidth: 760,
-          margin: '32px auto 0',
-          background: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: 14,
-          padding: '20px 24px',
-          display: 'flex',
+          maxWidth: 840,
+          margin: '36px auto 0',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: 14,
+          gap: 16,
+          boxShadow: 'var(--shadow-card)',
+          borderRadius: 'var(--border-radii-layout)',
         }}
       >
-        <div>
-          <strong style={{ fontSize: '0.96rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>
-            ¿Tienes alguna otra duda o consulta específica?
-          </strong>
-          <span style={{ fontSize: '0.84rem', color: '#64748b' }}>
-            Nuestro equipo de coordinación está disponible para orientarte.
-          </span>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              backgroundColor: '#15162e',
+              color: '#fff6eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <MessageCircle size={22} />
+          </div>
+          <div>
+            <strong style={{ fontSize: '1rem', color: 'var(--color-text-default)', display: 'block', marginBottom: 2 }}>
+              ¿Tienes alguna duda adicional sobre el modelo o la red?
+            </strong>
+            <span className="text-muted" style={{ fontSize: '0.88rem' }}>
+              Nuestro equipo de coordinación está disponible para orientarte directamente.
+            </span>
+          </div>
         </div>
+
         <a
           href={whatsappHref}
           target="_blank"
           rel="noopener noreferrer"
+          className="button button--primary"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
-            padding: '9px 18px',
-            borderRadius: 8,
-            background: '#22c55e',
-            color: '#fff',
-            fontSize: '0.86rem',
-            fontWeight: 700,
-            textDecoration: 'none',
-            boxShadow: '0 2px 6px rgba(34,197,94,0.3)',
+            gap: 8,
+            padding: '10px 20px',
+            fontSize: '0.9rem',
           }}
         >
-          <MessageCircle size={16} />
-          <span>Escríbenos por WhatsApp</span>
+          <MessageCircle size={17} />
+          <span>Escribir por WhatsApp</span>
         </a>
       </div>
     </section>
