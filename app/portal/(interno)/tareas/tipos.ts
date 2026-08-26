@@ -38,6 +38,8 @@ export type Tarea = {
   title: string
   description: string | null
   dueDate: string | null
+  startTime: string | null
+  endTime: string | null
   priority: TareaPriority
   priorityLegible: string
   status: TareaStatus
@@ -83,21 +85,21 @@ export const AREA_ICONS: Record<string, string> = {
 }
 
 export const DIA_LEGIBLE: Record<string, string> = {
-  LUNES: 'Lu', MARTES: 'Ma', MIERCOLES: 'Mi',
-  JUEVES: 'Ju', VIERNES: 'Vi', SABADO: 'Sa', DOMINGO: 'Do',
+  LUNES: 'Lunes', MARTES: 'Martes', MIERCOLES: 'Miércoles',
+  JUEVES: 'Jueves', VIERNES: 'Viernes', SABADO: 'Sábado', DOMINGO: 'Domingo',
 }
 
 export const FRANJA_LEGIBLE: Record<string, string> = {
-  MANANA: 'Mañana', TARDE: 'Tarde', NOCHE: 'Noche',
+  MANANA: 'Mañana (8am-12pm)', TARDE: 'Tarde (2pm-6pm)', NOCHE: 'Noche (6pm-9pm)',
 }
 
 export const STATUS_ASIGNACION_TEXTO: Record<AsignacionStatus, string> = {
-  INVITADO: 'Invitado',
-  ACEPTADO: 'Aceptó',
-  RECHAZADO: 'Rechazó',
+  INVITADO: 'Invitado (pendiente respuesta)',
+  ACEPTADO: 'Aceptó apoyar',
+  RECHAZADO: 'No puede / Rechazó',
   EN_PROGRESO: 'En progreso',
-  COMPLETADO: 'Completó',
-  NO_RESPONDIO: 'No respondió',
+  COMPLETADO: 'Completado',
+  NO_RESPONDIO: 'Sin respuesta',
 }
 
 export const STATUS_TAREA_OPCIONES: { value: TareaStatus; label: string }[] = [
@@ -107,3 +109,13 @@ export const STATUS_TAREA_OPCIONES: { value: TareaStatus; label: string }[] = [
   { value: 'COMPLETADA', label: 'Completada' },
   { value: 'CANCELADA', label: 'Cancelada' },
 ]
+
+export const DIA_SEMANA_MAP: Record<number, string> = {
+  0: 'DOMINGO',
+  1: 'LUNES',
+  2: 'MARTES',
+  3: 'MIERCOLES',
+  4: 'JUEVES',
+  5: 'VIERNES',
+  6: 'SABADO',
+}

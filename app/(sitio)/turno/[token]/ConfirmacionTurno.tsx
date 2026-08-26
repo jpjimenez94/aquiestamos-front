@@ -1,7 +1,7 @@
 
 'use client'
 import { useEffect, useState } from 'react'
-import { CheckCircle2, XCircle, Clock, HeartHandshake } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, HeartHandshake, Calendar } from 'lucide-react'
 
 type DetallesTarea = {
   yaRespondio: boolean
@@ -14,6 +14,8 @@ type DetallesTarea = {
     area: string
     areaLegible: string
     dueDate: string | null
+    startTime: string | null
+    endTime: string | null
     notes: string | null
     priority: string
   }
@@ -49,7 +51,7 @@ export function ConfirmacionTurno({ token }: { token: string }) {
           setDatos(payload.data)
           if (payload.data.yaRespondio) setRespondido(payload.data.status as any)
         } else {
-          setError(payload.message ?? 'El enlace no es valido.')
+          setError(payload.message ?? 'El enlace no es válido.')
         }
       })
       .catch(() => setError('No pudimos conectarnos. Intenta de nuevo en unos minutos.'))
@@ -68,7 +70,7 @@ export function ConfirmacionTurno({ token }: { token: string }) {
       const payload = await res.json()
       if (!res.ok || !payload.success) { setError(payload.message ?? 'No pudimos registrar tu respuesta.'); return }
       setRespondido(accion === 'ACEPTAR' ? 'ACEPTADO' : 'RECHAZADO')
-    } catch { setError('Error de conexion. Intenta de nuevo.') }
+    } catch { setError('Error de conexión. Intenta de nuevo.') }
     finally { setEnviando(false) }
   }
 
@@ -85,7 +87,7 @@ export function ConfirmacionTurno({ token }: { token: string }) {
     return (
       <div style={{ maxWidth: 480, width: '100%', textAlign: 'center', background: '#fff', borderRadius: 16, padding: '36px 28px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
         <XCircle size={40} color="#dc2626" style={{ margin: '0 auto 16px' }} />
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>Enlace no valido</h2>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>Enlace no válido</h2>
         <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.5 }}>{error}</p>
       </div>
     )
@@ -97,7 +99,6 @@ export function ConfirmacionTurno({ token }: { token: string }) {
   const pColor = PRIORITY_COLOR[tarea.priority] ?? { bg: '#f1f5f9', color: '#475569' }
   const primerNombre = colaboradorNombre.split(' ')[0] ?? colaboradorNombre
 
-  // Ya respondio
   if (respondido === 'ACEPTADO') {
     return (
       <div style={{ maxWidth: 520, width: '100%', background: '#fff', borderRadius: 16, padding: '40px 32px', border: '1px solid #bbf7d0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', textAlign: 'center' }}>
@@ -105,13 +106,13 @@ export function ConfirmacionTurno({ token }: { token: string }) {
           <CheckCircle2 size={36} color="#059669" />
         </div>
         <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>
-          Genial, {primerNombre}!
+          ¡Genial, {primerNombre}!
         </h2>
         <p style={{ fontSize: '0.94rem', color: '#475569', lineHeight: 1.6, marginBottom: 8 }}>
-          Ya anotamos que aceptas apoyar con <strong>{tarea.title}</strong>.
+          Anotamos que aceptas apoyar con <strong>{tarea.title}</strong>.
         </p>
         <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.5 }}>
-          El equipo de coordinacion de la Red Aqui Estamos se pondra en contacto contigo en breve con mas detalles.
+          El equipo de coordinación se pondrá en contacto contigo en breve si se requiere apoyo adicional.
         </p>
       </div>
     )
@@ -127,22 +128,22 @@ export function ConfirmacionTurno({ token }: { token: string }) {
           Entendido, {primerNombre}
         </h2>
         <p style={{ fontSize: '0.94rem', color: '#475569', lineHeight: 1.6 }}>
-          Gracias por responder. Ya le avisamos al equipo que no puedes en este momento.
-          Cuando haya otra oportunidad que encaje con lo tuyo, te volvemos a escribir.
+          Gracias por avisarnos. Ya le informamos al equipo para que reasigne la labor.
+          Te escribiremos en una próxima oportunidad.
         </p>
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: 560, width: '100%', background: '#fff', borderRadius: 16, padding: '36px 28px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-      <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Red Aqui Estamos te necesita</p>
+    <div style={{ maxWidth: 580, width: '100%', background: '#fff', borderRadius: 16, padding: '36px 28px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+      <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Red Aquí Estamos te necesita</p>
       <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', marginBottom: 16, lineHeight: 1.3 }}>
-        {primerNombre}, {yaRespondio ? 'ya respondiste a esta invitacion' : 'te invitamos a apoyarnos'}
+        {primerNombre}, {yaRespondio ? 'ya respondiste a esta invitación' : 'te invitamos a apoyarnos'}
       </h1>
 
-      {/* Tarjeta de la tarea */}
-      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* Tarjeta de la labor */}
+      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '18px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
           <strong style={{ fontSize: '1.05rem', color: '#0f172a', lineHeight: 1.3 }}>{tarea.title}</strong>
           <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: pColor.bg, color: pColor.color, whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -150,16 +151,25 @@ export function ConfirmacionTurno({ token }: { token: string }) {
           </span>
         </div>
 
-        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{tarea.areaLegible}</span>
+        <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{tarea.areaLegible}</span>
 
         {tarea.description && (
           <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.55, margin: 0 }}>{tarea.description}</p>
         )}
 
-        {tarea.dueDate && (
-          <p style={{ fontSize: '0.84rem', color: '#64748b', margin: 0 }}>
-            📅 Fecha limite: <strong>{new Date(tarea.dueDate + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
-          </p>
+        {(tarea.dueDate || tarea.startTime || tarea.endTime) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 4, padding: '8px 12px', background: '#fff', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+            {tarea.dueDate && (
+              <span style={{ fontSize: '0.84rem', color: '#1e293b' }}>
+                📅 <strong>Fecha:</strong> {new Date(tarea.dueDate + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </span>
+            )}
+            {(tarea.startTime || tarea.endTime) && (
+              <span style={{ fontSize: '0.84rem', color: '#1e293b' }}>
+                ⏰ <strong>Horario:</strong> {tarea.startTime ?? 'Inicio'} {tarea.endTime ? 'a ' + tarea.endTime : ''}
+              </span>
+            )}
+          </div>
         )}
 
         {note && (
@@ -172,7 +182,7 @@ export function ConfirmacionTurno({ token }: { token: string }) {
 
       {yaRespondio ? (
         <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.5 }}>
-          Ya respondiste a esta invitacion. Si crees que hay un error, escríbenos directamente.
+          Ya respondiste a esta invitación. Si necesitas hacer algún cambio, escríbenos directamente.
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -190,10 +200,10 @@ export function ConfirmacionTurno({ token }: { token: string }) {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <p style={{ fontSize: '0.88rem', color: '#475569', margin: 0 }}>Si quieres, cuentanos por que no puedes ahora. Nos ayuda a mejorar:</p>
+              <p style={{ fontSize: '0.88rem', color: '#475569', margin: 0 }}>Si deseas, cuéntanos brevemente por qué no puedes:</p>
               <textarea
                 rows={3}
-                placeholder="Opcional: no tengo tiempo esta semana, no es mi area, etc."
+                placeholder="Opcional: cruce de horario, viaje, etc."
                 value={motivoRechazo}
                 onChange={(e) => setMotivoRechazo(e.target.value)}
                 style={{ padding: '9px 12px', borderRadius: 8, fontSize: '0.88rem', border: '1.5px solid #e2e8f0', outline: 'none', resize: 'vertical' }}

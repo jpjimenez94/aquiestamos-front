@@ -17,10 +17,22 @@ function TarjetaTarea({ tarea }: { tarea: Tarea }) {
     tarea.dueDate &&
     new Date(tarea.dueDate + 'T23:59:59') < hoy &&
     !['COMPLETADA', 'CANCELADA'].includes(tarea.status)
+
   return (
     <Link
       href={'/portal/tareas/' + tarea.id}
-      style={{ display: 'block', background: '#fff', border: '1px solid', borderColor: colores.border, borderRadius: 12, padding: '16px 18px', textDecoration: 'none', color: 'inherit' }}
+      style={{
+        display: 'block',
+        background: '#fff',
+        border: '1px solid',
+        borderColor: colores.border,
+        borderRadius: 12,
+        padding: '15px 16px',
+        textDecoration: 'none',
+        color: 'inherit',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+        transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+      }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
         <strong style={{ fontSize: '0.92rem', color: '#0f172a', lineHeight: 1.3, flex: 1 }}>{tarea.title}</strong>
@@ -28,25 +40,35 @@ function TarjetaTarea({ tarea }: { tarea: Tarea }) {
           {tarea.statusLegible}
         </span>
       </div>
+
       {tarea.description && (
         <p style={{ fontSize: '0.82rem', color: '#475569', margin: '0 0 10px', lineHeight: 1.4 }}>
-          {tarea.description.length > 120 ? tarea.description.slice(0, 120) + '...' : tarea.description}
+          {tarea.description.length > 110 ? tarea.description.slice(0, 110) + '...' : tarea.description}
         </p>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
         <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: pColor.bg, color: pColor.color }}>{tarea.priorityLegible}</span>
         <span style={{ fontSize: '0.76rem', color: '#64748b' }}>{tarea.areaLegible}</span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: '0.76rem', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: 8, marginTop: 4 }}>
         {tarea.dueDate && (
-          <span style={{ fontSize: '0.76rem', color: vencida ? '#dc2626' : '#64748b', fontWeight: vencida ? 700 : 400 }}>
-            {vencida ? '⚠️ ' : ''}
+          <span style={{ color: vencida ? '#dc2626' : '#64748b', fontWeight: vencida ? 700 : 400 }}>
+            {vencida ? '⚠️ Vencida: ' : '📅 '}
             {new Date(tarea.dueDate + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
           </span>
         )}
-        {tarea.totalAssignments > 0 && (
-          <span style={{ fontSize: '0.76rem', color: '#64748b', marginLeft: 'auto' }}>
-            👥 {tarea.totalAssignments}
+
+        {(tarea.startTime || tarea.endTime) && (
+          <span>
+            ⏰ {tarea.startTime ?? ''}{tarea.endTime ? ' - ' + tarea.endTime : ''}
           </span>
         )}
+
+        <span style={{ marginLeft: 'auto', fontWeight: 600, color: tarea.totalAssignments > 0 ? '#059669' : '#94a3b8' }}>
+          {tarea.totalAssignments > 0 ? '👥 ' + tarea.totalAssignments + ' asignado' + (tarea.totalAssignments > 1 ? 's' : '') : 'Sin asignar'}
+        </span>
       </div>
     </Link>
   )
