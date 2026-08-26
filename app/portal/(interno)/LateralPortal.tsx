@@ -22,17 +22,20 @@ import {
   BadgeCheck,
   MapPin,
   ListTodo,
+  Key,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
 import { ModalCambiarMiClave } from "@/components/portal/ModalCambiarMiClave";
-import { Key } from "lucide-react";
 
 export type ContadoresBadges = {
   solicitudes?: number;
   postulaciones?: number;
   colaboradores?: number;
   verificaciones?: number;
+  agenda?: number;
+  miAgenda?: number;
+  tareas?: number;
 };
 
 type Enlace = {
@@ -83,6 +86,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Tareas de apoyo",
         icono: <ListTodo size={17} />,
         permiso: "tarea:leer",
+        badgeKey: "tareas",
       },
       {
         href: "/portal/verificaciones",
@@ -119,15 +123,15 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Agenda de la red",
         icono: <CalendarDays size={17} />,
         permiso: "agenda:leer",
+        badgeKey: "agenda",
       },
       {
         href: "/portal/mi-agenda",
         texto: "Mi agenda",
         icono: <CalendarCheck size={17} />,
         permiso: "agenda:leer:propia",
-        // El administrador tiene el permiso, pero no tiene ficha de profesional:
-        // el enlace solo le llevaria a un aviso de que no esta enlazado.
         soloRoles: ["PROFESIONAL"],
+        badgeKey: "miAgenda",
       },
     ],
   },
@@ -147,7 +151,6 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         permiso: "auditoria:leer",
       },
       {
-        // Solo ADMIN y LECTURA: el permiso lo decide, y AGENDADOR no lo tiene.
         href: "/portal/metricas",
         texto: "Métricas",
         icono: <BarChart3 size={17} />,
@@ -171,8 +174,6 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
     titulo: "Guía",
     enlaces: [
       {
-        // Sin permiso a propósito: la guía de procesos es para todo el que
-        // tenga sesión, incluido quien solo lee y el profesional.
         href: "/portal/procesos",
         texto: "Cómo funciona la red",
         icono: <BookOpen size={17} />,
@@ -204,70 +205,70 @@ export function LateralPortal({
 }) {
   const ruta = usePathname();
   const router = useRouter();
-
-  const [contadores, setContadores] = useState<ContadoresBadges>(contadoresIniciales);
+  const [abierto, setAbierto] = useState(false);
+  const [modalClaveAbierto, setModalClaveAbierto] = useState(false);
+  const [contadores, setContadores] =
+    useState<ContadoresBadges>(contadoresIniciales);
+  const ultimoSonidoRef = useRef<number>(0);
+  const contadoresAnterioresRef =
+    useRef<ContadoresBadges>(contadoresIniciales);
 
   useEffect(() => {
     setContadores(contadoresIniciales);
+    contadoresAnterioresRef.current = contadoresIniciales;
   }, [contadoresIniciales]);
 
-  // Actualizar periódicamente los contadores en segundo plano
-  useEffect(() => {
-    let activo = true;
-    async function refrescarBadges() {
-      try {
-        const res = await fetch("/api/portal/dashboard/badges");
-        if (!res.ok) return;
-        const r = await res.json();
-        if (activo && r.success && r.data) {
-          setContadores(r.data);
-        }
-      } catch {
-        // Silencioso
-      }
-    }
-
-    refrescarBadges();
-    const intervalo = setInterval(refrescarBadges, 30000);
-    return () => {
-      activo = false;
-      clearInterval(intervalo);
-    };
-  }, [ruta]);
-
-  // En móvil el menú es un panel que se abre. En escritorio siempre está a la
-  // vista y este estado no hace nada: lo decide el CSS, no el JavaScript.
-  const [abierto, setAbierto] = useState(false);
-  const [modalClaveAbierto, setModalClaveAbierto] = useState(false);
-  const botonRef = useRef<HTMLButtonElement>(null);
-
-  // Navegar cierra el menú. Sin esto, al tocar un enlace la página cambia
-  // detrás del panel y parece que no pasó nada.
   useEffect(() => {
     setAbierto(false);
   }, [ruta]);
 
-  // Escape cierra, y el foco vuelve al botón que lo abrió: quien navega con
-  // teclado no debe quedar perdido al final del documento.
   useEffect(() => {
-    if (!abierto) return;
+    let cancelado = false;
 
-    function alPulsar(evento: KeyboardEvent) {
-      if (evento.key === "Escape") {
-        setAbierto(false);
-        botonRef.current?.focus();
-      }
+    async function actualizarBadges() {
+      try {
+        const respuesta = await fetch("/api/portal/dashboard/badges", {
+          cache: "no-store",
+        });
+        if (!respuesta.ok) return;
+        const cuerpo = await respuesta.json();
+        if (cancelado || !cuerpo?.success || !cuerpo?.data) return;
+
+        const nuevos: ContadoresBadges = cuerpo.data;
+        const anteriores = contadoresAnterioresRef.current;
+
+        const hayNuevos =
+          (nuevos.solicitudes ?? 0) > (anteriores.solicitudes ?? 0) ||
+          (nuevos.postulaciones ?? 0) > (anteriores.postulaciones ?? 0) ||
+          (nuevos.colaboradores ?? 0) > (anteriores.colaboradores ?? 0) ||
+          (nuevos.verificaciones ?? 0) > (anteriores.verificaciones ?? 0) ||
+          (nuevos.agenda ?? 0) > (anteriores.agenda ?? 0) ||
+          (nuevos.miAgenda ?? 0) > (anteriores.miAgenda ?? 0) ||
+          (nuevos.tareas ?? 0) > (anteriores.tareas ?? 0);
+
+        if (hayNuevos) {
+          const ahora = Date.now();
+          if (ahora - ultimoSonidoRef.current > 10000) {
+            ultimoSonidoRef.current = ahora;
+            try {
+              const audio = new Audio("/alerta.mp3");
+              audio.volume = 0.4;
+              audio.play().catch(() => {});
+            } catch {}
+          }
+        }
+
+        contadoresAnterioresRef.current = nuevos;
+        setContadores(nuevos);
+      } catch {}
     }
 
-    document.addEventListener("keydown", alPulsar);
-    // Con el panel abierto, el fondo no debe poder desplazarse.
-    document.body.classList.add("sin-desplazamiento");
-
+    const intervalo = setInterval(actualizarBadges, 20000);
     return () => {
-      document.removeEventListener("keydown", alPulsar);
-      document.body.classList.remove("sin-desplazamiento");
+      cancelado = true;
+      clearInterval(intervalo);
     };
-  }, [abierto]);
+  }, []);
 
   async function salir() {
     await fetch("/api/portal/logout", { method: "POST" });
@@ -277,29 +278,24 @@ export function LateralPortal({
 
   return (
     <>
-      {/* Barra superior. Solo se ve en móvil; en escritorio el menú ya está. */}
-      <header className="portal__barra">
-        <span className="portal__marca">Aquí Estamos</span>
-        <button
-          ref={botonRef}
-          className="portal__hamburguesa"
-          type="button"
-          aria-expanded={abierto}
-          aria-controls="portal-menu"
-          aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
-          onClick={() => setAbierto((v) => !v)}
-        >
-          {abierto ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </header>
+      <button
+        className="portal__hamburguesa"
+        type="button"
+        aria-label={abierto ? "Cerrar menú lateral" : "Abrir menú lateral"}
+        aria-expanded={abierto}
+        aria-controls="portal-menu"
+        onClick={() => setAbierto((v) => !v)}
+      >
+        {abierto ? <X size={20} /> : <Menu size={20} />}
+      </button>
 
-      {/* Telón: tocar fuera cierra. Es lo que la gente intenta primero. */}
-      <div
-        className="portal__telon"
-        data-visible={abierto}
-        onClick={() => setAbierto(false)}
-        aria-hidden="true"
-      />
+      {abierto ? (
+        <div
+          className="portal__cortina"
+          onClick={() => setAbierto(false)}
+          aria-hidden="true"
+        />
+      ) : null}
 
       <aside
         id="portal-menu"
@@ -365,15 +361,35 @@ export function LateralPortal({
               {NOMBRE_ROL[usuario.role] ?? usuario.role}
             </span>
           </div>
-          <button className="portal__salir" type="button" onClick={salir}>
-            <LogOut
-              size={14}
-              style={{ verticalAlign: "-2px", marginRight: 6 }}
-            />
-            Salir
-          </button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
+            <button
+              className="portal__salir"
+              type="button"
+              onClick={() => setModalClaveAbierto(true)}
+              title="Cambiar mi contraseña personal"
+              style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 6px", fontSize: "0.82rem", fontWeight: 600, border: "1px solid rgba(255,255,255,0.25)" }}
+            >
+              <Key size={14} />
+              Clave
+            </button>
+            <button
+              className="portal__salir"
+              type="button"
+              onClick={salir}
+              title="Cerrar sesión"
+              style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 6px", fontSize: "0.82rem", fontWeight: 600, border: "1px solid rgba(255,255,255,0.25)" }}
+            >
+              <LogOut size={14} />
+              Salir
+            </button>
+          </div>
         </div>
       </aside>
+
+      <ModalCambiarMiClave
+        abierto={modalClaveAbierto}
+        alCerrar={() => setModalClaveAbierto(false)}
+      />
     </>
   );
 }

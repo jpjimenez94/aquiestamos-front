@@ -21,6 +21,9 @@ export default async function PortalLayout({ children }: { children: React.React
     postulaciones: 0,
     colaboradores: 0,
     verificaciones: 0,
+    agenda: 0,
+    miAgenda: 0,
+    tareas: 0,
   }
 
   // data-rol existe para el modo solo lectura: el CSS apaga los controles de
