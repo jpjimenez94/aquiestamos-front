@@ -329,6 +329,87 @@ export function TablaAuditoria({
 
   return (
     <>
+
+      {/* Pestañas de separación: Actividad del Portal vs Salas y Videollamadas */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button
+          type="button"
+          onClick={() => { setTabAuditoria('portal'); setPagina(1); }}
+          style={{
+            padding: '9px 18px',
+            borderRadius: 20,
+            fontSize: '0.88rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            background: tabAuditoria === 'portal' ? '#059669' : '#ffffff',
+            color: tabAuditoria === 'portal' ? '#ffffff' : '#475569',
+            boxShadow: tabAuditoria === 'portal' ? '0 2px 8px rgba(5,150,105,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+            border: tabAuditoria === 'portal' ? 'none' : '1px solid #cbd5e1',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <Shield size={16} />
+          Actividad del Portal
+          <span style={{ background: tabAuditoria === 'portal' ? 'rgba(255,255,255,0.25)' : '#f1f5f9', padding: '2px 8px', borderRadius: 10, fontSize: '0.74rem' }}>
+            {conteoPortal}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setTabAuditoria('llamadas'); setPagina(1); }}
+          style={{
+            padding: '9px 18px',
+            borderRadius: 20,
+            fontSize: '0.88rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            background: tabAuditoria === 'llamadas' ? '#059669' : '#ffffff',
+            color: tabAuditoria === 'llamadas' ? '#ffffff' : '#475569',
+            boxShadow: tabAuditoria === 'llamadas' ? '0 2px 8px rgba(5,150,105,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+            border: tabAuditoria === 'llamadas' ? 'none' : '1px solid #cbd5e1',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <Activity size={16} />
+          Salas y Videollamadas
+          <span style={{ background: tabAuditoria === 'llamadas' ? 'rgba(255,255,255,0.25)' : '#f1f5f9', padding: '2px 8px', borderRadius: 10, fontSize: '0.74rem' }}>
+            {conteoLlamadas}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setTabAuditoria('todo'); setPagina(1); }}
+          style={{
+            padding: '9px 18px',
+            borderRadius: 20,
+            fontSize: '0.88rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            background: tabAuditoria === 'todo' ? '#059669' : '#ffffff',
+            color: tabAuditoria === 'todo' ? '#ffffff' : '#475569',
+            boxShadow: tabAuditoria === 'todo' ? '0 2px 8px rgba(5,150,105,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+            border: tabAuditoria === 'todo' ? 'none' : '1px solid #cbd5e1',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Todo el Rastro
+          <span style={{ background: tabAuditoria === 'todo' ? 'rgba(255,255,255,0.25)' : '#f1f5f9', padding: '2px 8px', borderRadius: 10, fontSize: '0.74rem' }}>
+            {entradas.length}
+          </span>
+        </button>
+      </div>
+
       {/* Barra superior de Rango de Fechas y Filtros Rápidos */}
       <form
         onSubmit={handleAplicarFiltros}
