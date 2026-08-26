@@ -268,31 +268,8 @@ export function SupportRequestForm() {
                 </strong>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#78350f', lineHeight: 1.5 }}>
                   Si sientes que estás en peligro o necesitas hablar de inmediato con un especialista,
-                  puedes llamar gratis en Colombia a la <strong>Línea 106</strong> o <strong>Línea 192</strong>,
-                  o escribirnos directamente a nuestro WhatsApp oficial:
+                  puedes llamar gratis en Colombia a la <strong>Línea 106</strong> o <strong>Línea 192</strong> (24 horas).
                 </p>
-                <div style={{ marginTop: 12 }}>
-                  <a
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      background: '#16a34a',
-                      color: '#ffffff',
-                      padding: '8px 14px',
-                      borderRadius: 8,
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <MessageCircle size={15} />
-                    Escribir al WhatsApp {site.whatsappDisplay}
-                  </a>
-                </div>
               </div>
             </div>
           </div>
