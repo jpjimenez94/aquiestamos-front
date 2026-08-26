@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
+import { ModalCambiarMiClave } from "@/components/portal/ModalCambiarMiClave";
+import { Key } from "lucide-react";
 
 export type ContadoresBadges = {
   solicitudes?: number;
@@ -236,6 +238,7 @@ export function LateralPortal({
   // En móvil el menú es un panel que se abre. En escritorio siempre está a la
   // vista y este estado no hace nada: lo decide el CSS, no el JavaScript.
   const [abierto, setAbierto] = useState(false);
+  const [modalClaveAbierto, setModalClaveAbierto] = useState(false);
   const botonRef = useRef<HTMLButtonElement>(null);
 
   // Navegar cierra el menú. Sin esto, al tocar un enlace la página cambia
