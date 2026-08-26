@@ -614,31 +614,10 @@ export function SupportRequestForm() {
                     <AlertTriangle size={18} color="#e11d48" style={{ flexShrink: 0, marginTop: 2 }} />
                     <div style={{ fontSize: '0.84rem', color: '#9f1239', lineHeight: 1.5 }}>
                       <strong>Tu vida es muy valiosa. No estás solo/a.</strong>
-                      <p style={{ margin: '4px 0 8px' }}>
+                      <p style={{ margin: '4px 0 0' }}>
                         Si sientes que estás en peligro inmediato o no puedes contener la angustia,
-                        puedes marcar gratis al <strong>106</strong> o <strong>192</strong> en Colombia (24 horas),
-                        o escribirnos al WhatsApp de la Red:
+                        puedes marcar gratis al <strong>106</strong> o <strong>192</strong> en Colombia (24 horas).
                       </p>
-                      <a
-                        href={whatsappHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          background: '#e11d48',
-                          color: '#ffffff',
-                          padding: '6px 12px',
-                          borderRadius: 6,
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          textDecoration: 'none',
-                        }}
-                      >
-                        <MessageCircle size={13} />
-                        WhatsApp {site.whatsappDisplay}
-                      </a>
                     </div>
                   </div>
                 </div>
