@@ -5,6 +5,7 @@ import { ButtonLink } from '@/components/ui/Button'
 import { Callout } from '@/components/ui/Callout'
 import { Icon } from '@/components/ui/Icon'
 import { homeCards, site, whatsappHref } from '@/lib/site'
+import { SeccionPreguntasFrecuentes } from '@/components/sitio/SeccionPreguntasFrecuentes'
 
 export default function HomePage() {
   return (
@@ -95,6 +96,13 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <div className="content">
+        <hr className="divider" />
+      </div>
+
+      {/* ---------- Preguntas Frecuentes ---------- */}
+      <SeccionPreguntasFrecuentes />
 
       <div className="content">
         <hr className="divider" />
