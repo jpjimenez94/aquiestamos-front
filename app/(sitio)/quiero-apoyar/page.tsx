@@ -4,12 +4,12 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Callout } from '@/components/ui/Callout'
 import { ButtonLink } from '@/components/ui/Button'
 import { CollaboratorForm } from '@/components/forms/CollaboratorForm'
-import { whatsappHref } from '@/lib/site'
+import { site, whatsappHref } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Quiero ser voluntario general',
+  title: 'Quiero ser voluntario general · Red Aquí Estamos',
   description:
-    'Súmate al voluntariado de la red desde tu disciplina: salud, logística, derecho, comunicación, gestión y más.',
+    'Súmate al voluntariado de la red desde tu disciplina: salud, logística, derecho, comunicación, tecnología, gestión y más.',
 }
 
 export default function QuieroApoyarPage() {
@@ -28,36 +28,22 @@ export default function QuieroApoyarPage() {
       </PageHeader>
 
       <section className="content section">
-        <Callout icon="arrow-right-orange">
-          <p>
-            Este formulario es para quienes quieren aportar desde una disciplina distinta
-            al acompañamiento psicológico: salud y primeros auxilios, trabajo social y
-            derecho, logística y transporte, comunicación y tecnología, gestión de
-            proyectos, y cualquier otro oficio que pueda hacer falta.
-          </p>
-          <p>
-            Con lo que registres armamos un directorio del voluntariado de la red. Cuando
-            aparezca una necesidad que encaje con lo que sabes hacer, te buscamos y te
-            escribimos. Registrarte no te compromete a nada.
-          </p>
-          <p>
-            Si eres profesional de psicología, psiquiatría o trabajo social y quieres
-            acompañar a personas en crisis, el formulario que te corresponde es{' '}
-            <a href="/quiero-ser-parte">Quiero dar apoyo psicológico</a>.
-          </p>
-        </Callout>
-
-        <div className="button-row" style={{ margin: '24px 0 32px' }}>
-          <ButtonLink href={whatsappHref} external icon={<MessageCircle size={16} />}>
-            Enviar mensaje a Whatsapp
-          </ButtonLink>
+        <div style={{ marginTop: 24, marginBottom: 20 }}>
+          <Callout icon="arrow-right-orange">
+            <p style={{ margin: 0, fontSize: '0.94rem', lineHeight: 1.5 }}>
+              <strong>Directorio de Voluntariado Multidisciplinario.</strong> Si quieres aportar desde
+              salud y primeros auxilios, logística, derecho, trabajo social, comunicación, tecnología
+              o gestión de proyectos, déjanos tus datos. Cuando surja una brigada o necesidad concreta,
+              el equipo de coordinación te contactará. Registrarte toma 2 minutos y no te compromete a nada.
+            </p>
+          </Callout>
         </div>
 
-        <h2 id="formulario">Diligencia el formulario</h2>
-        <p className="text-muted" style={{ marginBottom: 24 }}>
-          Los campos marcados con <span style={{ color: 'var(--color-red)' }}>*</span> son
-          obligatorios.
-        </p>
+        <div className="button-row" style={{ margin: '16px 0 28px' }}>
+          <ButtonLink href={whatsappHref} external icon={<MessageCircle size={16} />}>
+            ¿Tienes dudas? Escríbenos al WhatsApp {site.whatsappDisplay}
+          </ButtonLink>
+        </div>
 
         <CollaboratorForm />
       </section>
