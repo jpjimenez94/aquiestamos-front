@@ -1,3 +1,4 @@
+import { ExternalLink, ShieldCheck } from 'lucide-react'
 import { portalFetch, enBogota } from '@/lib/portal'
 import { Cabecera, Vacio } from '../componentes'
 import { nombrePropio } from '@/lib/nombre'
@@ -6,17 +7,52 @@ import { BotonPedirDocumentos } from './BotonPedirDocumentos'
 
 export const metadata = { title: 'Verificaciones' }
 
-/**
- * La banda de verificación de profesionales, en dos filas:
- *
- *   1. PENDIENTES DE APROBACIÓN — ya subieron sus documentos por su enlace.
- *      El documento a la vista y los datos del perfil al lado, para aprobar
- *      sin abrir cinco pestañas.
- *   2. POR NOTIFICAR — todavía no los suben. El mensaje con su enlace, listo.
- *
- * Verificado no aparece aquí: esta pantalla es una bandeja de trabajo, no un
- * directorio. Para eso está Profesionales.
- */
+const SITIOS_VERIFICACION = [
+  {
+    nombre: 'Colpsic',
+    entidad: 'Colegio Colombiano de Psicólogos',
+    pais: 'Colombia',
+    bandera: '🇨🇴',
+    url: 'https://sara.colpsic.org.co/publico/verificacion-tarjetas',
+    desc: 'Verificación de Tarjeta Profesional',
+    color: '#059669',
+    bg: '#ecfdf5',
+    border: '#a7f3d0',
+  },
+  {
+    nombre: 'ReTHUS',
+    entidad: 'SISPRO · MinSalud Colombia',
+    pais: 'Colombia',
+    bandera: '🇨🇴',
+    url: 'https://web.sispro.gov.co/THS/Cliente/ConsultasPublicas/ConsultaPublicaDeTHxIdentificacion.aspx',
+    desc: 'Registro de Talento Humano en Salud',
+    color: '#0284c7',
+    bg: '#f0f9ff',
+    border: '#bae6fd',
+  },
+  {
+    nombre: 'CPSP',
+    entidad: 'Colegio de Psicólogos del Perú',
+    pais: 'Perú',
+    bandera: '🇵🇪',
+    url: 'https://www.cpsp.pe/busquedas/busqueda_colegiados.html',
+    desc: 'Búsqueda de Psicólogos Colegiados',
+    color: '#dc2626',
+    bg: '#fef2f2',
+    border: '#fecaca',
+  },
+  {
+    nombre: 'SUNEDU',
+    entidad: 'Superintendencia Nacional · Perú',
+    pais: 'Perú',
+    bandera: '🇵🇪',
+    url: 'https://enlinea.sunedu.gob.pe/',
+    desc: 'Registro Nacional de Grados y Títulos',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+    border: '#ddd6fe',
+  },
+]
 
 type Profesional = {
   id: string
@@ -57,6 +93,87 @@ export default async function VerificacionesPage() {
         titulo="Verificaciones"
         descripcion="Quién ya subió sus documentos y espera aprobación, y a quién falta pedírselos."
       />
+
+      {/* Sitios Oficiales para Verificación de Psicólogos y Profesionales */}
+      <div
+        className="panel"
+        style={{
+          marginBottom: 20,
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: 14,
+          padding: '18px 20px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <ShieldCheck size={20} color="#059669" />
+          <h2 style={{ fontSize: '1.05rem', margin: 0, color: '#0f172a' }}>
+            Sitios Oficiales para Verificación de Psicólogos y Profesionales
+          </h2>
+        </div>
+        <p style={{ fontSize: '0.84rem', color: '#64748b', margin: '0 0 14px', lineHeight: 1.4 }}>
+          Acceso rápido a las plataformas oficiales de consulta pública de tarjetas profesionales,
+          colegiaturas y títulos en Colombia y Perú:
+        </p>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+            gap: 12,
+          }}
+        >
+          {SITIOS_VERIFICACION.map((sitio) => (
+            <a
+              key={sitio.nombre}
+              href={sitio.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                borderRadius: 10,
+                border: `1px solid ${sitio.border}`,
+                background: sitio.bg,
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: '1rem' }}>{sitio.bandera}</span>
+                    <strong style={{ fontSize: '0.95rem', color: sitio.color }}>{sitio.nombre}</strong>
+                  </div>
+                  <ExternalLink size={14} color={sitio.color} />
+                </div>
+                <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: 2 }}>
+                  {sitio.entidad}
+                </span>
+                <span style={{ display: 'block', fontSize: '0.73rem', color: '#64748b' }}>
+                  {sitio.desc}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: sitio.color,
+                }}
+              >
+                Consultar en línea &rarr;
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
 
       {!respuesta.success ? (
         <Vacio>{respuesta.message ?? 'No pudimos cargar los profesionales.'}</Vacio>
