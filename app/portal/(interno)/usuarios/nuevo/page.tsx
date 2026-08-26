@@ -8,12 +8,13 @@ import { portalFetch } from '@/lib/portal'
 export const metadata = { title: 'Nueva cuenta' }
 
 export default async function NuevoUsuarioPage() {
-  // Cargar voluntarios para sincronizar correos
+  // Cargar voluntarios para sincronizar correos y teléfonos
   const resColabs = await portalFetch<any[]>('/collaborators?all=true')
   const voluntarios = (resColabs.data ?? []).map((c: any) => ({
     id: c.id,
     name: c.fullName,
     email: c.email,
+    phone: c.phone,
     areaLegible: c.areaLegible ?? c.area,
     discipline: c.discipline,
   }))
