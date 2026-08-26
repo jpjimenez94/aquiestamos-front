@@ -162,3 +162,62 @@ export function DiagramaCierre() {
     </Lienzo>
   )
 }
+
+export function DiagramaVoluntariadoTareas() {
+  return (
+    <Lienzo
+      ancho={760}
+      alto={320}
+      etiqueta="Flujo de voluntariado de apoyo y gestión de tareas: postulación multidisciplinaria, creación de tareas, invitación por correo con enlace seguro, confirmación de turno y ejecución."
+    >
+      <Caja x={30} y={30} w={200} titulo="«Quiero apoyar»" detalle="registro multidisciplinario" />
+      <Flecha d="M 230 57 H 274" />
+      <Caja x={276} y={30} w={200} titulo="Directorio de Apoyo" detalle="salud, legal, logística, tech" tono="logro" />
+      <Flecha d="M 476 57 H 520" />
+      <Caja x={522} y={30} w={200} titulo="Coordinación crea tarea" detalle="área, prioridad y fecha límite" />
+
+      <Flecha d="M 622 84 V 128" />
+      <Caja x={522} y={130} w={200} titulo="Asigna voluntario" detalle="invitación por email con link" tono="espera" />
+
+      <Flecha d="M 522 157 H 478" />
+      <Caja x={276} y={130} w={200} titulo="Voluntario responde" detalle="acepta o declina por link seguro" tono="espera" />
+
+      {/* Acepta */}
+      <Flecha d="M 376 184 V 228" />
+      <Nota x={460} y={210} texto="«Acepta apoyar»" />
+      <Caja x={276} y={230} w={200} titulo="En progreso" detalle="trabajando en la labor" tono="logro" />
+
+      {/* Declina */}
+      <Flecha d="M 276 157 H 232" tono="alerta" />
+      <Nota x={145} y={148} texto="«No puede»" tono="alerta" />
+      <Caja x={30} y={130} w={200} titulo="Reasignar tarea" detalle="se invita a otro voluntario" tono="alerta" />
+
+      {/* Completada */}
+      <Flecha d="M 476 257 H 520" />
+      <Caja x={522} y={230} w={200} titulo="COMPLETADA" detalle="tarea cerrada con éxito" tono="final" />
+    </Lienzo>
+  )
+}
+
+export function DiagramaLideresComunitarios() {
+  return (
+    <Lienzo
+      ancho={760}
+      alto={260}
+      etiqueta="Flujo de articulación territorial y líderes comunitarios: diagnóstico barrial, registro de líder, mapeo de necesidades de familias y articulación psicosocial directa."
+    >
+      <Caja x={30} y={30} w={200} titulo="Identificación en territorio" detalle="comunidad, barrio o vereda" />
+      <Flecha d="M 230 57 H 274" />
+      <Caja x={276} y={30} w={220} titulo="Ficha del líder" detalle="contacto + necesidades prioritarias" tono="espera" />
+      <Flecha d="M 496 57 H 540" />
+      <Caja x={542} y={30} w={190} titulo="Mensaje de articulación" detalle="WhatsApp personalizado" tono="logro" />
+
+      <Flecha d="M 637 84 V 128" />
+      <Caja x={542} y={130} w={190} titulo="Notas de seguimiento" detalle="rastro de visitas y acuerdos" />
+
+      <Flecha d="M 542 157 H 498" />
+      <Caja x={276} y={130} w={220} titulo="Articulación activa" detalle="apoyo psicológico y social" tono="final" />
+    </Lienzo>
+  )
+}
+
