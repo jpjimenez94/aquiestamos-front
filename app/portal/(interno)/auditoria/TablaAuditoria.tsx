@@ -81,6 +81,9 @@ export function TablaAuditoria({
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
 
+  // Pestaña activa: Actividad del Portal vs Salas de Videollamada vs Todo
+  const [tabAuditoria, setTabAuditoria] = useState<'portal' | 'llamadas' | 'todo'>('portal')
+
   // Filtros de Rango de Fechas
   const [filtroDesde, setFiltroDesde] = useState(desdeInicial)
   const [filtroHasta, setFiltroHasta] = useState(hastaInicial)
@@ -196,8 +199,19 @@ export function TablaAuditoria({
     return map
   }, [modulos])
 
+  // Contadores para las pestañas
+  const conteoLlamadas = useMemo(() => entradas.filter(e => e.entidad === 'sesion_virtual' || e.accion === 'ingresar_sala').length, [entradas])
+  const conteoPortal = useMemo(() => entradas.filter(e => e.entidad !== 'sesion_virtual' && e.accion !== 'ingresar_sala').length, [entradas])
+
   const listaFiltrada = useMemo(() => {
     return entradas.filter((e) => {
+      // Filtro de pestaña principal
+      if (tabAuditoria === 'portal' && (e.entidad === 'sesion_virtual' || e.accion === 'ingresar_sala')) {
+        return false
+      }
+      if (tabAuditoria === 'llamadas' && !(e.entidad === 'sesion_virtual' || e.accion === 'ingresar_sala')) {
+        return false
+      }
       // Filtro de rango de fechas
       if (filtroDesde || filtroHasta) {
         const fechaDia = obtenerFechaIso(e.fecha)
@@ -237,7 +251,7 @@ export function TablaAuditoria({
 
       return true
     })
-  }, [entradas, filtroDesde, filtroHasta, filtroFecha, filtroActor, filtroAccion, filtroModulo, filtroIp])
+  }, [entradas, tabAuditoria, filtroDesde, filtroHasta, filtroFecha, filtroActor, filtroAccion, filtroModulo, filtroIp])
 
   const listaOrdenada = useMemo(() => {
     return [...listaFiltrada].sort((a, b) => {
