@@ -29,10 +29,23 @@ export default async function ColaboradoresPage() {
           puedeVerTareas ? (
             <Link
               href="/portal/tareas"
-              className="boton boton--secundario"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.86rem' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '11px 22px',
+                borderRadius: 10,
+                fontSize: '0.94rem',
+                fontWeight: 800,
+                background: '#059669',
+                color: '#ffffff',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+                border: '1.5px solid #047857',
+                transition: 'all 0.15s ease',
+              }}
             >
-              <ListTodo size={15} />
+              <ListTodo size={18} strokeWidth={2.5} />
               Ver tareas de apoyo
             </Link>
           ) : null
