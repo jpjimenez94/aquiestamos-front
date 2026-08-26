@@ -1,4 +1,5 @@
-import { portalFetch } from '@/lib/portal'
+import { notFound } from 'next/navigation'
+import { portalFetch, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Vacio } from '../componentes'
 import { TablaColaboradores, type Colaborador } from './TablaColaboradores'
 
@@ -7,6 +8,11 @@ export const metadata = { title: 'Voluntariado de apoyo' }
 type ResumenArea = { area: string; areaLegible: string; total: number }
 
 export default async function ColaboradoresPage() {
+  const usuario = await usuarioActual()
+  if (!usuario || !puede(usuario, 'colaborador:leer')) {
+    notFound()
+  }
+
   const respuesta = await portalFetch<Colaborador[]>('/collaborators?all=true')
   const colaboradores = respuesta.data ?? []
   const porArea = (respuesta.meta?.porArea as ResumenArea[] | undefined) ?? []
