@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ListTodo } from 'lucide-react'
@@ -15,6 +16,8 @@ export default async function ColaboradoresPage() {
     notFound()
   }
 
+  const esAdmin = usuario.role === 'ADMIN'
+  const puedeEditar = puede(usuario, 'colaborador:editar')
   const puedeVerTareas = puede(usuario, 'tarea:leer')
   const respuesta = await portalFetch<Colaborador[]>('/collaborators?all=true')
   const colaboradores = respuesta.data ?? []
@@ -68,7 +71,11 @@ export default async function ColaboradoresPage() {
       ) : colaboradores.length === 0 ? (
         <Vacio>Todavía no se ha registrado nadie desde otras disciplinas.</Vacio>
       ) : (
-        <TablaColaboradores colaboradores={colaboradores} />
+        <TablaColaboradores
+          colaboradores={colaboradores}
+          esAdmin={esAdmin}
+          puedeEditar={puedeEditar || esAdmin}
+        />
       )}
     </>
   )

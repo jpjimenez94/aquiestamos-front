@@ -1,7 +1,8 @@
+
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw, Edit3, Trash2, Check, AlertCircle } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { nombrePropio } from '@/lib/nombre'
@@ -17,6 +18,7 @@ export type Colaborador = {
   areaLegible: string
   discipline: string
   yearsExperience: string | null
+  professionalCard?: string | null
   skills: string | null
   modality: string
   availableToTravel: string | null
@@ -52,6 +54,22 @@ const FRANJA_CORTA: Record<string, string> = {
   NOCHE: 'noche',
 }
 
+const AREAS = [
+  { value: 'SALUD', label: 'Salud y primeros auxilios' },
+  { value: 'SOCIAL_LEGAL_EDUCATIVO', label: 'Social, legal y educativo' },
+  { value: 'OPERACION_LOGISTICA', label: 'Operación y logística' },
+  { value: 'COMUNICACION_TECNOLOGIA', label: 'Comunicación y tecnología' },
+  { value: 'GESTION_PROYECTOS', label: 'Gestión y proyectos' },
+  { value: 'OTRA', label: 'Otra área' },
+]
+
+const DIAS_TODOS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO']
+const FRANJAS_TODAS = [
+  { value: 'MANANA', label: 'Mañana' },
+  { value: 'TARDE', label: 'Tarde' },
+  { value: 'NOCHE', label: 'Noche' },
+]
+
 type ColumnaOrden = 'persona' | 'disciplina' | 'experiencia' | 'ciudad' | 'fecha' | 'estado'
 type Direccion = 'asc' | 'desc'
 
@@ -60,16 +78,27 @@ const estiloInputFiltro: React.CSSProperties = {
   padding: '5px 8px',
   fontSize: '0.74rem',
   border: '1px solid var(--color-border-default, #cbd5e1)',
-  borderRadius: '6px',
-  backgroundColor: '#ffffff',
-  color: 'var(--color-text-main, #1e293b)',
+  borderRadius: 5,
+  background: '#fff',
   outline: 'none',
-  boxSizing: 'border-box',
-  minHeight: '28px',
-  fontWeight: 'normal',
 }
 
-export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborador[] }) {
+export function TablaColaboradores({
+  colaboradores: iniciales,
+  esAdmin = false,
+  puedeEditar = false,
+}: {
+  colaboradores: Colaborador[]
+  esAdmin?: boolean
+  puedeEditar?: boolean
+}) {
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>(iniciales)
+  const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('fecha')
+  const [direccion, setDireccion] = useState<Direccion>('desc')
+  const [pagina, setPagina] = useState(1)
+  const [porPagina, setPorPagina] = useState(25)
+
+  // Filtros por columna
   const [filtroPersona, setFiltroPersona] = useState('')
   const [filtroDisciplina, setFiltroDisciplina] = useState('')
   const [filtroExperiencia, setFiltroExperiencia] = useState('')
@@ -78,30 +107,24 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
   const [filtroFecha, setFiltroFecha] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
 
-  const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('fecha')
-  const [direccion, setDireccion] = useState<Direccion>('desc')
-
-  const [pagina, setPagina] = useState(1)
-  const [porPagina, setPorPagina] = useState(25)
+  // Modales
+  const [colabAEditar, setColabAEditar] = useState<Colaborador | null>(null)
+  const [colabAEliminar, setColabAEliminar] = useState<Colaborador | null>(null)
+  const [formEdit, setFormEdit] = useState<Partial<Colaborador>>({})
+  const [guardando, setGuardando] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null)
+  const [errorModal, setErrorModal] = useState<string | null>(null)
 
   function alternarOrden(col: ColumnaOrden) {
     if (columnaOrden === col) {
       setDireccion(direccion === 'asc' ? 'desc' : 'asc')
     } else {
       setColumnaOrden(col)
-      setDireccion(col === 'fecha' ? 'desc' : 'asc')
+      setDireccion('asc')
     }
+    setPagina(1)
   }
-
-  const hayFiltros = Boolean(
-    filtroPersona.trim() ||
-      filtroDisciplina.trim() ||
-      filtroExperiencia ||
-      filtroCiudad.trim() ||
-      filtroDisponibilidad.trim() ||
-      filtroFecha.trim() ||
-      filtroEstado,
-  )
 
   function limpiarFiltros() {
     setFiltroPersona('')
@@ -114,49 +137,56 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
     setPagina(1)
   }
 
+  const hayFiltros =
+    filtroPersona ||
+    filtroDisciplina ||
+    filtroExperiencia ||
+    filtroCiudad ||
+    filtroDisponibilidad ||
+    filtroFecha ||
+    filtroEstado
+
   const listaFiltrada = useMemo(() => {
     return colaboradores.filter((c) => {
-      if (filtroPersona.trim()) {
-        const q = filtroPersona.toLowerCase().trim()
-        const matchNombre = c.fullName.toLowerCase().includes(q)
-        const matchTel = c.phone?.includes(q)
-        const matchEmail = c.email?.toLowerCase().includes(q)
-        if (!matchNombre && !matchTel && !matchEmail) return false
-      }
-
-      if (filtroDisciplina.trim()) {
-        const q = filtroDisciplina.toLowerCase().trim()
-        const matchDisc = (c.discipline || '').toLowerCase().includes(q)
-        const matchArea = (c.areaLegible || '').toLowerCase().includes(q)
-        if (!matchDisc && !matchArea) return false
-      }
-
-      if (filtroExperiencia && c.yearsExperience !== filtroExperiencia) {
+      if (
+        filtroPersona &&
+        !c.fullName.toLowerCase().includes(filtroPersona.toLowerCase()) &&
+        !c.phone.includes(filtroPersona) &&
+        !c.email.toLowerCase().includes(filtroPersona.toLowerCase())
+      )
         return false
-      }
 
-      if (filtroCiudad.trim()) {
-        const q = filtroCiudad.toLowerCase().trim()
-        const matchCiudad = (c.city || '').toLowerCase().includes(q)
-        const matchModalidad = (c.modality || '').toLowerCase().includes(q)
-        if (!matchCiudad && !matchModalidad) return false
-      }
-
-      if (filtroDisponibilidad.trim()) {
-        const q = filtroDisponibilidad.toLowerCase().trim()
-        const matchDias = c.availableDays?.join(' ').toLowerCase() || ''
-        const matchSkills = (c.skills || '').toLowerCase()
-        if (!matchDias.includes(q) && !matchSkills.includes(q)) return false
-      }
-
-      if (filtroFecha.trim()) {
-        const q = filtroFecha.toLowerCase().trim()
-        if (!enBogota(c.createdAt, false).toLowerCase().includes(q)) return false
-      }
-
-      if (filtroEstado && c.status !== filtroEstado) {
+      if (
+        filtroDisciplina &&
+        !c.discipline.toLowerCase().includes(filtroDisciplina.toLowerCase()) &&
+        !c.areaLegible.toLowerCase().includes(filtroDisciplina.toLowerCase())
+      )
         return false
+
+      if (filtroExperiencia && c.yearsExperience !== filtroExperiencia) return false
+
+      if (
+        filtroCiudad &&
+        !c.city.toLowerCase().includes(filtroCiudad.toLowerCase()) &&
+        !c.modality.toLowerCase().includes(filtroCiudad.toLowerCase())
+      )
+        return false
+
+      if (filtroDisponibilidad) {
+        const textoDisp =
+          c.availableDays.join(' ') +
+          ' ' +
+          c.availableSlots.join(' ') +
+          ' ' +
+          (c.skills ?? '')
+        if (!textoDisp.toLowerCase().includes(filtroDisponibilidad.toLowerCase()))
+          return false
       }
+
+      if (filtroFecha && !enBogota(c.createdAt, false).includes(filtroFecha))
+        return false
+
+      if (filtroEstado && c.status !== filtroEstado) return false
 
       return true
     })
@@ -173,175 +203,221 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
 
   const listaOrdenada = useMemo(() => {
     return [...listaFiltrada].sort((a, b) => {
-      let cmp = 0
+      let va: any = ''
+      let vb: any = ''
+
       switch (columnaOrden) {
         case 'persona':
-          cmp = a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' })
+          va = a.fullName.toLowerCase()
+          vb = b.fullName.toLowerCase()
           break
         case 'disciplina':
-          cmp = a.discipline.localeCompare(b.discipline, 'es', { sensitivity: 'base' })
+          va = a.discipline.toLowerCase()
+          vb = b.discipline.toLowerCase()
           break
         case 'experiencia':
-          cmp = (a.yearsExperience || '').localeCompare(b.yearsExperience || '', 'es', { sensitivity: 'base' })
+          va = a.yearsExperience ?? ''
+          vb = b.yearsExperience ?? ''
           break
         case 'ciudad':
-          cmp = a.city.localeCompare(b.city, 'es', { sensitivity: 'base' })
+          va = a.city.toLowerCase()
+          vb = b.city.toLowerCase()
           break
-        case 'fecha': {
-          const tA = new Date(a.createdAt).getTime()
-          const tB = new Date(b.createdAt).getTime()
-          cmp = tA - tB
+        case 'fecha':
+          va = new Date(a.createdAt).getTime()
+          vb = new Date(b.createdAt).getTime()
           break
-        }
         case 'estado':
-          cmp = a.status.localeCompare(b.status, 'es', { sensitivity: 'base' })
+          va = a.status
+          vb = b.status
           break
       }
-      return direccion === 'asc' ? cmp : -cmp
+
+      if (va < vb) return direccion === 'asc' ? -1 : 1
+      if (va > vb) return direccion === 'asc' ? 1 : -1
+      return 0
     })
   }, [listaFiltrada, columnaOrden, direccion])
 
-  const totalFiltradas = listaOrdenada.length
-  const totalPaginas = Math.max(1, Math.ceil(totalFiltradas / porPagina))
+  const totalFiltrados = listaOrdenada.length
+  const totalPaginas = Math.ceil(totalFiltrados / porPagina) || 1
   const paginaAjustada = Math.min(pagina, totalPaginas)
-  const listaPaginada = useMemo(() => {
-    const start = (paginaAjustada - 1) * porPagina
-    return listaOrdenada.slice(start, start + porPagina)
-  }, [listaOrdenada, paginaAjustada, porPagina])
+  const inicio = (paginaAjustada - 1) * porPagina
+  const fin = inicio + porPagina
+  const listaPaginada = listaOrdenada.slice(inicio, fin)
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
-      return <ArrowUpDown size={12} style={{ opacity: 0.35, marginLeft: 4 }} />
+      return <ArrowUpDown size={12} style={{ marginLeft: 4, opacity: 0.3 }} />
     }
     return direccion === 'asc' ? (
-      <ArrowUp size={12} style={{ color: 'var(--color-primary, #059669)', marginLeft: 4 }} />
+      <ArrowUp size={12} style={{ marginLeft: 4, color: 'var(--color-primary, #059669)' }} />
     ) : (
-      <ArrowDown size={12} style={{ color: 'var(--color-primary, #059669)', marginLeft: 4 }} />
+      <ArrowDown size={12} style={{ marginLeft: 4, color: 'var(--color-primary, #059669)' }} />
     )
   }
 
-  return (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <p className="panel__nota" style={{ margin: 0, fontSize: '0.82rem' }}>
-          <strong>{listaOrdenada.length}</strong> {listaOrdenada.length === 1 ? 'voluntario' : 'voluntarios'}
-          {hayFiltros ? ` (filtrado de ${colaboradores.length} en total)` : ''}
-        </p>
+  function abrirModalEditar(c: Colaborador) {
+    setColabAEditar(c)
+    setFormEdit({
+      fullName: c.fullName,
+      email: c.email,
+      phone: c.phone,
+      city: c.city,
+      area: c.area,
+      discipline: c.discipline,
+      yearsExperience: c.yearsExperience,
+      modality: c.modality,
+      availableDays: [...(c.availableDays ?? [])],
+      availableSlots: [...(c.availableSlots ?? [])],
+      status: c.status,
+      skills: c.skills ?? '',
+    })
+    setErrorModal(null)
+  }
 
-        {hayFiltros ? (
+  async function guardarEdicion(ev: React.FormEvent) {
+    ev.preventDefault()
+    if (!colabAEditar) return
+    setGuardando(true)
+    setErrorModal(null)
+    try {
+      const res = await fetch(`/api/portal/collaborators/${colabAEditar.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formEdit),
+      })
+      const payload = await res.json()
+      if (!res.ok || !payload.success) {
+        setErrorModal(payload.message ?? 'Error al actualizar voluntario.')
+        return
+      }
+      setColaboradores((prev) =>
+        prev.map((c) => (c.id === colabAEditar.id ? { ...c, ...payload.data } : c))
+      )
+      setColabAEditar(null)
+      setMensajeExito('Voluntario actualizado con éxito.')
+      setTimeout(() => setMensajeExito(null), 4000)
+    } catch {
+      setErrorModal('Error de conexión con el servidor.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  async function ejecutarEliminacion() {
+    if (!colabAEliminar) return
+    setEliminando(true)
+    try {
+      const res = await fetch(`/api/portal/collaborators/${colabAEliminar.id}`, {
+        method: 'DELETE',
+      })
+      const payload = await res.json()
+      if (!res.ok || !payload.success) {
+        alert(payload.message ?? 'No se pudo eliminar el voluntario.')
+        return
+      }
+      setColaboradores((prev) => prev.filter((c) => c.id !== colabAEliminar.id))
+      setColabAEliminar(null)
+      setMensajeExito('Voluntario eliminado del directorio.')
+      setTimeout(() => setMensajeExito(null), 4000)
+    } catch {
+      alert('Error de conexión al eliminar.')
+    } finally {
+      setEliminando(false)
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {mensajeExito && (
+        <div style={{ padding: '10px 16px', borderRadius: 8, background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', fontSize: '0.88rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Check size={16} />
+          {mensajeExito}
+        </div>
+      )}
+
+      {/* Barra de control */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <p style={{ fontSize: '0.84rem', color: '#64748b', margin: 0 }}>
+          Mostrando <strong>{totalFiltrados}</strong> de {colaboradores.length} personas registradas
+          {hayFiltros ? ' (filtrados)' : ''}
+        </p>
+        {hayFiltros && (
           <button
             type="button"
-            className="boton-mini"
             onClick={limpiarFiltros}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.76rem' }}
+            className="boton-mini"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.78rem' }}
           >
             <RotateCcw size={12} />
-            Restablecer filtros
+            Limpiar filtros
           </button>
-        ) : null}
+        )}
       </div>
 
       <div className="tabla-envoltorio">
         <table className="tabla">
           <thead>
             <tr>
-              <th
-                onClick={() => alternarOrden('persona')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '22%' }}
-                title="Ordenar por Persona"
-              >
+              <th onClick={() => alternarOrden('persona')} style={{ cursor: 'pointer', userSelect: 'none', width: '22%' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Persona
-                  <IconoOrden col="persona" />
+                  Persona <IconoOrden col="persona" />
                 </span>
               </th>
-              <th
-                onClick={() => alternarOrden('disciplina')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '18%' }}
-                title="Ordenar por Disciplina"
-              >
+              <th onClick={() => alternarOrden('disciplina')} style={{ cursor: 'pointer', userSelect: 'none', width: '17%' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Disciplina
-                  <IconoOrden col="disciplina" />
+                  Disciplina <IconoOrden col="disciplina" />
                 </span>
               </th>
-              <th
-                onClick={() => alternarOrden('experiencia')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '12%' }}
-                title="Ordenar por Experiencia"
-              >
+              <th onClick={() => alternarOrden('experiencia')} style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Experiencia
-                  <IconoOrden col="experiencia" />
+                  Experiencia <IconoOrden col="experiencia" />
                 </span>
               </th>
-              <th
-                onClick={() => alternarOrden('ciudad')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '16%' }}
-                title="Ordenar por Dónde y cómo"
-              >
+              <th onClick={() => alternarOrden('ciudad')} style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Dónde y cómo
-                  <IconoOrden col="ciudad" />
+                  Dónde y cómo <IconoOrden col="ciudad" />
                 </span>
               </th>
               <th style={{ width: '14%' }}>Disponibilidad</th>
-              <th
-                onClick={() => alternarOrden('fecha')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}
-                title="Ordenar por Registro (Fecha)"
-              >
+              <th onClick={() => alternarOrden('fecha')} style={{ cursor: 'pointer', userSelect: 'none', width: '8%' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Registro
-                  <IconoOrden col="fecha" />
+                  Registro <IconoOrden col="fecha" />
                 </span>
               </th>
-              <th
-                onClick={() => alternarOrden('estado')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '8%' }}
-                title="Ordenar por Estado"
-              >
+              <th onClick={() => alternarOrden('estado')} style={{ cursor: 'pointer', userSelect: 'none', width: '7%' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Estado
-                  <IconoOrden col="estado" />
+                  Estado <IconoOrden col="estado" />
                 </span>
               </th>
-              <th style={{ width: '6%', textAlign: 'right' }} />
+              <th style={{ width: '7%', textAlign: 'right' }}>Acciones</th>
             </tr>
 
-            {/* Fila de filtros por columna */}
-            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+            {/* Fila de Filtros */}
+            <tr style={{ background: '#f8fafc' }}>
               <th style={{ padding: '6px 6px' }}>
                 <input
                   type="text"
-                  placeholder="Nombre, teléfono..."
+                  placeholder="Nombre/correo/celular..."
                   value={filtroPersona}
-                  onChange={(e) => {
-                    setFiltroPersona(e.target.value)
-                    setPagina(1)
-                  }}
+                  onChange={(e) => { setFiltroPersona(e.target.value); setPagina(1) }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <input
                   type="text"
-                  placeholder="Disciplina, área..."
+                  placeholder="Disciplina/área..."
                   value={filtroDisciplina}
-                  onChange={(e) => {
-                    setFiltroDisciplina(e.target.value)
-                    setPagina(1)
-                  }}
+                  onChange={(e) => { setFiltroDisciplina(e.target.value); setPagina(1) }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroExperiencia}
-                  onChange={(e) => {
-                    setFiltroExperiencia(e.target.value)
-                    setPagina(1)
-                  }}
+                  onChange={(e) => { setFiltroExperiencia(e.target.value); setPagina(1) }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todas</option>
@@ -356,10 +432,7 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Ciudad/modalidad..."
                   value={filtroCiudad}
-                  onChange={(e) => {
-                    setFiltroCiudad(e.target.value)
-                    setPagina(1)
-                  }}
+                  onChange={(e) => { setFiltroCiudad(e.target.value); setPagina(1) }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -368,10 +441,7 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Día/habilidades..."
                   value={filtroDisponibilidad}
-                  onChange={(e) => {
-                    setFiltroDisponibilidad(e.target.value)
-                    setPagina(1)
-                  }}
+                  onChange={(e) => { setFiltroDisponibilidad(e.target.value); setPagina(1) }}
                   style={estiloInputFiltro}
                 />
               </th>
@@ -380,20 +450,14 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                   type="text"
                   placeholder="Fecha..."
                   value={filtroFecha}
-                  onChange={(e) => {
-                    setFiltroFecha(e.target.value)
-                    setPagina(1)
-                  }}
+                  onChange={(e) => { setFiltroFecha(e.target.value); setPagina(1) }}
                   style={estiloInputFiltro}
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroEstado}
-                  onChange={(e) => {
-                    setFiltroEstado(e.target.value)
-                    setPagina(1)
-                  }}
+                  onChange={(e) => { setFiltroEstado(e.target.value); setPagina(1) }}
                   style={estiloInputFiltro}
                 >
                   <option value="">Todos</option>
@@ -403,17 +467,17 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                 </select>
               </th>
               <th style={{ padding: '6px 6px', textAlign: 'right' }}>
-                {hayFiltros ? (
+                {hayFiltros && (
                   <button
                     type="button"
                     onClick={limpiarFiltros}
                     className="boton-mini"
-                    style={{ padding: '4px 6px', color: 'var(--color-red, #dc2626)' }}
+                    style={{ padding: '4px 6px', color: '#dc2626' }}
                     title="Limpiar filtros"
                   >
                     <X size={13} />
                   </button>
-                ) : null}
+                )}
               </th>
             </tr>
           </thead>
@@ -423,7 +487,7 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                 <td colSpan={8} style={{ textAlign: 'center', padding: 24 }}>
                   <Vacio>
                     {hayFiltros
-                      ? 'Ningún voluntario coincide con los filtros de columna aplicados.'
+                      ? 'Ningún voluntario coincide con los filtros aplicados.'
                       : 'Todavía no se ha registrado nadie desde otras disciplinas.'}
                   </Vacio>
                 </td>
@@ -465,17 +529,42 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
                         ? ` · ${c.availableSlots.map((f) => FRANJA_CORTA[f] ?? f).join(', ')}`
                         : ''}
                     </span>
-                    {c.skills ? (
+                    {c.skills && (
                       <span className="tabla__secundario" title={c.skills}>
-                        {c.skills.length > 70 ? `${c.skills.slice(0, 70)}…` : c.skills}
+                        {c.skills.length > 60 ? `${c.skills.slice(0, 60)}…` : c.skills}
                       </span>
-                    ) : null}
+                    )}
                   </td>
                   <td className="tabla__numero">{enBogota(c.createdAt, false)}</td>
                   <td>
                     <Etiqueta estado={c.status} />
                   </td>
-                  <td />
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                      {puedeEditar && (
+                        <button
+                          type="button"
+                          onClick={() => abrirModalEditar(c)}
+                          style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.74rem', fontWeight: 600, color: '#0f172a' }}
+                          title="Modificar voluntario"
+                        >
+                          <Edit3 size={13} color="#059669" />
+                          Modificar
+                        </button>
+                      )}
+                      {esAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => setColabAEliminar(c)}
+                          style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.74rem', fontWeight: 600, color: '#dc2626' }}
+                          title="Eliminar voluntario"
+                        >
+                          <Trash2 size={13} />
+                          Eliminar
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
@@ -486,14 +575,219 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
       <PaginacionTabla
         pagina={paginaAjustada}
         porPagina={porPagina}
-        totalFiltrado={totalFiltradas}
+        totalFiltrado={totalFiltrados}
         totalGeneral={colaboradores.length}
         alCambiarPagina={setPagina}
-        alCambiarPorPagina={(n) => {
-          setPorPagina(n)
-          setPagina(1)
-        }}
+        alCambiarPorPagina={(n) => { setPorPagina(n); setPagina(1) }}
       />
-    </>
+
+      {/* ─── Modal Modificar Colaborador ─── */}
+      {colabAEditar && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 14, maxWidth: 620, width: '100%', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Modificar voluntario</h2>
+              <button onClick={() => setColabAEditar(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+            </div>
+
+            <form onSubmit={guardarEdicion} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Nombre completo *</label>
+                  <input
+                    type="text"
+                    value={formEdit.fullName ?? ''}
+                    onChange={(e) => setFormEdit({ ...formEdit, fullName: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem' }}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Correo electrónico *</label>
+                  <input
+                    type="email"
+                    value={formEdit.email ?? ''}
+                    onChange={(e) => setFormEdit({ ...formEdit, email: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Teléfono / Celular *</label>
+                  <input
+                    type="text"
+                    value={formEdit.phone ?? ''}
+                    onChange={(e) => setFormEdit({ ...formEdit, phone: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem' }}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Ciudad *</label>
+                  <input
+                    type="text"
+                    value={formEdit.city ?? ''}
+                    onChange={(e) => setFormEdit({ ...formEdit, city: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Área de labor</label>
+                  <select
+                    value={formEdit.area ?? 'SALUD'}
+                    onChange={(e) => setFormEdit({ ...formEdit, area: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem', background: '#fff' }}
+                  >
+                    {AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Disciplina u oficio</label>
+                  <input
+                    type="text"
+                    value={formEdit.discipline ?? ''}
+                    onChange={(e) => setFormEdit({ ...formEdit, discipline: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Modalidad</label>
+                  <select
+                    value={formEdit.modality ?? 'AMBAS'}
+                    onChange={(e) => setFormEdit({ ...formEdit, modality: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem', background: '#fff' }}
+                  >
+                    <option value="PRESENCIAL">Presencial</option>
+                    <option value="VIRTUAL">Virtual</option>
+                    <option value="AMBAS">Ambas</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Estado</label>
+                  <select
+                    value={formEdit.status ?? 'ACTIVO'}
+                    onChange={(e) => setFormEdit({ ...formEdit, status: e.target.value })}
+                    style={{ padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: '0.88rem', background: '#fff' }}
+                  >
+                    <option value="NUEVO">Nuevo</option>
+                    <option value="ACTIVO">Activo</option>
+                    <option value="INACTIVO">Inactivo</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Días disponibles */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Días disponibles</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {DIAS_TODOS.map((d) => {
+                    const sel = (formEdit.availableDays ?? []).includes(d)
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => {
+                          const actual = formEdit.availableDays ?? []
+                          const nuevo = sel ? actual.filter((x) => x !== d) : [...actual, d]
+                          setFormEdit({ ...formEdit, availableDays: nuevo })
+                        }}
+                        style={{
+                          padding: '4px 10px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                          border: '1.5px solid ' + (sel ? '#059669' : '#e2e8f0'),
+                          background: sel ? '#ecfdf5' : '#fff',
+                          color: sel ? '#065f46' : '#475569',
+                        }}
+                      >
+                        {DIA_CORTO[d]}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Franjas */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700 }}>Franjas horarias</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {FRANJAS_TODAS.map((f) => {
+                    const sel = (formEdit.availableSlots ?? []).includes(f.value)
+                    return (
+                      <button
+                        key={f.value}
+                        type="button"
+                        onClick={() => {
+                          const actual = formEdit.availableSlots ?? []
+                          const nuevo = sel ? actual.filter((x) => x !== f.value) : [...actual, f.value]
+                          setFormEdit({ ...formEdit, availableSlots: nuevo })
+                        }}
+                        style={{
+                          padding: '4px 10px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                          border: '1.5px solid ' + (sel ? '#059669' : '#e2e8f0'),
+                          background: sel ? '#ecfdf5' : '#fff',
+                          color: sel ? '#065f46' : '#475569',
+                        }}
+                      >
+                        {f.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {errorModal && <p style={{ color: '#dc2626', fontSize: '0.84rem', margin: 0 }}>{errorModal}</p>}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                <button type="button" onClick={() => setColabAEditar(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+                <button type="submit" disabled={guardando} style={{ padding: '8px 20px', borderRadius: 8, background: '#059669', color: '#fff', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+                  {guardando ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal Confirmar Eliminación (Solo ADMIN) ─── */}
+      {colabAEliminar && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 14, maxWidth: 440, width: '100%', padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+              <Trash2 size={24} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '0 0 6px' }}>¿Eliminar voluntario?</h2>
+              <p style={{ fontSize: '0.88rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                ¿Estás seguro de eliminar a <strong>{colabAEliminar.fullName}</strong> ({colabAEliminar.email}) del directorio? Esta acción queda registrada en la auditoría.
+              </p>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 6 }}>
+              <button type="button" onClick={() => setColabAEliminar(null)} style={{ padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={eliminando}
+                onClick={ejecutarEliminacion}
+                style={{ padding: '9px 20px', borderRadius: 8, background: '#dc2626', color: '#fff', fontWeight: 700, border: 'none', cursor: 'pointer' }}
+              >
+                {eliminando ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
