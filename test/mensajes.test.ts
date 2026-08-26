@@ -648,4 +648,24 @@ describe('mensajeDePedirFeedbackALaPersona', () => {
   })
 })
 
+describe('mensajeRecordatorioPrevioCitaProfesional', () => {
+  it('genera el recordatorio previo a la cita correctamente', async () => {
+    const { mensajeRecordatorioPrevioCitaProfesional } = await import('../lib/mensajes')
+    const texto = mensajeRecordatorioPrevioCitaProfesional({
+      profesional: 'Carolina Benavides',
+      cuando: 'hoy a las 4:00 p. m.',
+      modalidad: 'VIRTUAL',
+      enlaceCaso: 'https://redaquiestamos.org/portal/caso/xyz-789',
+    })
+
+    expect(texto).toContain('Hola Carolina')
+    expect(texto).toContain('hoy a las 4:00 p. m.')
+    expect(texto).toContain('virtual')
+    expect(texto).toContain('https://redaquiestamos.org/portal/caso/xyz-789')
+    expect(texto).toContain('Red Aquí Estamos')
+    expect(/[\u{1F300}-\u{1FAFF}]/u.test(texto)).toBe(false)
+  })
+})
+
+
 

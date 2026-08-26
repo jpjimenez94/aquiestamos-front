@@ -6,6 +6,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, X, UserCheck, Calendar, RotateCcw, Mes
 import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonSeguimientoWhatsApp } from './BotonSeguimientoWhatsApp'
+import { BotonRecordarCitaPrevia } from './BotonRecordarCitaPrevia'
 import { BotonEliminarPersona } from './BotonEliminarPersona'
 import { ModalNotasSeguimiento, type NotaSeguimiento } from './ModalNotasSeguimiento'
 import { nombrePropio } from '@/lib/nombre'
@@ -575,12 +576,20 @@ export function TablaPersonas({
                             <Calendar size={13} style={{ color: 'var(--color-primary, #059669)' }} />
                             {cita.inicioLocal ?? enBogota(cita.inicio)}
                           </Link>
-                          <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 2 }}>
+                          <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
                             <Etiqueta estado={cita.estado} texto={cita.estadoLegible} />
                             <span className="tabla__secundario" style={{ textTransform: 'capitalize' }}>
                               {cita.modalidad?.toLowerCase()}
                             </span>
                           </div>
+                          {p.asignacion?.profesional && (
+                            <BotonRecordarCitaPrevia
+                              cita={cita}
+                              profesional={p.asignacion.profesional}
+                              pacienteNombre={p.fullName}
+                              enlaceCaso={`${enlaceDelSitio}/portal/caso/${p.id}`}
+                            />
+                          )}
                         </div>
                       ) : (
                         <span className="tabla__secundario">— Sin cita —</span>
@@ -628,6 +637,15 @@ export function TablaPersonas({
                           justifyContent: 'flex-end',
                         }}
                       >
+                        {cita && p.asignacion?.profesional && (
+                          <BotonRecordarCitaPrevia
+                            cita={cita}
+                            profesional={p.asignacion.profesional}
+                            pacienteNombre={p.fullName}
+                            enlaceCaso={`${enlaceDelSitio}/portal/caso/${p.id}`}
+                            compact
+                          />
+                        )}
                         {p.asignacion?.profesional && (
                           <BotonSeguimientoWhatsApp
                             pacienteNombre={p.fullName}

@@ -1015,5 +1015,28 @@ export function mensajeWhatsAppLider(d: {
   ].join('\n')
 }
 
+/**
+ * Recordatorio previo de cita al profesional (60 minutos o menos antes de la sesión).
+ */
+export function mensajeRecordatorioPrevioCitaProfesional(d: {
+  profesional: string
+  cuando: string
+  modalidad?: string | null
+  enlaceCaso?: string | null
+}): string {
+  const nombre = nombreDePila(d.profesional) || d.profesional.trim()
+  const modalidad = d.modalidad ? ` en modalidad *${d.modalidad.toLowerCase()}*` : ''
+
+  return [
+    `¡Hola ${nombre}! Te saludamos desde la coordinación de la Red Aquí Estamos.`,
+    '',
+    `Te recordamos que tienes una sesión de acompañamiento psicológico programada para dentro de poco: *${d.cuando}*${modalidad}.`,
+    d.enlaceCaso ? `\nPuedes consultar los datos del caso aquí:\n${d.enlaceCaso}` : '',
+    '',
+    '¡Muchísimas gracias por tu tiempo, calidez y compromiso solidario!',
+  ].filter(Boolean).join('\n')
+}
+
+
 
 
