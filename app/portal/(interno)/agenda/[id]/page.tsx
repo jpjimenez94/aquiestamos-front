@@ -31,6 +31,8 @@ type Cita = {
   modalidad: string
   meetingUrl?: string | null
   meetingProvider?: string | null
+  salaTokenPaciente?: string | null
+  salaTokenProfesional?: string | null
   patientFirstJoinedAt?: string | null
   professionalFirstJoinedAt?: string | null
   totalCallDurationSeconds?: number
@@ -79,7 +81,8 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
 
   const sitioUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
   const enlaceCasoProf = `${sitioUrl}/portal/caso/${cita.paciente.id}`
-  const enlaceSalaPaciente = cita.meetingUrl ? `${sitioUrl}/sala/${cita.id}?rol=paciente` : null
+  const enlaceSalaPaciente = cita.meetingUrl ? `${sitioUrl}/sala/${cita.salaTokenPaciente || cita.id}` : null
+  const enlaceSalaProfesional = cita.meetingUrl ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}` : null
 
   return (
     <>
@@ -110,7 +113,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
           {cita.meetingUrl ? (
             <Dato etiqueta="Videollamada">
               <a
-                href={`/sala/${cita.id}?rol=profesional`}
+                href={`/sala/${cita.salaTokenProfesional || cita.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="boton-mini"

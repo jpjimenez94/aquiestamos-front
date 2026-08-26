@@ -13,14 +13,14 @@ import {
   Clock,
   User,
   CheckCircle2,
-  AlertCircle,
-  Minimize2,
-  Maximize2
+  AlertCircle
 } from 'lucide-react'
 import { enBogota } from '@/lib/fechas'
 
 type InfoCita = {
   id: string
+  token?: string
+  rol?: string
   startsAt: string
   endsAt: string
   modality: string
@@ -37,8 +37,7 @@ type InfoCita = {
 export default function SalaEsperaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const searchParams = useSearchParams()
-  const rolParam = (searchParams.get('rol') || 'paciente').toLowerCase()
-  const esProfesional = rolParam === 'profesional' || rolParam === 'psicologo'
+  const rolQuery = searchParams.get('rol')
 
   const [cita, setCita] = useState<InfoCita | null>(null)
   const [cargando, setCargando] = useState(true)
@@ -54,17 +53,18 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const pingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Cargar datos de la cita
+  // Cargar datos de la cita con token HMAC
   useEffect(() => {
     async function cargar() {
       try {
-        const res = await fetch(`/api/meetings/${id}/info`)
+        const urlParams = rolQuery ? `?rol=${rolQuery}` : ''
+        const res = await fetch(`/api/meetings/${id}/info${urlParams}`)
         const data = await res.json()
         if (res.ok && data.success && data.data) {
           setCita(data.data)
           setMeetingUrl(data.data.targetMeetingUrl)
         } else {
-          setError(data.message || 'No encontramos la sesión o ya no está disponible.')
+          setError(data.message || 'No encontramos la sesión o el enlace no es válido.')
         }
       } catch {
         setError('No pudimos conectar con el servidor de la red.')
@@ -73,18 +73,18 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
       }
     }
     cargar()
-  }, [id])
+  }, [id, rolQuery])
+
+  const esProfesional = cita?.rol === 'PROFESIONAL' || rolQuery === 'profesional' || rolQuery === 'psicologo'
 
   // Manejo de pings periódicos para telemetría de duración
   useEffect(() => {
     if (!enLlamada || !logId) return
 
-    // Timer visual de duración
     timerRef.current = setInterval(() => {
       setSegundosTranscurridos((s) => s + 1)
     }, 1000)
 
-    // Latido / Ping al servidor cada 25 segundos
     pingIntervalRef.current = setInterval(async () => {
       try {
         await fetch(`/api/meetings/logs/${logId}/ping`, {
@@ -106,11 +106,10 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
   async function unirseALaSala() {
     setConectando(true)
     try {
-      const roleToSend = esProfesional ? 'PROFESIONAL' : 'PACIENTE'
       const res = await fetch(`/api/meetings/${id}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: roleToSend }),
+        body: JSON.stringify({ role: cita?.rol || (esProfesional ? 'PROFESIONAL' : 'PACIENTE') }),
       })
       const data = await res.json()
       if (res.ok && data.success && data.data) {
@@ -118,7 +117,6 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
         setMeetingUrl(data.data.targetMeetingUrl || cita?.targetMeetingUrl)
         setEnLlamada(true)
       } else {
-        // Si el registro de log falla, igualmente permitir entrar
         setMeetingUrl(cita?.targetMeetingUrl || null)
         setEnLlamada(true)
       }
@@ -141,7 +139,7 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: 40, height: 40, border: '3px solid #059669', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ color: '#475569', fontWeight: 600 }}>Cargando tu sala segura de acompañamiento…</p>
+          <p style={{ color: '#475569', fontWeight: 600 }}>Verificando enlace seguro de acompañamiento…</p>
         </div>
       </div>
     )

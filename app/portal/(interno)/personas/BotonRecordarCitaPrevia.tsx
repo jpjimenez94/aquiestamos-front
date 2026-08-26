@@ -13,6 +13,7 @@ type BotonRecordarCitaProps = {
     inicioLocal?: string
     modalidad?: string | null
     meetingUrl?: string | null
+    salaTokenProfesional?: string | null
     estado: string
   }
   profesional: {
@@ -64,7 +65,7 @@ export function BotonRecordarCitaPrevia({
   const telProf = paraWhatsapp(profesional.telefono)
 
   const sitioUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
-  const enlaceReunion = cita.meetingUrl ? `${sitioUrl}/sala/${cita.id}?rol=profesional` : null
+  const enlaceReunion = cita.meetingUrl ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}` : null
 
   const mensaje = mensajeRecordatorioPrevioCitaProfesional({
     profesional: profesional.nombre,
