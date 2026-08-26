@@ -115,7 +115,7 @@ export function SupportRequestForm() {
     if (paraOtra && !form.contactName.trim()) found.contactName = 'Dinos tu nombre para saber con quién hablamos'
     if (!form.name.trim()) found.name = 'Necesitamos un nombre de contacto'
     if (!form.phone.trim()) found.phone = 'Necesitamos un número de teléfono/WhatsApp'
-    if (form.email.trim() && !/^[^s@]+@[^s@]+.[^s@]+$/.test(form.email.trim())) found.email = 'Ese correo no parece válido'
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = 'Ese correo no parece válido'
     if (porCorreo && !form.email.trim()) found.email = 'Si prefieres correo, necesitamos tu dirección'
     if (!form.preferredContact) found.preferredContact = 'Selecciona por dónde prefieres que te contactemos'
     if (!form.city.trim()) found.city = 'Selecciona o escribe desde qué ciudad o municipio nos escribes'

@@ -63,7 +63,7 @@ export function EditarUsuarioForm({ usuario }: { usuario: any }) {
     const found: Record<string, string> = {}
     if (!form.name.trim()) found.name = 'El nombre es obligatorio'
     if (!form.email.trim()) found.email = 'El correo es obligatorio'
-    else if (!/^[^s@]+@[^s@]+.[^s@]+$/.test(form.email)) found.email = 'Correo no válido'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) found.email = 'Correo no válido'
     if (!form.roles.length) found.roles = 'Debes seleccionar al menos un rol para este usuario'
     return found
   }

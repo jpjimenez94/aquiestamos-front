@@ -211,7 +211,7 @@ export function CollaboratorForm() {
       found.fullName = 'Cuéntanos tu nombre completo (solo letras)'
     }
     if (!telefonoValido(form.phone)) found.phone = ERROR_TELEFONO
-    if (!/^[^s@]+@[^s@]+.[^s@]+$/.test(form.email.trim())) found.email = 'Escribe un correo electrónico válido'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = 'Escribe un correo electrónico válido'
     if (!form.city.trim()) found.city = 'Selecciona o escribe en qué ciudad o municipio vives'
 
     setErrors(found)
