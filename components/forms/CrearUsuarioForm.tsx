@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, UserCheck, X, Sparkles, Search, Copy, Check, RefreshCw, MessageSquare, ArrowRight } from 'lucide-react'
+import { Save, UserCheck, X, Search, Copy, Check, RefreshCw, MessageSquare, Mail, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormStatus, type Status } from './FormStatus'
 import { TextField, RadioField, Bloque } from './fields'
@@ -65,7 +65,9 @@ export function CrearUsuarioForm({
   const [busquedaVoluntario, setBusquedaVoluntario] = useState('')
   const [voluntarioSeleccionado, setVoluntarioSeleccionado] = useState<VoluntarioSimple | null>(null)
   const [copiadoPassword, setCopiadoPassword] = useState(false)
+  const [copiadoEmail, setCopiadoEmail] = useState(false)
   const [copiadoMensajeCompleto, setCopiadoMensajeCompleto] = useState(false)
+  const [copiadoPlantillaCorreo, setCopiadoPlantillaCorreo] = useState(false)
   const [cuentaCreadaExitosamente, setCuentaCreadaExitosamente] = useState<{
     name: string
     email: string
@@ -89,14 +91,13 @@ export function CrearUsuarioForm({
     update('password', nueva)
   }
 
-  async function copiarPasswordAlPortapapeles() {
-    if (!form.password) return
+  async function copiarTexto(texto: string, callback: (v: boolean) => void) {
     try {
-      await navigator.clipboard.writeText(form.password)
-      setCopiadoPassword(true)
-      setTimeout(() => setCopiadoPassword(false), 2500)
+      await navigator.clipboard.writeText(texto)
+      callback(true)
+      setTimeout(() => callback(false), 2500)
     } catch {
-      alert('Contraseña: ' + form.password)
+      alert(texto)
     }
   }
 
@@ -191,9 +192,9 @@ export function CrearUsuarioForm({
     }
   }
 
-  function armarMensajeCredenciales(creds: NonNullable<typeof cuentaCreadaExitosamente>) {
+  function armarMensajeWhatsApp(creds: NonNullable<typeof cuentaCreadaExitosamente>) {
     return [
-      `¡Hola ${creds.name}! Te hemos creado tu cuenta de acceso al Portal Aquí Estamos.`,
+      `¡Hola ${creds.name}! Te damos la bienvenida al equipo del Portal Aquí Estamos.`,
       '',
       `🌐 Acceso: https://www.redaquiestamos.org/portal/entrar`,
       `👤 Usuario / Correo: ${creds.email}`,
@@ -203,21 +204,29 @@ export function CrearUsuarioForm({
     ].join('\n')
   }
 
-  async function copiarMensajeBienvenida() {
-    if (!cuentaCreadaExitosamente) return
-    const msg = armarMensajeCredenciales(cuentaCreadaExitosamente)
-    try {
-      await navigator.clipboard.writeText(msg)
-      setCopiadoMensajeCompleto(true)
-      setTimeout(() => setCopiadoMensajeCompleto(false), 2500)
-    } catch {
-      alert(msg)
-    }
+  function armarPlantillaCorreo(creds: NonNullable<typeof cuentaCreadaExitosamente>) {
+    return [
+      `Asunto: Tus credenciales de acceso al Portal Aquí Estamos`,
+      '',
+      `Hola ${creds.name},`,
+      '',
+      `Te hemos creado una cuenta con rol operativo en el Portal de la Red Aquí Estamos.`,
+      '',
+      `Datos de acceso:`,
+      `- Enlace de ingreso: https://www.redaquiestamos.org/portal/entrar`,
+      `- Correo / Usuario: ${creds.email}`,
+      `- Contraseña temporal: ${creds.password}`,
+      '',
+      `Por motivos de seguridad, te sugerimos cambiar tu clave tras iniciar sesión.`,
+      '',
+      `Equipo de Coordinación`,
+      `Red Aquí Estamos`,
+    ].join('\n')
   }
 
   function enviarPorWhatsApp() {
     if (!cuentaCreadaExitosamente) return
-    const msg = armarMensajeCredenciales(cuentaCreadaExitosamente)
+    const msg = armarMensajeWhatsApp(cuentaCreadaExitosamente)
     const tel = (cuentaCreadaExitosamente.phone ?? '').replace(/\D/g, '')
     const url = tel ? `https://wa.me/${tel.startsWith('57') ? tel : '57' + tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`
     window.open(url, '_blank')
@@ -236,60 +245,73 @@ export function CrearUsuarioForm({
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#065f46' }}>¡Cuenta creada exitosamente!</h2>
             <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
-              Copia las credenciales generadas para enviarlas de inmediato al miembro del equipo:
+              Copia las credenciales o envíalas directamente por WhatsApp o correo:
             </p>
           </div>
         </div>
 
-        <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
+        <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
             <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Nombre:</span>
             <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{cuentaCreadaExitosamente.name}</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
-            <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Usuario / Correo:</span>
-            <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{cuentaCreadaExitosamente.email}</strong>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
+            <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Correo / Usuario:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{cuentaCreadaExitosamente.email}</strong>
+              <button
+                type="button"
+                onClick={() => copiarTexto(cuentaCreadaExitosamente.email, setCopiadoEmail)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 5, background: '#fff', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.74rem', fontWeight: 600, color: '#475569' }}
+                title="Copiar correo"
+              >
+                {copiadoEmail ? <Check size={12} color="#059669" /> : <Copy size={12} />}
+                {copiadoEmail ? 'Copiado' : 'Copiar'}
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
             <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Rol asignado:</span>
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#059669' }}>{rolLabel}</span>
           </div>
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 2 }}>
             <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Contraseña temporal:</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <code style={{ fontSize: '1rem', fontWeight: 800, background: '#fff', border: '1px solid #cbd5e1', padding: '3px 8px', borderRadius: 6, color: '#0f172a', letterSpacing: 1 }}>
+              <code style={{ fontSize: '0.98rem', fontWeight: 800, background: '#fff', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: 6, color: '#0f172a', letterSpacing: 0.5 }}>
                 {cuentaCreadaExitosamente.password}
               </code>
               <button
                 type="button"
-                onClick={copiarPasswordAlPortapapeles}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 8px', borderRadius: 6, background: '#fff', border: '1.5px solid #cbd5e1', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+                onClick={() => copiarTexto(cuentaCreadaExitosamente.password, setCopiadoPassword)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '4px 8px', borderRadius: 6, background: '#fff', border: '1.5px solid #cbd5e1', cursor: 'pointer', fontSize: '0.76rem', fontWeight: 600 }}
                 title="Copiar contraseña"
               >
                 {copiadoPassword ? <Check size={13} color="#059669" /> : <Copy size={13} />}
-                {copiadoPassword ? 'Copiada' : 'Copiar'}
+                {copiadoPassword ? 'Copiada' : 'Copiar clave'}
               </button>
             </div>
           </div>
         </div>
 
         {/* Acciones de entrega de credenciales */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 }}>
           <button
             type="button"
-            onClick={copiarMensajeBienvenida}
+            onClick={() => copiarTexto(armarMensajeWhatsApp(cuentaCreadaExitosamente), setCopiadoMensajeCompleto)}
             style={{
-              flex: '1 1 auto',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '11px 18px', borderRadius: 9, fontWeight: 700, fontSize: '0.9rem',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '10px 14px', borderRadius: 8, fontWeight: 700, fontSize: '0.84rem',
               background: copiadoMensajeCompleto ? '#ecfdf5' : '#0f172a',
               color: copiadoMensajeCompleto ? '#065f46' : '#fff',
               border: copiadoMensajeCompleto ? '1.5px solid #059669' : 'none',
               cursor: 'pointer',
             }}
           >
-            {copiadoMensajeCompleto ? <Check size={16} /> : <Copy size={16} />}
-            {copiadoMensajeCompleto ? '¡Mensaje copiado al portapapeles!' : 'Copiar datos de acceso'}
+            {copiadoMensajeCompleto ? <Check size={14} /> : <Copy size={14} />}
+            {copiadoMensajeCompleto ? '¡Mensaje copiado!' : 'Copiar mensaje WhatsApp'}
           </button>
 
           <button
@@ -297,12 +319,28 @@ export function CrearUsuarioForm({
             onClick={enviarPorWhatsApp}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '11px 18px', borderRadius: 9, fontWeight: 700, fontSize: '0.9rem',
+              padding: '10px 14px', borderRadius: 8, fontWeight: 700, fontSize: '0.84rem',
               background: '#25D366', color: '#fff', border: 'none', cursor: 'pointer',
             }}
           >
-            <MessageSquare size={16} />
+            <MessageSquare size={14} />
             Enviar por WhatsApp
+          </button>
+
+          <button
+            type="button"
+            onClick={() => copiarTexto(armarPlantillaCorreo(cuentaCreadaExitosamente), setCopiadoPlantillaCorreo)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '10px 14px', borderRadius: 8, fontWeight: 700, fontSize: '0.84rem',
+              background: copiadoPlantillaCorreo ? '#ecfdf5' : '#f8fafc',
+              color: copiadoPlantillaCorreo ? '#065f46' : '#334155',
+              border: '1px solid ' + (copiadoPlantillaCorreo ? '#059669' : '#cbd5e1'),
+              cursor: 'pointer',
+            }}
+          >
+            {copiadoPlantillaCorreo ? <Check size={14} /> : <Mail size={14} />}
+            {copiadoPlantillaCorreo ? '¡Correo copiado!' : 'Copiar formato correo'}
           </button>
         </div>
 
@@ -459,7 +497,7 @@ export function CrearUsuarioForm({
             />
             <button
               type="button"
-              onClick={copiarPasswordAlPortapapeles}
+              onClick={() => copiarTexto(form.password, setCopiadoPassword)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 padding: '9px 14px', borderRadius: 8, fontSize: '0.84rem', fontWeight: 700,

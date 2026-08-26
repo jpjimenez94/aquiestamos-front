@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw, Edit3, Trash2, Check, AlertCircle } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw, Edit3, Trash2, Check, AlertCircle, MessageSquare, Mail, Copy } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { nombrePropio } from '@/lib/nombre'
@@ -504,8 +504,32 @@ export function TablaColaboradores({
                         </span>
                       ) : null}
                     </span>
-                    <span className="tabla__secundario">
-                      {c.phone} · {c.email}
+                    <span className="tabla__secundario" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 3 }}>
+                      <span>{c.phone} · {c.email}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(c.email);
+                          alert('Correo copiado: ' + c.email);
+                        }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '1px 5px', borderRadius: 4, background: '#f1f5f9', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600, color: '#475569' }}
+                        title="Copiar correo"
+                      >
+                        <Mail size={10} /> Copiar
+                      </button>
+                      {c.phone && (
+                        <a
+                          href={`https://wa.me/${c.phone.replace(/\D/g, '').startsWith('57') ? c.phone.replace(/\D/g, '') : '57' + c.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${c.fullName.split(' ')[0]}, te contactamos de la Fundación Aquí Estamos.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '1px 5px', borderRadius: 4, background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', textDecoration: 'none', fontSize: '0.68rem', fontWeight: 600 }}
+                          title="Escribir por WhatsApp"
+                        >
+                          <MessageSquare size={10} /> WhatsApp
+                        </a>
+                      )}
                     </span>
                   </td>
                   <td>
