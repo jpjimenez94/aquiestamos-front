@@ -21,6 +21,7 @@ import {
   BarChart3,
   BadgeCheck,
   MapPin,
+  ListTodo,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
 import { nombrePropio } from "@/lib/nombre";
@@ -74,6 +75,12 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         icono: <HeartHandshake size={17} />,
         permiso: "colaborador:leer",
         badgeKey: "colaboradores",
+      },
+      {
+        href: "/portal/tareas",
+        texto: "Tareas de apoyo",
+        icono: <ListTodo size={17} />,
+        permiso: "tarea:leer",
       },
       {
         href: "/portal/verificaciones",

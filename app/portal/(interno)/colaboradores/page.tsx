@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { ListTodo } from 'lucide-react'
 import { portalFetch, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Vacio } from '../componentes'
 import { TablaColaboradores, type Colaborador } from './TablaColaboradores'
@@ -13,6 +15,7 @@ export default async function ColaboradoresPage() {
     notFound()
   }
 
+  const puedeVerTareas = puede(usuario, 'tarea:leer')
   const respuesta = await portalFetch<Colaborador[]>('/collaborators?all=true')
   const colaboradores = respuesta.data ?? []
   const porArea = (respuesta.meta?.porArea as ResumenArea[] | undefined) ?? []
@@ -22,6 +25,18 @@ export default async function ColaboradoresPage() {
       <Cabecera
         titulo="Voluntariado de apoyo"
         descripcion="Quienes se sumaron desde otras disciplinas. Es un directorio para buscar y llamar: no entra en el emparejamiento con personas ni en la agenda."
+        acciones={
+          puedeVerTareas ? (
+            <Link
+              href="/portal/tareas"
+              className="boton boton--secundario"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.86rem' }}
+            >
+              <ListTodo size={15} />
+              Ver tareas de apoyo
+            </Link>
+          ) : null
+        }
       />
 
       {porArea.length > 0 ? (
