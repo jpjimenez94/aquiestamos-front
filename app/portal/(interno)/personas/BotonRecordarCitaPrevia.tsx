@@ -12,6 +12,7 @@ type BotonRecordarCitaProps = {
     inicio: string
     inicioLocal?: string
     modalidad?: string | null
+    meetingUrl?: string | null
     estado: string
   }
   profesional: {
@@ -67,6 +68,7 @@ export function BotonRecordarCitaPrevia({
     cuando: horaFormateada,
     modalidad: cita.modalidad,
     enlaceCaso,
+    enlaceReunion: cita.meetingUrl,
   })
 
   const urlWhatsapp = telProf

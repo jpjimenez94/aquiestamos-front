@@ -669,3 +669,17 @@ describe('mensajeRecordatorioPrevioCitaProfesional', () => {
 
 
 
+
+describe('mensajeDeCitaConfirmada con enlace de videollamada', () => {
+  it('incluye el enlace de videollamada si está disponible', () => {
+    const texto = mensajeDeCitaConfirmada({
+      persona: 'Carlos Morales',
+      profesional: 'Dra. Laura Vega',
+      cuando: 'Martes 18 de agosto a las 3:00 p. m.',
+      modalidad: 'VIRTUAL',
+      enlaceReunion: 'https://meet.jit.si/AquiEstamos-Sesion-12345678',
+    })
+    expect(texto).toContain('https://meet.jit.si/AquiEstamos-Sesion-12345678')
+    expect(texto).toContain('solo debes hacer clic en el enlace de videollamada')
+  })
+})

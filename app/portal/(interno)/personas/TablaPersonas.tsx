@@ -34,6 +34,7 @@ export type Persona = {
     inicioLocal?: string
     finLocal?: string
     modalidad: string
+    meetingUrl?: string | null
     estado: string
     estadoLegible: string
     profesional?: string | null

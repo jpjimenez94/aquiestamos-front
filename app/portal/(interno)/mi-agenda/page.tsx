@@ -8,6 +8,7 @@ type Cita = {
   inicio: string
   fin: string
   modalidad: string
+  meetingUrl?: string | null
   estado: string
   estadoLegible: string
   paciente: { id: string; nombre?: string; telefono?: string }
@@ -37,6 +38,7 @@ export default async function MiAgendaPage() {
                 <th>Persona</th>
                 <th>Modalidad</th>
                 <th>Estado</th>
+                <th>Sesión Virtual</th>
               </tr>
             </thead>
             <tbody>
@@ -54,9 +56,25 @@ export default async function MiAgendaPage() {
                       <span className="tabla__secundario">{c.paciente.telefono}</span>
                     ) : null}
                   </td>
-                  <td>{c.modalidad.toLowerCase()}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{c.modalidad.toLowerCase()}</td>
                   <td>
                     <Etiqueta estado={c.estado} texto={c.estadoLegible} />
+                  </td>
+                  <td>
+                    {c.meetingUrl ? (
+                      <a
+                        href={c.meetingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="boton-mini"
+                        data-tono="principal"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontWeight: 700 }}
+                      >
+                        📹 Entrar a la sala
+                      </a>
+                    ) : (
+                      <span className="tabla__secundario">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

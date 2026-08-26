@@ -595,6 +595,7 @@ export function mensajeDeCitaConfirmada(d: {
   profesional: string
   cuando: string
   modalidad?: string | null
+  enlaceReunion?: string | null
 }): string {
   const nombre = nombreDePila(d.persona) || 'hola'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
@@ -605,8 +606,11 @@ export function mensajeDeCitaConfirmada(d: {
     `· *Con:* ${d.profesional}`,
     `· *Cuándo:* ${d.cuando}`,
     modalidad ? `· *Modalidad:* ${modalidad}` : null,
+    d.enlaceReunion ? `· *Enlace de videollamada:* ${d.enlaceReunion}` : null,
     '',
-    `${nombreDePila(d.profesional)} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
+    d.enlaceReunion
+      ? `A la hora acordada, solo debes hacer clic en el enlace de videollamada desde tu celular o computador para unirte a la sesión con ${nombreDePila(d.profesional)}. No tienes que descargar nada ni registrarte.`
+      : `${nombreDePila(d.profesional)} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
     '',
     'Si te surge algo y no puedes, escríbenos por aquí con tiempo y lo movemos. No pasa nada.',
   ]
@@ -800,6 +804,7 @@ export function mensajeDeCitaAlProfesional(d: {
   cuando: string
   modalidad?: string | null
   enlace: string
+  enlaceReunion?: string | null
 }): string {
   const nombre = nombreDePila(d.profesional) || 'hola'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
@@ -809,6 +814,7 @@ export function mensajeDeCitaAlProfesional(d: {
     '',
     `· *Cuándo:* ${d.cuando}`,
     modalidad ? `· *Modalidad:* ${modalidad}` : null,
+    d.enlaceReunion ? `· *Enlace de la videollamada:* ${d.enlaceReunion}` : null,
     '',
     'Los datos de contacto de la persona están en tu enlace. Entras con el mismo correo:',
     d.enlace,
@@ -857,6 +863,7 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
   modalidad?: string | null
   canalContacto?: string | null
   enlace: string
+  enlaceReunion?: string | null
 }): string {
   const nombreProf = nombreDePila(d.profesional) || 'hola'
   const nombrePers = nombreDePila(d.persona) || 'la persona acompañada'
@@ -869,6 +876,7 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
     `· *Persona acompañada:* ${nombrePers}`,
     `· *Cuándo:* ${d.cuando}`,
     modalidad ? `· *Modalidad:* ${modalidad}` : null,
+    d.enlaceReunion ? `· *Enlace de videollamada:* ${d.enlaceReunion}` : null,
     `· *Canal preferido de la persona:* ${canal}`,
     '· *Consentimiento informado:* Firmado por la persona',
     '',
@@ -898,6 +906,7 @@ export function mensajeDeSiguienteCitaConfirmadaAlProfesional(d: {
   cuando: string
   modalidad?: string | null
   enlace: string
+  enlaceReunion?: string | null
 }): string {
   const nombreProf = nombreDePila(d.profesional) || 'hola'
   const nombrePers = nombreDePila(d.persona) || 'la persona acompañada'
@@ -910,6 +919,7 @@ export function mensajeDeSiguienteCitaConfirmadaAlProfesional(d: {
     '',
     `· *Cuándo:* ${d.cuando}`,
     modalidad ? `· *Modalidad:* ${modalidad}` : null,
+    d.enlaceReunion ? `· *Enlace de la videollamada:* ${d.enlaceReunion}` : null,
     '',
     'Puedes consultar la información del caso en tu enlace seguro:',
     d.enlace,
@@ -1023,6 +1033,7 @@ export function mensajeRecordatorioPrevioCitaProfesional(d: {
   cuando: string
   modalidad?: string | null
   enlaceCaso?: string | null
+  enlaceReunion?: string | null
 }): string {
   const nombre = nombreDePila(d.profesional) || d.profesional.trim()
   const modalidad = d.modalidad ? ` en modalidad *${d.modalidad.toLowerCase()}*` : ''
@@ -1031,6 +1042,7 @@ export function mensajeRecordatorioPrevioCitaProfesional(d: {
     `¡Hola ${nombre}! Te saludamos desde la coordinación de la Red Aquí Estamos.`,
     '',
     `Te recordamos que tienes una sesión de acompañamiento psicológico programada para dentro de poco: *${d.cuando}*${modalidad}.`,
+    d.enlaceReunion ? `\n📹 *Enlace de la videollamada:*\n${d.enlaceReunion}` : '',
     d.enlaceCaso ? `\nPuedes consultar los datos del caso aquí:\n${d.enlaceCaso}` : '',
     '',
     '¡Muchísimas gracias por tu tiempo, calidez y compromiso solidario!',

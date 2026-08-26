@@ -5,7 +5,7 @@ import { DocumentoPrivado } from '@/components/portal/DocumentoPrivado'
 import { Cabecera, Dato, Etiqueta } from '../../componentes'
 import { AccionesCita } from './AccionesCita'
 import { MensajesFlujoCita } from './MensajesFlujoCita'
-import { ShieldCheck, ShieldAlert, FileCheck2, FileClock, FileText } from 'lucide-react'
+import { ShieldCheck, ShieldAlert, FileCheck2, FileClock, FileText, Video } from 'lucide-react'
 
 export const metadata = { title: 'Detalle de Cita' }
 

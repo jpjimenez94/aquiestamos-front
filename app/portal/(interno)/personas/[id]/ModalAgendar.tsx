@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarCheck, X, Check, Copy, MessageCircle, AlertTriangle, User, Stethoscope } from 'lucide-react'
+import { CalendarCheck, X, Check, Copy, MessageCircle, AlertTriangle, User, Stethoscope, Video } from 'lucide-react'
 import {
   mensajeDeCitaConfirmada,
   mensajeDeSiguienteCitaConfirmadaAlProfesional,
@@ -66,6 +66,8 @@ export function ModalAgendar({
       ? 'PRESENCIAL'
       : 'VIRTUAL',
   )
+  const [meetingUrl, setMeetingUrl] = useState('')
+  const [enlaceGenerado, setEnlaceGenerado] = useState<string | null>(null)
   const [fueraDeFranja, setFueraDeFranja] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -103,6 +105,7 @@ export function ModalAgendar({
               inicio: inicio.toISOString(),
               fin: fin.toISOString(),
               modalidad,
+              meetingUrl: meetingUrl.trim() || undefined,
               fueraDeFranja,
             }),
           },
@@ -120,6 +123,7 @@ export function ModalAgendar({
             fin: fin.toISOString(),
             modalidad,
             estado: 'CONFIRMADA',
+            meetingUrl: meetingUrl.trim() || undefined,
             fueraDeFranja,
           }),
         })
@@ -139,6 +143,7 @@ export function ModalAgendar({
         return
       }
 
+      setEnlaceGenerado(datos.data?.meetingUrl || meetingUrl.trim() || null)
       setAgendada(inicio.toISOString())
     } catch {
       setError('No pudimos conectarnos con el servidor.')
@@ -155,6 +160,7 @@ export function ModalAgendar({
         profesional: profesional.nombre,
         cuando: enBogota(agendada),
         modalidad,
+        enlaceReunion: enlaceGenerado,
       })
     : ''
 
@@ -165,6 +171,7 @@ export function ModalAgendar({
         cuando: enBogota(agendada),
         modalidad,
         enlace: urlCaso,
+        enlaceReunion: enlaceGenerado,
       })
     : ''
 
@@ -187,41 +194,58 @@ export function ModalAgendar({
               {agendada ? 'Cita agendada' : esNuevaSesion ? 'Agendar nueva sesión de acompañamiento' : 'Cuadrar el horario'}
             </h3>
           </div>
-          <button className="boton-icono" type="button" aria-label="Cerrar" onClick={onCerrar}>
+          <button className="boton-icono" onClick={onCerrar} type="button" aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
 
         {agendada ? (
           <>
-            <div className="aviso-portal" data-tono="verde" style={{ marginTop: 10 }}>
-              Sesión programada para el <strong>{enBogota(agendada)}</strong> ({modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'}) con <strong>{profesional.nombre}</strong>.
+            <div className="aviso-portal" data-tono="verde" style={{ marginTop: 12 }}>
+              ✓ Sesión agendada para el <strong>{enBogota(agendada)}</strong> ({modalidad.toLowerCase()}).
             </div>
 
-            <p className="panel__nota" style={{ marginTop: 12, marginBottom: 8 }}>
-              Envía la confirmación correspondiente a cada una de las partes:
-            </p>
+            {enlaceGenerado ? (
+              <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, color: '#1e40af', fontWeight: 700, fontSize: '0.86rem' }}>
+                  <Video size={16} />
+                  <span>Enlace de Videollamada Generado:</span>
+                </div>
+                <div style={{ wordBreak: 'break-all', fontSize: '0.82rem', color: '#1e3a8a', fontFamily: 'monospace' }}>
+                  {enlaceGenerado}
+                </div>
+              </div>
+            ) : null}
 
-            <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--color-borde)', paddingBottom: 8, marginBottom: 12 }}>
+            {/* Pestañas para elegir a quién enviar el mensaje */}
+            <div style={{ display: 'flex', gap: 6, margin: '14px 0 10px', borderBottom: '1px solid var(--color-border-default)' }}>
               <button
                 type="button"
-                className="pestana-boton"
-                data-activo={pestanaMensaje === 'persona'}
+                className="boton-mini"
                 onClick={() => setPestanaMensaje('persona')}
-                style={{ fontSize: '0.82rem' }}
+                style={{
+                  fontWeight: pestanaMensaje === 'persona' ? 700 : 500,
+                  borderBottom: pestanaMensaje === 'persona' ? '2px solid var(--color-primary)' : 'none',
+                  background: 'none',
+                  borderRadius: 0,
+                }}
               >
-                <User size={14} />
-                1. Persona acompañada ({persona.fullName.split(' ')[0]})
+                <User size={13} style={{ marginRight: 4 }} />
+                Para la persona acompañada
               </button>
               <button
                 type="button"
-                className="pestana-boton"
-                data-activo={pestanaMensaje === 'profesional'}
+                className="boton-mini"
                 onClick={() => setPestanaMensaje('profesional')}
-                style={{ fontSize: '0.82rem' }}
+                style={{
+                  fontWeight: pestanaMensaje === 'profesional' ? 700 : 500,
+                  borderBottom: pestanaMensaje === 'profesional' ? '2px solid var(--color-primary)' : 'none',
+                  background: 'none',
+                  borderRadius: 0,
+                }}
               >
-                <Stethoscope size={14} />
-                2. Profesional ({profesional.nombre.split(' ')[0]})
+                <Stethoscope size={13} style={{ marginRight: 4 }} />
+                Para el profesional
               </button>
             </div>
 
@@ -342,6 +366,25 @@ export function ModalAgendar({
                 </select>
               </div>
 
+              {modalidad === 'VIRTUAL' ? (
+                <div>
+                  <label className="field__label" htmlFor="meetingUrl">
+                    Enlace de videollamada (opcional)
+                  </label>
+                  <input
+                    id="meetingUrl"
+                    className="input"
+                    type="url"
+                    placeholder="Dejar en blanco para generar automáticamente sala segura de la red"
+                    value={meetingUrl}
+                    onChange={(e) => setMeetingUrl(e.target.value)}
+                  />
+                  <span className="tabla__secundario" style={{ fontSize: '0.74rem', display: 'block', marginTop: 4 }}>
+                    💡 Si lo dejas vacío, el sistema creará una sala cifrada y privada de 1 clic sin registros.
+                  </span>
+                </div>
+              ) : null}
+
               {fueraDeFranja ? (
                 <label className="tamizaje__autorizacion">
                   <input
@@ -380,4 +423,3 @@ export function ModalAgendar({
     </div>
   )
 }
-
