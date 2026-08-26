@@ -161,6 +161,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Líderes Comunitarios",
         icono: <MapPin size={17} />,
         permiso: "lideres:leer",
+        soloRoles: ["ADMIN", "LIDERES_COMUNITARIOS"],
       },
     ],
   },
@@ -184,6 +185,7 @@ function puede(usuario: Usuario, permiso: string) {
 
 const NOMBRE_ROL: Record<string, string> = {
   ADMIN: "Administración",
+  LIDERES_COMUNITARIOS: "Líderes Comunitarios",
   AGENDADOR: "Voluntario Digital (General)",
   ADMISION: "Admisión y Verificaciones",
   COORDINADOR_CASOS: "Gestión de Casos y Agenda",
@@ -305,11 +307,14 @@ export function LateralPortal({
 
         <nav className="portal__nav">
           {GRUPOS.map((grupo) => {
-            const visibles = grupo.enlaces.filter(
-              (e) =>
-                (!e.permiso || puede(usuario, e.permiso)) &&
-                (!e.soloRoles || e.soloRoles.includes(usuario.role)),
-            );
+            const visibles = grupo.enlaces.filter((e) => {
+              const tienePermiso = !e.permiso || puede(usuario, e.permiso);
+              const listaRoles = Array.isArray((usuario as any).roles) && (usuario as any).roles.length > 0
+                ? (usuario as any).roles
+                : [usuario.role];
+              const rolPermitido = !e.soloRoles || e.soloRoles.some((r: any) => listaRoles.includes(r));
+              return tienePermiso && rolPermitido;
+            });
             if (visibles.length === 0) return null;
 
             return (
