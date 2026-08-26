@@ -274,13 +274,12 @@ export function PanelDetalleTarea({
     return colaboradoresDisponibles
       .filter((c) => {
         const matchActivo = !c.status || c.status === 'ACTIVO'
-        const matchArea = c.area === tarea.area || tarea.area === 'OTRA'
         const matchBusqueda =
           !busquedaReasignar ||
           c.fullName.toLowerCase().includes(busquedaReasignar.toLowerCase()) ||
           c.discipline.toLowerCase().includes(busquedaReasignar.toLowerCase())
 
-        if (!matchActivo || !matchArea || !matchBusqueda) return false
+        if (!matchActivo || !matchBusqueda) return false
 
         if (!ignorarFiltroReasignar) {
           if (diaSemana && (!c.availableDays || !c.availableDays.includes(diaSemana))) {

@@ -2,17 +2,65 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, ArrowLeft, Clock, Calendar, Check, Search, Link2, AlertCircle, Filter } from 'lucide-react'
+import { Send, ArrowLeft, Clock, Calendar, Check, Search, Link2, AlertCircle, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { DIA_LEGIBLE, FRANJA_LEGIBLE, DIA_SEMANA_MAP } from '../tipos'
 
-const AREAS = [
-  { value: 'SALUD', label: 'Salud y primeros auxilios', icono: '🩺' },
-  { value: 'SOCIAL_LEGAL_EDUCATIVO', label: 'Social, legal y educativo', icono: '⚖️' },
-  { value: 'OPERACION_LOGISTICA', label: 'Operación y logística', icono: '📦' },
-  { value: 'COMUNICACION_TECNOLOGIA', label: 'Comunicación y tecnología', icono: '💻' },
-  { value: 'GESTION_PROYECTOS', label: 'Gestión y proyectos', icono: '📊' },
-  { value: 'OTRA', label: 'Otra área', icono: '✨' },
+const TIPOS_LABOR = [
+  {
+    id: 'VERIFICACION_TP',
+    icono: '🪪',
+    label: 'Verificar tarjetas profesionales (TP)',
+    descripcion: 'Validar cédulas y TP en Colpsic, ReTHUS o SUNEDU',
+    areaDefecto: 'SALUD',
+    tituloSugerido: 'Validación de tarjetas profesionales en Colpsic y ReTHUS',
+    descripcionSugerida: 'Revisar tarjetas y cédulas de nuevos profesionales en las plataformas públicas oficiales de verificación.',
+  },
+  {
+    id: 'ASIGNACION_CITAS',
+    icono: '📅',
+    label: 'Asignar y gestionar citas',
+    descripcion: 'Cuadrar agendas y coordinar turnos con personas',
+    areaDefecto: 'OPERACION_LOGISTICA',
+    tituloSugerido: 'Gestión y asignación de citas semanales',
+    descripcionSugerida: 'Contactar a personas acompañadas y profesionales de la red para cuadrar y confirmar horarios de atención.',
+  },
+  {
+    id: 'CREACION_PIEZAS',
+    icono: '🎨',
+    label: 'Crear piezas / Mercadeo',
+    descripcion: 'Diseño para redes sociales, piezas gráficas y comunicados',
+    areaDefecto: 'COMUNICACION_TECNOLOGIA',
+    tituloSugerido: 'Creación de piezas gráficas para redes y difusión',
+    descripcionSugerida: 'Diseñar piezas gráficas e infografías según la línea visual de la Fundación Aquí Estamos.',
+  },
+  {
+    id: 'CONTACTO_TELEFONICO',
+    icono: '📞',
+    label: 'Llamadas y seguimiento telefónico',
+    descripcion: 'Primer contacto, bienvenida o encuestas de satisfacción',
+    areaDefecto: 'SOCIAL_LEGAL_EDUCATIVO',
+    tituloSugerido: 'Llamadas de seguimiento y contacto inicial',
+    descripcionSugerida: 'Realizar llamadas de seguimiento a personas de la lista prioritaria para verificar su estado y disponibilidad.',
+  },
+  {
+    id: 'APOYO_OPERATIVO',
+    icono: '📦',
+    label: 'Apoyo logístico y operativo',
+    descripcion: 'Manejo de inventarios, bases de datos o compras',
+    areaDefecto: 'GESTION_PROYECTOS',
+    tituloSugerido: 'Apoyo en organización y logística interna',
+    descripcionSugerida: 'Apoyar tareas administrativas, consolidación de datos y coordinación operativa de la fundación.',
+  },
+  {
+    id: 'PERSONALIZADA',
+    icono: '✍️',
+    label: 'Otra labor personalizada',
+    descripcion: 'Define libremente el título, instrucciones y detalles',
+    areaDefecto: 'OTRA',
+    tituloSugerido: '',
+    descripcionSugerida: '',
+  },
 ]
 
 const PRIORIDADES = [
@@ -71,10 +119,11 @@ function calcularFranjasRequeridas(startTime?: string, endTime?: string): string
 
 export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDisponibles: Colab[] }) {
   const router = useRouter()
+  const [tipoLaborSel, setTipoLaborSel] = useState<string>('VERIFICACION_TP')
   const [form, setForm] = useState({
-    area: '',
-    title: '',
-    description: '',
+    area: 'SALUD',
+    title: 'Validación de tarjetas profesionales en Colpsic y ReTHUS',
+    description: 'Revisar tarjetas y cédulas de nuevos profesionales en las plataformas públicas oficiales de verificación.',
     dueDate: '',
     startTime: '',
     endTime: '',
@@ -93,9 +142,19 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
   function update(k: keyof typeof form, v: string) {
     setForm((f) => ({ ...f, [k]: v }))
     setErrors((e) => { const n = { ...e }; delete n[k]; return n })
-    if (k === 'dueDate' || k === 'startTime' || k === 'endTime' || k === 'area') {
+    if (k === 'dueDate' || k === 'startTime' || k === 'endTime') {
       setMostrarTodosPorExcepcion(false)
     }
+  }
+
+  function seleccionarTipoLabor(tipo: typeof TIPOS_LABOR[0]) {
+    setTipoLaborSel(tipo.id)
+    setForm((f) => ({
+      ...f,
+      area: tipo.areaDefecto,
+      title: tipo.tituloSugerido || f.title,
+      description: tipo.descripcionSugerida || f.description,
+    }))
   }
 
   const diaSeleccionado = useMemo(() => {
@@ -109,26 +168,27 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
     return calcularFranjasRequeridas(form.startTime, form.endTime)
   }, [form.startTime, form.endTime])
 
-  // Filtrado ESTRICTO por día y franja horaria:
-  // Si la labor tiene fecha y horario, ÚNICAMENTE pasan los voluntarios que cumplen AMBAS condiciones.
+  // Filtrado de voluntarios:
+  // CUALQUIER voluntario activo de cualquier profesión o área puede apoyar en cualquier labor.
+  // Se evalúa ÚNICAMENTE que cumpla con el DÍA y el HORARIO programado.
   const voluntariosFiltrados = useMemo(() => {
     return colaboradoresDisponibles.filter((c) => {
+      // 1. Debe estar activo
       const matchActivo = !c.status || c.status === 'ACTIVO'
-      const matchArea = !form.area || c.area === form.area || form.area === 'OTRA'
+      if (!matchActivo) return false
+
+      // 2. Búsqueda por texto (nombre o disciplina)
       const matchBusqueda =
         !busquedaVoluntario ||
         c.fullName.toLowerCase().includes(busquedaVoluntario.toLowerCase()) ||
         c.discipline.toLowerCase().includes(busquedaVoluntario.toLowerCase())
+      if (!matchBusqueda) return false
 
-      if (!matchActivo || !matchArea || !matchBusqueda) return false
-
+      // 3. Filtro estricto por día y horario
       if (!mostrarTodosPorExcepcion) {
-        // 1. Debe coincidir el día específico si se indicó fecha
         if (diaSeleccionado && (!c.availableDays || !c.availableDays.includes(diaSeleccionado))) {
           return false
         }
-
-        // 2. Debe coincidir la franja horaria si se indicó horario
         if (franjasRequeridas.length > 0) {
           const tieneFranja = franjasRequeridas.some((f) => c.availableSlots?.includes(f))
           if (!tieneFranja) return false
@@ -137,11 +197,10 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
 
       return true
     })
-  }, [colaboradoresDisponibles, form.area, diaSeleccionado, franjasRequeridas, busquedaVoluntario, mostrarTodosPorExcepcion])
+  }, [colaboradoresDisponibles, diaSeleccionado, franjasRequeridas, busquedaVoluntario, mostrarTodosPorExcepcion])
 
   function validar() {
     const e: Record<string, string> = {}
-    if (!form.area) e.area = 'Selecciona el área de la tarea'
     if (!form.title.trim() || form.title.trim().length < 3) e.title = 'El título debe tener al menos 3 caracteres'
     if (form.startTime && form.endTime && form.startTime >= form.endTime) {
       e.endTime = 'La hora de fin debe ser posterior a la hora de inicio'
@@ -160,7 +219,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          area: form.area,
+          area: form.area || 'OTRA',
           title: form.title.trim(),
           description: form.description.trim() || null,
           dueDate: form.dueDate || null,
@@ -187,33 +246,42 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* 1. Área */}
+      {/* 1. Tipo de Labor Frecuente */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>1. Área de la labor *</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 }}>
-          {AREAS.map((a) => {
-            const sel = form.area === a.value
+        <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
+          1. ¿Qué actividad se necesita realizar?
+        </label>
+        <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+          Selecciona una labor para autocompletar el título y descripción sugeridos, o personalízala libremente:
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+          {TIPOS_LABOR.map((t) => {
+            const sel = tipoLaborSel === t.id
             return (
               <button
-                key={a.value}
+                key={t.id}
                 type="button"
-                onClick={() => update('area', a.value)}
+                onClick={() => seleccionarTipoLabor(t)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
+                  display: 'flex', flexDirection: 'column', gap: 4,
                   padding: '11px 14px', borderRadius: 10, textAlign: 'left', cursor: 'pointer',
                   border: '2px solid ' + (sel ? '#059669' : '#e2e8f0'),
                   background: sel ? '#ecfdf5' : '#fff',
                   color: sel ? '#065f46' : '#1e293b',
-                  fontWeight: 600, fontSize: '0.86rem',
+                  transition: 'all 0.12s ease',
                 }}
               >
-                <span style={{ fontSize: '1.2rem' }}>{a.icono}</span>
-                <span>{a.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontWeight: 700, fontSize: '0.88rem' }}>
+                  <span style={{ fontSize: '1.2rem' }}>{t.icono}</span>
+                  <span>{t.label}</span>
+                </div>
+                <span style={{ fontSize: '0.74rem', color: sel ? '#047857' : '#64748b', lineHeight: 1.3 }}>
+                  {t.descripcion}
+                </span>
               </button>
             )
           })}
         </div>
-        {errors.area && <span style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 600 }}>{errors.area}</span>}
       </div>
 
       {/* 2. Título, Descripción y Link de Materiales */}
@@ -352,7 +420,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
         )}
       </div>
 
-      {/* 4. Asignación directa con Filtro Estricto de Disponibilidad */}
+      {/* 4. Asignar voluntario de una vez (Cualquier voluntario disponible según día y horario) */}
       <div style={{ background: '#fff', border: '2px solid #e2e8f0', borderRadius: 12, padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
@@ -363,8 +431,8 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
               {hayRestriccionHorarioODia && !mostrarTodosPorExcepcion
                 ? `Mostrando únicamente voluntarios disponibles para ${diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : ''} ${franjasRequeridas.length > 0 ? '(' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}:`
                 : mostrarTodosPorExcepcion
-                ? '⚠️ Mostrando todos los voluntarios del área (asignación por excepción):'
-                : 'Voluntarios registrados para esta área:'}
+                ? '⚠️ Mostrando todos los voluntarios disponibles (asignación por excepción):'
+                : 'Voluntarios registrados disponibles:'}
             </p>
           </div>
           {form.collaboratorId && (
@@ -400,7 +468,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
               onClick={() => setMostrarTodosPorExcepcion(true)}
               style={{ fontSize: '0.8rem', fontWeight: 700, padding: '6px 14px', borderRadius: 6, background: '#059669', color: '#fff', border: 'none', cursor: 'pointer' }}
             >
-              Mostrar voluntarios del área de todas formas (por excepción)
+              Mostrar voluntarios de todas formas (por excepción)
             </button>
           </div>
         ) : (
