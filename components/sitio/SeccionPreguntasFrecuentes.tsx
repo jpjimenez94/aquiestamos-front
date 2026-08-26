@@ -259,7 +259,7 @@ const PREGUNTAS: PreguntaItem[] = [
     respuesta: (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <p style={{ margin: 0, lineHeight: 1.65 }}>
-          <strong>Sí.</strong> La Fundación Aquí Estamos emite certificados oficiales de voluntariado acreditando las horas y actividades desarrolladas en favor de la comunidad para tu hoja de vida o requisitos académicos.
+          <strong>No.</strong> La Red Aquí Estamos es una iniciativa de apoyo solidario y comunitario que <strong>no emite certificados de voluntariado ni constancias de horas</strong> para fines académicos o laborales. La vinculación de todos los profesionales y colaboradores es 100% voluntaria, motivada por el compromiso social y el cuidado colectivo.
         </p>
       </div>
     ),
