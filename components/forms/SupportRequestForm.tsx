@@ -70,7 +70,7 @@ const VACIO = {
   // Paso 2: Triaje / Prioridad ágil
   distress: null as number | null,
   selfHarmThoughts: null as boolean | null,
-  howSoon: '' as '' | 'HOY' | 'PROXIMOS_DIAS' | 'ESTA_SEMANA',
+  howSoon: '' as '' | 'HOY' | 'ESTA_SEMANA' | 'PUEDO_ESPERAR' | 'PROXIMOS_DIAS',
   safePlace: null as boolean | null,
 
   // Paso 3: Modalidad y Consentimiento
@@ -609,8 +609,8 @@ export function SupportRequestForm() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
                 {[
                   { id: 'HOY', label: 'Hoy mismo / Muy urgente' },
-                  { id: 'PROXIMOS_DIAS', label: 'En los próximos 2 a 3 días' },
-                  { id: 'ESTA_SEMANA', label: 'Esta semana' },
+                  { id: 'ESTA_SEMANA', label: 'En los próximos días / Esta semana' },
+                  { id: 'PUEDO_ESPERAR', label: 'Puedo esperar un poco más' },
                 ].map((item) => {
                   const seleccionado = form.howSoon === item.id
                   return (
