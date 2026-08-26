@@ -35,10 +35,22 @@ export default async function TareasPage() {
           puedeCrear ? (
             <Link
               href="/portal/tareas/nueva"
-              className="boton boton--primario"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.86rem' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '12px 24px',
+                borderRadius: 10,
+                fontSize: '0.94rem',
+                fontWeight: 800,
+                background: '#059669',
+                color: '#ffffff',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(5,150,105,0.35)',
+                border: '1.5px solid #047857',
+              }}
             >
-              <Plus size={15} />
+              <Plus size={18} strokeWidth={2.8} />
               Nueva tarea
             </Link>
           ) : null
@@ -60,7 +72,7 @@ export default async function TareasPage() {
       ) : tareas.length === 0 ? (
         <Vacio>Todavía no hay tareas creadas. Crea la primera con el botón de arriba.</Vacio>
       ) : (
-        <TableroKanbanCliente tareasIniciales={tareas} />
+        <TableroKanbanCliente tareasIniciales={tareas} puedeCrear={puedeCrear} />
       )}
     </>
   )

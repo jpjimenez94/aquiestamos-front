@@ -2,7 +2,7 @@
 'use client'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, Filter, AlertTriangle, Clock, Users, ArrowUpDown } from 'lucide-react'
+import { Search, Filter, AlertTriangle, Clock, Users, ArrowUpDown, Plus } from 'lucide-react'
 import type { Tarea, TareaStatus, TareaPriority } from './tipos'
 import { STATUS_TAREA_COLOR, PRIORITY_COLOR, AREA_ICONS } from './tipos'
 
@@ -28,13 +28,11 @@ function TarjetaTarea({ tarea }: { tarea: Tarea }) {
   const pColor = PRIORITY_COLOR[tarea.priority] ?? PRIORITY_COLOR.MEDIA
   const hoy = new Date()
 
-  // Vencimiento
   const vencida =
     tarea.dueDate &&
     new Date(tarea.dueDate + 'T23:59:59') < hoy &&
     !['COMPLETADA', 'CANCELADA'].includes(tarea.status)
 
-  // Alerta de inactividad (+48h invitado sin responder)
   const sinRespuesta48h = useMemo(() => {
     if (!tarea.assignments || tarea.assignments.length === 0) return false
     return tarea.assignments.some((a) => {
@@ -61,7 +59,6 @@ function TarjetaTarea({ tarea }: { tarea: Tarea }) {
         transition: 'transform 0.1s ease, box-shadow 0.1s ease',
       }}
     >
-      {/* Alerta de +48h sin respuesta */}
       {sinRespuesta48h && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.72rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '3px 8px', borderRadius: 5, marginBottom: 8 }}>
           <AlertTriangle size={12} />
@@ -124,7 +121,13 @@ function Columna({ titulo, tareas, estado }: { titulo: string; tareas: Tarea[]; 
   )
 }
 
-export function TableroKanbanCliente({ tareasIniciales }: { tareasIniciales: Tarea[] }) {
+export function TableroKanbanCliente({
+  tareasIniciales,
+  puedeCrear = false,
+}: {
+  tareasIniciales: Tarea[]
+  puedeCrear?: boolean
+}) {
   const [busqueda, setBusqueda] = useState('')
   const [filtroArea, setFiltroArea] = useState('')
   const [filtroPrioridad, setFiltroPrioridad] = useState('')
@@ -161,63 +164,89 @@ export function TableroKanbanCliente({ tareasIniciales }: { tareasIniciales: Tar
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Barra de Filtros y Búsqueda en Tiempo Real */}
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-        {/* Buscador */}
-        <div style={{ position: 'relative', flex: '1 1 220px' }}>
-          <Search size={15} style={{ position: 'absolute', left: 12, top: 11, color: '#94a3b8' }} />
-          <input
-            type="text"
-            placeholder="Buscar por título, descripción o voluntario..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none' }}
-          />
+      {/* Barra de Filtros y Búsqueda */}
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', flex: '1 1 auto' }}>
+          {/* Buscador */}
+          <div style={{ position: 'relative', minWidth: 240, flex: '1 1 240px' }}>
+            <Search size={15} style={{ position: 'absolute', left: 12, top: 11, color: '#94a3b8' }} />
+            <input
+              type="text"
+              placeholder="Buscar por título, descripción o voluntario..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none' }}
+            />
+          </div>
+
+          {/* Filtro por Área */}
+          <select
+            value={filtroArea}
+            onChange={(e) => setFiltroArea(e.target.value)}
+            style={{ padding: '8px 12px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none', background: '#fff', color: '#1e293b' }}
+          >
+            {AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+          </select>
+
+          {/* Filtro por Prioridad */}
+          <select
+            value={filtroPrioridad}
+            onChange={(e) => setFiltroPrioridad(e.target.value)}
+            style={{ padding: '8px 12px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none', background: '#fff', color: '#1e293b' }}
+          >
+            {PRIORIDADES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+          </select>
+
+          {/* Toggle Alerta Sin Respuesta */}
+          {totalSinRespuesta > 0 && (
+            <button
+              type="button"
+              onClick={() => setSoloSinRespuesta(!soloSinRespuesta)}
+              style={{
+                padding: '7px 12px', borderRadius: 8, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+                border: '1.5px solid ' + (soloSinRespuesta ? '#d97706' : '#fde68a'),
+                background: soloSinRespuesta ? '#fffbeb' : '#fff',
+                color: '#b45309', display: 'inline-flex', alignItems: 'center', gap: 5,
+              }}
+            >
+              <AlertTriangle size={13} />
+              Sin respuesta +48h ({totalSinRespuesta})
+            </button>
+          )}
+
+          {(busqueda || filtroArea || filtroPrioridad || soloSinRespuesta) && (
+            <button
+              type="button"
+              onClick={() => { setBusqueda(''); setFiltroArea(''); setFiltroPrioridad(''); setSoloSinRespuesta(false) }}
+              style={{ fontSize: '0.82rem', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Limpiar filtros
+            </button>
+          )}
         </div>
 
-        {/* Filtro por Área */}
-        <select
-          value={filtroArea}
-          onChange={(e) => setFiltroArea(e.target.value)}
-          style={{ padding: '8px 12px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none', background: '#fff', color: '#1e293b' }}
-        >
-          {AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
-        </select>
-
-        {/* Filtro por Prioridad */}
-        <select
-          value={filtroPrioridad}
-          onChange={(e) => setFiltroPrioridad(e.target.value)}
-          style={{ padding: '8px 12px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none', background: '#fff', color: '#1e293b' }}
-        >
-          {PRIORIDADES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-        </select>
-
-        {/* Toggle Alerta Sin Respuesta */}
-        {totalSinRespuesta > 0 && (
-          <button
-            type="button"
-            onClick={() => setSoloSinRespuesta(!soloSinRespuesta)}
+        {/* Botón rápido "+ Nueva tarea" dentro de la barra de acciones */}
+        {puedeCrear && (
+          <Link
+            href="/portal/tareas/nueva"
             style={{
-              padding: '7px 12px', borderRadius: 8, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
-              border: '1.5px solid ' + (soloSinRespuesta ? '#d97706' : '#fde68a'),
-              background: soloSinRespuesta ? '#fffbeb' : '#fff',
-              color: '#b45309', display: 'inline-flex', alignItems: 'center', gap: 5,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '9px 18px',
+              borderRadius: 9,
+              fontSize: '0.88rem',
+              fontWeight: 800,
+              background: '#059669',
+              color: '#ffffff',
+              textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(5,150,105,0.3)',
+              whiteSpace: 'nowrap',
             }}
           >
-            <AlertTriangle size={13} />
-            Sin respuesta +48h ({totalSinRespuesta})
-          </button>
-        )}
-
-        {(busqueda || filtroArea || filtroPrioridad || soloSinRespuesta) && (
-          <button
-            type="button"
-            onClick={() => { setBusqueda(''); setFiltroArea(''); setFiltroPrioridad(''); setSoloSinRespuesta(false) }}
-            style={{ fontSize: '0.82rem', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-          >
-            Limpiar filtros
-          </button>
+            <Plus size={16} strokeWidth={2.5} />
+            Nueva tarea
+          </Link>
         )}
       </div>
 

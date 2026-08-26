@@ -2,7 +2,7 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, ArrowLeft, Clock, UserCheck, Calendar, Sparkles, Check, Search, FolderGit2, Link2 } from 'lucide-react'
+import { Send, ArrowLeft, Clock, Calendar, Check, Search, Link2, AlertCircle, Filter } from 'lucide-react'
 import Link from 'next/link'
 import { DIA_LEGIBLE, FRANJA_LEGIBLE, DIA_SEMANA_MAP } from '../tipos'
 
@@ -32,6 +32,42 @@ type Colab = {
   phone: string
 }
 
+function calcularFranjasRequeridas(startTime?: string, endTime?: string): string[] {
+  if (!startTime && !endTime) return []
+
+  const parseHour = (t?: string) => {
+    if (!t) return null
+    const [h, m] = t.split(':').map(Number)
+    return h + (m || 0) / 60
+  }
+
+  const inicio = parseHour(startTime)
+  const fin = parseHour(endTime)
+  const franjas: string[] = []
+
+  if (inicio !== null && fin === null) {
+    if (inicio < 12) franjas.push('MANANA')
+    else if (inicio < 18) franjas.push('TARDE')
+    else franjas.push('NOCHE')
+    return franjas
+  }
+
+  if (inicio !== null && fin !== null) {
+    if (inicio < 12 && fin > 0) franjas.push('MANANA')
+    if ((inicio < 18 && fin > 12) || (inicio >= 12 && inicio < 18)) franjas.push('TARDE')
+    if (fin > 18 || inicio >= 18) franjas.push('NOCHE')
+    return Array.from(new Set(franjas))
+  }
+
+  if (fin !== null) {
+    if (fin <= 12) franjas.push('MANANA')
+    else if (fin <= 18) franjas.push('TARDE')
+    else franjas.push('NOCHE')
+  }
+
+  return franjas
+}
+
 export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDisponibles: Colab[] }) {
   const router = useRouter()
   const [form, setForm] = useState({
@@ -51,6 +87,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busquedaVoluntario, setBusquedaVoluntario] = useState('')
+  const [ignorarFiltroDisponibilidad, setIgnorarFiltroDisponibilidad] = useState(false)
 
   function update(k: keyof typeof form, v: string) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -64,28 +101,37 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
     return DIA_SEMANA_MAP[fecha.getDay()] ?? null
   }, [form.dueDate])
 
-  const voluntariosOrdenados = useMemo(() => {
-    return colaboradoresDisponibles
-      .filter((c) => {
-        const matchArea = !form.area || c.area === form.area || form.area === 'OTRA'
-        const matchBusqueda =
-          !busquedaVoluntario ||
-          c.fullName.toLowerCase().includes(busquedaVoluntario.toLowerCase()) ||
-          c.discipline.toLowerCase().includes(busquedaVoluntario.toLowerCase())
-        return matchArea && matchBusqueda
-      })
-      .map((c) => {
-        let score = 0
-        const coincideArea = c.area === form.area
-        const coincideDia = diaSeleccionado ? c.availableDays?.includes(diaSeleccionado) : false
+  const franjasRequeridas = useMemo(() => {
+    return calcularFranjasRequeridas(form.startTime, form.endTime)
+  }, [form.startTime, form.endTime])
 
-        if (coincideArea) score += 2
-        if (coincideDia) score += 3
+  // Filtrado ESTRICTO por día y franja horaria
+  const voluntariosFiltrados = useMemo(() => {
+    return colaboradoresDisponibles.filter((c) => {
+      const matchArea = !form.area || c.area === form.area || form.area === 'OTRA'
+      const matchBusqueda =
+        !busquedaVoluntario ||
+        c.fullName.toLowerCase().includes(busquedaVoluntario.toLowerCase()) ||
+        c.discipline.toLowerCase().includes(busquedaVoluntario.toLowerCase())
 
-        return { ...c, score, coincideDia, coincideArea }
-      })
-      .sort((a, b) => b.score - a.score)
-  }, [colaboradoresDisponibles, form.area, diaSeleccionado, busquedaVoluntario])
+      if (!matchArea || !matchBusqueda) return false
+
+      if (!ignorarFiltroDisponibilidad) {
+        // Si hay día seleccionado, debe coincidir
+        if (diaSeleccionado && (!c.availableDays || !c.availableDays.includes(diaSeleccionado))) {
+          return false
+        }
+
+        // Si hay horas/franja seleccionada, debe coincidir
+        if (franjasRequeridas.length > 0) {
+          const tieneFranja = franjasRequeridas.some((f) => c.availableSlots?.includes(f))
+          if (!tieneFranja) return false
+        }
+      }
+
+      return true
+    })
+  }, [colaboradoresDisponibles, form.area, diaSeleccionado, franjasRequeridas, busquedaVoluntario, ignorarFiltroDisponibilidad])
 
   function validar() {
     const e: Record<string, string> = {}
@@ -130,6 +176,8 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
       setSending(false)
     }
   }
+
+  const hayRestriccionHorarioODia = Boolean(diaSeleccionado || franjasRequeridas.length > 0)
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -236,7 +284,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
               style={{ padding: '9px 12px', borderRadius: 8, fontSize: '0.88rem', border: '1.5px solid #e2e8f0', outline: 'none', color: '#1e293b', background: '#fff' }}
             />
             {diaSeleccionado && (
-              <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>
+              <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 700 }}>
                 📅 {DIA_LEGIBLE[diaSeleccionado]}
               </span>
             )}
@@ -287,50 +335,85 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
             </select>
           </div>
         </div>
+
+        {franjasRequeridas.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: '#0369a1', background: '#e0f2fe', padding: '6px 12px', borderRadius: 6 }}>
+            <Clock size={13} />
+            <span>
+              Franja detectada: <strong>{franjasRequeridas.map((f) => FRANJA_LEGIBLE[f] ?? f).join(' y ')}</strong>
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* 4. Asignación directa de Voluntario */}
+      {/* 4. Asignación directa con Filtro Estricto de Disponibilidad */}
       <div style={{ background: '#fff', border: '2px solid #e2e8f0', borderRadius: 12, padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
             <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
               4. Asignar voluntario de una vez
             </p>
-            <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-              {diaSeleccionado
-                ? 'Sugerencias optimizadas para ' + DIA_LEGIBLE[diaSeleccionado] + ' y el área elegida:'
-                : 'Sugerencias basadas en el área seleccionada y disponibilidad registrada:'}
+            <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+              {hayRestriccionHorarioODia && !ignorarFiltroDisponibilidad
+                ? `Mostrando únicamente voluntarios con disponibilidad exacta para ${diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : ''} ${franjasRequeridas.length > 0 ? '(' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}:`
+                : 'Mostrando voluntarios registrados para esta área:'}
             </p>
           </div>
-          {form.collaboratorId && (
-            <button
-              type="button"
-              onClick={() => update('collaboratorId', '')}
-              style={{ fontSize: '0.78rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-            >
-              Descartar selección
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {hayRestriccionHorarioODia && (
+              <button
+                type="button"
+                onClick={() => setIgnorarFiltroDisponibilidad(!ignorarFiltroDisponibilidad)}
+                style={{
+                  fontSize: '0.76rem', padding: '4px 9px', borderRadius: 6, cursor: 'pointer', fontWeight: 600,
+                  border: '1px solid ' + (ignorarFiltroDisponibilidad ? '#059669' : '#cbd5e1'),
+                  background: ignorarFiltroDisponibilidad ? '#ecfdf5' : '#f8fafc',
+                  color: ignorarFiltroDisponibilidad ? '#065f46' : '#475569',
+                }}
+              >
+                {ignorarFiltroDisponibilidad ? '✓ Filtro estricto desactivado' : 'Desactivar filtro de horario'}
+              </button>
+            )}
+            {form.collaboratorId && (
+              <button
+                type="button"
+                onClick={() => update('collaboratorId', '')}
+                style={{ fontSize: '0.78rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Descartar selección
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ position: 'relative' }}>
           <Search size={15} style={{ position: 'absolute', left: 12, top: 12, color: '#94a3b8' }} />
           <input
             type="text"
-            placeholder="Buscar voluntario por nombre o disciplina..."
+            placeholder="Buscar voluntario disponible por nombre o disciplina..."
             value={busquedaVoluntario}
             onChange={(e) => setBusquedaVoluntario(e.target.value)}
             style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none' }}
           />
         </div>
 
-        {voluntariosOrdenados.length === 0 ? (
-          <p style={{ fontSize: '0.82rem', color: '#94a3b8', textAlign: 'center', margin: '8px 0' }}>
-            No encontramos voluntarios registrados con estos filtros.
-          </p>
+        {voluntariosFiltrados.length === 0 ? (
+          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '16px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
+            <AlertCircle size={22} color="#d97706" />
+            <p style={{ fontSize: '0.86rem', color: '#92400e', margin: 0, fontWeight: 600 }}>
+              No hay voluntarios disponibles para {diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : 'este día'}{franjasRequeridas.length > 0 ? ' en la franja seleccionada' : ''}.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIgnorarFiltroDisponibilidad(true)}
+              style={{ fontSize: '0.8rem', fontWeight: 700, padding: '6px 14px', borderRadius: 6, background: '#059669', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              Ver todos los voluntarios del área de todas formas
+            </button>
+          </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10, maxHeight: 280, overflowY: 'auto' }}>
-            {voluntariosOrdenados.map((c) => {
+            {voluntariosFiltrados.map((c) => {
               const sel = form.collaboratorId === c.id
               return (
                 <div
@@ -356,13 +439,13 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
                   <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>{c.discipline}</span>
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
-                    {c.coincideDia && (
-                      <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
-                        ✨ Disponible {diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : ''}
+                    {c.availableDays?.map((d) => (
+                      <span key={d} style={{ fontSize: '0.68rem', fontWeight: d === diaSeleccionado ? 800 : 400, padding: '2px 6px', borderRadius: 4, background: d === diaSeleccionado ? '#dcfce7' : '#e2e8f0', color: d === diaSeleccionado ? '#15803d' : '#334155' }}>
+                        {DIA_LEGIBLE[d] ?? d}
                       </span>
-                    )}
+                    ))}
                     {c.availableSlots?.map((s) => (
-                      <span key={s} style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: 4, background: '#e2e8f0', color: '#334155' }}>
+                      <span key={s} style={{ fontSize: '0.68rem', fontWeight: franjasRequeridas.includes(s) ? 800 : 400, padding: '2px 6px', borderRadius: 4, background: franjasRequeridas.includes(s) ? '#dbeafe' : '#f1f5f9', color: franjasRequeridas.includes(s) ? '#1e40af' : '#475569' }}>
                         {FRANJA_LEGIBLE[s] ?? s}
                       </span>
                     ))}
@@ -383,7 +466,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
             <input
               id="assignmentNote"
               type="text"
-              placeholder="Ej: Hola! Te asignamos este turno según tu disponibilidad en la mañana."
+              placeholder="Ej: Hola! Te asignamos este turno según tu disponibilidad en la tarde."
               value={form.assignmentNote}
               onChange={(e) => update('assignmentNote', e.target.value)}
               style={{ padding: '8px 12px', borderRadius: 7, fontSize: '0.86rem', border: '1.5px solid #a7f3d0', outline: 'none', background: '#fff' }}

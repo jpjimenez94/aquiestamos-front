@@ -237,6 +237,38 @@ export function PanelDetalleTarea({
     return DIA_SEMANA_MAP[new Date(y, m - 1, d).getDay()] ?? null
   }, [tarea.dueDate])
 
+  const franjasRequeridas = useMemo(() => {
+    if (!tarea.startTime && !tarea.endTime) return []
+    const parseHour = (t?: string | null) => {
+      if (!t) return null
+      const [h, m] = t.split(':').map(Number)
+      return h + (m || 0) / 60
+    }
+    const inicio = parseHour(tarea.startTime)
+    const fin = parseHour(tarea.endTime)
+    const franjas: string[] = []
+    if (inicio !== null && fin === null) {
+      if (inicio < 12) franjas.push('MANANA')
+      else if (inicio < 18) franjas.push('TARDE')
+      else franjas.push('NOCHE')
+      return franjas
+    }
+    if (inicio !== null && fin !== null) {
+      if (inicio < 12 && fin > 0) franjas.push('MANANA')
+      if ((inicio < 18 && fin > 12) || (inicio >= 12 && inicio < 18)) franjas.push('TARDE')
+      if (fin > 18 || inicio >= 18) franjas.push('NOCHE')
+      return Array.from(new Set(franjas))
+    }
+    if (fin !== null) {
+      if (fin <= 12) franjas.push('MANANA')
+      else if (fin <= 18) franjas.push('TARDE')
+      else franjas.push('NOCHE')
+    }
+    return franjas
+  }, [tarea.startTime, tarea.endTime])
+
+  const [ignorarFiltroReasignar, setIgnorarFiltroReasignar] = useState(false)
+
   const voluntariosParaReasignar = useMemo(() => {
     return colaboradoresDisponibles
       .filter((c) => {
@@ -245,14 +277,27 @@ export function PanelDetalleTarea({
           !busquedaReasignar ||
           c.fullName.toLowerCase().includes(busquedaReasignar.toLowerCase()) ||
           c.discipline.toLowerCase().includes(busquedaReasignar.toLowerCase())
-        return matchArea && matchBusqueda
+
+        if (!matchArea || !matchBusqueda) return false
+
+        if (!ignorarFiltroReasignar) {
+          if (diaSemana && (!c.availableDays || !c.availableDays.includes(diaSemana))) {
+            return false
+          }
+          if (franjasRequeridas.length > 0) {
+            const tieneFranja = franjasRequeridas.some((f) => c.availableSlots?.includes(f))
+            if (!tieneFranja) return false
+          }
+        }
+
+        return true
       })
       .map((c) => {
         const coincideDia = diaSemana ? c.availableDays?.includes(diaSemana) : false
         return { ...c, coincideDia }
       })
       .sort((a, b) => (b.coincideDia ? 1 : 0) - (a.coincideDia ? 1 : 0))
-  }, [colaboradoresDisponibles, tarea.area, diaSemana, busquedaReasignar])
+  }, [colaboradoresDisponibles, tarea.area, diaSemana, franjasRequeridas, busquedaReasignar, ignorarFiltroReasignar])
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'flex-start' }}>
@@ -696,6 +741,28 @@ export function PanelDetalleTarea({
               <button onClick={() => setMostrarModalReasignar(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
             </div>
 
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569' }}>
+                {diaSemana || franjasRequeridas.length > 0
+                  ? (ignorarFiltroReasignar ? 'Mostrando todos los voluntarios del área:' : `Filtrando por disponibilidad para ${diaSemana ? DIA_LEGIBLE[diaSemana] : ''} ${franjasRequeridas.length > 0 ? '(' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}:`)
+                  : 'Voluntarios disponibles:'}
+              </p>
+              {(diaSemana || franjasRequeridas.length > 0) && (
+                <button
+                  type="button"
+                  onClick={() => setIgnorarFiltroReasignar(!ignorarFiltroReasignar)}
+                  style={{
+                    fontSize: '0.74rem', padding: '3px 8px', borderRadius: 5, cursor: 'pointer', fontWeight: 600,
+                    border: '1px solid ' + (ignorarFiltroReasignar ? '#1d4ed8' : '#cbd5e1'),
+                    background: ignorarFiltroReasignar ? '#eff6ff' : '#fff',
+                    color: ignorarFiltroReasignar ? '#1e40af' : '#475569',
+                  }}
+                >
+                  {ignorarFiltroReasignar ? '✓ Filtro de horario desactivado' : 'Desactivar filtro de horario'}
+                </button>
+              )}
+            </div>
+
             <div style={{ position: 'relative' }}>
               <Search size={15} style={{ position: 'absolute', left: 12, top: 12, color: '#94a3b8' }} />
               <input
@@ -707,38 +774,53 @@ export function PanelDetalleTarea({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
-              {voluntariosParaReasignar.map((c) => {
-                const sel = reasignandoA === c.id
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => setReasignandoA(sel ? null : c.id)}
-                    style={{
-                      display: 'flex', flexDirection: 'column', gap: 4,
-                      padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
-                      border: '2px solid ' + (sel ? '#1d4ed8' : '#e2e8f0'),
-                      background: sel ? '#eff6ff' : '#fff',
-                    }}
-                  >
-                    <strong style={{ fontSize: '0.88rem', color: sel ? '#1d4ed8' : '#0f172a' }}>{c.fullName}</strong>
-                    <span style={{ fontSize: '0.78rem', color: '#475569' }}>{c.discipline}</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {c.coincideDia && (
-                        <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 5px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
-                          ✨ Disponible {diaSemana ? DIA_LEGIBLE[diaSemana] : ''}
-                        </span>
-                      )}
-                      {c.availableSlots?.map((s) => (
-                        <span key={s} style={{ fontSize: '0.68rem', padding: '1px 5px', borderRadius: 4, background: '#f1f5f9', color: '#475569' }}>
-                          {FRANJA_LEGIBLE[s] ?? s}
-                        </span>
-                      ))}
+            {voluntariosParaReasignar.length === 0 ? (
+              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '16px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={{ fontSize: '0.84rem', color: '#92400e', margin: 0, fontWeight: 600 }}>
+                  No hay voluntarios con disponibilidad exacta para este día u horario.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIgnorarFiltroReasignar(true)}
+                  style={{ fontSize: '0.78rem', fontWeight: 700, padding: '5px 12px', borderRadius: 6, background: '#1d4ed8', color: '#fff', border: 'none', cursor: 'pointer', alignSelf: 'center' }}
+                >
+                  Mostrar todos los voluntarios del área
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+                {voluntariosParaReasignar.map((c) => {
+                  const sel = reasignandoA === c.id
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => setReasignandoA(sel ? null : c.id)}
+                      style={{
+                        display: 'flex', flexDirection: 'column', gap: 4,
+                        padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
+                        border: '2px solid ' + (sel ? '#1d4ed8' : '#e2e8f0'),
+                        background: sel ? '#eff6ff' : '#fff',
+                      }}
+                    >
+                      <strong style={{ fontSize: '0.88rem', color: sel ? '#1d4ed8' : '#0f172a' }}>{c.fullName}</strong>
+                      <span style={{ fontSize: '0.78rem', color: '#475569' }}>{c.discipline}</span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {c.coincideDia && (
+                          <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 5px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
+                            ✨ Disponible {diaSemana ? DIA_LEGIBLE[diaSemana] : ''}
+                          </span>
+                        )}
+                        {c.availableSlots?.map((s) => (
+                          <span key={s} style={{ fontSize: '0.68rem', padding: '1px 5px', borderRadius: 4, background: '#f1f5f9', color: '#475569' }}>
+                            {FRANJA_LEGIBLE[s] ?? s}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
 
             {reasignandoA && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
