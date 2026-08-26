@@ -2,7 +2,7 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, ArrowLeft, Clock, Calendar, Check, Search, Link2, AlertCircle, Sparkles } from 'lucide-react'
+import { Send, ArrowLeft, Clock, Calendar, Check, Search, Link2, AlertCircle, Sparkles, Layers } from 'lucide-react'
 import Link from 'next/link'
 import { DIA_LEGIBLE, FRANJA_LEGIBLE, DIA_SEMANA_MAP } from '../tipos'
 
@@ -11,6 +11,7 @@ const TIPOS_LABOR = [
     id: 'VERIFICACION_TP',
     icono: '🪪',
     label: 'Verificar tarjetas profesionales (TP)',
+    labelCorto: 'Verificación de TP',
     descripcion: 'Validar cédulas y TP en Colpsic, ReTHUS o SUNEDU',
     areaDefecto: 'SALUD',
     tituloSugerido: 'Validación de tarjetas profesionales en Colpsic y ReTHUS',
@@ -20,6 +21,7 @@ const TIPOS_LABOR = [
     id: 'ASIGNACION_CITAS',
     icono: '📅',
     label: 'Asignar y gestionar citas',
+    labelCorto: 'Asignación de citas',
     descripcion: 'Cuadrar agendas y coordinar turnos con personas',
     areaDefecto: 'OPERACION_LOGISTICA',
     tituloSugerido: 'Gestión y asignación de citas semanales',
@@ -29,6 +31,7 @@ const TIPOS_LABOR = [
     id: 'CREACION_PIEZAS',
     icono: '🎨',
     label: 'Crear piezas / Mercadeo',
+    labelCorto: 'Piezas gráficas / Mercadeo',
     descripcion: 'Diseño para redes sociales, piezas gráficas y comunicados',
     areaDefecto: 'COMUNICACION_TECNOLOGIA',
     tituloSugerido: 'Creación de piezas gráficas para redes y difusión',
@@ -38,6 +41,7 @@ const TIPOS_LABOR = [
     id: 'CONTACTO_TELEFONICO',
     icono: '📞',
     label: 'Llamadas y seguimiento telefónico',
+    labelCorto: 'Llamadas y seguimiento',
     descripcion: 'Primer contacto, bienvenida o encuestas de satisfacción',
     areaDefecto: 'SOCIAL_LEGAL_EDUCATIVO',
     tituloSugerido: 'Llamadas de seguimiento y contacto inicial',
@@ -47,6 +51,7 @@ const TIPOS_LABOR = [
     id: 'APOYO_OPERATIVO',
     icono: '📦',
     label: 'Apoyo logístico y operativo',
+    labelCorto: 'Apoyo logístico',
     descripcion: 'Manejo de inventarios, bases de datos o compras',
     areaDefecto: 'GESTION_PROYECTOS',
     tituloSugerido: 'Apoyo en organización y logística interna',
@@ -56,6 +61,7 @@ const TIPOS_LABOR = [
     id: 'PERSONALIZADA',
     icono: '✍️',
     label: 'Otra labor personalizada',
+    labelCorto: 'Labor personalizada',
     descripcion: 'Define libremente el título, instrucciones y detalles',
     areaDefecto: 'OTRA',
     tituloSugerido: '',
@@ -119,7 +125,7 @@ function calcularFranjasRequeridas(startTime?: string, endTime?: string): string
 
 export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDisponibles: Colab[] }) {
   const router = useRouter()
-  const [tipoLaborSel, setTipoLaborSel] = useState<string>('VERIFICACION_TP')
+  const [tiposLaborSel, setTiposLaborSel] = useState<string[]>(['VERIFICACION_TP'])
   const [form, setForm] = useState({
     area: 'SALUD',
     title: 'Validación de tarjetas profesionales en Colpsic y ReTHUS',
@@ -147,13 +153,41 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
     }
   }
 
-  function seleccionarTipoLabor(tipo: typeof TIPOS_LABOR[0]) {
-    setTipoLaborSel(tipo.id)
+  function alternarTipoLabor(tipo: typeof TIPOS_LABOR[0]) {
+    const yaEsta = tiposLaborSel.includes(tipo.id)
+    let nuevosTipos: string[] = []
+
+    if (yaEsta) {
+      if (tiposLaborSel.length > 1) {
+        nuevosTipos = tiposLaborSel.filter((id) => id !== tipo.id)
+      } else {
+        nuevosTipos = [tipo.id]
+      }
+    } else {
+      nuevosTipos = [...tiposLaborSel, tipo.id]
+    }
+
+    setTiposLaborSel(nuevosTipos)
+
+    const seleccionados = TIPOS_LABOR.filter((item) => nuevosTipos.includes(item.id))
+    
+    // Título inteligente combinado
+    const titulos = seleccionados.map((item) => item.labelCorto || item.label).filter(Boolean)
+    const nuevoTitulo = titulos.length === 1
+      ? (seleccionados[0].tituloSugerido || seleccionados[0].label)
+      : titulos.join(' + ')
+
+    // Descripción inteligente combinada
+    const descripciones = seleccionados
+      .map((item) => item.descripcionSugerida ? `• ${item.label}: ${item.descripcionSugerida}` : null)
+      .filter(Boolean)
+      .join('\n\n')
+
     setForm((f) => ({
       ...f,
-      area: tipo.areaDefecto,
-      title: tipo.tituloSugerido || f.title,
-      description: tipo.descripcionSugerida || f.description,
+      area: seleccionados[0]?.areaDefecto || 'OTRA',
+      title: nuevoTitulo || f.title,
+      description: descripciones || f.description,
     }))
   }
 
@@ -246,34 +280,52 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* 1. Tipo de Labor Frecuente */}
+      {/* 1. Selección Múltiple de Actividades */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
-          1. ¿Qué actividad se necesita realizar?
-        </label>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+          <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
+            1. ¿Qué actividades se realizarán en esta labor?
+          </label>
+          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: 6 }}>
+            {tiposLaborSel.length} {tiposLaborSel.length === 1 ? 'actividad seleccionada' : 'actividades seleccionadas'}
+          </span>
+        </div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
-          Selecciona una labor para autocompletar el título y descripción sugeridos, o personalízala libremente:
+          Puedes seleccionar <strong>una o varias actividades simultáneas</strong> para armar el turno de apoyo:
         </p>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
           {TIPOS_LABOR.map((t) => {
-            const sel = tipoLaborSel === t.id
+            const sel = tiposLaborSel.includes(t.id)
             return (
               <button
                 key={t.id}
                 type="button"
-                onClick={() => seleccionarTipoLabor(t)}
+                onClick={() => alternarTipoLabor(t)}
                 style={{
-                  display: 'flex', flexDirection: 'column', gap: 4,
-                  padding: '11px 14px', borderRadius: 10, textAlign: 'left', cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', gap: 6,
+                  padding: '12px 14px', borderRadius: 10, textAlign: 'left', cursor: 'pointer',
                   border: '2px solid ' + (sel ? '#059669' : '#e2e8f0'),
                   background: sel ? '#ecfdf5' : '#fff',
                   color: sel ? '#065f46' : '#1e293b',
                   transition: 'all 0.12s ease',
+                  position: 'relative',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontWeight: 700, fontSize: '0.88rem' }}>
-                  <span style={{ fontSize: '1.2rem' }}>{t.icono}</span>
-                  <span>{t.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontWeight: 700, fontSize: '0.88rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>{t.icono}</span>
+                    <span>{t.label}</span>
+                  </div>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 5,
+                    border: '1.5px solid ' + (sel ? '#059669' : '#cbd5e1'),
+                    background: sel ? '#059669' : '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', flexShrink: 0,
+                  }}>
+                    {sel && <Check size={13} strokeWidth={3} />}
+                  </div>
                 </div>
                 <span style={{ fontSize: '0.74rem', color: sel ? '#047857' : '#64748b', lineHeight: 1.3 }}>
                   {t.descripcion}
@@ -291,7 +343,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
           <input
             id="title"
             type="text"
-            placeholder="Ej: Validación de 10 tarjetas profesionales en Colpsic y ReTHUS"
+            placeholder="Ej: Validación de TP + Asignación de citas"
             value={form.title}
             onChange={(e) => update('title', e.target.value)}
             style={{
@@ -305,11 +357,11 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label htmlFor="description" style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>
-            Descripción de la actividad <span style={{ fontWeight: 400, color: '#64748b' }}>(opcional)</span>
+            Descripción e instrucciones combinadas <span style={{ fontWeight: 400, color: '#64748b' }}>(opcional)</span>
           </label>
           <textarea
             id="description"
-            rows={3}
+            rows={4}
             placeholder="Detalles sobre qué se debe hacer, instrucciones y contexto general..."
             value={form.description}
             onChange={(e) => update('description', e.target.value)}
