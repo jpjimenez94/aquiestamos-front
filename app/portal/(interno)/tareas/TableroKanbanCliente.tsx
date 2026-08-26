@@ -121,13 +121,7 @@ function Columna({ titulo, tareas, estado }: { titulo: string; tareas: Tarea[]; 
   )
 }
 
-export function TableroKanbanCliente({
-  tareasIniciales,
-  puedeCrear = false,
-}: {
-  tareasIniciales: Tarea[]
-  puedeCrear?: boolean
-}) {
+export function TableroKanbanCliente({ tareasIniciales }: { tareasIniciales: Tarea[] }) {
   const [busqueda, setBusqueda] = useState('')
   const [filtroArea, setFiltroArea] = useState('')
   const [filtroPrioridad, setFiltroPrioridad] = useState('')
@@ -224,30 +218,6 @@ export function TableroKanbanCliente({
             </button>
           )}
         </div>
-
-        {/* Botón rápido "+ Nueva tarea" dentro de la barra de acciones */}
-        {puedeCrear && (
-          <Link
-            href="/portal/tareas/nueva"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '9px 18px',
-              borderRadius: 9,
-              fontSize: '0.88rem',
-              fontWeight: 800,
-              background: '#059669',
-              color: '#ffffff',
-              textDecoration: 'none',
-              boxShadow: '0 2px 8px rgba(5,150,105,0.3)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <Plus size={16} strokeWidth={2.5} />
-            Nueva tarea
-          </Link>
-        )}
       </div>
 
       {/* Tablero Kanban */}

@@ -72,7 +72,7 @@ export default async function TareasPage() {
       ) : tareas.length === 0 ? (
         <Vacio>Todavía no hay tareas creadas. Crea la primera con el botón de arriba.</Vacio>
       ) : (
-        <TableroKanbanCliente tareasIniciales={tareas} puedeCrear={puedeCrear} />
+        <TableroKanbanCliente tareasIniciales={tareas} />
       )}
     </>
   )
