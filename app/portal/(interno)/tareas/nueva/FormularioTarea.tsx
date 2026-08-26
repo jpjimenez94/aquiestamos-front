@@ -87,11 +87,14 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busquedaVoluntario, setBusquedaVoluntario] = useState('')
-  const [ignorarFiltroDisponibilidad, setIgnorarFiltroDisponibilidad] = useState(false)
+  const [mostrarTodosPorExcepcion, setMostrarTodosPorExcepcion] = useState(false)
 
   function update(k: keyof typeof form, v: string) {
     setForm((f) => ({ ...f, [k]: v }))
     setErrors((e) => { const n = { ...e }; delete n[k]; return n })
+    if (k === 'dueDate' || k === 'startTime' || k === 'endTime' || k === 'area') {
+      setMostrarTodosPorExcepcion(false)
+    }
   }
 
   const diaSeleccionado = useMemo(() => {
@@ -105,7 +108,8 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
     return calcularFranjasRequeridas(form.startTime, form.endTime)
   }, [form.startTime, form.endTime])
 
-  // Filtrado ESTRICTO por día y franja horaria
+  // Filtrado ESTRICTO por día y franja horaria:
+  // Si la labor tiene fecha y horario, ÚNICAMENTE pasan los voluntarios que cumplen AMBAS condiciones.
   const voluntariosFiltrados = useMemo(() => {
     return colaboradoresDisponibles.filter((c) => {
       const matchArea = !form.area || c.area === form.area || form.area === 'OTRA'
@@ -116,13 +120,13 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
 
       if (!matchArea || !matchBusqueda) return false
 
-      if (!ignorarFiltroDisponibilidad) {
-        // Si hay día seleccionado, debe coincidir
+      if (!mostrarTodosPorExcepcion) {
+        // 1. Debe coincidir el día específico si se indicó fecha
         if (diaSeleccionado && (!c.availableDays || !c.availableDays.includes(diaSeleccionado))) {
           return false
         }
 
-        // Si hay horas/franja seleccionada, debe coincidir
+        // 2. Debe coincidir la franja horaria si se indicó horario
         if (franjasRequeridas.length > 0) {
           const tieneFranja = franjasRequeridas.some((f) => c.availableSlots?.includes(f))
           if (!tieneFranja) return false
@@ -131,7 +135,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
 
       return true
     })
-  }, [colaboradoresDisponibles, form.area, diaSeleccionado, franjasRequeridas, busquedaVoluntario, ignorarFiltroDisponibilidad])
+  }, [colaboradoresDisponibles, form.area, diaSeleccionado, franjasRequeridas, busquedaVoluntario, mostrarTodosPorExcepcion])
 
   function validar() {
     const e: Record<string, string> = {}
@@ -353,37 +357,23 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
             <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
               4. Asignar voluntario de una vez
             </p>
-            <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-              {hayRestriccionHorarioODia && !ignorarFiltroDisponibilidad
-                ? `Mostrando únicamente voluntarios con disponibilidad exacta para ${diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : ''} ${franjasRequeridas.length > 0 ? '(' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}:`
-                : 'Mostrando voluntarios registrados para esta área:'}
+            <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#475569' }}>
+              {hayRestriccionHorarioODia && !mostrarTodosPorExcepcion
+                ? `Mostrando únicamente voluntarios disponibles para ${diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : ''} ${franjasRequeridas.length > 0 ? '(' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}:`
+                : mostrarTodosPorExcepcion
+                ? '⚠️ Mostrando todos los voluntarios del área (asignación por excepción):'
+                : 'Voluntarios registrados para esta área:'}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {hayRestriccionHorarioODia && (
-              <button
-                type="button"
-                onClick={() => setIgnorarFiltroDisponibilidad(!ignorarFiltroDisponibilidad)}
-                style={{
-                  fontSize: '0.76rem', padding: '4px 9px', borderRadius: 6, cursor: 'pointer', fontWeight: 600,
-                  border: '1px solid ' + (ignorarFiltroDisponibilidad ? '#059669' : '#cbd5e1'),
-                  background: ignorarFiltroDisponibilidad ? '#ecfdf5' : '#f8fafc',
-                  color: ignorarFiltroDisponibilidad ? '#065f46' : '#475569',
-                }}
-              >
-                {ignorarFiltroDisponibilidad ? '✓ Filtro estricto desactivado' : 'Desactivar filtro de horario'}
-              </button>
-            )}
-            {form.collaboratorId && (
-              <button
-                type="button"
-                onClick={() => update('collaboratorId', '')}
-                style={{ fontSize: '0.78rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-              >
-                Descartar selección
-              </button>
-            )}
-          </div>
+          {form.collaboratorId && (
+            <button
+              type="button"
+              onClick={() => update('collaboratorId', '')}
+              style={{ fontSize: '0.78rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+            >
+              Descartar selección
+            </button>
+          )}
         </div>
 
         <div style={{ position: 'relative' }}>
@@ -401,14 +391,14 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
           <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '16px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
             <AlertCircle size={22} color="#d97706" />
             <p style={{ fontSize: '0.86rem', color: '#92400e', margin: 0, fontWeight: 600 }}>
-              No hay voluntarios disponibles para {diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : 'este día'}{franjasRequeridas.length > 0 ? ' en la franja seleccionada' : ''}.
+              No hay voluntarios disponibles para {diaSeleccionado ? DIA_LEGIBLE[diaSeleccionado] : 'este día'}{franjasRequeridas.length > 0 ? ' en la franja seleccionada (' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}.
             </p>
             <button
               type="button"
-              onClick={() => setIgnorarFiltroDisponibilidad(true)}
+              onClick={() => setMostrarTodosPorExcepcion(true)}
               style={{ fontSize: '0.8rem', fontWeight: 700, padding: '6px 14px', borderRadius: 6, background: '#059669', color: '#fff', border: 'none', cursor: 'pointer' }}
             >
-              Ver todos los voluntarios del área de todas formas
+              Mostrar voluntarios del área de todas formas (por excepción)
             </button>
           </div>
         ) : (

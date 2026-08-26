@@ -744,23 +744,9 @@ export function PanelDetalleTarea({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
               <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569' }}>
                 {diaSemana || franjasRequeridas.length > 0
-                  ? (ignorarFiltroReasignar ? 'Mostrando todos los voluntarios del área:' : `Filtrando por disponibilidad para ${diaSemana ? DIA_LEGIBLE[diaSemana] : ''} ${franjasRequeridas.length > 0 ? '(' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}:`)
+                  ? (ignorarFiltroReasignar ? '⚠️ Mostrando todos los voluntarios del área (por excepción):' : `Mostrando únicamente voluntarios disponibles para ${diaSemana ? DIA_LEGIBLE[diaSemana] : ''} ${franjasRequeridas.length > 0 ? '(' + franjasRequeridas.map(f => FRANJA_LEGIBLE[f] ?? f).join(', ') + ')' : ''}:`)
                   : 'Voluntarios disponibles:'}
               </p>
-              {(diaSemana || franjasRequeridas.length > 0) && (
-                <button
-                  type="button"
-                  onClick={() => setIgnorarFiltroReasignar(!ignorarFiltroReasignar)}
-                  style={{
-                    fontSize: '0.74rem', padding: '3px 8px', borderRadius: 5, cursor: 'pointer', fontWeight: 600,
-                    border: '1px solid ' + (ignorarFiltroReasignar ? '#1d4ed8' : '#cbd5e1'),
-                    background: ignorarFiltroReasignar ? '#eff6ff' : '#fff',
-                    color: ignorarFiltroReasignar ? '#1e40af' : '#475569',
-                  }}
-                >
-                  {ignorarFiltroReasignar ? '✓ Filtro de horario desactivado' : 'Desactivar filtro de horario'}
-                </button>
-              )}
             </div>
 
             <div style={{ position: 'relative' }}>
