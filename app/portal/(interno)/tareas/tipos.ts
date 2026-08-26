@@ -70,7 +70,7 @@ export const STATUS_ASIGNACION_COLOR: Record<AsignacionStatus, { bg: string; col
   RECHAZADO: { bg: '#fef2f2', color: '#dc2626' },
   EN_PROGRESO: { bg: '#fffbeb', color: '#d97706' },
   COMPLETADO: { bg: '#ecfdf5', color: '#059669' },
-  NO_RESPONDIO: { bg: '#f8fafc', color: '#94a3b8' },
+  NO_RESPONDIO: { bg: '#fef2f2', color: '#dc2626' },
 }
 
 export const PRIORITY_COLOR: Record<TareaPriority, { bg: string; color: string }> = {
@@ -99,11 +99,11 @@ export const FRANJA_LEGIBLE: Record<string, string> = {
 
 export const STATUS_ASIGNACION_TEXTO: Record<AsignacionStatus, string> = {
   INVITADO: 'Invitado (pendiente respuesta)',
-  ACEPTADO: 'Aceptó apoyar',
-  RECHAZADO: 'No puede / Rechazó',
-  EN_PROGRESO: 'En progreso',
-  COMPLETADO: 'Completado',
-  NO_RESPONDIO: 'Sin respuesta',
+  ACEPTADO: 'Aceptado (por iniciar)',
+  RECHAZADO: 'Rechazó / No puede',
+  EN_PROGRESO: 'Aceptada · En progreso',
+  COMPLETADO: 'Completado con éxito',
+  NO_RESPONDIO: 'Incumplida / Sin respuesta',
 }
 
 export const STATUS_TAREA_OPCIONES: { value: TareaStatus; label: string }[] = [
