@@ -9,7 +9,7 @@ export default async function NuevaTareaPage() {
   const usuario = await usuarioActual()
   if (!usuario || !puede(usuario, 'tarea:crear')) notFound()
 
-  const respuestaColabs = await portalFetch<any[]>('/collaborators?all=true')
+  const respuestaColabs = await portalFetch<any[]>('/collaborators?all=true&status=ACTIVO')
   const colaboradores = respuestaColabs.data ?? []
 
   return (

@@ -16,7 +16,7 @@ export default async function DetalleTareaPage({ params }: { params: Promise<{ i
 
   const [respuestaTarea, respuestaColabs] = await Promise.all([
     portalFetch<Tarea>('/tasks/' + id),
-    portalFetch<any[]>('/collaborators?all=true'),
+    portalFetch<any[]>('/collaborators?all=true&status=ACTIVO'),
   ])
 
   if (!respuestaTarea.success || !respuestaTarea.data) notFound()

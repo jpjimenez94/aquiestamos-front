@@ -30,6 +30,7 @@ type Colab = {
   availableSlots: string[]
   email: string
   phone: string
+  status?: string
 }
 
 function calcularFranjasRequeridas(startTime?: string, endTime?: string): string[] {
@@ -112,13 +113,14 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
   // Si la labor tiene fecha y horario, ÚNICAMENTE pasan los voluntarios que cumplen AMBAS condiciones.
   const voluntariosFiltrados = useMemo(() => {
     return colaboradoresDisponibles.filter((c) => {
+      const matchActivo = !c.status || c.status === 'ACTIVO'
       const matchArea = !form.area || c.area === form.area || form.area === 'OTRA'
       const matchBusqueda =
         !busquedaVoluntario ||
         c.fullName.toLowerCase().includes(busquedaVoluntario.toLowerCase()) ||
         c.discipline.toLowerCase().includes(busquedaVoluntario.toLowerCase())
 
-      if (!matchArea || !matchBusqueda) return false
+      if (!matchActivo || !matchArea || !matchBusqueda) return false
 
       if (!mostrarTodosPorExcepcion) {
         // 1. Debe coincidir el día específico si se indicó fecha
