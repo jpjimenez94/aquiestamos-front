@@ -4,7 +4,8 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   UserPlus, Trash2, CheckCircle2, XCircle, Clock, RefreshCw,
-  Edit3, MessageSquarePlus, ArrowRightLeft, Check, Search, X
+  Edit3, MessageSquarePlus, ArrowRightLeft, Check, Search, X,
+  ExternalLink, MessageCircle, Link2, CheckCheck
 } from 'lucide-react'
 import type { Tarea, Asignacion, AsignacionStatus, TareaStatus, TareaPriority } from '../tipos'
 import {
@@ -53,7 +54,7 @@ export function PanelDetalleTarea({
   const router = useRouter()
   const [tarea, setTarea] = useState(tareaInicial)
 
-  // Modales y estados
+  // Modales
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false)
   const [mostrarModalReasignar, setMostrarModalReasignar] = useState(false)
   const [mostrarFormNota, setMostrarFormNota] = useState(false)
@@ -65,6 +66,7 @@ export function PanelDetalleTarea({
     dueDate: tarea.dueDate ?? '',
     startTime: tarea.startTime ?? '',
     endTime: tarea.endTime ?? '',
+    materialsUrl: tarea.materialsUrl ?? '',
     priority: tarea.priority,
     notes: tarea.notes ?? '',
   })
@@ -91,6 +93,7 @@ export function PanelDetalleTarea({
         dueDate: data.data.dueDate ?? '',
         startTime: data.data.startTime ?? '',
         endTime: data.data.endTime ?? '',
+        materialsUrl: data.data.materialsUrl ?? '',
         priority: data.data.priority,
         notes: data.data.notes ?? '',
       })
@@ -112,6 +115,7 @@ export function PanelDetalleTarea({
           dueDate: formEdit.dueDate || null,
           startTime: formEdit.startTime || null,
           endTime: formEdit.endTime || null,
+          materialsUrl: formEdit.materialsUrl.trim() || null,
           priority: formEdit.priority,
           notes: formEdit.notes.trim() || null,
         }),
@@ -205,17 +209,34 @@ export function PanelDetalleTarea({
     finally { setLoadingAction(null) }
   }
 
+  // Generar link de WhatsApp directo
+  function abrirWhatsApp(colab: ColabSimple, token?: string) {
+    const digitos = colab.phone.replace(/\D/g, '')
+    const telefono = digitos.length === 10 ? '57' + digitos : digitos
+    const primerNombre = colab.fullName.split(' ')[0] ?? colab.fullName
+    const linkConfirmacion = token ? 'https://www.redaquiestamos.org/turno/' + token : ''
+
+    const mensaje = [
+      `Hola ${primerNombre}, ¡esperamos que estés muy bien!`,
+      `Desde la Red Aquí Estamos te invitamos a apoyarnos con la siguiente labor: *${tarea.title}*.`,
+      tarea.dueDate ? `📅 Fecha: ${new Date(tarea.dueDate + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}` : null,
+      tarea.startTime ? `⏰ Horario: ${tarea.startTime}${tarea.endTime ? ' a ' + tarea.endTime : ''}` : null,
+      linkConfirmacion ? `\nPuedes ver todos los detalles y confirmar tu turno directamente aquí:\n${linkConfirmacion}` : null,
+      `\n¡Muchas gracias por tu compromiso!`,
+    ].filter(Boolean).join('\n')
+
+    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank')
+  }
+
   const coloresStatus = STATUS_TAREA_COLOR[tarea.status] ?? STATUS_TAREA_COLOR.BORRADOR
   const coloresPriority = PRIORITY_COLOR[tarea.priority] ?? PRIORITY_COLOR.MEDIA
 
-  // Día de la semana para sugerencias
   const diaSemana = useMemo(() => {
     if (!tarea.dueDate) return null
     const [y, m, d] = tarea.dueDate.split('-').map(Number)
     return DIA_SEMANA_MAP[new Date(y, m - 1, d).getDay()] ?? null
   }, [tarea.dueDate])
 
-  // Voluntarios sugeridos para reasignar
   const voluntariosParaReasignar = useMemo(() => {
     return colaboradoresDisponibles
       .filter((c) => {
@@ -237,7 +258,7 @@ export function PanelDetalleTarea({
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'flex-start' }}>
       {/* Columna Izquierda: Información Principal y Operaciones */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* Barra superior de Estado y Acciones Rápidas */}
+        {/* Barra superior de Estado y Acciones */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, padding: '4px 10px', borderRadius: 6, background: coloresStatus.bg, color: coloresStatus.color, border: '1px solid ' + coloresStatus.border }}>
@@ -294,6 +315,27 @@ export function PanelDetalleTarea({
           </div>
         )}
 
+        {/* Enlace de Materiales / Drive */}
+        {tarea.materialsUrl && (
+          <div style={{ background: '#ecfdf5', borderRadius: 10, padding: '12px 16px', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link2 size={16} color="#059669" />
+              <span style={{ fontSize: '0.88rem', color: '#065f46', fontWeight: 600 }}>
+                Recursos / Materiales de trabajo adjuntos
+              </span>
+            </div>
+            <a
+              href={tarea.materialsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 6, background: '#059669', color: '#fff', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}
+            >
+              Abrir carpeta / Drive
+              <ExternalLink size={12} />
+            </a>
+          </div>
+        )}
+
         {/* Descripción */}
         {tarea.description && (
           <div style={{ background: '#fff', borderRadius: 10, padding: '14px 16px', border: '1px solid #e2e8f0' }}>
@@ -330,7 +372,6 @@ export function PanelDetalleTarea({
             </p>
           )}
 
-          {/* Formulario rápido para agregar nota */}
           {mostrarFormNota && (
             <form onSubmit={agregarNotaRapida} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
               <textarea
@@ -382,7 +423,7 @@ export function PanelDetalleTarea({
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {(tarea.assignments ?? []).map((a) => {
                 const ca = STATUS_ASIGNACION_COLOR[a.status] ?? { bg: '#f1f5f9', color: '#475569' }
                 return (
@@ -397,6 +438,27 @@ export function PanelDetalleTarea({
                       </span>
                     </div>
 
+                    {/* Reporte de entrega del voluntario si ya completó */}
+                    {(a.completionUrl || a.completionNote) && (
+                      <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '10px 12px', border: '1px solid #a7f3d0', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#065f46', fontWeight: 700, fontSize: '0.82rem' }}>
+                          <CheckCheck size={15} color="#059669" />
+                          <span>Entrega realizada por el voluntario:</span>
+                        </div>
+                        {a.completionNote && <p style={{ fontSize: '0.86rem', color: '#065f46', margin: 0 }}>{a.completionNote}</p>}
+                        {a.completionUrl && (
+                          <a
+                            href={a.completionUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#047857', fontWeight: 700, fontSize: '0.82rem', textDecoration: 'underline' }}
+                          >
+                            Ver enlace de entrega / Drive <ExternalLink size={12} />
+                          </a>
+                        )}
+                      </div>
+                    )}
+
                     {a.note && (
                       <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, background: '#f8fafc', padding: '6px 10px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
                         <strong>Nota de invitación:</strong> {a.note}
@@ -407,14 +469,25 @@ export function PanelDetalleTarea({
                         <strong>Motivo de rechazo:</strong> {a.declineReason}
                       </p>
                     )}
-                    {a.respondedAt && (
-                      <p style={{ fontSize: '0.74rem', color: '#94a3b8', margin: 0 }}>
-                        Respondió el {new Date(a.respondedAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    )}
 
                     {puedeAsignar && (
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4, alignItems: 'center' }}>
+                        {/* Botón WhatsApp directo */}
+                        {a.collaborator?.phone && (
+                          <button
+                            type="button"
+                            onClick={() => abrirWhatsApp(a.collaborator!, a.confirmToken)}
+                            style={{
+                              padding: '5px 12px', borderRadius: 7, fontSize: '0.78rem', fontWeight: 700,
+                              border: '1.5px solid #22c55e', background: '#f0fdf4', color: '#15803d',
+                              cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5,
+                            }}
+                          >
+                            <MessageCircle size={13} />
+                            Enviar por WhatsApp
+                          </button>
+                        )}
+
                         {a.status === 'ACEPTADO' && (
                           <button onClick={() => cambiarEstadoAsignacion(a.id, 'EN_PROGRESO')} style={{ padding: '5px 12px', borderRadius: 7, fontSize: '0.78rem', fontWeight: 700, border: '1.5px solid #fde68a', background: '#fffbeb', color: '#d97706', cursor: 'pointer' }}>
                             Marcar En progreso
@@ -430,7 +503,7 @@ export function PanelDetalleTarea({
                           style={{ padding: '5px 12px', borderRadius: 7, fontSize: '0.78rem', fontWeight: 700, border: '1.5px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >
                           <ArrowRightLeft size={12} />
-                          Reasignar a otro
+                          Reasignar
                         </button>
                         <button onClick={() => quitarAsignacion(a.id)} style={{ padding: '5px 10px', borderRadius: 7, fontSize: '0.78rem', fontWeight: 700, border: '1.5px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <Trash2 size={12} />
@@ -476,7 +549,6 @@ export function PanelDetalleTarea({
 
           <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '4px 0' }} />
 
-          {/* Cambiar estado de la tarea */}
           {puedeEditar && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', margin: 0 }}>Cambiar estado:</p>
@@ -504,7 +576,7 @@ export function PanelDetalleTarea({
         </div>
       </div>
 
-      {/* ── Modal: Realizar Modificaciones ── */}
+      {/* Modal: Realizar Modificaciones */}
       {mostrarModalEditar && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, maxWidth: 600, width: '100%', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -531,6 +603,17 @@ export function PanelDetalleTarea({
                   value={formEdit.description}
                   onChange={(e) => setFormEdit({ ...formEdit, description: e.target.value })}
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: '0.9rem', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label style={{ fontSize: '0.84rem', fontWeight: 700 }}>Enlace de materiales / Google Drive / Plantilla</label>
+                <input
+                  type="url"
+                  placeholder="https://drive.google.com/..."
+                  value={formEdit.materialsUrl}
+                  onChange={(e) => setFormEdit({ ...formEdit, materialsUrl: e.target.value })}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: '0.9rem' }}
                 />
               </div>
 
@@ -599,7 +682,7 @@ export function PanelDetalleTarea({
         </div>
       )}
 
-      {/* ── Modal: Reasignar Tarea ── */}
+      {/* Modal: Reasignar Tarea */}
       {mostrarModalReasignar && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, maxWidth: 640, width: '100%', padding: '24px', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -664,7 +747,7 @@ export function PanelDetalleTarea({
                 </label>
                 <input
                   type="text"
-                  placeholder="Ej: Te reasignamos esta tarea con fecha límite para esta semana."
+                  placeholder="Ej: Te reasignamos esta labor con fecha límite para esta semana."
                   value={notaReasignar}
                   onChange={(e) => setNotaReasignar(e.target.value)}
                   style={{ padding: '8px 12px', borderRadius: 8, fontSize: '0.86rem', border: '1.5px solid #e2e8f0', outline: 'none' }}

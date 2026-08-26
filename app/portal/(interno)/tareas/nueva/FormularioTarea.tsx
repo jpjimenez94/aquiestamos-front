@@ -2,7 +2,7 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, ArrowLeft, Clock, UserCheck, Calendar, Sparkles, Check, Search } from 'lucide-react'
+import { Send, ArrowLeft, Clock, UserCheck, Calendar, Sparkles, Check, Search, FolderGit2, Link2 } from 'lucide-react'
 import Link from 'next/link'
 import { DIA_LEGIBLE, FRANJA_LEGIBLE, DIA_SEMANA_MAP } from '../tipos'
 
@@ -41,6 +41,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
     dueDate: '',
     startTime: '',
     endTime: '',
+    materialsUrl: '',
     priority: 'MEDIA',
     notes: '',
     collaboratorId: '',
@@ -56,7 +57,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
     setErrors((e) => { const n = { ...e }; delete n[k]; return n })
   }
 
-  // Día de la semana de la fecha seleccionada
   const diaSeleccionado = useMemo(() => {
     if (!form.dueDate) return null
     const [y, m, d] = form.dueDate.split('-').map(Number)
@@ -64,7 +64,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
     return DIA_SEMANA_MAP[fecha.getDay()] ?? null
   }, [form.dueDate])
 
-  // Filtrado y ordenamiento inteligente de voluntarios por disponibilidad
   const voluntariosOrdenados = useMemo(() => {
     return colaboradoresDisponibles
       .filter((c) => {
@@ -115,6 +114,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
           dueDate: form.dueDate || null,
           startTime: form.startTime || null,
           endTime: form.endTime || null,
+          materialsUrl: form.materialsUrl.trim() || null,
           priority: form.priority,
           notes: form.notes.trim() || null,
           collaboratorId: form.collaboratorId || null,
@@ -162,10 +162,10 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
         {errors.area && <span style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 600 }}>{errors.area}</span>}
       </div>
 
-      {/* 2. Título y Descripción */}
+      {/* 2. Título, Descripción y Link de Materiales */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label htmlFor="title" style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>2. Título de la tarea *</label>
+          <label htmlFor="title" style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>2. Título de la labor *</label>
           <input
             id="title"
             type="text"
@@ -188,12 +188,31 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
           <textarea
             id="description"
             rows={3}
-            placeholder="Detalles sobre qué se debe hacer, objetivos o enlaces de interés..."
+            placeholder="Detalles sobre qué se debe hacer, instrucciones y contexto general..."
             value={form.description}
             onChange={(e) => update('description', e.target.value)}
             style={{
               padding: '10px 14px', borderRadius: 9, fontSize: '0.9rem', resize: 'vertical',
               border: '1.5px solid #e2e8f0', outline: 'none', color: '#1e293b', lineHeight: 1.5,
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label htmlFor="materialsUrl" style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Link2 size={15} color="#059669" />
+            Enlace de materiales / Google Drive / Plantilla
+            <span style={{ fontWeight: 400, color: '#64748b' }}>(solo visible tras aceptar)</span>
+          </label>
+          <input
+            id="materialsUrl"
+            type="url"
+            placeholder="https://drive.google.com/drive/folders/... o similar"
+            value={form.materialsUrl}
+            onChange={(e) => update('materialsUrl', e.target.value)}
+            style={{
+              padding: '10px 14px', borderRadius: 9, fontSize: '0.9rem',
+              border: '1.5px solid #e2e8f0', outline: 'none', color: '#1e293b',
             }}
           />
         </div>
@@ -204,7 +223,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
         <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>3. Fecha, Horario y Prioridad</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 14 }}>
-          {/* Fecha límite */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label htmlFor="dueDate" style={{ fontSize: '0.84rem', fontWeight: 700, color: '#475569' }}>
               Fecha límite / Día
@@ -224,7 +242,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
             )}
           </div>
 
-          {/* Hora inicio */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label htmlFor="startTime" style={{ fontSize: '0.84rem', fontWeight: 700, color: '#475569' }}>
               Hora inicio
@@ -238,7 +255,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
             />
           </div>
 
-          {/* Hora fin */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label htmlFor="endTime" style={{ fontSize: '0.84rem', fontWeight: 700, color: '#475569' }}>
               Hora fin
@@ -257,7 +273,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
             {errors.endTime && <span style={{ fontSize: '0.74rem', color: '#dc2626', fontWeight: 600 }}>{errors.endTime}</span>}
           </div>
 
-          {/* Prioridad */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label htmlFor="priority" style={{ fontSize: '0.84rem', fontWeight: 700, color: '#475569' }}>
               Prioridad
@@ -274,7 +289,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
         </div>
       </div>
 
-      {/* 4. Asignación inmediata de Voluntario según Disponibilidad */}
+      {/* 4. Asignación directa de Voluntario */}
       <div style={{ background: '#fff', border: '2px solid #e2e8f0', borderRadius: 12, padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
@@ -298,7 +313,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
           )}
         </div>
 
-        {/* Buscador de voluntarios */}
         <div style={{ position: 'relative' }}>
           <Search size={15} style={{ position: 'absolute', left: 12, top: 12, color: '#94a3b8' }} />
           <input
@@ -361,7 +375,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
           </div>
         )}
 
-        {/* Nota personalizada de invitación si seleccionó a alguien */}
         {form.collaboratorId && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4, background: '#ecfdf5', padding: '12px 14px', borderRadius: 8, border: '1px solid #a7f3d0' }}>
             <label htmlFor="assignmentNote" style={{ fontSize: '0.84rem', fontWeight: 700, color: '#065f46' }}>
@@ -379,7 +392,7 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
         )}
       </div>
 
-      {/* 5. Notas internas confidenciales */}
+      {/* 5. Notas internas */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <label htmlFor="notes" style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>
           5. Notas internas de coordinación <span style={{ fontWeight: 400, color: '#64748b' }}>(solo visibles en el portal)</span>
@@ -399,7 +412,6 @@ export function FormularioTarea({ colaboradoresDisponibles }: { colaboradoresDis
 
       {error && <p style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: '0.86rem' }}>{error}</p>}
 
-      {/* Botones de acción */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, gap: 12, flexWrap: 'wrap' }}>
         <Link href="/portal/tareas" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.86rem', color: '#64748b', textDecoration: 'none' }}>
           <ArrowLeft size={15} />

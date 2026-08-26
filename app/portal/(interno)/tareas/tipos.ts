@@ -25,8 +25,11 @@ export type Asignacion = {
   id: string
   status: AsignacionStatus
   note: string | null
+  confirmToken?: string
   respondedAt: string | null
   declineReason: string | null
+  completionUrl?: string | null
+  completionNote?: string | null
   createdAt: string
   collaborator?: ColaboradorResumen
 }
@@ -40,6 +43,7 @@ export type Tarea = {
   dueDate: string | null
   startTime: string | null
   endTime: string | null
+  materialsUrl: string | null
   priority: TareaPriority
   priorityLegible: string
   status: TareaStatus

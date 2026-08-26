@@ -24,6 +24,8 @@ export type Colaborador = {
   availableSlots: string[]
   weeklyHours: string | null
   status: string
+  totalAssignments?: number
+  completedAssignments?: number
   createdAt: string
 }
 
@@ -430,7 +432,14 @@ export function TablaColaboradores({ colaboradores }: { colaboradores: Colaborad
               listaPaginada.map((c) => (
                 <tr key={c.id}>
                   <td>
-                    <span className="tabla__principal">{nombrePropio(c.fullName)}</span>
+                    <span className="tabla__principal" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      {nombrePropio(c.fullName)}
+                      {c.completedAssignments && c.completedAssignments > 0 ? (
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: '#ecfdf5', color: '#059669' }}>
+                          ✨ {c.completedAssignments} {c.completedAssignments === 1 ? 'labor' : 'labores'}
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="tabla__secundario">
                       {c.phone} · {c.email}
                     </span>
