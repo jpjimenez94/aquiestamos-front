@@ -1,25 +1,29 @@
-"use client"
+'use client'
 
 import { useState, useEffect, useRef } from "react"
 import {
   MessageSquare,
   Mail,
   Sliders,
+  Save,
+  RotateCcw,
   Copy,
   Check,
-  RotateCcw,
-  Save,
   Search,
   Sparkles,
-  Smartphone,
-  ChevronRight,
+  AlertCircle,
+  HelpCircle,
+  Info,
+  User,
+  Stethoscope,
+  Users,
 } from "lucide-react"
-import { Cabecera } from '../componentes'
-import type { Usuario } from "@/lib/portal"
+import { Cabecera } from "../componentes"
+import { Usuario } from "@/lib/portal"
 
-export type SettingCategory = "MENSAJE_WHATSAPP" | "PLANTILLA_CORREO" | "PARAMETRO_GENERAL"
+type SettingCategory = "MENSAJE_WHATSAPP" | "PLANTILLA_CORREO" | "PARAMETRO_GENERAL"
 
-export interface SystemSetting {
+type SystemSetting = {
   id: string
   key: string
   category: SettingCategory
@@ -40,7 +44,7 @@ const VALORES_EJEMPLO: Record<string, string> = {
   cuando: "28/08/2026, 9:00 a. m.",
   cuandoAnterior: "28/08/2026, 9:00 a. m.",
   modalidad: "virtual",
-  ciudad: "Pereira (Risaralda)",
+  ciudad: "Buenaventura (Valle del Cauca)",
   prioridad: "Media",
   urgencia: "Te pedimos responder en los próximos días.",
   horarios: "jueves en la noche (de 6:00 p. m. a 9:00 p. m.)",
@@ -64,8 +68,35 @@ const VALORES_EJEMPLO: Record<string, string> = {
   dificultades: "Ninguna",
 }
 
+export function obtenerAudienciaWhatsapp(key: string): "PACIENTE" | "PROFESIONAL" | "COMUNIDAD" {
+  if (
+    key === "WHATSAPP_TAMIZAJE" ||
+    key === "WHATSAPP_CUADRAR_HORARIO_PERSONA" ||
+    key === "WHATSAPP_CONFIRMAR_CITA_PERSONA" ||
+    key === "WHATSAPP_CONSENTIMIENTO" ||
+    key === "WHATSAPP_CONSENTIMIENTO_FIRMADO" ||
+    key === "WHATSAPP_RECORDATORIO_PREVIO_PERSONA" ||
+    key === "WHATSAPP_REAGENDAMIENTO_EXCUSAS" ||
+    key === "WHATSAPP_FEEDBACK_PERSONA"
+  ) {
+    return "PACIENTE"
+  }
+  if (
+    key === "WHATSAPP_PROPUESTA_PROFESIONAL" ||
+    key === "WHATSAPP_DESPACHO_PROFESIONAL" ||
+    key === "WHATSAPP_SIGUIENTE_CITA_PROFESIONAL" ||
+    key === "WHATSAPP_RECORDATORIO_PREVIO" ||
+    key === "WHATSAPP_REAGENDAMIENTO_PEDIR_DISP" ||
+    key === "WHATSAPP_PEDIR_DOCUMENTOS"
+  ) {
+    return "PROFESIONAL"
+  }
+  return "COMUNIDAD"
+}
+
 export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
   const [categoriaActiva, setCategoriaActiva] = useState<SettingCategory>("MENSAJE_WHATSAPP")
+  const [subFiltroWhatsapp, setSubFiltroWhatsapp] = useState<"TODOS" | "PACIENTE" | "PROFESIONAL" | "COMUNIDAD">("TODOS")
   const [configuraciones, setConfiguraciones] = useState<SystemSetting[]>([])
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
@@ -98,7 +129,7 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
           setValorEnEdicion(primero.value)
         }
       }
-    } catch (err) {
+    } catch {
       setMensajeError("No se pudieron cargar las configuraciones del servidor.")
     } finally {
       setCargando(false)
@@ -115,10 +146,10 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
 
   function cambiarCategoria(cat: SettingCategory) {
     setCategoriaActiva(cat)
-    const primerItem = configuraciones.find((s) => s.category === cat)
-    if (primerItem) {
-      setClaveSeleccionada(primerItem.key)
-      setValorEnEdicion(primerItem.value)
+    const itemsDeCategoria = configuraciones.filter((s) => s.category === cat)
+    if (itemsDeCategoria.length > 0) {
+      setClaveSeleccionada(itemsDeCategoria[0].key)
+      setValorEnEdicion(itemsDeCategoria[0].value)
     }
   }
 
@@ -138,12 +169,12 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
     setTimeout(() => {
       textarea.focus()
       textarea.setSelectionRange(start + textoVariable.length, start + textoVariable.length)
-    }, 50)
+    }, 10)
   }
 
-  function renderizarTexto(plantilla: string): string {
-    if (!plantilla) return ""
-    return plantilla.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, variable) => {
+  function renderizarVistaPrevia(texto: string): string {
+    if (!texto) return ""
+    return texto.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, variable) => {
       return simulacionVariables[variable] !== undefined ? simulacionVariables[variable] : match
     })
   }
@@ -171,7 +202,7 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
       } else {
         setMensajeError(data.message || "Error al guardar configuración.")
       }
-    } catch (err) {
+    } catch {
       setMensajeError("Error de conexión al guardar.")
     } finally {
       setGuardando(false)
@@ -202,7 +233,7 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
       } else {
         setMensajeError(data.message || "Error al restablecer.")
       }
-    } catch (err) {
+    } catch {
       setMensajeError("Error de conexión al restablecer.")
     } finally {
       setGuardando(false)
@@ -222,7 +253,13 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
       item.name.toLowerCase().includes(busqueda.toLowerCase()) ||
       item.key.toLowerCase().includes(busqueda.toLowerCase()) ||
       (item.description && item.description.toLowerCase().includes(busqueda.toLowerCase()))
-    return coincideCategoria && coincideBusqueda
+
+    let coincideSubFiltro = true
+    if (categoriaActiva === "MENSAJE_WHATSAPP" && subFiltroWhatsapp !== "TODOS") {
+      coincideSubFiltro = obtenerAudienciaWhatsapp(item.key) === subFiltroWhatsapp
+    }
+
+    return coincideCategoria && coincideBusqueda && coincideSubFiltro
   })
 
   return (
@@ -232,7 +269,8 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
         descripcion="Personaliza los mensajes de WhatsApp, plantillas de correo y parámetros operativos de la red."
       />
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, borderBottom: "1px solid var(--color-border-default)", paddingBottom: 8 }}>
+      {/* Categorías Principales */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, borderBottom: "1px solid var(--color-border-default)", paddingBottom: 8, flexWrap: "wrap" }}>
         <button
           type="button"
           onClick={() => cambiarCategoria("MENSAJE_WHATSAPP")}
@@ -299,144 +337,268 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
           }}
         >
           <Sliders size={16} />
-          Parámetros del Sistema
+          Parámetros Operativos
           <span style={{ fontSize: "0.75rem", padding: "2px 7px", borderRadius: 10, background: categoriaActiva === "PARAMETRO_GENERAL" ? "#ffffff33" : "#e2e8f0", fontWeight: 700 }}>
             {configuraciones.filter((s) => s.category === "PARAMETRO_GENERAL").length}
           </span>
         </button>
       </div>
 
+      {/* Sub-Pestañas para Separar Mensajes de Paciente y Profesional */}
+      {categoriaActiva === "MENSAJE_WHATSAPP" && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={() => setSubFiltroWhatsapp("TODOS")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "6px 14px",
+              borderRadius: 20,
+              border: subFiltroWhatsapp === "TODOS" ? "2px solid #059669" : "1px solid #cbd5e1",
+              background: subFiltroWhatsapp === "TODOS" ? "#ecfdf5" : "#fff",
+              color: subFiltroWhatsapp === "TODOS" ? "#065f46" : "#475569",
+              fontWeight: 700,
+              fontSize: "0.82rem",
+              cursor: "pointer",
+            }}
+          >
+            <Users size={14} />
+            Todos los Mensajes ({configuraciones.filter((s) => s.category === "MENSAJE_WHATSAPP").length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubFiltroWhatsapp("PACIENTE")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "6px 14px",
+              borderRadius: 20,
+              border: subFiltroWhatsapp === "PACIENTE" ? "2px solid #059669" : "1px solid #cbd5e1",
+              background: subFiltroWhatsapp === "PACIENTE" ? "#ecfdf5" : "#fff",
+              color: subFiltroWhatsapp === "PACIENTE" ? "#065f46" : "#475569",
+              fontWeight: 700,
+              fontSize: "0.82rem",
+              cursor: "pointer",
+            }}
+          >
+            <User size={14} style={{ color: "#059669" }} />
+            Para la Persona Acompañada / Paciente ({configuraciones.filter((s) => s.category === "MENSAJE_WHATSAPP" && obtenerAudienciaWhatsapp(s.key) === "PACIENTE").length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubFiltroWhatsapp("PROFESIONAL")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "6px 14px",
+              borderRadius: 20,
+              border: subFiltroWhatsapp === "PROFESIONAL" ? "2px solid #0284c7" : "1px solid #cbd5e1",
+              background: subFiltroWhatsapp === "PROFESIONAL" ? "#f0f9ff" : "#fff",
+              color: subFiltroWhatsapp === "PROFESIONAL" ? "#0369a1" : "#475569",
+              fontWeight: 700,
+              fontSize: "0.82rem",
+              cursor: "pointer",
+            }}
+          >
+            <Stethoscope size={14} style={{ color: "#0284c7" }} />
+            Para el Profesional / Psicólogo ({configuraciones.filter((s) => s.category === "MENSAJE_WHATSAPP" && obtenerAudienciaWhatsapp(s.key) === "PROFESIONAL").length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubFiltroWhatsapp("COMUNIDAD")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "6px 14px",
+              borderRadius: 20,
+              border: subFiltroWhatsapp === "COMUNIDAD" ? "2px solid #d97706" : "1px solid #cbd5e1",
+              background: subFiltroWhatsapp === "COMUNIDAD" ? "#fef3c7" : "#fff",
+              color: subFiltroWhatsapp === "COMUNIDAD" ? "#92400e" : "#475569",
+              fontWeight: 700,
+              fontSize: "0.82rem",
+              cursor: "pointer",
+            }}
+          >
+            <Sparkles size={14} style={{ color: "#d97706" }} />
+            Comunidad ({configuraciones.filter((s) => s.category === "MENSAJE_WHATSAPP" && obtenerAudienciaWhatsapp(s.key) === "COMUNIDAD").length})
+          </button>
+        </div>
+      )}
+
       {mensajeExito && (
-        <div style={{ padding: "10px 14px", borderRadius: 8, background: "#ecfdf5", border: "1px solid #6ee7b7", color: "#065f46", marginBottom: 16, fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 8 }}>
-          <Check size={18} />
+        <div className="aviso-portal" data-tono="verde" style={{ marginBottom: 16 }}>
+          <Check size={16} />
           {mensajeExito}
         </div>
       )}
 
       {mensajeError && (
-        <div style={{ padding: "10px 14px", borderRadius: 8, background: "#fef2f2", border: "1px solid #fca5a5", color: "#991b1b", marginBottom: 16, fontSize: "0.88rem" }}>
+        <div className="aviso-portal" data-tono="rojo" style={{ marginBottom: 16 }}>
+          <AlertCircle size={16} />
           {mensajeError}
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 340px) minmax(0, 1fr)", gap: 20, alignItems: "start" }}>
-        <div className="panel" style={{ padding: 14 }}>
-          <div style={{ position: "relative", marginBottom: 12 }}>
-            <Search size={15} style={{ position: "absolute", left: 10, top: 10, color: "#94a3b8" }} />
-            <input
-              type="text"
-              placeholder="Buscar plantilla o parámetro..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              style={{ width: "100%", padding: "7px 10px 7px 32px", borderRadius: 7, border: "1px solid #cbd5e1", fontSize: "0.84rem" }}
-            />
-          </div>
+      {cargando ? (
+        <div className="cargando">Cargando catálogo de configuraciones…</div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 340px) minmax(0, 1fr)", gap: 20, alignItems: "start" }}>
+          {/* Columna Izquierda: Lista de Plantillas */}
+          <div className="panel" style={{ padding: 14 }}>
+            <div style={{ position: "relative", marginBottom: 12 }}>
+              <input
+                className="input"
+                placeholder="Buscar parámetro o plantilla…"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                style={{ width: "100%", paddingLeft: 32, fontSize: "0.84rem" }}
+              />
+              <Search size={15} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+            </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: "68vh", overflowY: "auto" }}>
-            {cargando ? (
-              <p style={{ fontSize: "0.84rem", color: "#64748b", textAlign: "center", padding: 16 }}>Cargando catálogo...</p>
-            ) : configuracionesFiltradas.length === 0 ? (
-              <p style={{ fontSize: "0.84rem", color: "#64748b", textAlign: "center", padding: 16 }}>No se encontraron elementos.</p>
-            ) : (
-              configuracionesFiltradas.map((item) => {
-                const seleccionada = item.key === claveSeleccionada
-                const modificada = item.value !== item.defaultValue
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: "calc(100vh - 280px)", overflowY: "auto" }}>
+              {configuracionesFiltradas.length === 0 ? (
+                <div style={{ padding: 20, textAlign: "center", color: "#64748b", fontSize: "0.84rem" }}>
+                  No se encontraron elementos con ese filtro.
+                </div>
+              ) : (
+                configuracionesFiltradas.map((item) => {
+                  const seleccionada = item.key === claveSeleccionada
+                  const modificado = item.value !== item.defaultValue
+                  const aud = item.category === "MENSAJE_WHATSAPP" ? obtenerAudienciaWhatsapp(item.key) : null
 
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => {
-                      setClaveSeleccionada(item.key)
-                      setValorEnEdicion(item.value)
-                    }}
-                    style={{
-                      textAlign: "left",
-                      padding: "10px 12px",
-                      borderRadius: 8,
-                      border: seleccionada ? "1.5px solid var(--navbar-background-color)" : "1px solid #e2e8f0",
-                      background: seleccionada ? "#f8fafc" : "#ffffff",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 8,
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <strong style={{ fontSize: "0.85rem", color: "#0f172a", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {item.name}
-                      </strong>
-                      <span style={{ fontSize: "0.74rem", color: "#64748b", display: "block", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {item.key}
-                      </span>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                      {modificada && (
-                        <span style={{ fontSize: "0.68rem", padding: "2px 5px", borderRadius: 4, background: "#fef3c7", color: "#92400e", fontWeight: 700 }}>
-                          Editado
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => {
+                        setClaveSeleccionada(item.key)
+                        setValorEnEdicion(item.value)
+                        setMensajeExito(null)
+                        setMensajeError(null)
+                      }}
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        border: seleccionada ? "2px solid var(--navbar-background-color)" : "1px solid var(--color-border-default)",
+                        background: seleccionada ? "#f0fdf4" : "#ffffff",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 3,
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontWeight: 700, fontSize: "0.86rem", color: seleccionada ? "var(--color-primary-text)" : "#1e293b" }}>
+                          {item.name}
                         </span>
-                      )}
-                      <ChevronRight size={14} style={{ color: seleccionada ? "var(--navbar-background-color)" : "#94a3b8" }} />
-                    </div>
-                  </button>
-                )
-              })
-            )}
-          </div>
-        </div>
+                        {modificado && (
+                          <span style={{ fontSize: "0.68rem", padding: "1px 5px", background: "#fef3c7", color: "#92400e", borderRadius: 4, fontWeight: 700 }}>
+                            Editado
+                          </span>
+                        )}
+                      </div>
 
-        {elementoActual ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            <div className="panel" style={{ padding: "16px 20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+                      <div style={{ display: "flex", gap: 5, alignItems: "center", marginTop: 2 }}>
+                        {aud === "PACIENTE" && (
+                          <span style={{ fontSize: "0.7rem", padding: "1px 6px", background: "#ecfdf5", color: "#065f46", borderRadius: 4, fontWeight: 700 }}>
+                            👤 Para Paciente
+                          </span>
+                        )}
+                        {aud === "PROFESIONAL" && (
+                          <span style={{ fontSize: "0.7rem", padding: "1px 6px", background: "#f0f9ff", color: "#0369a1", borderRadius: 4, fontWeight: 700 }}>
+                            🩺 Para Profesional
+                          </span>
+                        )}
+                        {aud === "COMUNIDAD" && (
+                          <span style={{ fontSize: "0.7rem", padding: "1px 6px", background: "#fef3c7", color: "#92400e", borderRadius: 4, fontWeight: 700 }}>
+                            🤝 Comunidad
+                          </span>
+                        )}
+                        <span style={{ fontSize: "0.72rem", color: "#94a3b8", fontFamily: "monospace" }}>
+                          {item.key}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Columna Derecha: Editor y Simulador */}
+          {elementoActual ? (
+            <div className="panel" style={{ padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, borderBottom: "1px solid var(--color-border-default)", paddingBottom: 14 }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: "1.25rem", color: "#0f172a" }}>{elementoActual.name}</h2>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <h2 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 800 }}>
+                      {elementoActual.name}
+                    </h2>
+                    {elementoActual.category === "MENSAJE_WHATSAPP" && (
+                      <span style={{
+                        fontSize: "0.75rem",
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        fontWeight: 700,
+                        background: obtenerAudienciaWhatsapp(elementoActual.key) === "PACIENTE" ? "#ecfdf5" : obtenerAudienciaWhatsapp(elementoActual.key) === "PROFESIONAL" ? "#f0f9ff" : "#fef3c7",
+                        color: obtenerAudienciaWhatsapp(elementoActual.key) === "PACIENTE" ? "#065f46" : obtenerAudienciaWhatsapp(elementoActual.key) === "PROFESIONAL" ? "#0369a1" : "#92400e",
+                      }}>
+                        {obtenerAudienciaWhatsapp(elementoActual.key) === "PACIENTE" ? "👤 Mensaje para la Persona Acompañada" : obtenerAudienciaWhatsapp(elementoActual.key) === "PROFESIONAL" ? "🩺 Mensaje para el Profesional" : "🤝 Mensaje Comunitario"}
+                      </span>
+                    )}
+                  </div>
                   <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "#64748b" }}>
-                    {elementoActual.description || elementoActual.key}
+                    {elementoActual.description || "Sin descripción adicional."}
                   </p>
                 </div>
 
-                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                  {elementoActual.value !== elementoActual.defaultValue && puedeEditar && (
-                    <button
-                      type="button"
-                      className="boton-mini"
-                      data-tono="neutro"
-                      onClick={restablecerPredeterminado}
-                      disabled={guardando}
-                      style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
-                    >
-                      <RotateCcw size={13} />
-                      Restablecer
-                    </button>
-                  )}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className="boton-mini"
+                    onClick={restablecerPredeterminado}
+                    disabled={guardando || !puedeEditar}
+                    title="Restablecer al texto o valor de fábrica predeterminado"
+                  >
+                    <RotateCcw size={13} />
+                    Restablecer
+                  </button>
 
-                  {puedeEditar && (
-                    <button
-                      type="button"
-                      className="boton-mini"
-                      data-tono="principal"
-                      onClick={guardarCambios}
-                      disabled={guardando || valorEnEdicion === elementoActual.value}
-                      style={{ display: "inline-flex", alignItems: "center", gap: 5, fontWeight: 700 }}
-                    >
-                      <Save size={13} />
-                      {guardando ? "Guardando..." : "Guardar Cambios"}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="boton-mini"
+                    data-tono="principal"
+                    onClick={guardarCambios}
+                    disabled={guardando || !puedeEditar}
+                    style={{ fontWeight: 700 }}
+                  >
+                    <Save size={13} />
+                    {guardando ? "Guardando…" : "Guardar Cambios"}
+                  </button>
                 </div>
               </div>
 
+              {/* Inserción de Variables Dinámicas */}
               {elementoActual.variables && elementoActual.variables.length > 0 && (
-                <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #f1f5f9" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                    <Sparkles size={14} style={{ color: "#0284c7" }} />
-                    <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#334155" }}>
-                      Variables disponibles (haz clic para insertar en el texto):
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
+                    <Sparkles size={14} style={{ color: "var(--color-primary-text)" }} />
+                    <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#334155", textTransform: "uppercase" }}>
+                      Variables dinámicas disponibles (haz clic para insertar en el cursor):
                     </span>
                   </div>
+
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {elementoActual.variables.map((v) => (
                       <button
@@ -444,91 +606,100 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
                         type="button"
                         onClick={() => insertarVariable(v)}
                         style={{
-                          fontSize: "0.76rem",
+                          background: "#f1f5f9",
+                          border: "1px solid #cbd5e1",
                           padding: "3px 8px",
                           borderRadius: 6,
-                          background: "#f0f9ff",
-                          border: "1px solid #bae6fd",
-                          color: "#0369a1",
+                          fontSize: "0.78rem",
+                          fontFamily: "monospace",
                           fontWeight: 600,
+                          color: "#1e293b",
                           cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
                         }}
+                        title={"Inserta {" + v + "} en el texto"}
                       >
-                        {"{" + v + "}"}
+                        <span>{"{" + v + "}"}</span>
                       </button>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="panel" style={{ padding: 18 }}>
-              <label style={{ display: "block", fontSize: "0.84rem", fontWeight: 700, color: "#334155", marginBottom: 8 }}>
-                {elementoActual.category === "PARAMETRO_GENERAL" ? "Valor del Parámetro" : "Contenido de la Plantilla"}
-              </label>
-
-              {elementoActual.category === "PARAMETRO_GENERAL" && elementoActual.dataType === "NUMERO" ? (
-                <input
-                  type="number"
-                  value={valorEnEdicion}
-                  onChange={(e) => setValorEnEdicion(e.target.value)}
-                  style={{ width: "100%", maxWidth: 240, padding: "8px 12px", borderRadius: 7, border: "1px solid #cbd5e1", fontSize: "1.1rem", fontWeight: 600 }}
-                />
-              ) : (
+              {/* Editor del Valor */}
+              <div style={{ marginTop: 14 }}>
+                <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 6, textTransform: "uppercase" }}>
+                  Contenido de la Plantilla:
+                </label>
                 <textarea
                   ref={textareaRef}
+                  className="input"
+                  rows={elementoActual.category === "MENSAJE_WHATSAPP" ? 11 : 6}
                   value={valorEnEdicion}
                   onChange={(e) => setValorEnEdicion(e.target.value)}
-                  rows={categoriaActiva === "MENSAJE_WHATSAPP" ? 12 : 8}
-                  style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid #cbd5e1", fontFamily: "monospace", fontSize: "0.86rem", lineHeight: 1.5, resize: "vertical" }}
+                  disabled={!puedeEditar}
+                  style={{ width: "100%", fontFamily: "inherit", fontSize: "0.88rem", lineHeight: 1.5, resize: "vertical" }}
                 />
-              )}
-            </div>
+              </div>
 
-            {categoriaActiva === "MENSAJE_WHATSAPP" && (
-              <div className="panel" style={{ padding: 18, background: "#f8fafc" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <Smartphone size={16} style={{ color: "#059669" }} />
-                    <strong style={{ fontSize: "0.9rem", color: "#0f172a" }}>
-                      Simulador de WhatsApp en Vivo
-                    </strong>
+              {/* Simulador en Vivo de WhatsApp */}
+              {elementoActual.category === "MENSAJE_WHATSAPP" && (
+                <div style={{ marginTop: 18, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <MessageSquare size={15} style={{ color: "#059669" }} />
+                      <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#065f46" }}>
+                        Simulador de WhatsApp en Vivo:
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => copiarAlPortapapeles(renderizarVistaPrevia(valorEnEdicion))}
+                      className="boton-mini"
+                      style={{ background: "#fff" }}
+                    >
+                      {copiado ? <Check size={13} style={{ color: "#059669" }} /> : <Copy size={13} />}
+                      {copiado ? "¡Copiado!" : "Copiar Texto Renderizado"}
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="boton-mini"
-                    onClick={() => copiarAlPortapapeles(renderizarTexto(valorEnEdicion))}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+                  <div
+                    style={{
+                      background: "#e5ddd5",
+                      backgroundImage: "radial-gradient(#00000010 1px, transparent 1px)",
+                      backgroundSize: "16px 16px",
+                      padding: 16,
+                      borderRadius: 8,
+                      display: "flex",
+                      justifyContent: "flex-start",
+                    }}
                   >
-                    {copiado ? <Check size={13} style={{ color: "#059669" }} /> : <Copy size={13} />}
-                    {copiado ? "¡Copiado!" : "Copiar Texto"}
-                  </button>
+                    <div
+                      style={{
+                        background: "#dcf8c6",
+                        borderRadius: "8px 8px 8px 0px",
+                        padding: "10px 14px",
+                        maxWidth: "85%",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
+                        fontSize: "0.84rem",
+                        color: "#111827",
+                        lineHeight: 1.5,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {renderizarVistaPrevia(valorEnEdicion)}
+                    </div>
+                  </div>
                 </div>
-
-                <div
-                  style={{
-                    maxWidth: 520,
-                    margin: "0 auto",
-                    padding: "16px 18px",
-                    borderRadius: "12px 12px 2px 12px",
-                    background: "#dcf8c6",
-                    border: "1px solid #c7e8b4",
-                    color: "#111827",
-                    fontSize: "0.9rem",
-                    lineHeight: 1.55,
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                  }}
-                >
-                  {renderizarTexto(valorEnEdicion)}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : null}
-      </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      )}
     </>
   )
 }

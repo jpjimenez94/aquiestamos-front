@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, ShieldCheck } from 'lucide-react'
+import { ModalMoverColaborador } from './ModalMoverColaborador'
+import { ModalRechazarVerificacion } from './ModalRechazarVerificacion'
 
 /**
  * Una verificación pendiente: el documento a la vista y los datos del perfil
@@ -153,6 +155,9 @@ export function TarjetaPendiente({
             <ShieldCheck size={14} />
             {aprobando ? 'Aprobando…' : 'Aprobar verificación'}
           </button>
+
+          <ModalMoverColaborador profesional={profesional} />
+          <ModalRechazarVerificacion profesional={profesional} />
         </div>
         {error ? (
           <div className="aviso-portal" data-tono="rojo" style={{ marginTop: 8 }}>
