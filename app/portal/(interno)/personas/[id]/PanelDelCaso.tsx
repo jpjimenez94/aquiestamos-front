@@ -8,7 +8,7 @@ import {
   mensajeParaCuadrarHorario,
   mensajeDePedirNuevaDisponibilidadAlProfesional,
   mensajeDeExcusasYReagendamiento,
-  mensajeDeCitaAlProfesional,
+  mensajeDeCitaConfirmadaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 import { enBogota } from '@/lib/fechas'
@@ -22,10 +22,6 @@ import { BotonReasignar } from './BotonReasignar'
  * coordina, el profesional y la persona acompañada— y cada tramo tiene
  * exactamente un mensaje y una acción. Este panel decide cuál toca, para que
  * quien coordina no tenga que acordarse.
- *
- * Antes ese «en qué punto va» no existía en ninguna parte: vivía en el
- * historial de WhatsApp de una persona. Si esa persona faltaba, el caso se
- * quedaba quieto sin que nadie lo notara.
  */
 
 export type Asignacion = {
@@ -48,6 +44,7 @@ type Persona = {
   phone: string
   city: string
   priority: string
+  preferredContact: string | null
   preferredModality: string | null
   availableDays: string[]
   availableSlots: string[]
@@ -78,7 +75,7 @@ export function PanelDelCaso({
   asignacion: Asignacion
   enlaceCaso: string
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
-  proximaCita?: { cuando: string; modalidad: string } | null
+  proximaCita?: { id?: string; cuando: string; modalidad: string } | null
 }) {
   const [copiado, setCopiado] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -91,6 +88,14 @@ export function PanelDelCaso({
   }
 
   const terminada = asignacion.estado === 'RECHAZADA' || asignacion.estado === 'CANCELADA'
+
+  const sitioUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
+
+  const enlaceReunion = (proximaCita?.id && (proximaCita.modalidad === 'VIRTUAL' || !proximaCita.modalidad))
+    ? `${sitioUrl}/sala/${proximaCita.id}`
+    : null
 
   return (
     <div className="panel">
@@ -108,63 +113,73 @@ export function PanelDelCaso({
 
       {asignacion.siguientePaso ? (
         <p className="caso-siguiente">
-          <Clock size={14} />
-          {asignacion.siguientePaso}
+          <strong>Siguiente paso:</strong> {asignacion.siguientePaso}
         </p>
       ) : null}
 
       {error ? (
-        <div className="aviso-portal" data-tono="rojo" style={{ marginTop: 12 }}>
+        <div className="aviso-portal" data-tono="rojo" style={{ marginBottom: 16 }}>
           {error}
         </div>
       ) : null}
 
-      {/* PASO 1 — Se le propuso y estamos esperando que entre a su enlace. */}
+      {/* Si el profesional rechazó o se canceló, se explica por qué */}
+      {terminada && asignacion.motivoRechazo ? (
+        <div className="caso-motivo">
+          <strong>Motivo:</strong> {asignacion.motivoRechazo}
+        </div>
+      ) : null}
+
+      {/* PASO 1 — Se le propuso el caso al profesional. Esperando que diga si puede. */}
       {asignacion.estado === 'PROPUESTA' ? (
         <>
           <Mensaje
-            titulo="1 · Mándale la propuesta"
-            nota="Lleva el enlace por donde tiene que responder. Los datos de contacto de la persona solo se le abren si acepta."
+            titulo="1 · Proponle el caso al profesional"
+            nota="Los datos de contacto de la persona no van aquí: se los mostramos solo si acepta."
             telefono={asignacion.profesional.telefono}
             texto={mensajeDePropuesta({
               profesional: asignacion.profesional.nombre,
               ciudad: persona.city,
-              prioridad: persona.priority,
               modalidad: persona.preferredModality,
               dias: persona.availableDays,
               franjas: persona.availableSlots,
               enlace: enlaceCaso,
+              prioridad: persona.priority,
             })}
             copiado={copiado === 'propuesta'}
             alCopiar={(t) => copiar('propuesta', t)}
           />
-          <div className="mensaje__acciones" style={{ marginTop: 14 }}>
+
+          <div className="mensaje__acciones" style={{ marginTop: 16 }}>
             <BotonReasignar
               asignacionId={asignacion.id}
               profesionalNombre={asignacion.profesional.nombre}
-              textoBoton="Reasignar a otro profesional"
+              textoBoton="No contestó / Proponer a otra persona"
               onError={setError}
             />
           </div>
         </>
       ) : null}
 
-      {/* PASO 2 — Aceptó y dejó sus horarios. Toca cuadrar con la persona. */}
+      {/* PASO 2 — El profesional aceptó y dejó sus días/horas. Toca cuadrar con la persona. */}
       {asignacion.estado === 'ACEPTADA' ? (
         <>
           <div className="caso-horarios">
-            <strong>Dijo que puede:</strong>
-            <span>
-              {asignacion.diasQuePuede.map((d) => DIA[d] ?? d).join(', ') || 'sin días'}
-              {' · '}
-              {asignacion.franjasQuePuede.map((f) => FRANJA[f] ?? f).join(', ') || 'sin franjas'}
-            </span>
-            {asignacion.nota ? <em>{asignacion.nota}</em> : null}
+            <strong>Lo que el profesional propuso:</strong>
+            {asignacion.diasQuePuede.length ? (
+              <span>Días: {asignacion.diasQuePuede.map((d) => DIA[d] ?? d).join(', ')}</span>
+            ) : null}
+            {asignacion.franjasQuePuede.length ? (
+              <span>
+                Horarios: {asignacion.franjasQuePuede.map((f) => FRANJA[f] ?? f).join(', ')}
+              </span>
+            ) : null}
+            {asignacion.nota ? <em>Nota: «{asignacion.nota}»</em> : null}
           </div>
 
           <Mensaje
-            titulo="2 · Escríbele a la persona con esos horarios"
-            nota="Lleva el nombre del profesional pero no su teléfono: quien cuadra el horario eres tú."
+            titulo="2 · Cuadra el horario con la persona acompañada"
+            nota="Dile qué días y horas propuso el profesional, para que elija uno."
             telefono={persona.phone}
             texto={mensajeParaCuadrarHorario({
               persona: persona.fullName,
@@ -175,35 +190,6 @@ export function PanelDelCaso({
             })}
             copiado={copiado === 'cuadrar'}
             alCopiar={(t) => copiar('cuadrar', t)}
-          />
-
-          <Mensaje
-            titulo="2b · Si el profesional tuvo un imprevisto: pedirle nueva disponibilidad"
-            nota="Para que te confirme qué otros días u horas tiene libres antes de armar la propuesta a la persona."
-            telefono={asignacion.profesional.telefono}
-            texto={mensajeDePedirNuevaDisponibilidadAlProfesional({
-              profesional: asignacion.profesional.nombre,
-              persona: persona.fullName,
-              enlace: enlaceCaso,
-            })}
-            copiado={copiado === 'disp-prof'}
-            alCopiar={(t) => copiar('disp-prof', t)}
-          />
-
-          <Mensaje
-            titulo="2c · Si el profesional tuvo un imprevisto: excusas y nueva propuesta a la persona"
-            nota="Para cuando el profesional ya te dio sus nuevos espacios y vas a coordinar la nueva fecha con la persona."
-            telefono={persona.phone}
-            texto={mensajeDeExcusasYReagendamiento({
-              persona: persona.fullName,
-              profesional: asignacion.profesional.nombre,
-              motivo: 'un compromiso médico/personal de última hora',
-              dias: asignacion.diasQuePuede,
-              franjas: asignacion.franjasQuePuede,
-              nota: asignacion.nota,
-            })}
-            copiado={copiado === 'excusas'}
-            alCopiar={(t) => copiar('excusas', t)}
           />
 
           <div className="mensaje__acciones" style={{ marginTop: 16 }}>
@@ -223,24 +209,64 @@ export function PanelDelCaso({
               onError={setError}
             />
           </div>
+
+          {/* Opciones cuando los horarios no le sirven a la persona */}
+          <details className="caso-alternativas">
+            <summary>¿No le sirvieron los horarios?</summary>
+            <div className="caso-alternativas__cuerpo">
+              <p className="panel__nota">
+                Si la persona no puede en ninguna de esas franjas, tienes dos opciones según lo que
+                ella te haya dicho:
+              </p>
+
+              <Mensaje
+                titulo="Opción A · Pedirle otras franjas al mismo profesional"
+                nota="Úsalo si la persona te dio opciones y quieres ver si el profesional puede alguna de ellas."
+                telefono={asignacion.profesional.telefono}
+                texto={mensajeDePedirNuevaDisponibilidadAlProfesional({
+                  profesional: asignacion.profesional.nombre,
+                  persona: persona.fullName,
+                  enlace: enlaceCaso,
+                })}
+                copiado={copiado === 'pedir-otra'}
+                alCopiar={(t) => copiar('pedir-otra', t)}
+              />
+
+              <Mensaje
+                titulo="Opción B · Ofrecerle las franjas habituales del profesional"
+                nota="Úsalo si el profesional no dejó nota y quieres proponerle a la persona su disponibilidad general."
+                telefono={persona.phone}
+                texto={mensajeDeExcusasYReagendamiento({
+                  persona: persona.fullName,
+                  profesional: asignacion.profesional.nombre,
+                  motivo: 'un compromiso médico/personal de última hora',
+                  dias: asignacion.diasQuePuede,
+                  franjas: asignacion.franjasQuePuede,
+                  nota: asignacion.nota,
+                })}
+                copiado={copiado === 'excusas'}
+                alCopiar={(t) => copiar('excusas', t)}
+              />
+            </div>
+          </details>
         </>
       ) : null}
 
-      {/* PASO 3 — Hay cita. Se le confirma al profesional. */}
+      {/* PASO 3 — Hay cita. Se le confirma al profesional con sus responsabilidades. */}
       {asignacion.estado === 'ACTIVA' ? (
         <>
           <Mensaje
             titulo="3 · Confírmale la cita al profesional"
-            nota="Los datos de la persona siguen detrás de su enlace, como siempre."
+            nota="Entrega de la cita confirmada al profesional con el canal preferido de la persona, sus responsabilidades de contacto/asistencia y el enlace seguro al caso."
             telefono={asignacion.profesional.telefono}
-            texto={mensajeDeCitaAlProfesional({
+            texto={mensajeDeCitaConfirmadaAlProfesional({
               profesional: asignacion.profesional.nombre,
-              // La fecha real de la cita, no un «la fecha acordada» genérico.
-              // Y la modalidad de LA CITA, no la preferencia de la persona:
-              // «le da igual» no es un dato para quien debe presentarse.
+              persona: persona.fullName,
               cuando: proximaCita?.cuando ?? 'la fecha acordada',
               modalidad: proximaCita?.modalidad ?? persona.preferredModality,
+              canalContacto: persona.preferredContact,
               enlace: enlaceCaso,
+              enlaceReunion,
             })}
             copiado={copiado === 'cita-prof'}
             alCopiar={(t) => copiar('cita-prof', t)}
@@ -266,24 +292,11 @@ export function PanelDelCaso({
         </>
       ) : null}
 
-      {terminada ? (
-        <div className="aviso-portal" data-tono="rojo" style={{ marginTop: 12 }}>
-          <strong>
-            {asignacion.estado === 'RECHAZADA'
-              ? `${asignacion.profesional.nombre} no pudo tomar el caso.`
-              : 'No se pudo cuadrar horario.'}
-          </strong>
-          {asignacion.motivoRechazo ? ` Dijo: ${asignacion.motivoRechazo}.` : ''} Esta persona
-          vuelve a la cola: proponle el caso a otro profesional.
-        </div>
-      ) : null}
-
       {agendando ? (
         <ModalAgendar
-          asignacionId={asignacion.id}
           personaId={persona.id}
-          profesionalId={asignacion.profesional.id}
           persona={persona}
+          asignacionId={asignacion.id}
           profesional={asignacion.profesional}
           enlaceCaso={enlaceCaso}
           esNuevaSesion={asignacion.estado === 'ACTIVA'}
@@ -294,7 +307,6 @@ export function PanelDelCaso({
   )
 }
 
-/** Un mensaje listo para mandar: WhatsApp, copiar, y verlo antes de enviarlo. */
 function Mensaje({
   titulo,
   nota,
@@ -305,130 +317,59 @@ function Mensaje({
 }: {
   titulo: string
   nota: string
-  telefono: string | null
+  telefono?: string | null
   texto: string
   copiado: boolean
   alCopiar: (texto: string) => void
 }) {
-  const [verTexto, setVerTexto] = useState(false)
-  const whatsapp = enlaceWhatsapp(telefono, texto)
+  const [mostrando, setMostrando] = useState(true)
+  const enlace = telefono ? enlaceWhatsapp(telefono, texto) : null
 
   return (
-    <div className="mensaje" style={{ marginTop: 18 }}>
-      <h3 className="caso-paso">{titulo}</h3>
-      <p className="panel__nota" style={{ marginTop: 0 }}>
-        {nota}
-      </p>
-
-      <div className="mensaje__acciones">
-        {whatsapp ? (
-          <a
+    <div className="mensaje">
+      <div className="mensaje__cabecera">
+        <div>
+          <strong className="mensaje__titulo">{titulo}</strong>
+          <span className="mensaje__nota">{nota}</span>
+        </div>
+        <div className="mensaje__acciones">
+          {enlace ? (
+            <a
+              href={enlace}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="boton-mini"
+              data-tono="verde"
+            >
+              <MessageCircle size={14} />
+              Abrir WhatsApp
+            </a>
+          ) : null}
+          <button
             className="boton-mini"
-            data-tono="principal"
-            href={whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
+            type="button"
+            onClick={() => alCopiar(texto)}
+            title="Copiar texto del mensaje"
           >
-            <MessageCircle size={14} />
-            Abrir WhatsApp
-          </a>
-        ) : (
-          <span className="tabla__secundario" style={{ marginTop: 0 }}>
-            No sabemos a qué país corresponde ese número. Copia el mensaje y mándalo aparte.
-          </span>
-        )}
-        <button className="boton-mini" type="button" onClick={() => alCopiar(texto)}>
-          {copiado ? <Check size={14} /> : <Copy size={14} />}
-          {copiado ? 'Copiado' : 'Copiar mensaje'}
-        </button>
-        <button
-          className="mensaje__ver"
-          type="button"
-          onClick={() => setVerTexto((v) => !v)}
-          aria-expanded={verTexto}
-        >
-          {verTexto ? 'Ocultar' : 'Ver el mensaje'}
-        </button>
+            {copiado ? <Check size={14} /> : <Copy size={14} />}
+            {copiado ? 'Copiado' : 'Copiar mensaje'}
+          </button>
+          <button
+            className="boton-mini"
+            type="button"
+            onClick={() => setMostrando((v) => !v)}
+            title={mostrando ? 'Ocultar texto' : 'Ver texto'}
+          >
+            {mostrando ? 'Ocultar' : 'Ver texto'}
+          </button>
+        </div>
       </div>
 
-      {verTexto ? <pre className="mensaje__texto">{texto}</pre> : null}
+      {mostrando ? (
+        <pre className="mensaje__cuerpo" style={{ whiteSpace: 'pre-wrap' }}>
+          {texto}
+        </pre>
+      ) : null}
     </div>
   )
 }
-
-/**
- * Aceptó, pero no hubo forma de cuadrar. Pide el motivo a propósito: saber si
- * el problema fue el horario, la ciudad o que la persona no contestó es lo que
- * permite ver si el fallo es del caso o de la red.
- */
-function BotonCancelar({
-  asignacionId,
-  onError,
-}: {
-  asignacionId: string
-  onError: (m: string) => void
-}) {
-  const router = useRouter()
-  const [confirmando, setConfirmando] = useState(false)
-  const [motivo, setMotivo] = useState('')
-  const [enviando, setEnviando] = useState(false)
-
-  async function cancelar() {
-    if (motivo.trim().length < 3) {
-      onError('Cuéntanos por qué no se pudo cuadrar.')
-      return
-    }
-    setEnviando(true)
-    try {
-      const r = await fetch(`/api/portal/appointments/asignaciones/${asignacionId}/cancelar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ motivo: motivo.trim() }),
-      })
-      const d = await r.json()
-      if (!r.ok || !d.success) {
-        onError(d.message ?? 'No se pudo cancelar')
-        return
-      }
-      router.refresh()
-    } catch {
-      onError('No pudimos conectarnos con el servidor')
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  if (!confirmando) {
-    return (
-      <button className="boton-mini" type="button" onClick={() => setConfirmando(true)}>
-        <RotateCcw size={14} />
-        No se pudo cuadrar
-      </button>
-    )
-  }
-
-  return (
-    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-      <input
-        className="input"
-        style={{ maxWidth: 260 }}
-        placeholder="¿Por qué no se pudo?"
-        value={motivo}
-        onChange={(e) => setMotivo(e.target.value)}
-      />
-      <button
-        className="boton-mini"
-        data-tono="peligro"
-        type="button"
-        onClick={cancelar}
-        disabled={enviando}
-      >
-        {enviando ? 'Cancelando…' : 'Confirmar'}
-      </button>
-      <button className="boton-mini" type="button" onClick={() => setConfirmando(false)}>
-        Volver
-      </button>
-    </div>
-  )
-}
-

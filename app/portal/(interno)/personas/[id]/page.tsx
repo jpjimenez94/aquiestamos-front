@@ -204,6 +204,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             )
             return abierta
               ? {
+                  id: abierta.id,
                   cuando: abierta.inicioLocal || enBogota(abierta.inicio),
                   modalidad: abierta.modalidad,
                 }
