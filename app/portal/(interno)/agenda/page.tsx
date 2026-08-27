@@ -30,6 +30,14 @@ type Cita = {
   consentSigned?: boolean
   consentSignedDocumentUrl?: string | null
   motivoCancelacion?: string | null
+  patientFirstJoinedAt?: string | null
+  professionalFirstJoinedAt?: string | null
+  totalCallDurationSeconds?: number
+  totalCallDurationMinutes?: number
+  pacienteEnVivo?: boolean
+  profesionalEnVivo?: boolean
+  llamadaEnVivo?: boolean
+  ambosEnVivo?: boolean
   profesional: { id: string; nombre?: string; telefono?: string }
   paciente: { id: string; nombre?: string; telefono?: string; esMenor?: boolean }
 }
@@ -197,23 +205,29 @@ export default async function AgendaPage({
 
   // --- Vista 1: Tablero de Casos (Pipeline de Gestión) ---
   if (vista === 'tablero') {
-    const tableroRes = await portalFetch<{
-      porAsignar: Paciente[]
-      esperandoProfesional: Paciente[]
-      porCuadrarHorario: Paciente[]
-      citasAbiertas: Cita[]
-      citasPropuestas?: Cita[]
-      citasConfirmadas?: Cita[]
-      enAcompanamiento: Paciente[]
-      cerrados: {
-        id: string
-        fullName: string
-        city: string
-        cerradoEl: string
-        motivo: string | null
-        profesional: string | null
-      }[]
-    }>('/dashboard/tablero')
+    const [tableroRes, liveRes] = await Promise.all([
+      portalFetch<{
+        porAsignar: Paciente[]
+        esperandoProfesional: Paciente[]
+        porCuadrarHorario: Paciente[]
+        citasAbiertas: Cita[]
+        citasPropuestas?: Cita[]
+        citasConfirmadas?: Cita[]
+        enAcompanamiento: Paciente[]
+        cerrados: {
+          id: string
+          fullName: string
+          city: string
+          cerradoEl: string
+          motivo: string | null
+          profesional: string | null
+        }[]
+      }>('/dashboard/tablero'),
+      portalFetch<{ totalEnVivo: number; sesiones: any[] }>('/meetings/live'),
+    ])
+
+    const liveData = liveRes.data ?? { totalEnVivo: 0, sesiones: [] }
+    const liveMap = new Map((liveData.sesiones ?? []).map((s) => [s.citaId, s]))
 
     const porAsignar = tableroRes.data?.porAsignar ?? []
     const esperandoProfesional = tableroRes.data?.esperandoProfesional ?? []
@@ -230,6 +244,74 @@ export default async function AgendaPage({
           titulo="Agenda y Gestión de Casos"
           descripcion="Cada columna es un estado del caso: dónde está y qué respuesta se espera."
         />
+
+        {/* Banner de Supervisión en Tiempo Real */}
+        {liveData.totalEnVivo > 0 ? (
+          <div
+            style={{
+              background: '#ecfdf5',
+              border: '1.5px solid #a7f3d0',
+              borderRadius: 12,
+              padding: '14px 18px',
+              marginBottom: 18,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+              boxShadow: '0 2px 10px rgba(16,185,129,0.1)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  background: '#10b981',
+                  boxShadow: '0 0 0 4px rgba(16,185,129,0.25)',
+                }}
+              />
+              <div>
+                <strong style={{ color: '#065f46', fontSize: '0.98rem', display: 'block' }}>
+                  🟢 {liveData.totalEnVivo} Sesión(es) virtual(es) en vivo ocurriendo en este momento
+                </strong>
+                <span style={{ fontSize: '0.82rem', color: '#047857' }}>
+                  Supervisor activo: los participantes están conectados a la sala virtual.
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {liveData.sesiones.map((s: any) => (
+                <Link
+                  key={s.citaId}
+                  href={`/portal/agenda/${s.citaId}`}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #10b981',
+                    color: '#065f46',
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span>👤 {s.paciente}</span>
+                  <span style={{ color: '#64748b' }}>con</span>
+                  <span>🩺 {s.profesional}</span>
+                  <span style={{ background: '#d1fae5', padding: '2px 6px', borderRadius: 6, fontSize: '0.74rem' }}>
+                    ⏱️ {s.duracionMinutos} min
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="pestanas-agenda">
           <Link
@@ -382,7 +464,7 @@ export default async function AgendaPage({
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
                     {enBogota(c.inicio)} · {c.profesional.nombre}
                   </span>
-                  <div style={{ marginTop: 2 }}>
+                  <div style={{ marginTop: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {c.consentSigned ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.74rem', fontWeight: 600 }}>
                         <FileCheck2 size={13} /> Consentimiento firmado
@@ -392,6 +474,26 @@ export default async function AgendaPage({
                         <FileClock size={13} /> Falta consentimiento
                       </span>
                     )}
+
+                    {liveMap.has(c.id) ? (
+                      <span
+                        style={{
+                          background: '#dcfce7',
+                          color: '#15803d',
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          width: 'fit-content',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />
+                        🟢 En sala ahora (⏱️ {liveMap.get(c.id)?.duracionMinutos ?? 0} min)
+                      </span>
+                    ) : null}
                   </div>
                 </Link>
               ))
