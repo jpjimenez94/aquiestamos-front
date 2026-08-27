@@ -1059,6 +1059,36 @@ export function mensajeRecordatorioPrevioCitaProfesional(d: {
   ].filter(Boolean).join('\n')
 }
 
+/**
+ * Recordatorio previo de cita a la persona acompañada (el día de la sesión o < 60 min antes).
+ */
+export function mensajeRecordatorioPrevioCitaPersona(d: {
+  persona: string
+  profesional: string
+  cuando: string
+  modalidad?: string | null
+  enlaceReunion?: string | null
+}): string {
+  const nombre = nombreDePila(d.persona) || d.persona.trim()
+  const modalidad = d.modalidad ? ` en modalidad *${d.modalidad.toLowerCase()}*` : ''
+
+  return [
+    `¡Hola ${nombre}! Te saludamos de la Red Aquí Estamos.`,
+    '',
+    `Te recordamos que tienes tu sesión de acompañamiento con ${d.profesional} programada para dentro de poco: *${d.cuando}*${modalidad}.`,
+    d.enlaceReunion
+      ? `\n· *Enlace de videollamada:* ${d.enlaceReunion}\n\nA la hora acordada, solo debes hacer clic en el enlace de videollamada desde tu celular o computador para unirte a la sesión con ${nombreDePila(d.profesional)}. No tienes que descargar nada ni registrarte.`
+      : '',
+    '',
+    `${nombreDePila(d.profesional)} se pondrá en contacto contigo por WhatsApp unos *15 minutos antes* de la hora para coordinar el inicio.`,
+    '',
+    `Si te surge un imprevisto y no puedes asistir, por favor escríbenos por aquí con tiempo para avisarle a ${nombreDePila(d.profesional)} y reprogramar tu espacio.`,
+    '',
+    '¡Un abrazo y que tengas una muy buena sesión!',
+  ].filter(Boolean).join('\n')
+}
+
+
 
 
 

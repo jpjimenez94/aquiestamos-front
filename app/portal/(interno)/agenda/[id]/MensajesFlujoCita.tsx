@@ -9,6 +9,8 @@ import {
   mensajeDeCitaConfirmadaAlProfesional,
   mensajeDePedirNuevaDisponibilidadAlProfesional,
   mensajeDeExcusasYReagendamiento,
+  mensajeRecordatorioPrevioCitaPersona,
+  mensajeRecordatorioPrevioCitaProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 
@@ -92,8 +94,43 @@ export function MensajesFlujoCita({
     motivo: 'un compromiso médico/personal de última hora',
   })
 
+  const mensajeRecordatorioPersona = mensajeRecordatorioPrevioCitaPersona({
+    persona: pacienteNombre,
+    profesional: profesionalNombre,
+    cuando: fechaHoraBogota,
+    modalidad,
+    enlaceReunion,
+  })
+
+  const mensajeRecordatorioProf = mensajeRecordatorioPrevioCitaProfesional({
+    profesional: profesionalNombre,
+    cuando: fechaHoraBogota,
+    modalidad,
+    enlaceCaso,
+    enlaceReunion: enlaceReunionProfesional || enlaceReunion,
+  })
+
   return (
     <>
+      <div className="panel">
+        <h2>Recordatorios previos de la sesión</h2>
+        <p className="panel__nota">
+          Recordatorios rápidos para enviar el día de la cita o en los minutos previos al inicio de la sesión.
+        </p>
+
+        <Mensaje
+          titulo="Recordatorio previo a la persona acompañada"
+          telefono={pacienteTelefono}
+          texto={mensajeRecordatorioPersona}
+        />
+
+        <Mensaje
+          titulo="Recordatorio previo al profesional"
+          telefono={profesionalTelefono}
+          texto={mensajeRecordatorioProf}
+        />
+      </div>
+
       <div className="panel">
         <h2>Mensajes para la persona</h2>
         <p className="panel__nota">

@@ -588,6 +588,7 @@ export function TablaPersonas({
                               cita={cita}
                               profesional={p.asignacion.profesional}
                               pacienteNombre={p.fullName}
+                              pacienteTelefono={p.phone}
                               enlaceCaso={`${enlaceDelSitio}/portal/caso/${p.id}`}
                             />
                           )}

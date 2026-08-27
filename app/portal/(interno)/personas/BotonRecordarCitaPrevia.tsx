@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BellRing, Copy, Check, MessageSquare, X, Clock } from 'lucide-react'
+import { BellRing, Copy, Check, MessageSquare, X, Clock, User, Stethoscope } from 'lucide-react'
 import { paraWhatsapp } from '@/lib/telefono'
-import { mensajeRecordatorioPrevioCitaProfesional } from '@/lib/mensajes'
+import {
+  mensajeRecordatorioPrevioCitaProfesional,
+  mensajeRecordatorioPrevioCitaPersona,
+} from '@/lib/mensajes'
 import { enBogota } from '@/lib/fechas'
 
 type BotonRecordarCitaProps = {
@@ -14,6 +17,7 @@ type BotonRecordarCitaProps = {
     modalidad?: string | null
     meetingUrl?: string | null
     salaTokenProfesional?: string | null
+    salaTokenPaciente?: string | null
     estado: string
   }
   profesional: {
@@ -21,6 +25,7 @@ type BotonRecordarCitaProps = {
     telefono?: string | null
   }
   pacienteNombre: string
+  pacienteTelefono?: string | null
   enlaceCaso?: string | null
   compact?: boolean
 }
@@ -36,10 +41,12 @@ export function BotonRecordarCitaPrevia({
   cita,
   profesional,
   pacienteNombre,
+  pacienteTelefono,
   enlaceCaso,
   compact = false,
 }: BotonRecordarCitaProps) {
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [destinatario, setDestinatario] = useState<'PROFESIONAL' | 'PACIENTE'>('PACIENTE')
   const [copiado, setCopiado] = useState(false)
   const [minutos, setMinutos] = useState(() => calcularMinutosRestantes(cita.inicio))
 
@@ -63,29 +70,46 @@ export function BotonRecordarCitaPrevia({
 
   const horaFormateada = cita.inicioLocal ?? enBogota(cita.inicio)
   const telProf = paraWhatsapp(profesional.telefono)
+  const telPac = paraWhatsapp(pacienteTelefono)
 
   const sitioUrl = (typeof window !== 'undefined' && window.location.origin)
     ? window.location.origin
     : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
   const esVirtual = !cita.modalidad || cita.modalidad.toUpperCase() === 'VIRTUAL'
-  const enlaceReunion = (esVirtual || cita.meetingUrl)
+
+  const enlaceReunionProf = (esVirtual || cita.meetingUrl)
     ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}`
     : null
 
-  const mensaje = mensajeRecordatorioPrevioCitaProfesional({
+  const enlaceReunionPac = (esVirtual || cita.meetingUrl)
+    ? `${sitioUrl}/sala/${cita.salaTokenPaciente || cita.id}`
+    : null
+
+  const mensajeProf = mensajeRecordatorioPrevioCitaProfesional({
     profesional: profesional.nombre,
     cuando: horaFormateada,
     modalidad: cita.modalidad,
     enlaceCaso,
-    enlaceReunion,
+    enlaceReunion: enlaceReunionProf,
   })
 
-  const urlWhatsapp = telProf
-    ? `https://wa.me/${telProf}?text=${encodeURIComponent(mensaje)}`
+  const mensajePac = mensajeRecordatorioPrevioCitaPersona({
+    persona: pacienteNombre,
+    profesional: profesional.nombre,
+    cuando: horaFormateada,
+    modalidad: cita.modalidad,
+    enlaceReunion: enlaceReunionPac,
+  })
+
+  const mensajeActivo = destinatario === 'PROFESIONAL' ? mensajeProf : mensajePac
+  const telActivo = destinatario === 'PROFESIONAL' ? telProf : telPac
+
+  const urlWhatsapp = telActivo
+    ? `https://wa.me/${telActivo}?text=${encodeURIComponent(mensajeActivo)}`
     : null
 
   function copiarTexto() {
-    navigator.clipboard.writeText(mensaje)
+    navigator.clipboard.writeText(mensajeActivo)
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
   }
@@ -113,7 +137,7 @@ export function BotonRecordarCitaPrevia({
           whiteSpace: 'nowrap',
           marginTop: 3,
         }}
-        title={`La cita es ${textoTiempo}. Haz clic para enviar un recordatorio previo por WhatsApp al profesional.`}
+        title={`La cita es ${textoTiempo}. Haz clic para enviar un recordatorio previo por WhatsApp a la persona o al profesional.`}
       >
         <BellRing size={compact ? 12 : 13} style={{ color: '#d97706' }} />
         <span>Recordar ({minutos > 0 ? `${minutos}m` : 'ya'})</span>
@@ -127,7 +151,7 @@ export function BotonRecordarCitaPrevia({
         >
           <div
             className="modal-eliminar"
-            style={{ maxWidth: 540, textAlign: 'left', padding: '24px 26px' }}
+            style={{ maxWidth: 560, textAlign: 'left', padding: '24px 26px' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Cabecera */}
@@ -158,7 +182,7 @@ export function BotonRecordarCitaPrevia({
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>
-                    Recordar cita previa al profesional
+                    Recordatorio previo de cita
                   </h3>
                   <span style={{ fontSize: '0.76rem', color: '#b45309', fontWeight: 600 }}>
                     ⚡ Faltan {minutos > 0 ? `${minutos} minutos` : 'pocos minutos'} para la sesión
@@ -181,6 +205,61 @@ export function BotonRecordarCitaPrevia({
               </button>
             </div>
 
+            {/* Selector de Destinatario */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setDestinatario('PACIENTE')
+                  setCopiado(false)
+                }}
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  border: destinatario === 'PACIENTE' ? '2px solid #059669' : '1px solid #cbd5e1',
+                  background: destinatario === 'PACIENTE' ? '#ecfdf5' : '#f8fafc',
+                  color: destinatario === 'PACIENTE' ? '#065f46' : '#64748b',
+                  fontWeight: 700,
+                  fontSize: '0.84rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <User size={15} />
+                Para la Persona Acompañada
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDestinatario('PROFESIONAL')
+                  setCopiado(false)
+                }}
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  border: destinatario === 'PROFESIONAL' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                  background: destinatario === 'PROFESIONAL' ? '#f0f9ff' : '#f8fafc',
+                  color: destinatario === 'PROFESIONAL' ? '#0369a1' : '#64748b',
+                  fontWeight: 700,
+                  fontSize: '0.84rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <Stethoscope size={15} />
+                Para el Profesional
+              </button>
+            </div>
+
             {/* Resumen de la Cita */}
             <div
               style={{
@@ -188,7 +267,7 @@ export function BotonRecordarCitaPrevia({
                 border: '1px solid #e2e8f0',
                 borderRadius: 8,
                 padding: '10px 14px',
-                marginTop: 14,
+                marginTop: 12,
                 fontSize: '0.84rem',
                 display: 'flex',
                 flexDirection: 'column',
@@ -196,21 +275,29 @@ export function BotonRecordarCitaPrevia({
               }}
             >
               <div>
-                <strong>Profesional:</strong> {profesional.nombre} {profesional.telefono ? `(${profesional.telefono})` : ''}
-              </div>
-              <div>
-                <strong>Persona acompañada:</strong> {pacienteNombre}
+                <strong>Destinatario:</strong>{' '}
+                {destinatario === 'PACIENTE' ? (
+                  <span>
+                    {pacienteNombre} {pacienteTelefono ? `(${pacienteTelefono})` : ''}
+                  </span>
+                ) : (
+                  <span>
+                    {profesional.nombre} {profesional.telefono ? `(${profesional.telefono})` : ''}
+                  </span>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <Clock size={14} style={{ color: '#059669' }} />
-                <span><strong>Horario:</strong> {horaFormateada} ({cita.modalidad?.toLowerCase() ?? 'virtual'})</span>
+                <span>
+                  <strong>Horario:</strong> {horaFormateada} ({cita.modalidad?.toLowerCase() ?? 'virtual'})
+                </span>
               </div>
             </div>
 
             {/* Vista previa del mensaje */}
-            <div style={{ marginTop: 14 }}>
+            <div style={{ marginTop: 12 }}>
               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Mensaje de WhatsApp preparado:
+                Mensaje de WhatsApp ({destinatario === 'PACIENTE' ? 'Persona Acompañada' : 'Profesional'}):
               </span>
               <pre
                 style={{
@@ -224,11 +311,11 @@ export function BotonRecordarCitaPrevia({
                   padding: '12px 14px',
                   margin: '6px 0 0',
                   lineHeight: 1.5,
-                  maxHeight: 180,
+                  maxHeight: 190,
                   overflowY: 'auto',
                 }}
               >
-                {mensaje}
+                {mensajeActivo}
               </pre>
             </div>
 
@@ -237,7 +324,7 @@ export function BotonRecordarCitaPrevia({
               style={{
                 display: 'flex',
                 gap: 8,
-                marginTop: 18,
+                marginTop: 16,
                 justifyContent: 'flex-end',
                 flexWrap: 'wrap',
               }}
