@@ -68,6 +68,7 @@ export function ModalAgendar({
   )
   const [meetingUrl, setMeetingUrl] = useState('')
   const [enlaceGenerado, setEnlaceGenerado] = useState<string | null>(null)
+  const [enlaceGeneradoProf, setEnlaceGeneradoProf] = useState<string | null>(null)
   const [fueraDeFranja, setFueraDeFranja] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -144,9 +145,12 @@ export function ModalAgendar({
       }
 
       const tokenPac = datos.data?.salaTokenPaciente || datos.data?.id
+      const tokenProf = datos.data?.salaTokenProfesional || datos.data?.id
       const sitio = typeof window !== 'undefined' ? window.location.origin : ''
       const urlFinal = tokenPac ? `${sitio}/sala/${tokenPac}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
+      const urlFinalProf = tokenProf ? `${sitio}/sala/${tokenProf}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
       setEnlaceGenerado(urlFinal)
+      setEnlaceGeneradoProf(urlFinalProf)
       setAgendada(inicio.toISOString())
     } catch {
       setError('No pudimos conectarnos con el servidor.')
@@ -174,7 +178,7 @@ export function ModalAgendar({
         cuando: enBogota(agendada),
         modalidad,
         enlace: urlCaso,
-        enlaceReunion: enlaceGenerado,
+        enlaceReunion: enlaceGeneradoProf || enlaceGenerado,
       })
     : ''
 
