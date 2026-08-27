@@ -202,40 +202,45 @@ export function TablaColaboradores({
   ])
 
   const listaOrdenada = useMemo(() => {
+    /**
+     * Ordenar texto en español, no por código de carácter.
+     *
+     * Esta tabla comparaba con `<` y `>` a secas, y era la única de las siete
+     * que lo hacía. En UTF-16 la «Á» va después de la «Z», así que en el
+     * directorio de colaboradores TODOS los apellidos con tilde caían al final
+     * de la lista: Muñoz, Núñez, Ochoa, Zapata… y al fondo Álvarez.
+     *
+     * Nadie reporta eso como error: se asume que la lista está rara y se busca
+     * a mano. Por eso es peor que un fallo ruidoso — se vuelve permanente.
+     */
+    const texto = (x: string | null | undefined, y: string | null | undefined) =>
+      (x ?? '').localeCompare(y ?? '', 'es', { sensitivity: 'base' })
+
     return [...listaFiltrada].sort((a, b) => {
-      let va: any = ''
-      let vb: any = ''
+      let cmp = 0
 
       switch (columnaOrden) {
         case 'persona':
-          va = a.fullName.toLowerCase()
-          vb = b.fullName.toLowerCase()
+          cmp = texto(a.fullName, b.fullName)
           break
         case 'disciplina':
-          va = a.discipline.toLowerCase()
-          vb = b.discipline.toLowerCase()
+          cmp = texto(a.discipline, b.discipline)
           break
         case 'experiencia':
-          va = a.yearsExperience ?? ''
-          vb = b.yearsExperience ?? ''
+          cmp = texto(a.yearsExperience, b.yearsExperience)
           break
         case 'ciudad':
-          va = a.city.toLowerCase()
-          vb = b.city.toLowerCase()
+          cmp = texto(a.city, b.city)
           break
         case 'fecha':
-          va = new Date(a.createdAt).getTime()
-          vb = new Date(b.createdAt).getTime()
+          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           break
         case 'estado':
-          va = a.status
-          vb = b.status
+          cmp = texto(a.status, b.status)
           break
       }
 
-      if (va < vb) return direccion === 'asc' ? -1 : 1
-      if (va > vb) return direccion === 'asc' ? 1 : -1
-      return 0
+      return direccion === 'asc' ? cmp : -cmp
     })
   }, [listaFiltrada, columnaOrden, direccion])
 
