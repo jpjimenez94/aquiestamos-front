@@ -1046,8 +1046,14 @@ export function mensajeRecordatorioPrevioCitaProfesional(d: {
     `¡Hola ${nombre}! Te saludamos desde la coordinación de la Red Aquí Estamos.`,
     '',
     `Te recordamos que tienes una sesión de acompañamiento psicológico programada para dentro de poco: *${d.cuando}*${modalidad}.`,
-    d.enlaceReunion ? `\n📹 *Enlace de la videollamada:*\n${d.enlaceReunion}` : '',
-    d.enlaceCaso ? `\nPuedes consultar los datos del caso aquí:\n${d.enlaceCaso}` : '',
+    d.enlaceReunion ? `\n· *Enlace de videollamada:* ${d.enlaceReunion}` : '',
+    '',
+    '*Tu responsabilidad en este acompañamiento:*',
+    '1. Tú das el primer paso: ponte en contacto con ella por WhatsApp unos *15 minutos antes* de la cita para coordinar el inicio de la sesión en la fecha y hora acordadas. Ella ya sabe que la vas a contactar.',
+    '2. Compromiso y puntualidad: la persona te está esperando. Si te surge un imprevisto de fuerza mayor, avísanos de inmediato por aquí para no dejarla esperando y poder reagendar a tiempo.',
+    d.enlaceCaso
+      ? `\nLos datos de contacto y la información del caso están en tu enlace seguro:\n${d.enlaceCaso}\n\nAl terminar la sesión, entra a ese mismo enlace para registrar el reporte de cierre (si se realizó, cómo fue y si necesita más sesiones).\n\nPor favor *respóndenos a este mensaje confirmando que lo recibiste y lo tienes agendado*.`
+      : '',
     '',
     '¡Muchísimas gracias por tu tiempo, calidez y compromiso solidario!',
   ].filter(Boolean).join('\n')
