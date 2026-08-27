@@ -15,7 +15,8 @@ import {
   Radio,
   UserCheck2,
   UserX2,
-  Timer
+  Timer,
+  CheckCircle2,
 } from 'lucide-react'
 
 export const metadata = { title: 'Detalle de Cita' }
@@ -37,11 +38,20 @@ type Cita = {
   professionalFirstJoinedAt?: string | null
   totalCallDurationSeconds?: number
   totalCallDurationMinutes?: number
+  pacienteEnVivo?: boolean
+  profesionalEnVivo?: boolean
+  llamadaEnVivo?: boolean
+  ambosEnVivo?: boolean
+  pacienteSegundosDesdePing?: number | null
+  profesionalSegundosDesdePing?: number | null
+  pacienteUltimoPing?: string | null
+  profesionalUltimoPing?: string | null
   accessLogs?: {
     id: string
     role: string
     participantName?: string | null
     joinedAt: string
+    lastPingAt?: string
     durationSeconds: number
   }[]
   estado: string
@@ -246,12 +256,101 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
             Rastreo en tiempo real de conexión a la videollamada, ingresos a la sala y tiempo efectivo en sesión.
           </p>
 
+          {/* Banner de Supervisión en Vivo */}
+          {cita.llamadaEnVivo ? (
+            <div
+              style={{
+                background: cita.ambosEnVivo ? '#ecfdf5' : '#fffbeb',
+                border: cita.ambosEnVivo ? '1.5px solid #a7f3d0' : '1.5px solid #fde68a',
+                borderRadius: 12,
+                padding: '14px 18px',
+                marginTop: 14,
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    background: cita.ambosEnVivo ? '#10b981' : '#f59e0b',
+                    boxShadow: cita.ambosEnVivo ? '0 0 0 4px rgba(16,185,129,0.2)' : '0 0 0 4px rgba(245,158,11,0.2)',
+                  }}
+                />
+                <div>
+                  <strong style={{ color: cita.ambosEnVivo ? '#065f46' : '#92400e', fontSize: '0.95rem', display: 'block' }}>
+                    {cita.ambosEnVivo
+                      ? '🟢 Sesión en curso activa — Ambos participantes están conectados en vivo'
+                      : cita.pacienteEnVivo
+                      ? `🟡 Persona acompañada (${cita.paciente.nombre ?? 'Paciente'}) está en la sala esperando al profesional`
+                      : `🟡 Psicólogo(a) (${cita.profesional.nombre ?? 'Profesional'}) está en la sala esperando a la persona`}
+                  </strong>
+                  <span style={{ fontSize: '0.8rem', color: cita.ambosEnVivo ? '#047857' : '#b45309' }}>
+                    Supervisor en tiempo real: latidos activos hace {Math.min(cita.pacienteSegundosDesdePing ?? 999, cita.profesionalSegundosDesdePing ?? 999)} segundos.
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    background: cita.ambosEnVivo ? '#d1fae5' : '#fef3c7',
+                    color: cita.ambosEnVivo ? '#065f46' : '#92400e',
+                    padding: '4px 12px',
+                    borderRadius: 20,
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  ⏱️ {cita.totalCallDurationMinutes ?? 0} min en sesión
+                </span>
+              </div>
+            </div>
+          ) : (cita.totalCallDurationSeconds ?? 0) > 0 ? (
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 10,
+                padding: '10px 16px',
+                marginTop: 14,
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                color: '#475569',
+                fontSize: '0.86rem',
+              }}
+            >
+              <CheckCircle2 size={16} style={{ color: '#059669' }} />
+              <span>
+                <strong>Sesión virtual finalizada.</strong> Tiempo total efectivo registrado:{' '}
+                <strong>{cita.totalCallDurationMinutes} min ({cita.totalCallDurationSeconds}s)</strong>.
+              </span>
+            </div>
+          ) : null}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginTop: 14 }}>
             {/* Estado Paciente */}
-            <div style={{ padding: 14, borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc' }}>
-              <span className="tabla__secundario" style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Persona Acompañada
-              </span>
+            <div style={{ padding: 14, borderRadius: 10, border: '1px solid #e2e8f0', background: cita.pacienteEnVivo ? '#f0fdf4' : '#f8fafc' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="tabla__secundario" style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Persona Acompañada
+                </span>
+                {cita.pacienteEnVivo ? (
+                  <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />
+                    En vivo ahora
+                  </span>
+                ) : null}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
                 {cita.patientFirstJoinedAt ? (
                   <>
@@ -274,10 +373,18 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
             </div>
 
             {/* Estado Psicólogo */}
-            <div style={{ padding: 14, borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc' }}>
-              <span className="tabla__secundario" style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Psicólogo(a)
-              </span>
+            <div style={{ padding: 14, borderRadius: 10, border: '1px solid #e2e8f0', background: cita.profesionalEnVivo ? '#f0fdf4' : '#f8fafc' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="tabla__secundario" style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Psicólogo(a)
+                </span>
+                {cita.profesionalEnVivo ? (
+                  <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />
+                    En vivo ahora
+                  </span>
+                ) : null}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
                 {cita.professionalFirstJoinedAt ? (
                   <>
