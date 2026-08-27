@@ -144,7 +144,27 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
     }
   }, [enLlamada, logId, segundosTranscurridos, id, cita?.rol])
 
+  /**
+   * Lleva la sala a su propia pestaña.
+   *
+   * La videollamada iba dentro de un `<iframe>` y Jitsi CORTA a los cinco
+   * minutos cualquier llamada embebida: «Embedding meet.jit.si is only meant
+   * for demo purposes». Las sesiones de acompañamiento son de 45. La misma
+   * sala abierta en una pestaña normal no tiene ese límite.
+   *
+   * La ventana se abre vacía y se rellena después. Tiene que ser así: el
+   * navegador solo deja abrir pestañas dentro del gesto de la persona, y
+   * después de esperar al `fetch` ese permiso ya se perdió y el bloqueador de
+   * ventanas emergentes la mataría.
+   */
+  function llevarASala(ventana: Window | null, url: string | null) {
+    if (!url) return
+    if (ventana && !ventana.closed) ventana.location.href = url
+    else window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
   async function unirseALaSala() {
+    const ventana = window.open('', '_blank')
     setConectando(true)
     try {
       const res = await fetch(`/api/meetings/${id}/join`, {
@@ -153,17 +173,21 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({ role: cita?.rol || (esProfesional ? 'PROFESIONAL' : 'PACIENTE') }),
       })
       const data = await res.json()
+      let url: string | null
       if (res.ok && data.success && data.data) {
         setLogId(data.data.logId)
-        setMeetingUrl(sanitizarUrlVideollamada(data.data.targetMeetingUrl || cita?.targetMeetingUrl))
-        setEnLlamada(true)
+        url = sanitizarUrlVideollamada(data.data.targetMeetingUrl || cita?.targetMeetingUrl)
       } else {
-        setMeetingUrl(sanitizarUrlVideollamada(cita?.targetMeetingUrl || null))
-        setEnLlamada(true)
+        url = sanitizarUrlVideollamada(cita?.targetMeetingUrl || null)
       }
-    } catch {
-      setMeetingUrl(sanitizarUrlVideollamada(cita?.targetMeetingUrl || null))
+      setMeetingUrl(url)
       setEnLlamada(true)
+      llevarASala(ventana, url)
+    } catch {
+      const url = sanitizarUrlVideollamada(cita?.targetMeetingUrl || null)
+      setMeetingUrl(url)
+      setEnLlamada(true)
+      llevarASala(ventana, url)
     } finally {
       setConectando(false)
     }
@@ -273,36 +297,88 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
               Servidor de respaldo
             </button>
 
-            <a
-              href={meetingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="boton-mini"
-              style={{ background: '#334155', color: '#f8fafc', border: '1px solid #475569', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
-              title="Abrir en ventana completa externa"
-            >
-              <ExternalLink size={13} />
-              Abrir en pestaña nueva
-            </a>
-
             <button
               type="button"
               onClick={salirDeLaSala}
               className="boton-mini"
               style={{ background: '#dc2626', color: '#fff', border: 'none', fontSize: '0.78rem', fontWeight: 700 }}
             >
-              Salir de la sala
+              Terminar y cerrar
             </button>
           </div>
         </div>
 
-        {/* Marco de la sala Jitsi / WebRTC */}
-        <iframe
-          src={meetingUrl}
-          allow="camera; microphone; fullscreen; display-capture; autoplay"
-          style={{ width: '100%', height: 'calc(100vh - 52px)', border: 'none', background: '#000' }}
-          title="Sala de Videollamada - Red Aquí Estamos"
-        />
+        {/*
+          Aquí iba un <iframe> con la sala dentro, y Jitsi corta a los cinco
+          minutos toda llamada embebida. La sala vive ahora en su propia
+          pestaña; esta página se queda como panel de la sesión, que es lo que
+          mantiene viva la telemetría: el cronómetro y los pings salen de aquí.
+          Por eso pide no cerrarla.
+        */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '32px 20px',
+            textAlign: 'center',
+            gap: 20,
+          }}
+        >
+          <div
+            style={{
+              width: 68,
+              height: 68,
+              borderRadius: '50%',
+              background: 'rgba(16,185,129,0.12)',
+              border: '1px solid rgba(16,185,129,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Video size={30} style={{ color: '#10b981' }} />
+          </div>
+
+          <div style={{ maxWidth: 460 }}>
+            <h2 style={{ color: '#f8fafc', fontSize: '1.2rem', margin: '0 0 8px' }}>
+              Tu sesión se abrió en otra pestaña
+            </h2>
+            <p style={{ color: '#94a3b8', fontSize: '0.94rem', lineHeight: 1.6, margin: 0 }}>
+              Búscala entre tus pestañas: ahí están la cámara y el micrófono. Si no
+              se abrió, tu navegador pudo haberla bloqueado; ábrela con el botón de
+              abajo.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => llevarASala(null, meetingUrl)}
+            className="boton"
+            data-tono="principal"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 700 }}
+          >
+            <ExternalLink size={17} />
+            Abrir la sala
+          </button>
+
+          <p
+            style={{
+              color: '#64748b',
+              fontSize: '0.82rem',
+              maxWidth: 420,
+              lineHeight: 1.6,
+              margin: 0,
+              borderTop: '1px solid #1e293b',
+              paddingTop: 16,
+            }}
+          >
+            No cierres esta pestaña mientras dure la sesión: desde aquí se lleva el
+            tiempo de la llamada. Al terminar, vuelve y pulsa «Terminar y cerrar».
+          </p>
+        </div>
       </div>
     )
   }
