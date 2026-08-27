@@ -9,6 +9,7 @@ import {
   mensajeDePedirNuevaDisponibilidadAlProfesional,
   mensajeDeExcusasYReagendamiento,
   mensajeDeCitaConfirmadaAlProfesional,
+  mensajeDeSiguienteCitaConfirmadaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 import { enBogota } from '@/lib/fechas'
@@ -70,12 +71,14 @@ export function PanelDelCaso({
   asignacion,
   enlaceCaso,
   proximaCita,
+  esPrimeraCita = true,
 }: {
   persona: Persona
   asignacion: Asignacion
   enlaceCaso: string
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
   proximaCita?: { id?: string; cuando: string; modalidad: string } | null
+  esPrimeraCita?: boolean
 }) {
   const [copiado, setCopiado] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -256,15 +259,24 @@ export function PanelDelCaso({
       {asignacion.estado === 'ACTIVA' ? (
         <>
           <Mensaje
-            titulo="3 · Confírmale la cita al profesional"
-            nota="Entrega de la cita confirmada al profesional con el canal preferido de la persona, sus responsabilidades de contacto/asistencia y el enlace seguro al caso."
+            titulo={esPrimeraCita ? '3 · Confírmale la cita al profesional' : '3 · Confírmale la siguiente sesión al profesional'}
+            nota={esPrimeraCita
+              ? 'Entrega de la cita confirmada al profesional con el canal preferido de la persona, sus responsabilidades de contacto/asistencia y el enlace seguro al caso.'
+              : 'Confirmación de la siguiente sesión acordada con enlace de videollamada y reporte de seguimiento.'}
             telefono={asignacion.profesional.telefono}
-            texto={mensajeDeCitaConfirmadaAlProfesional({
+            texto={esPrimeraCita ? mensajeDeCitaConfirmadaAlProfesional({
               profesional: asignacion.profesional.nombre,
               persona: persona.fullName,
               cuando: proximaCita?.cuando ?? 'la fecha acordada',
               modalidad: proximaCita?.modalidad ?? persona.preferredModality,
               canalContacto: persona.preferredContact,
+              enlace: enlaceCaso,
+              enlaceReunion,
+            }) : mensajeDeSiguienteCitaConfirmadaAlProfesional({
+              profesional: asignacion.profesional.nombre,
+              persona: persona.fullName,
+              cuando: proximaCita?.cuando ?? 'la fecha acordada',
+              modalidad: proximaCita?.modalidad ?? persona.preferredModality,
               enlace: enlaceCaso,
               enlaceReunion,
             })}

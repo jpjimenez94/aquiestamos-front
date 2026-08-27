@@ -51,7 +51,7 @@ export function ModalAgendar({
   asignacionId?: string
   personaId?: string
   profesionalId?: string
-  persona: { id?: string; fullName: string; phone: string; preferredModality?: string | null }
+  persona: { id?: string; fullName: string; phone: string; preferredModality?: string | null; preferredContact?: string | null }
   profesional: { id?: string; nombre: string; telefono?: string }
   enlaceCaso?: string
   fechaInicial?: string | null
@@ -171,14 +171,24 @@ export function ModalAgendar({
     : ''
 
   const mensajeProf = agendada
-    ? mensajeDeSiguienteCitaConfirmadaAlProfesional({
-        profesional: profesional.nombre,
-        persona: persona.fullName,
-        cuando: enBogota(agendada),
-        modalidad,
-        enlace: urlCaso,
-        enlaceReunion: enlaceGeneradoProf || enlaceGenerado,
-      })
+    ? esNuevaSesion
+      ? mensajeDeSiguienteCitaConfirmadaAlProfesional({
+          profesional: profesional.nombre,
+          persona: persona.fullName,
+          cuando: enBogota(agendada),
+          modalidad,
+          enlace: urlCaso,
+          enlaceReunion: enlaceGeneradoProf || enlaceGenerado,
+        })
+      : mensajeDeCitaConfirmadaAlProfesional({
+          profesional: profesional.nombre,
+          persona: persona.fullName,
+          cuando: enBogota(agendada),
+          modalidad,
+          canalContacto: persona.preferredContact,
+          enlace: urlCaso,
+          enlaceReunion: enlaceGeneradoProf || enlaceGenerado,
+        })
     : ''
 
   const whatsappPersona = agendada ? enlaceWhatsapp(persona.phone, mensajePersona) : null

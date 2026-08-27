@@ -210,6 +210,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                 }
               : null
           })()}
+          esPrimeraCita={!persona.citas || persona.citas.filter((c) => c.estado === 'REALIZADA' || c.estado === 'COMPLETADA' || c.estado === 'CERRADA').length === 0}
         />
       ) : persona.status === 'CERRADO' ? (
         /* Cerrado no es «sin asignar»: ofrecer candidatos aquí invitaría a
