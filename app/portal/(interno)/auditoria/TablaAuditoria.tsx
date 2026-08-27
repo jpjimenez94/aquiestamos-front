@@ -67,6 +67,256 @@ function obtenerFechaIso(fechaIso: string): string {
   return formatearFechaIsoBogota(d)
 }
 
+
+function renderizarDiagnosticoError(e: EntradaAuditoria) {
+  const d = e.despues || {}
+  const esPruebaLocal =
+    e.ip?.includes('127.0.0.1') ||
+    e.ip?.includes('::1') ||
+    e.actor?.includes('@ejemplo.com') ||
+    e.actor?.includes('@pruebas.local') ||
+    d.email?.includes('@pruebas.local') ||
+    d.correo?.includes('@ejemplo.com')
+
+  if (e.accion === 'acceso_fallido') {
+    if (e.entidad === 'CasoCompartido') {
+      return (
+        <div
+          style={{
+            fontSize: '0.76rem',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 6,
+            padding: '5px 9px',
+            color: '#991b1b',
+            marginTop: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <div>
+            <strong>🔒 Causa:</strong> Intento de acceso a caso con correo no autorizado.
+          </div>
+          {d.correo ? (
+            <div style={{ fontSize: '0.72rem', color: '#b91c1c' }}>
+              Correo digitado: <code>{d.correo}</code>
+            </div>
+          ) : null}
+          {esPruebaLocal ? (
+            <span
+              style={{
+                fontSize: '0.68rem',
+                background: '#e2e8f0',
+                color: '#334155',
+                padding: '2px 6px',
+                borderRadius: 4,
+                width: 'fit-content',
+                fontWeight: 600,
+                marginTop: 2,
+              }}
+            >
+              🧪 Prueba de seguridad automatizada
+            </span>
+          ) : null}
+        </div>
+      )
+    }
+
+    if (e.entidad === 'usuario') {
+      return (
+        <div
+          style={{
+            fontSize: '0.76rem',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 6,
+            padding: '5px 9px',
+            color: '#991b1b',
+            marginTop: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <div>
+            <strong>🔒 Causa:</strong>{' '}
+            {d.bloqueado
+              ? '🚨 Cuenta bloqueada por exceso de intentos erróneos'
+              : 'Contraseña incorrecta (Intento ' + (d.intentos ?? 1) + ' de 5)'}
+          </div>
+          {d.email ? (
+            <div style={{ fontSize: '0.72rem', color: '#b91c1c' }}>
+              Correo: <code>{d.email}</code>
+            </div>
+          ) : null}
+          {esPruebaLocal ? (
+            <span
+              style={{
+                fontSize: '0.68rem',
+                background: '#e2e8f0',
+                color: '#334155',
+                padding: '2px 6px',
+                borderRadius: 4,
+                width: 'fit-content',
+                fontWeight: 600,
+                marginTop: 2,
+              }}
+            >
+              🧪 Prueba de seguridad automatizada
+            </span>
+          ) : null}
+        </div>
+      )
+    }
+
+    return (
+      <div
+        style={{
+          fontSize: '0.76rem',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: 6,
+          padding: '5px 9px',
+          color: '#991b1b',
+          marginTop: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <div>
+          <strong>🔒 Causa:</strong> Acceso o autenticación rechazada por el sistema.
+        </div>
+        {esPruebaLocal ? (
+          <span
+            style={{
+              fontSize: '0.68rem',
+              background: '#e2e8f0',
+              color: '#334155',
+              padding: '2px 6px',
+              borderRadius: 4,
+              width: 'fit-content',
+              fontWeight: 600,
+              marginTop: 2,
+            }}
+          >
+            🧪 Prueba de seguridad automatizada
+          </span>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (e.accion === 'error_videollamada') {
+    return (
+      <div
+        style={{
+          fontSize: '0.76rem',
+          background: '#fff1f2',
+          border: '1px solid #fecdd3',
+          borderRadius: 6,
+          padding: '5px 9px',
+          color: '#9f1239',
+          marginTop: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <div>
+          <strong>🚨 Fallo en videollamada:</strong> {d.motivo || d.errorDetalle || 'Problema de conexión WebRTC'}
+        </div>
+        {d.urlFallida ? (
+          <div style={{ fontSize: '0.72rem', color: '#be123c' }}>
+            Servidor / URL: <code>{d.urlFallida}</code>
+          </div>
+        ) : null}
+        {d.rol ? (
+          <div style={{ fontSize: '0.72rem', color: '#be123c' }}>
+            Afectó a: <strong>{d.rol === 'PROFESIONAL' ? 'Psicólogo(a)' : 'Persona acompañada'}</strong>
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (e.accion === 'error_servidor') {
+    return (
+      <div
+        style={{
+          fontSize: '0.76rem',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: 6,
+          padding: '5px 9px',
+          color: '#991b1b',
+          marginTop: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <div>
+          <strong>⚠️ Error interno 500:</strong> {d.error || 'Excepción no controlada'}
+        </div>
+        {d.ruta ? (
+          <div style={{ fontSize: '0.72rem', color: '#b91c1c' }}>
+            Endpoint: <code>{(d.metodo || 'GET') + ' ' + d.ruta}</code>
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (e.accion === 'error_notificacion') {
+    return (
+      <div
+        style={{
+          fontSize: '0.76rem',
+          background: '#fffbeb',
+          border: '1px solid #fde68a',
+          borderRadius: 6,
+          padding: '5px 9px',
+          color: '#92400e',
+          marginTop: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <div>
+          <strong>✉️ Fallo de notificación:</strong> {d.error || 'No se pudo entregar el correo'}
+        </div>
+        {d.para ? <div style={{ fontSize: '0.72rem', color: '#b45309' }}>Destinatario: {d.para}</div> : null}
+        {d.plantilla ? <div style={{ fontSize: '0.72rem', color: '#b45309' }}>Plantilla: {d.plantilla}</div> : null}
+      </div>
+    )
+  }
+
+  if (d.motivo || d.error || d.errorDetalle) {
+    return (
+      <div
+        style={{
+          fontSize: '0.76rem',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: 6,
+          padding: '5px 9px',
+          color: '#991b1b',
+          marginTop: 4,
+        }}
+      >
+        <div>
+          <strong>Detalle del fallo:</strong> {String(d.motivo || d.error || d.errorDetalle)}
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
+
 export function TablaAuditoria({
   entradas,
   modulos,
@@ -851,14 +1101,8 @@ export function TablaAuditoria({
                         </div>
                       ) : null}
 
-                      {/* Chip de Diagnóstico de Error */}
-                      {e.despues?.motivo || e.despues?.error ? (
-                        <div style={{ fontSize: '0.74rem', color: '#991b1b', background: '#fef2f2', border: '1px solid #fecaca', padding: '3px 8px', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 2, width: 'fit-content' }}>
-                          <div><strong>Detalle:</strong> {String(e.despues.motivo || e.despues.error).slice(0, 120)}</div>
-                          {e.despues.urlFallida ? <div style={{ fontSize: '0.7rem', color: '#b91c1c' }}>URL: {e.despues.urlFallida}</div> : null}
-                          {e.despues.ruta ? <div style={{ fontSize: '0.7rem', color: '#b91c1c' }}>Ruta: {e.despues.metodo || ''} {e.despues.ruta}</div> : null}
-                        </div>
-                      ) : null}
+                      {/* Diagnóstico detallado del error o fallo */}
+                      {esError(e) ? renderizarDiagnosticoError(e) : null}
                     </div>
                   </td>
                   <td>
