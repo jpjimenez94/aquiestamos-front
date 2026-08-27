@@ -30,6 +30,7 @@ export function MensajesFlujoCita({
   canalContacto,
   enlaceCaso,
   enlaceReunion,
+  enlaceReunionProfesional,
 }: {
   pacienteNombre: string
   pacienteTelefono: string
@@ -42,6 +43,7 @@ export function MensajesFlujoCita({
   canalContacto?: string | null
   enlaceCaso: string
   enlaceReunion?: string | null
+  enlaceReunionProfesional?: string | null
 }) {
   const mensajeConfirmacion = mensajeDeCitaConfirmada({
     persona: pacienteNombre,
@@ -73,7 +75,7 @@ export function MensajesFlujoCita({
     modalidad,
     canalContacto,
     enlace: enlaceCaso,
-    enlaceReunion,
+    enlaceReunion: enlaceReunionProfesional || enlaceReunion,
   })
 
   const mensajePedirNuevaDispProf = mensajeDePedirNuevaDisponibilidadAlProfesional({

@@ -79,10 +79,10 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
   if (!respuesta.success || !respuesta.data) notFound()
   const cita = respuesta.data
 
-  const sitioUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
+  const sitioUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
   const enlaceCasoProf = `${sitioUrl}/portal/caso/${cita.paciente.id}`
-  const enlaceSalaPaciente = cita.meetingUrl ? `${sitioUrl}/sala/${cita.salaTokenPaciente || cita.id}` : null
-  const enlaceSalaProfesional = cita.meetingUrl ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}` : null
+  const enlaceSalaPaciente = (cita.modalidad === 'VIRTUAL' || cita.meetingUrl) ? `${sitioUrl}/sala/${cita.salaTokenPaciente || cita.id}` : null
+  const enlaceSalaProfesional = (cita.modalidad === 'VIRTUAL' || cita.meetingUrl) ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}` : null
 
   return (
     <>
@@ -366,6 +366,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         canalContacto={cita.paciente.canalPreferido ?? null}
         enlaceCaso={enlaceCasoProf}
         enlaceReunion={enlaceSalaPaciente}
+        enlaceReunionProfesional={enlaceSalaProfesional}
       />
 
       {/* Acciones de la Cita */}
