@@ -77,12 +77,15 @@ export function BotonRecordarCitaPrevia({
     : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
   const esVirtual = !cita.modalidad || cita.modalidad.toUpperCase() === 'VIRTUAL'
 
+  // Cada rol lleva su propia llave firmada: la del profesional no sirve para
+  // entrar como paciente ni al revés. El UUID crudo queda como respaldo para
+  // las citas agendadas antes de que el backend empezara a firmar.
   const enlaceReunionProf = (esVirtual || cita.meetingUrl)
-    ? `${sitioUrl}/sala/${cita.id}`
+    ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}`
     : null
 
   const enlaceReunionPac = (esVirtual || cita.meetingUrl)
-    ? `${sitioUrl}/sala/${cita.id}`
+    ? `${sitioUrl}/sala/${cita.salaTokenPaciente || cita.id}`
     : null
 
   const mensajeProf = mensajeRecordatorioPrevioCitaProfesional({

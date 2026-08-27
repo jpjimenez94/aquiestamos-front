@@ -91,8 +91,18 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
 
   const sitioUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
   const enlaceCasoProf = `${sitioUrl}/portal/caso/${cita.paciente.id}`
-  const enlaceSalaPaciente = (cita.modalidad === 'VIRTUAL' || cita.meetingUrl) ? `${sitioUrl}/sala/${cita.id}` : null
-  const enlaceSalaProfesional = (cita.modalidad === 'VIRTUAL' || cita.meetingUrl) ? `${sitioUrl}/sala/${cita.id}` : null
+  // Estos enlaces se copian y se mandan por WhatsApp, así que llevan la llave
+  // firmada que emite el backend: trae el rol sellado dentro y no se puede
+  // fabricar desde fuera. Se cae al UUID solo si el backend no mandó token
+  // —una cita vieja—, que es lo que `SALA_ACEPTA_UUID` mantiene vivo mientras
+  // pasan las citas agendadas antes del cambio.
+  const salaDe = (token?: string | null) =>
+    cita.modalidad === 'VIRTUAL' || cita.meetingUrl
+      ? `${sitioUrl}/sala/${token || cita.id}`
+      : null
+
+  const enlaceSalaPaciente = salaDe(cita.salaTokenPaciente)
+  const enlaceSalaProfesional = salaDe(cita.salaTokenProfesional)
 
   return (
     <>
@@ -120,7 +130,11 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
           <Dato etiqueta="Modalidad">
             <span style={{ textTransform: 'capitalize' }}>{cita.modalidad.toLowerCase()}</span>
           </Dato>
-          {cita.meetingUrl ? (
+          {/* La condición era `cita.meetingUrl`, que la vista rellenaba con una
+              URL inventada. Ahora esa vista dice la verdad (null si no hay
+              ninguna guardada), así que el criterio pasa a ser el mismo que en
+              el resto de la página: si es virtual, hay sala. */}
+          {cita.modalidad === 'VIRTUAL' || cita.meetingUrl ? (
             <Dato etiqueta="Videollamada">
               <a
                 href={`/sala/${cita.salaTokenProfesional || cita.id}`}
@@ -133,8 +147,11 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
                 <Video size={15} />
                 Unirse a la sesión virtual
               </a>
+              {/* Se muestra el enlace de la sala, que es el que hay que
+                  copiar y mandar. Antes se mostraba la URL cruda de Jitsi, que
+                  llevaba a una sala distinta de la real. */}
               <span className="tabla__secundario" style={{ wordBreak: 'break-all', fontSize: '0.78rem', marginTop: 4 }}>
-                {cita.meetingUrl}
+                {enlaceSalaProfesional ?? cita.meetingUrl}
               </span>
             </Dato>
           ) : null}
@@ -238,9 +255,15 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
               <Radio size={18} style={{ color: '#059669' }} />
               Telemetría y Asistencia a la Sala Virtual
             </h2>
-            {cita.meetingUrl ? (
+            {cita.modalidad === 'VIRTUAL' || cita.meetingUrl ? (
               <a
-                href={`/sala/${cita.id}?rol=profesional`}
+                // El rol ya va sellado dentro del token; el `?rol=` solo hace
+                // falta para los enlaces viejos que aún son un UUID crudo.
+                href={
+                  cita.salaTokenProfesional
+                    ? `/sala/${cita.salaTokenProfesional}`
+                    : `/sala/${cita.id}?rol=profesional`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="boton-mini"

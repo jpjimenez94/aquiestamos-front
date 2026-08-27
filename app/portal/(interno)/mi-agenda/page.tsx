@@ -9,6 +9,8 @@ type Cita = {
   fin: string
   modalidad: string
   meetingUrl?: string | null
+  /** Llave de sala firmada para el profesional. Es por donde se entra. */
+  salaTokenProfesional?: string | null
   estado: string
   estadoLegible: string
   paciente: { id: string; nombre?: string; telefono?: string }
@@ -61,9 +63,20 @@ export default async function MiAgendaPage() {
                     <Etiqueta estado={c.estado} texto={c.estadoLegible} />
                   </td>
                   <td>
-                    {c.meetingUrl ? (
+                    {/* Se entra por `/sala/<token>`, no por la URL de Jitsi.
+                        Antes este enlace usaba `c.meetingUrl`, que la vista se
+                        inventaba a partir del id de la cita y que NO era la
+                        sala real: el profesional llegaba a una sala vacía
+                        mientras la persona esperaba en otra. La sala la decide
+                        el servidor en un solo sitio, y de paso queda la
+                        telemetría de quién entró y cuándo. */}
+                    {c.salaTokenProfesional || c.meetingUrl ? (
                       <a
-                        href={c.meetingUrl}
+                        href={
+                          c.salaTokenProfesional
+                            ? `/sala/${c.salaTokenProfesional}`
+                            : (c.meetingUrl as string)
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="boton-mini"

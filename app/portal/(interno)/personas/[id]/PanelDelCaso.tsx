@@ -77,7 +77,13 @@ export function PanelDelCaso({
   asignacion: Asignacion
   enlaceCaso: string
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
-  proximaCita?: { id?: string; cuando: string; modalidad: string } | null
+  proximaCita?: {
+    id?: string
+    cuando: string
+    modalidad: string
+    /** Llave de sala firmada para la persona acompañada. */
+    salaTokenPaciente?: string | null
+  } | null
   esPrimeraCita?: boolean
 }) {
   const [copiado, setCopiado] = useState<string | null>(null)
@@ -96,8 +102,11 @@ export function PanelDelCaso({
     ? window.location.origin
     : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
 
+  // Este enlace va en el mensaje a la persona acompañada, así que lleva SU
+  // llave firmada. El UUID crudo queda como respaldo para las citas
+  // agendadas antes de que el backend empezara a firmar.
   const enlaceReunion = (proximaCita?.id && (proximaCita.modalidad === 'VIRTUAL' || !proximaCita.modalidad))
-    ? `${sitioUrl}/sala/${proximaCita.id}`
+    ? `${sitioUrl}/sala/${proximaCita.salaTokenPaciente || proximaCita.id}`
     : null
 
   return (

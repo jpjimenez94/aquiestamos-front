@@ -146,8 +146,16 @@ export function ModalAgendar({
 
       const idCita = datos.data?.id
       const sitio = typeof window !== 'undefined' ? window.location.origin : ''
-      const urlFinal = idCita ? `${sitio}/sala/${idCita}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
-      const urlFinalProf = idCita ? `${sitio}/sala/${idCita}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
+      // Cada rol recibe su propia llave firmada, no el UUID de la cita: estos
+      // son los enlaces que se copian al mensaje de WhatsApp, y el rol tiene
+      // que ir sellado dentro en vez de elegirlo quien abre el enlace.
+      const salaDe = (token?: string | null) =>
+        idCita
+          ? `${sitio}/sala/${token || idCita}`
+          : (datos.data?.meetingUrl || meetingUrl.trim() || null)
+
+      const urlFinal = salaDe(datos.data?.salaTokenPaciente)
+      const urlFinalProf = salaDe(datos.data?.salaTokenProfesional)
       setEnlaceGenerado(urlFinal)
       setEnlaceGeneradoProf(urlFinalProf)
       setAgendada(inicio.toISOString())

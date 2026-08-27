@@ -85,6 +85,10 @@ type CitaDeLaPersona = {
   estado: string
   estadoLegible: string
   consentSigned?: boolean
+  // Llaves de sala firmadas, una por rol. Las emite el backend; son lo que va
+  // al mensaje de WhatsApp, en vez del UUID de la cita.
+  salaTokenPaciente?: string | null
+  salaTokenProfesional?: string | null
   profesional: { id: string; nombre?: string }
 }
 
@@ -207,6 +211,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                   id: abierta.id,
                   cuando: abierta.inicioLocal || enBogota(abierta.inicio),
                   modalidad: abierta.modalidad,
+                  salaTokenPaciente: abierta.salaTokenPaciente,
                 }
               : null
           })()}
