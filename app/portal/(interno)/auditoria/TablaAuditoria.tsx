@@ -3,6 +3,8 @@
 import { useState, useMemo, useTransition } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
+  AlertTriangle,
+  AlertCircle,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -27,6 +29,8 @@ export type EntradaAuditoria = {
   accion: string
   entidad: string
   entidadId: string | null
+  antes?: any
+  despues?: any
   fecha: string
   ip: string | null
 }
@@ -81,8 +85,8 @@ export function TablaAuditoria({
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
 
-  // Pestaña activa: Actividad del Portal vs Salas de Videollamada vs Todo
-  const [tabAuditoria, setTabAuditoria] = useState<'portal' | 'llamadas' | 'todo'>('portal')
+  // Pestaña activa: Actividad del Portal vs Salas de Videollamada vs Incidentes vs Todo
+  const [tabAuditoria, setTabAuditoria] = useState<'portal' | 'llamadas' | 'errores' | 'todo'>('portal')
 
   // Filtros de Rango de Fechas
   const [filtroDesde, setFiltroDesde] = useState(desdeInicial)
@@ -199,17 +203,27 @@ export function TablaAuditoria({
     return map
   }, [modulos])
 
+  const esError = (e: EntradaAuditoria) =>
+    ['error_servidor', 'error_videollamada', 'error_notificacion', 'acceso_fallido'].includes(e.accion)
+
+  const esLlamada = (e: EntradaAuditoria) =>
+    e.entidad === 'sesion_virtual' || ['ingresar_sala', 'finalizar_sala', 'error_videollamada'].includes(e.accion)
+
   // Contadores para las pestañas
-  const conteoLlamadas = useMemo(() => entradas.filter(e => e.entidad === 'sesion_virtual' || e.accion === 'ingresar_sala').length, [entradas])
-  const conteoPortal = useMemo(() => entradas.filter(e => e.entidad !== 'sesion_virtual' && e.accion !== 'ingresar_sala').length, [entradas])
+  const conteoErrores = useMemo(() => entradas.filter(esError).length, [entradas])
+  const conteoLlamadas = useMemo(() => entradas.filter(esLlamada).length, [entradas])
+  const conteoPortal = useMemo(() => entradas.filter((e) => !esLlamada(e) && !esError(e)).length, [entradas])
 
   const listaFiltrada = useMemo(() => {
     return entradas.filter((e) => {
       // Filtro de pestaña principal
-      if (tabAuditoria === 'portal' && (e.entidad === 'sesion_virtual' || e.accion === 'ingresar_sala')) {
+      if (tabAuditoria === 'portal' && (esLlamada(e) || esError(e))) {
         return false
       }
-      if (tabAuditoria === 'llamadas' && !(e.entidad === 'sesion_virtual' || e.accion === 'ingresar_sala')) {
+      if (tabAuditoria === 'llamadas' && !esLlamada(e)) {
+        return false
+      }
+      if (tabAuditoria === 'errores' && !esError(e)) {
         return false
       }
       // Filtro de rango de fechas
@@ -330,8 +344,51 @@ export function TablaAuditoria({
   return (
     <>
 
-      {/* Pestañas de separación: Actividad del Portal vs Salas y Videollamadas */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      {/* Banner de alerta si hay errores o fallas detectadas */}
+      {conteoErrores > 0 ? (
+        <div
+          style={{
+            background: '#fef2f2',
+            border: '1.5px solid #fecaca',
+            borderRadius: 12,
+            padding: '12px 18px',
+            marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+            boxShadow: '0 2px 8px rgba(220,38,38,0.08)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#991b1b', fontWeight: 700, fontSize: '0.88rem' }}>
+            <AlertTriangle size={20} style={{ color: '#dc2626', flexShrink: 0 }} />
+            <span>
+              <strong>Alerta de Incidente / Fallo:</strong> Se registraron <strong>{conteoErrores}</strong> eventos de error o fallos en el sistema.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setTabAuditoria('errores'); setPagina(1); }}
+            className="boton-mini"
+            style={{
+              background: '#dc2626',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 800,
+              fontSize: '0.8rem',
+              padding: '6px 14px',
+              borderRadius: 8,
+              cursor: 'pointer',
+            }}
+          >
+            Ver {conteoErrores} incidentes
+          </button>
+        </div>
+      ) : null}
+
+      {/* Pestañas de separación: Actividad del Portal vs Salas vs Errores vs Todo */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <button
           type="button"
           onClick={() => { setTabAuditoria('portal'); setPagina(1); }}
@@ -381,6 +438,32 @@ export function TablaAuditoria({
           Salas y Videollamadas
           <span style={{ background: tabAuditoria === 'llamadas' ? 'rgba(255,255,255,0.25)' : '#f1f5f9', padding: '2px 8px', borderRadius: 10, fontSize: '0.74rem' }}>
             {conteoLlamadas}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setTabAuditoria('errores'); setPagina(1); }}
+          style={{
+            padding: '9px 18px',
+            borderRadius: 20,
+            fontSize: '0.88rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            background: tabAuditoria === 'errores' ? '#dc2626' : '#ffffff',
+            color: tabAuditoria === 'errores' ? '#ffffff' : (conteoErrores > 0 ? '#dc2626' : '#475569'),
+            boxShadow: tabAuditoria === 'errores' ? '0 2px 8px rgba(220,38,38,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+            border: tabAuditoria === 'errores' ? 'none' : (conteoErrores > 0 ? '1.5px solid #fca5a5' : '1px solid #cbd5e1'),
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <AlertTriangle size={16} />
+          ⚠️ Errores e Incidentes
+          <span style={{ background: tabAuditoria === 'errores' ? 'rgba(255,255,255,0.25)' : (conteoErrores > 0 ? '#fee2e2' : '#f1f5f9'), color: tabAuditoria === 'errores' ? '#fff' : (conteoErrores > 0 ? '#dc2626' : '#475569'), padding: '2px 8px', borderRadius: 10, fontSize: '0.74rem', fontWeight: 800 }}>
+            {conteoErrores}
           </span>
         </button>
 
@@ -727,7 +810,7 @@ export function TablaAuditoria({
               </tr>
             ) : (
               listaPaginada.map((e) => (
-                <tr key={e.id}>
+                <tr key={e.id} style={{ background: esError(e) ? '#fff7f7' : undefined }}>
                   <td className="tabla__numero">{enBogota(e.fecha)}</td>
                   <td>
                     {e.actor ?? (
@@ -738,12 +821,62 @@ export function TablaAuditoria({
                       </span>
                     )}
                   </td>
-                  <td>{accionMap[e.accion] ?? e.accion}</td>
                   <td>
-                    {moduloLabelMap.get(e.entidad) ?? e.entidad}
-                    {e.entidadId ? (
-                      <span className="tabla__secundario">{e.entidadId.slice(0, 8)}…</span>
-                    ) : null}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        {esError(e) ? (
+                          <span style={{ color: '#dc2626', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <AlertTriangle size={14} />
+                            {accionMap[e.accion] ?? e.accion}
+                          </span>
+                        ) : e.accion === 'finalizar_sala' ? (
+                          <span style={{ color: '#0369a1', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Clock size={14} />
+                            {accionMap[e.accion] ?? e.accion}
+                          </span>
+                        ) : e.accion === 'ingresar_sala' ? (
+                          <span style={{ color: '#059669', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Activity size={14} />
+                            {accionMap[e.accion] ?? e.accion}
+                          </span>
+                        ) : (
+                          <span>{accionMap[e.accion] ?? e.accion}</span>
+                        )}
+                      </div>
+
+                      {/* Chip de Telemetría: Duración efectiva en sesión */}
+                      {e.despues?.duracionTexto || e.despues?.duracionMinutos !== undefined ? (
+                        <div style={{ fontSize: '0.76rem', color: '#0369a1', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '2px 8px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4, width: 'fit-content', fontWeight: 700 }}>
+                          ⏱️ Duración: {e.despues.duracionTexto || `${e.despues.duracionMinutos} min`}
+                        </div>
+                      ) : null}
+
+                      {/* Chip de Diagnóstico de Error */}
+                      {e.despues?.motivo || e.despues?.error ? (
+                        <div style={{ fontSize: '0.74rem', color: '#991b1b', background: '#fef2f2', border: '1px solid #fecaca', padding: '3px 8px', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 2, width: 'fit-content' }}>
+                          <div><strong>Detalle:</strong> {String(e.despues.motivo || e.despues.error).slice(0, 120)}</div>
+                          {e.despues.urlFallida ? <div style={{ fontSize: '0.7rem', color: '#b91c1c' }}>URL: {e.despues.urlFallida}</div> : null}
+                          {e.despues.ruta ? <div style={{ fontSize: '0.7rem', color: '#b91c1c' }}>Ruta: {e.despues.metodo || ''} {e.despues.ruta}</div> : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <div>
+                        {moduloLabelMap.get(e.entidad) ?? e.entidad}
+                        {e.entidadId ? (
+                          <span className="tabla__secundario"> {e.entidadId.slice(0, 8)}…</span>
+                        ) : null}
+                      </div>
+                      {e.despues?.paciente || e.despues?.profesional ? (
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          {e.despues.paciente ? `👤 ${e.despues.paciente}` : ''}
+                          {e.despues.paciente && e.despues.profesional ? ' · ' : ''}
+                          {e.despues.profesional ? `🩺 ${e.despues.profesional}` : ''}
+                        </div>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="tabla__secundario">{e.ip ?? '—'}</td>
                 </tr>

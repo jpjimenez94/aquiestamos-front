@@ -13,7 +13,8 @@ import {
   Clock,
   User,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react'
 import { enBogota } from '@/lib/fechas'
 
@@ -133,6 +134,42 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
     }
   }
 
+  async function salirDeLaSala() {
+    if (!confirm('¿Deseas salir de la videollamada?')) return
+    try {
+      await fetch(`/api/meetings/${id}/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          logId,
+          durationSeconds: segundosTranscurridos,
+          role: cita?.rol,
+        }),
+      })
+    } catch {}
+    setEnLlamada(false)
+  }
+
+  async function cambiarAServidorDeRespaldo() {
+    const nuevoServidor = meetingUrl?.includes('8x8.vc') ? 'meet.jit.si' : '8x8.vc'
+    const nuevaUrl = meetingUrl?.includes('8x8.vc')
+      ? meetingUrl.replace(/8x8\.vc/g, 'meet.jit.si')
+      : meetingUrl?.replace(/meet\.jit\.si/g, '8x8.vc') || `https://8x8.vc/AquiEstamos-${id}-backup`
+
+    setMeetingUrl(nuevaUrl)
+    try {
+      await fetch(`/api/meetings/${id}/report-error`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          motivo: `Cambio voluntario o rescate a servidor ${nuevoServidor}`,
+          urlFallida: meetingUrl,
+          role: cita?.rol,
+        }),
+      })
+    } catch {}
+  }
+
   function formatoMinutos(seg: number) {
     const m = Math.floor(seg / 60)
     const s = seg % 60
@@ -184,11 +221,22 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '4px 10px', borderRadius: 20, color: '#f1f5f9', fontSize: '0.84rem', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Clock size={14} style={{ color: '#38bdf8' }} />
               <span>{formatoMinutos(segundosTranscurridos)}</span>
             </div>
+
+            <button
+              type="button"
+              onClick={cambiarAServidorDeRespaldo}
+              className="boton-mini"
+              style={{ background: '#334155', color: '#fbbf24', border: '1px solid #d97706', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+              title="Si la llamada no conecta o hay problemas de audio/video, haz clic aquí para cambiar al servidor de respaldo"
+            >
+              <RefreshCw size={13} />
+              Servidor de respaldo
+            </button>
 
             <a
               href={meetingUrl}
@@ -204,11 +252,7 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
 
             <button
               type="button"
-              onClick={() => {
-                if (confirm('¿Deseas salir de la videollamada?')) {
-                  setEnLlamada(false)
-                }
-              }}
+              onClick={salirDeLaSala}
               className="boton-mini"
               style={{ background: '#dc2626', color: '#fff', border: 'none', fontSize: '0.78rem', fontWeight: 700 }}
             >

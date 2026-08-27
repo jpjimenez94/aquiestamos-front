@@ -16,6 +16,10 @@ const ACCION: Record<string, string> = {
   borrar: 'Dio de baja',
   cambiar_clave: 'Cambió la clave',
   ingresar_sala: 'Ingresó a sala virtual',
+  finalizar_sala: 'Finalizó sesión virtual',
+  error_videollamada: '🚨 Fallo en videollamada',
+  error_servidor: '⚠️ Error interno del servidor',
+  error_notificacion: '✉️ Fallo en notificación',
 }
 
 /**
