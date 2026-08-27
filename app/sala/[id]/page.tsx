@@ -103,11 +103,46 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
       }
     }, 25000)
 
+    const enviarSalidaBeacon = () => {
+      const payload = JSON.stringify({
+        logId,
+        durationSeconds: segundosTranscurridos,
+        role: cita?.rol,
+      })
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigator.sendBeacon(`/api/meetings/${id}/leave`, blob)
+      } else {
+        fetch(`/api/meetings/${id}/leave`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {})
+      }
+    }
+
+    const handleWindowMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+        if (data?.event === 'videoConferenceLeft' || data?.name === 'videoConferenceLeft' || data?.type === 'hangup') {
+          salirDeLaSala()
+        }
+      } catch {}
+    }
+
+    window.addEventListener('beforeunload', enviarSalidaBeacon)
+    window.addEventListener('pagehide', enviarSalidaBeacon)
+    window.addEventListener('message', handleWindowMessage)
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
       if (pingIntervalRef.current) clearInterval(pingIntervalRef.current)
+      window.removeEventListener('beforeunload', enviarSalidaBeacon)
+      window.removeEventListener('pagehide', enviarSalidaBeacon)
+      window.removeEventListener('message', handleWindowMessage)
     }
-  }, [enLlamada, logId])
+  }, [enLlamada, logId, segundosTranscurridos, id, cita?.rol])
 
   async function unirseALaSala() {
     setConectando(true)
