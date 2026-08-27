@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { portalFetch, usuarioActual, puede } from '@/lib/portal'
+import { portalFetch, usuarioActual, puede, tieneRol } from '@/lib/portal'
 import { Cabecera, Indicador, Vacio } from './componentes'
 
 export const metadata = { title: 'Tablero' }
@@ -22,16 +22,16 @@ type Tablero = {
 export default async function TableroPage() {
   const usuario = await usuarioActual()
 
-  if (usuario?.role === 'ADMISION') {
+  if (tieneRol(usuario, 'ADMISION')) {
     redirect('/portal/solicitudes')
   }
-  if (usuario?.role === 'COORDINADOR_CASOS') {
+  if (tieneRol(usuario, 'COORDINADOR_CASOS')) {
     redirect('/portal/agenda')
   }
-  if (usuario?.role === 'LIDERES_COMUNITARIOS') {
+  if (tieneRol(usuario, 'LIDERES_COMUNITARIOS')) {
     redirect('/portal/lideres')
   }
-  if (usuario?.role === 'PROFESIONAL') {
+  if (tieneRol(usuario, 'PROFESIONAL')) {
     redirect('/portal/mi-agenda')
   }
 

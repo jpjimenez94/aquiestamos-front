@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { portalFetch, usuarioActual, puede, enBogota } from '@/lib/portal'
+import { portalFetch, usuarioActual, puede, enBogota, esAdministrador } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { BotonAccionesLider } from './BotonAccionesLider'
 import {
@@ -107,7 +107,7 @@ export default async function LeaderDetailPage({
           <BotonAccionesLider
             lider={lider as unknown as LiderData}
             catalogoNecesidades={catalogo}
-            esAdmin={usuario.role === 'ADMIN'}
+            esAdmin={esAdministrador(usuario)}
           />
         }
       />

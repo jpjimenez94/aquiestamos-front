@@ -169,7 +169,7 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
       <EditorDisponibilidad
         profesionalId={p.id}
         franjasIniciales={franjas}
-        puedeEditar={puede(usuario, 'profesional:editar') || usuario?.role === 'ADMIN'}
+        puedeEditar={puede(usuario, 'profesional:editar')}
       />
     </>
   )

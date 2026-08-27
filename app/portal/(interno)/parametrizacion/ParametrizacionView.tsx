@@ -110,7 +110,7 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const puedeEditar = usuario.role === "ADMIN" || usuario.permisos.includes("*") || usuario.permisos.includes("configuracion:editar")
+  const puedeEditar = usuario.permisos.includes("*") || usuario.permisos.includes("configuracion:editar")
 
   useEffect(() => {
     cargarConfiguraciones()

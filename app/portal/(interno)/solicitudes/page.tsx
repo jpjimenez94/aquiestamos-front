@@ -1,4 +1,4 @@
-import { portalFetch, usuarioActual } from '@/lib/portal'
+import { portalFetch, usuarioActual, esAdministrador } from '@/lib/portal'
 import { Cabecera, Vacio } from '../componentes'
 import { TablaSolicitudes, type Solicitud } from './TablaSolicitudes'
 
@@ -10,7 +10,7 @@ export default async function SolicitudesPage() {
     portalFetch<Solicitud[]>('/support-requests?all=true'),
   ])
 
-  const esAdmin = usuario?.role === 'ADMIN'
+  const esAdmin = esAdministrador(usuario)
   const solicitudes = respuesta.data ?? []
 
   return (

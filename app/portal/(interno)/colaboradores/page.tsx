@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ListTodo } from 'lucide-react'
-import { portalFetch, usuarioActual, puede } from '@/lib/portal'
+import { portalFetch, usuarioActual, puede, esAdministrador } from '@/lib/portal'
 import { Cabecera, Vacio } from '../componentes'
 import { TablaColaboradores, type Colaborador } from './TablaColaboradores'
 
@@ -16,7 +16,7 @@ export default async function ColaboradoresPage() {
     notFound()
   }
 
-  const esAdmin = usuario.role === 'ADMIN'
+  const esAdmin = esAdministrador(usuario)
   const puedeEditar = puede(usuario, 'colaborador:editar')
   const puedeVerTareas = puede(usuario, 'tarea:leer')
   const respuesta = await portalFetch<Colaborador[]>('/collaborators?all=true')
