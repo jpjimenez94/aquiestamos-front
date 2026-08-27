@@ -64,8 +64,13 @@ export function BotonRecordarCitaPrevia({
   const horaFormateada = cita.inicioLocal ?? enBogota(cita.inicio)
   const telProf = paraWhatsapp(profesional.telefono)
 
-  const sitioUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
-  const enlaceReunion = cita.meetingUrl ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}` : null
+  const sitioUrl = (typeof window !== 'undefined' && window.location.origin)
+    ? window.location.origin
+    : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
+  const esVirtual = !cita.modalidad || cita.modalidad.toUpperCase() === 'VIRTUAL'
+  const enlaceReunion = (esVirtual || cita.meetingUrl)
+    ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}`
+    : null
 
   const mensaje = mensajeRecordatorioPrevioCitaProfesional({
     profesional: profesional.nombre,
