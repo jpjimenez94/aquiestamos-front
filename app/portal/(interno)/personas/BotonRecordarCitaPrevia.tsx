@@ -78,11 +78,11 @@ export function BotonRecordarCitaPrevia({
   const esVirtual = !cita.modalidad || cita.modalidad.toUpperCase() === 'VIRTUAL'
 
   const enlaceReunionProf = (esVirtual || cita.meetingUrl)
-    ? `${sitioUrl}/sala/${cita.salaTokenProfesional || cita.id}`
+    ? `${sitioUrl}/sala/${cita.id}`
     : null
 
   const enlaceReunionPac = (esVirtual || cita.meetingUrl)
-    ? `${sitioUrl}/sala/${cita.salaTokenPaciente || cita.id}`
+    ? `${sitioUrl}/sala/${cita.id}`
     : null
 
   const mensajeProf = mensajeRecordatorioPrevioCitaProfesional({

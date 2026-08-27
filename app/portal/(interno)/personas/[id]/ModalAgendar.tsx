@@ -144,11 +144,10 @@ export function ModalAgendar({
         return
       }
 
-      const tokenPac = datos.data?.salaTokenPaciente || datos.data?.id
-      const tokenProf = datos.data?.salaTokenProfesional || datos.data?.id
+      const idCita = datos.data?.id
       const sitio = typeof window !== 'undefined' ? window.location.origin : ''
-      const urlFinal = tokenPac ? `${sitio}/sala/${tokenPac}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
-      const urlFinalProf = tokenProf ? `${sitio}/sala/${tokenProf}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
+      const urlFinal = idCita ? `${sitio}/sala/${idCita}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
+      const urlFinalProf = idCita ? `${sitio}/sala/${idCita}` : (datos.data?.meetingUrl || meetingUrl.trim() || null)
       setEnlaceGenerado(urlFinal)
       setEnlaceGeneradoProf(urlFinalProf)
       setAgendada(inicio.toISOString())
