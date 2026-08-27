@@ -34,6 +34,11 @@ type InfoCita = {
   totalCallDurationSeconds?: number
 }
 
+function sanitizarUrlVideollamada(url?: string | null): string | null {
+  if (!url) return null
+  return url.replace(/meet\.ffrn\.de/g, 'meet.jit.si')
+}
+
 export default function SalaEsperaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const searchParams = useSearchParams()
@@ -62,7 +67,7 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
         const data = await res.json()
         if (res.ok && data.success && data.data) {
           setCita(data.data)
-          setMeetingUrl(data.data.targetMeetingUrl)
+          setMeetingUrl(sanitizarUrlVideollamada(data.data.targetMeetingUrl))
         } else {
           setError(data.message || 'No encontramos la sesión o el enlace no es válido.')
         }
@@ -114,14 +119,14 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
       const data = await res.json()
       if (res.ok && data.success && data.data) {
         setLogId(data.data.logId)
-        setMeetingUrl(data.data.targetMeetingUrl || cita?.targetMeetingUrl)
+        setMeetingUrl(sanitizarUrlVideollamada(data.data.targetMeetingUrl || cita?.targetMeetingUrl))
         setEnLlamada(true)
       } else {
-        setMeetingUrl(cita?.targetMeetingUrl || null)
+        setMeetingUrl(sanitizarUrlVideollamada(cita?.targetMeetingUrl || null))
         setEnLlamada(true)
       }
     } catch {
-      setMeetingUrl(cita?.targetMeetingUrl || null)
+      setMeetingUrl(sanitizarUrlVideollamada(cita?.targetMeetingUrl || null))
       setEnLlamada(true)
     } finally {
       setConectando(false)
