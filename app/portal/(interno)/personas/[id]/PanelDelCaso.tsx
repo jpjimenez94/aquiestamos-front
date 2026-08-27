@@ -334,7 +334,7 @@ function Mensaje({
   copiado: boolean
   alCopiar: (texto: string) => void
 }) {
-  const [mostrando, setMostrando] = useState(true)
+  const [mostrando, setMostrando] = useState(false)
   const enlace = telefono ? enlaceWhatsapp(telefono, texto) : null
 
   return (
