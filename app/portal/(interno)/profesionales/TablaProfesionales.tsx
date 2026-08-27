@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
 import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
+import { useTabla } from '@/lib/useTabla'
+import { contiene } from '@/lib/tabla'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
@@ -31,7 +33,6 @@ export type Profesional = {
 }
 
 type ColumnaOrden = 'profesional' | 'poblaciones' | 'modalidad' | 'carga' | 'tarjeta' | 'estado'
-type Direccion = 'asc' | 'desc'
 
 const estiloInputFiltro: React.CSSProperties = {
   width: '100%',
@@ -55,21 +56,6 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
   const [filtroTarjeta, setFiltroTarjeta] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
 
-  const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('profesional')
-  const [direccion, setDireccion] = useState<Direccion>('asc')
-
-  const [pagina, setPagina] = useState(1)
-  const [porPagina, setPorPagina] = useState(25)
-
-  function alternarOrden(col: ColumnaOrden) {
-    if (columnaOrden === col) {
-      setDireccion(direccion === 'asc' ? 'desc' : 'asc')
-    } else {
-      setColumnaOrden(col)
-      setDireccion('asc')
-    }
-  }
-
   const hayFiltros = Boolean(
     filtroProfesional.trim() ||
       filtroPoblaciones.trim() ||
@@ -91,21 +77,23 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
 
   const listaFiltrada = useMemo(() => {
     return profesionales.filter((p) => {
+      // `contiene` ignora tildes en los dos sentidos: buscar «Nunez» encuentra
+      // a «Núñez» y al revés. Antes era `toLowerCase().includes()`, así que
+      // quien copiaba un nombre de un WhatsApp sin tilde no encontraba a nadie
+      // y concluía que el profesional no estaba registrado.
       if (filtroProfesional.trim()) {
-        const q = filtroProfesional.toLowerCase().trim()
-        const matchNombre = p.fullName.toLowerCase().includes(q)
-        const matchCiudad = p.city?.toLowerCase().includes(q)
-        const matchProfesion = p.profession?.toLowerCase().includes(q)
-        const matchTelefono = p.phone?.includes(q)
-        if (!matchNombre && !matchCiudad && !matchProfesion && !matchTelefono) {
-          return false
-        }
+        const q = filtroProfesional.trim()
+        const encaja =
+          contiene(p.fullName, q) ||
+          contiene(p.city, q) ||
+          contiene(p.profession, q) ||
+          contiene(p.phone, q)
+        if (!encaja) return false
       }
 
       if (filtroPoblaciones.trim()) {
-        const q = filtroPoblaciones.toLowerCase().trim()
-        const matchPop = p.populations?.some((pop) => pop.toLowerCase().includes(q))
-        if (!matchPop) return false
+        const q = filtroPoblaciones.trim()
+        if (!p.populations?.some((pop) => contiene(pop, q))) return false
       }
 
       if (filtroModalidad && p.modality !== filtroModalidad) {
@@ -138,49 +126,35 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
     filtroEstado,
   ])
 
-  const listaOrdenada = useMemo(() => {
-    return [...listaFiltrada].sort((a, b) => {
-      let cmp = 0
-      switch (columnaOrden) {
-        case 'profesional':
-          cmp = a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' })
-          break
-        case 'poblaciones': {
-          const popA = a.populations?.join(', ') || ''
-          const popB = b.populations?.join(', ') || ''
-          cmp = popA.localeCompare(popB, 'es', { sensitivity: 'base' })
-          break
-        }
-        case 'modalidad':
-          cmp = a.modality.localeCompare(b.modality, 'es', { sensitivity: 'base' })
-          break
-        case 'carga': {
-          cmp = a.carga - b.carga || a.maxActiveCases - b.maxActiveCases
-          break
-        }
-        case 'tarjeta': {
-          const verA = a.professionalCardVerified ? 1 : 0
-          const verB = b.professionalCardVerified ? 1 : 0
-          const dateA = a.professionalCardVerifiedAt || ''
-          const dateB = b.professionalCardVerifiedAt || ''
-          cmp = verA - verB || dateA.localeCompare(dateB) || (a.professionalCardNumber || '').localeCompare(b.professionalCardNumber || '')
-          break
-        }
-        case 'estado':
-          cmp = a.status.localeCompare(b.status, 'es', { sensitivity: 'base' })
-          break
-      }
-      return direccion === 'asc' ? cmp : -cmp
-    })
-  }, [listaFiltrada, columnaOrden, direccion])
+  /**
+   * Ordenar y paginar los lleva `useTabla`. Aquí solo queda declarar por qué
+   * valor ordena cada columna, que es lo único de esto que es de esta tabla.
+   *
+   * Los filtros de arriba se quedan donde están: filtrar por cupo o por
+   * tarjeta verificada no se parece a lo que filtran las otras tablas, y
+   * forzarlo a una forma común cambiaría un bloque legible por una
+   * abstracción que hay que descifrar.
+   */
+  const t = useTabla<Profesional, ColumnaOrden>(listaFiltrada, {
+    orden: {
+      profesional: (p) => p.fullName,
+      poblaciones: (p) => p.populations?.join(', ') || '',
+      modalidad: (p) => p.modality,
+      // La carga se mira como fracción del cupo: 3 de 4 está más lleno que 3
+      // de 10, y ordenar por el número suelto los pondría juntos.
+      carga: (p) => (p.maxActiveCases > 0 ? p.carga / p.maxActiveCases : p.carga),
+      tarjeta: (p) =>
+        `${p.professionalCardVerified ? '1' : '0'}|${p.professionalCardVerifiedAt || ''}|${p.professionalCardNumber || ''}`,
+      estado: (p) => p.status,
+    },
+    inicial: { columna: 'profesional', direccion: 'asc' },
+  })
 
-  const totalFiltradas = listaOrdenada.length
-  const totalPaginas = Math.max(1, Math.ceil(totalFiltradas / porPagina))
-  const paginaAjustada = Math.min(pagina, totalPaginas)
-  const listaPaginada = useMemo(() => {
-    const start = (paginaAjustada - 1) * porPagina
-    return listaOrdenada.slice(start, start + porPagina)
-  }, [listaOrdenada, paginaAjustada, porPagina])
+  const { columnaOrden, direccion, alternarOrden, setPagina, porPagina, setPorPagina } = t
+  const listaPaginada = t.filas
+  const paginaAjustada = t.pagina
+  const totalPaginas = t.totalPaginas
+  const totalFiltradas = t.total
 
   function IconoOrden({ col }: { col: ColumnaOrden }) {
     if (columnaOrden !== col) {
@@ -197,7 +171,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <p className="panel__nota" style={{ margin: 0, fontSize: '0.82rem' }}>
-          <strong>{listaOrdenada.length}</strong> {listaOrdenada.length === 1 ? 'profesional' : 'profesionales'}
+          <strong>{totalFiltradas}</strong> {totalFiltradas === 1 ? 'profesional' : 'profesionales'}
           {hayFiltros ? ` (filtrado de ${profesionales.length} en total)` : ''}
         </p>
 
