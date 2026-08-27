@@ -15,6 +15,8 @@ import {
   Shield,
   ScrollText,
   LogOut,
+  Menu,
+  X,
   BookOpen,
   BarChart3,
   BadgeCheck,
@@ -201,6 +203,7 @@ export function LateralPortal({
 }) {
   const ruta = usePathname();
   const router = useRouter();
+  const [abierto, setAbierto] = useState(false);
   const [modalClaveAbierto, setModalClaveAbierto] = useState(false);
   const [contadores, setContadores] =
     useState<ContadoresBadges>(contadoresIniciales);
@@ -212,6 +215,21 @@ export function LateralPortal({
     setContadores(contadoresIniciales);
     contadoresAnterioresRef.current = contadoresIniciales;
   }, [contadoresIniciales]);
+
+  useEffect(() => {
+    setAbierto(false);
+  }, [ruta]);
+
+  useEffect(() => {
+    if (abierto) {
+      document.body.classList.add("sin-desplazamiento");
+    } else {
+      document.body.classList.remove("sin-desplazamiento");
+    }
+    return () => {
+      document.body.classList.remove("sin-desplazamiento");
+    };
+  }, [abierto]);
 
   useEffect(() => {
     let cancelado = false;
@@ -268,115 +286,145 @@ export function LateralPortal({
   }
 
   return (
-    <aside id="portal-menu" className="portal__lateral">
-      <div className="portal__marca portal__marca--lateral">Aquí Estamos</div>
-
-      <nav className="portal__nav">
-        {GRUPOS.map((grupo) => {
-          const visibles = grupo.enlaces.filter((e) => {
-            const tienePermiso = !e.permiso || puede(usuario, e.permiso);
-            const listaRoles =
-              Array.isArray((usuario as any).roles) &&
-              (usuario as any).roles.length > 0
-                ? (usuario as any).roles
-                : [usuario.role];
-            const rolPermitido =
-              !e.soloRoles || e.soloRoles.some((r: any) => listaRoles.includes(r));
-            return tienePermiso && rolPermitido;
-          });
-          if (visibles.length === 0) return null;
-
-          return (
-            <div key={grupo.titulo}>
-              <p className="portal__grupo">{grupo.titulo}</p>
-              {visibles.map((enlace) => {
-                const cuenta = enlace.badgeKey
-                  ? (contadores[enlace.badgeKey] ?? 0)
-                  : 0;
-
-                return (
-                  <Link
-                    key={enlace.href}
-                    className="portal__enlace"
-                    href={enlace.href}
-                    data-activo={
-                      enlace.href === "/portal"
-                        ? ruta === "/portal"
-                        : ruta.startsWith(enlace.href)
-                    }
-                  >
-                    {enlace.icono}
-                    <span>{enlace.texto}</span>
-                    {cuenta > 0 ? (
-                      <span
-                        className="portal__enlace-punto"
-                        title={`${cuenta} ${cuenta === 1 ? "pendiente / nuevo" : "pendientes / nuevos"}`}
-                      >
-                        <span className="portal__punto-luz" />
-                        <span>{cuenta}</span>
-                      </span>
-                    ) : null}
-                  </Link>
-                );
-              })}
-            </div>
-          );
-        })}
-      </nav>
-
-      <div className="portal__pie">
-        <div className="portal__quien">
-          <strong>{nombrePropio(usuario.name)}</strong>
-          <span className="portal__rol">
-            {NOMBRE_ROL[usuario.role] ?? usuario.role}
-          </span>
-        </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
-          <button
-            className="portal__salir"
-            type="button"
-            onClick={() => setModalClaveAbierto(true)}
-            title="Cambiar mi contraseña personal"
-            style={{
-              flex: 1,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 5,
-              padding: "7px 6px",
-              fontSize: "0.82rem",
-              fontWeight: 600,
-            }}
-          >
-            <Key size={13} />
-            Clave
-          </button>
-          <button
-            className="portal__salir"
-            type="button"
-            onClick={salir}
-            title="Cerrar sesión"
-            style={{
-              flex: 1,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 5,
-              padding: "7px 6px",
-              fontSize: "0.82rem",
-              fontWeight: 600,
-            }}
-          >
-            <LogOut size={13} />
-            Salir
-          </button>
-        </div>
+    <>
+      {/* Barra superior visible únicamente en pantallas móviles (< 900px) */}
+      <div className="portal__barra">
+        <div className="portal__marca">Aquí Estamos</div>
+        <button
+          className="portal__hamburguesa"
+          type="button"
+          aria-label={abierto ? "Cerrar menú lateral" : "Abrir menú lateral"}
+          aria-expanded={abierto}
+          aria-controls="portal-menu"
+          onClick={() => setAbierto((v) => !v)}
+        >
+          {abierto ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
 
-      <ModalCambiarMiClave
-        abierto={modalClaveAbierto}
-        alCerrar={() => setModalClaveAbierto(false)}
+      {/* Telón oscuro al abrir el menú en móviles */}
+      <div
+        className="portal__telon"
+        data-visible={abierto}
+        onClick={() => setAbierto(false)}
+        aria-hidden="true"
       />
-    </aside>
+
+      {/* Menú lateral (fijo a la izquierda en desktop, deslizante en mobile) */}
+      <aside
+        id="portal-menu"
+        className="portal__lateral"
+        data-abierto={abierto}
+      >
+        <div className="portal__marca portal__marca--lateral">Aquí Estamos</div>
+
+        <nav className="portal__nav">
+          {GRUPOS.map((grupo) => {
+            const visibles = grupo.enlaces.filter((e) => {
+              const tienePermiso = !e.permiso || puede(usuario, e.permiso);
+              const listaRoles =
+                Array.isArray((usuario as any).roles) &&
+                (usuario as any).roles.length > 0
+                  ? (usuario as any).roles
+                  : [usuario.role];
+              const rolPermitido =
+                !e.soloRoles || e.soloRoles.some((r: any) => listaRoles.includes(r));
+              return tienePermiso && rolPermitido;
+            });
+            if (visibles.length === 0) return null;
+
+            return (
+              <div key={grupo.titulo}>
+                <p className="portal__grupo">{grupo.titulo}</p>
+                {visibles.map((enlace) => {
+                  const cuenta = enlace.badgeKey
+                    ? (contadores[enlace.badgeKey] ?? 0)
+                    : 0;
+
+                  return (
+                    <Link
+                      key={enlace.href}
+                      className="portal__enlace"
+                      href={enlace.href}
+                      data-activo={
+                        enlace.href === "/portal"
+                          ? ruta === "/portal"
+                          : ruta.startsWith(enlace.href)
+                      }
+                    >
+                      {enlace.icono}
+                      <span>{enlace.texto}</span>
+                      {cuenta > 0 ? (
+                        <span
+                          className="portal__enlace-punto"
+                          title={`${cuenta} ${cuenta === 1 ? "pendiente / nuevo" : "pendientes / nuevos"}`}
+                        >
+                          <span className="portal__punto-luz" />
+                          <span>{cuenta}</span>
+                        </span>
+                      ) : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="portal__pie">
+          <div className="portal__quien">
+            <strong>{nombrePropio(usuario.name)}</strong>
+            <span className="portal__rol">
+              {NOMBRE_ROL[usuario.role] ?? usuario.role}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
+            <button
+              className="portal__salir"
+              type="button"
+              onClick={() => setModalClaveAbierto(true)}
+              title="Cambiar mi contraseña personal"
+              style={{
+                flex: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 5,
+                padding: "7px 6px",
+                fontSize: "0.82rem",
+                fontWeight: 600,
+              }}
+            >
+              <Key size={13} />
+              Clave
+            </button>
+            <button
+              className="portal__salir"
+              type="button"
+              onClick={salir}
+              title="Cerrar sesión"
+              style={{
+                flex: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 5,
+                padding: "7px 6px",
+                fontSize: "0.82rem",
+                fontWeight: 600,
+              }}
+            >
+              <LogOut size={13} />
+              Salir
+            </button>
+          </div>
+        </div>
+
+        <ModalCambiarMiClave
+          abierto={modalClaveAbierto}
+          alCerrar={() => setModalClaveAbierto(false)}
+        />
+      </aside>
+    </>
   );
 }
