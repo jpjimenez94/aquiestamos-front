@@ -91,26 +91,42 @@ describe('mensaje de propuesta al profesional', () => {
   })
 
   /**
-   * El cambio de fondo: este mensaje PREGUNTA, no anuncia. Antes decía "te
-   * asignamos un acompañamiento", como si aceptar fuera automático, y el
-   * profesional es voluntario y puede no poder.
+   * Anuncia, y por eso tiene que ofrecer la salida en la misma frase.
+   *
+   * Aquí se afirmaba lo contrario —que el mensaje PREGUNTA y no anuncia— y era
+   * la decisión correcta mientras el caso se quedaba parado hasta que él dijera
+   * que sí. Los datos dijeron lo que costaba: siete de cada ocho asignaciones
+   * murieron con el motivo «el profesional no respondió».
+   *
+   * Ahora se le asigna y se le avisa. Eso solo es legítimo si el mismo mensaje
+   * que le da la noticia le da la puerta, así que las dos cosas se comprueban
+   * juntas: si alguien quita la segunda línea, esto se pone rojo.
    */
-  it('pregunta si puede, en vez de darlo por hecho', () => {
+  it('le dice que el caso es suyo Y cómo salirse', () => {
     const texto = mensajeDePropuesta(base)
-    expect(texto).toContain('Cuéntanos si puedes tomarlo')
-    expect(texto).not.toContain('Te asignamos')
+    expect(texto).toContain('Te asignamos un acompañamiento')
+    expect(texto).toMatch(/si en este momento no puedes/i)
   })
 
-  it('le pide responder por el enlace, no por WhatsApp', () => {
+  it('le manda a su enlace, no a responder por WhatsApp', () => {
     const texto = mensajeDePropuesta(base)
     expect(texto).toContain(base.enlace)
-    expect(texto).toContain('los días y las horas en las que podrías')
+
+    // Ya no le pide horarios: su agenda está en su perfil y de ahí elige ella.
+    expect(texto).not.toContain('los días y las horas en las que podrías')
   })
 
-  it('le dice que los datos de la persona se abren solo si acepta', () => {
+  /**
+   * Sigue sin llevar el nombre ni el teléfono de la persona.
+   *
+   * Esto no cambió con el flujo y no debe cambiar: el mensaje sale por WhatsApp
+   * y puede acabar en un chat que no controlamos. Para saber si puede tomar el
+   * caso hace falta dónde está y cómo prefiere que sea, no quién es.
+   */
+  it('no lleva datos de la persona, solo lo que hace falta para decidir', () => {
     const texto = mensajeDePropuesta(base)
-    expect(texto).toContain('aparecen cuando aceptas, no antes')
     expect(texto).toContain('confidencial')
+    expect(texto).toContain(base.ciudad)
   })
 
   it('deja claro que decir que no está bien', () => {

@@ -87,7 +87,13 @@ export type DatosDelMensaje = {
 }
 
 /**
- * PASO 1 · Al profesional: te proponemos un caso, ¿puedes?
+ * PASO 1 · Al profesional: te asignamos un caso, y puedes decir que no.
+ *
+ * Este es el TEXTO DE RESPALDO: manda la plantilla de Parametrización, y solo
+ * se usa esto si no se pudo traer. Por eso tiene que decir lo mismo que ella —
+ * un respaldo que describe el flujo de hace tres meses solo aparece el día que
+ * algo falla, que es justo el día en que nadie va a estar mirando si el texto
+ * cuadra.
  *
  * Antes este mensaje decía "te asignamos un acompañamiento", en indicativo,
  * como si aceptar fuera automático. No lo es: es voluntario y puede no poder.
@@ -111,6 +117,9 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
 
   /**
    * Lo que NO sabemos se dice, no se calla.
+   *
+   * Sigue valiendo aunque el formulario ya no pregunte días: hay solicitudes
+   * viejas que sí los traen, y callar el hueco es peor que nombrarlo.
    *
    * Antes, si la solicitud llegaba sin modalidad y sin días, esas líneas
    * simplemente no salían y el mensaje quedaba en «la persona está en Cali».
@@ -142,7 +151,7 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     // llegar, y este mensaje le va a llegar a la misma persona muchas veces.
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
-    'Queremos proponerte un acompañamiento. Cuéntanos si puedes tomarlo:',
+    'Te asignamos un acompañamiento:',
     '',
     `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
@@ -153,12 +162,12 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     '',
     URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
     '',
-    'Entra aquí con el correo con el que te registraste y dinos si puedes. Si aceptas, ahí mismo nos dejas los días y las horas en las que podrías:',
+    'Ella va a elegir la hora directamente de tu agenda, entre los espacios que ya tienes marcados como libres. Cuando lo haga te llega la confirmación con el día, la hora y el enlace de la videollamada.',
+    '',
+    'Aquí ves el caso, entrando con el correo con el que te registraste:',
     d.enlace,
     '',
-    'Con eso cuadramos el horario con ella y te confirmamos. Sus datos de contacto aparecen cuando aceptas, no antes.',
-    '',
-    'Si no puedes, dínoslo en esa misma pantalla y se lo proponemos a otra persona. No pasa nada: es voluntario.',
+    'Si en este momento no puedes tomarlo, dilo ahí mismo y se lo pasamos a otra persona hoy. No pasa nada: es voluntario, y decirlo pronto ayuda más que un sí que no llega.',
     '',
     'Es un acompañamiento confidencial. Te pedimos manejarlo con responsabilidad ética y profesional, y no compartir los datos de la persona con nadie más.',
     '',

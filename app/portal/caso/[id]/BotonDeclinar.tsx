@@ -96,7 +96,7 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
         </label>
         <p className="tamizaje__ayuda">
           Con una línea basta: «no tengo cupo este mes», «me queda muy lejos», «no es mi
-          población». Nos sirve para no volver a proponerte casos que no encajan.
+          población». Nos sirve para no volver a asignarte casos que no encajan.
         </p>
         <textarea
           id="motivo-declinar"
