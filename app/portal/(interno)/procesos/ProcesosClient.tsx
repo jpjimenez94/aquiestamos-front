@@ -196,73 +196,106 @@ export function ProcesosClient() {
       id: '3',
       categoria: 'casos',
       numero: 'Etapa 3',
-      titulo: 'Asignación, propuesta y reasignación ágil',
+      titulo: 'Asignación y elección de hora',
       tag: 'Emparejamiento',
-      descripcion: 'La asignación es una negociación transparente. Si el profesional no puede o no responde, el caso se reasigna inmediatamente conservando el historial.',
+      descripcion:
+        'Al profesional se le asigna el caso y se le avisa, en vez de pedirle permiso y esperar. Luego la persona elige su hora directamente de la agenda de él.',
       diagrama: <DiagramaAsignacion />,
       estados: [
-        { estado: 'PROPUESTA', texto: 'Propuesta enviada' },
-        { estado: 'ACEPTADA', texto: 'Aceptada, falta horario' },
+        { estado: 'ACEPTADA', texto: 'Asignado, falta que elija hora' },
         { estado: 'ACTIVA', texto: 'En acompañamiento' },
+        { estado: 'RECHAZADA', texto: 'El profesional no pudo' },
         { estado: 'CERRADA', texto: 'Cerrada' },
       ],
       pasos: [
         {
           quien: 'Coordinación',
           rolTag: 'coordinacion',
-          titulo: 'Elige candidato del Top 10 y envía propuesta',
-          detalle: 'El algoritmo calcula compatibilidad por enfoque, modalidad, cercanía geográfica y cupo libre. El mensaje de WhatsApp lleva su enlace confidencial.',
+          titulo: 'Elige del Top 10 y le asigna el caso',
+          detalle:
+            'El algoritmo calcula compatibilidad por enfoque, modalidad, cercanía y cupo libre. El mensaje le avisa de que el caso ya es suyo y de que la persona elegirá hora de su agenda.',
+          desvios: [
+            {
+              tono: 'alerta',
+              titulo: 'Por qué ya no se le pregunta:',
+              texto:
+                'de ocho asignaciones hechas para una persona con prioridad ALTA, siete murieron con el motivo «el profesional no respondió». Esperar un sí no le daba margen a él: dejaba el caso parado.',
+            },
+          ],
         },
         {
           quien: 'El profesional',
           rolTag: 'profesional',
-          titulo: 'Acepta o declina desde su enlace seguro',
-          detalle: 'Si acepta, selecciona los días y horas exactas en las que puede atender este caso específico.',
+          titulo: 'Confirma, o dice que no puede',
+          detalle:
+            'Desde su enlace seguro. Confirmar no es obligatorio —el caso avanza igual— pero queda registrado. Ya no se le piden días ni horas: su agenda está en su perfil desde que se registró.',
           desvios: [
-            { tono: 'alerta', titulo: '«No puedo en este momento»:', texto: 'el caso se libera al instante con el motivo registrado para reasignarlo.' },
-            { tono: 'reloj', titulo: '2 días sin respuesta:', texto: 'el reloj del sistema libera la asignación automáticamente.' },
+            {
+              tono: 'alerta',
+              titulo: '«Ahora no puedo tomarlo»:',
+              texto:
+                'el caso se libera al instante con el motivo, la persona vuelve a «Por asignar» y se le asigna a otro el mismo día. Es voluntario: decirlo pronto ayuda más que un silencio.',
+            },
           ],
         },
         {
-          quien: 'Coordinación',
-          rolTag: 'coordinacion',
-          titulo: 'Acuerda el horario y permite reasignar si es necesario',
-          detalle: 'Contacta a la persona con los horarios ofrecidos. Si surgen incompatibilidades, coordinación puede usar el botón «Reasignar a otro profesional».',
+          quien: 'La persona acompañada',
+          rolTag: 'persona',
+          titulo: 'Elige su hora en su enlace de agenda',
+          detalle:
+            'Ve los espacios libres reales del profesional, agrupados por día, y escoge. El enlace le sirve para todas sus sesiones y sigue funcionando si más adelante la acompaña otra persona.',
           desvios: [
-            { tono: 'reloj', titulo: '3 días sin confirmación:', texto: 'se libera el profesional y el caso retorna a la cola.' },
+            {
+              tono: 'reloj',
+              titulo: '3 días sin elegir hora:',
+              texto:
+                'se libera el profesional y el caso vuelve a la cola. El plazo es más largo que el de él a propósito: quien pide ayuda puede estar sin batería, sin datos o sin cabeza.',
+            },
             { tono: 'logro', titulo: 'Resultado:', texto: 'Asignación activa y cita programada.' },
           ],
         },
       ],
-      notaFinal: 'Una propuesta reserva cupo preventivo para no sobrecargar profesionales. Al liberarse o reasignarse, el cupo se devuelve de inmediato.',
+      notaFinal:
+        'Una asignación reserva cupo preventivo para no sobrecargar profesionales. Al liberarse o reasignarse, el cupo se devuelve de inmediato.',
     },
     {
       id: '4',
       categoria: 'casos',
       numero: 'Etapa 4',
-      titulo: 'Cita propuesta y validación de agenda',
+      titulo: 'La cita queda agendada',
       tag: 'Agenda y Horarios',
-      descripcion: 'Agendamiento preliminar validado contra la oferta del profesional y sus bloqueos personales de agenda.',
-      estados: [
-        { estado: 'PROGRAMADA', texto: 'Programada / Propuesta' },
-      ],
+      descripcion:
+        'La elige ella desde su enlace, sobre los espacios libres reales del profesional. Coordinación ya no cuadra horarios por WhatsApp: solo interviene si hace falta.',
+      estados: [{ estado: 'PROGRAMADA', texto: 'Agendada' }],
       pasos: [
         {
-          quien: 'Coordinación',
-          rolTag: 'coordinacion',
-          titulo: 'Agenda fecha y modalidad de la sesión',
-          detalle: 'El sistema valida contra la disponibilidad ofrecida para el caso y la agenda general del profesional.',
+          quien: 'La persona acompañada',
+          rolTag: 'persona',
+          titulo: 'Escoge de los huecos libres, agrupados por día',
+          detalle:
+            'El sistema resta lo que ya está ocupado, respeta los bloqueos que el profesional marcó —descanso, vacaciones— y esconde las horas que chocan con otra cita suya. Lo que ve son huecos reales, no propuestas.',
           desvios: [
-            { tono: 'alerta', titulo: 'Bloqueos de agenda:', texto: 'si el profesional marcó días de descanso o vacaciones, el sistema impide agendar en ese rango.' },
+            {
+              tono: 'logro',
+              titulo: 'Al elegir:',
+              texto:
+                'la cita queda agendada, al profesional le llega la confirmación con el día, la hora y el enlace de videollamada, y la asignación pasa a ACTIVA.',
+            },
           ],
         },
         {
           quien: 'Coordinación',
           rolTag: 'coordinacion',
-          titulo: 'Envía propuesta de horario a la persona acompañada',
-          detalle: 'Notifica por WhatsApp el día y la hora sugerida para que la persona confirme su asistencia.',
+          titulo: 'Solo si hace falta: agendar a mano',
+          detalle:
+            'Si la persona prefiere escribir a entrar a una pantalla —hay quien lo prefiere, y a quien está mal no se le pone una barrera— coordinación puede agendarle desde su ficha. El enlace se conserva para las siguientes.',
           desvios: [
-            { tono: 'logro', titulo: 'Al confirmar:', texto: 'la cita pasa a estado CONFIRMADA y se habilita la solicitud de consentimiento.' },
+            {
+              tono: 'reloj',
+              titulo: '3 días sin elegir hora:',
+              texto:
+                'el barrido libera al profesional y el caso vuelve a la cola. El tablero avisa cuáles se liberan mañana, que es la ventana para escribirle antes.',
+            },
           ],
         },
       ],
@@ -433,10 +466,18 @@ export function ProcesosClient() {
           detalle: 'Si una persona no responde el tamizaje en 48 horas, el sistema la admite automáticamente con prioridad preventiva para no dejarla esperando.',
         },
         {
-          quien: 'Reloj de Propuesta',
+          quien: 'Reloj de asignaciones antiguas',
           rolTag: 'sistema',
-          titulo: 'Liberación de asignación a los 2 días',
-          detalle: 'Si el profesional propuesto no responde en 48 horas, se cancela la asignación y el caso regresa a «Por Asignar» para proponerse a otro profesional.',
+          titulo: 'Liberación de propuestas viejas a los 2 días',
+          detalle:
+            'Solo aplica a las asignaciones anteriores al cambio, que quedaron esperando un «sí» que ya nadie va a dar: el enlace donde se respondía dejó de ser parte del camino. Ninguna asignación nueva pasa por ahí — nacen asignadas.',
+        },
+        {
+          quien: 'Reloj de Disponibilidad',
+          rolTag: 'sistema',
+          titulo: 'Confirmación de agenda cada mes',
+          detalle:
+            'Se le pregunta al profesional si su agenda sigue al día. Es lo que sostiene que se le asigne sin consultarle: la persona elige su hora de esa agenda, y una vieja la manda a una hora en la que él ya no está. No responder no tiene castigo — se le vuelve a preguntar al mes siguiente y sigue recibiendo casos. Guardar sus horarios cuenta como respuesta.',
         },
         {
           quien: 'Reloj de Cita',
@@ -565,9 +606,9 @@ export function ProcesosClient() {
             <span className="proc-viaje__flecha">→</span>
             <span className="proc-viaje__etapa"><span>2</span>Tamizaje y admisión</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>3</span>Emparejamiento</span>
+            <span className="proc-viaje__etapa"><span>3</span>Asignación</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>4</span>Cita propuesta</span>
+            <span className="proc-viaje__etapa"><span>4</span>Elige su hora</span>
             <span className="proc-viaje__flecha">→</span>
             <span className="proc-viaje__etapa"><span>5</span>Cita confirmada</span>
             <span className="proc-viaje__flecha">→</span>

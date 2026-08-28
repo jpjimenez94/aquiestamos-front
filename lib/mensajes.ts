@@ -1,6 +1,7 @@
 import { LINEAS_EMERGENCIA } from './consentimiento'
 import { nombreDePila } from './nombre'
 import { paraWhatsapp } from './telefono'
+import { renderPlantilla } from './plantillas'
 
 /**
  * El mensaje que la coordinación le manda al profesional cuando le asigna un
@@ -74,10 +75,25 @@ export type DatosDelMensaje = {
   dias: string[]
   franjas: string[]
   enlace: string
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * Este mensaje es el que más falta le hacía: seguía diciendo «queremos
+   * proponerte» y «si aceptas, ahí mismo nos dejas los días», que es el paso
+   * que ya no existe. Con la plantilla conectada, lo que se envía es lo que
+   * dice el portal.
+   */
+  plantilla?: string
 }
 
 /**
- * PASO 1 · Al profesional: te proponemos un caso, ¿puedes?
+ * PASO 1 · Al profesional: te asignamos un caso, y puedes decir que no.
+ *
+ * Este es el TEXTO DE RESPALDO: manda la plantilla de Parametrización, y solo
+ * se usa esto si no se pudo traer. Por eso tiene que decir lo mismo que ella —
+ * un respaldo que describe el flujo de hace tres meses solo aparece el día que
+ * algo falla, que es justo el día en que nadie va a estar mirando si el texto
+ * cuadra.
  *
  * Antes este mensaje decía "te asignamos un acompañamiento", en indicativo,
  * como si aceptar fuera automático. No lo es: es voluntario y puede no poder.
@@ -102,6 +118,9 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
   /**
    * Lo que NO sabemos se dice, no se calla.
    *
+   * Sigue valiendo aunque el formulario ya no pregunte días: hay solicitudes
+   * viejas que sí los traen, y callar el hueco es peor que nombrarlo.
+   *
    * Antes, si la solicitud llegaba sin modalidad y sin días, esas líneas
    * simplemente no salían y el mensaje quedaba en «la persona está en Cali».
    * Un profesional lee ese silencio como «no tiene restricciones» —que es lo
@@ -116,12 +135,23 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     !cuando ? 'qué días puede' : null,
   ].filter((x): x is string => x !== null)
 
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      profesional: nombre,
+      ciudad: d.ciudad,
+      modalidad,
+      urgencia: URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
+      enlace: d.enlace,
+    })
+  }
+
   const lineas = [
     // Neutro a propósito: «gracias por sumarte» es para quien acaba de
     // llegar, y este mensaje le va a llegar a la misma persona muchas veces.
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
     '',
-    'Queremos proponerte un acompañamiento. Cuéntanos si puedes tomarlo:',
+    'Te asignamos un acompañamiento:',
     '',
     `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
@@ -132,12 +162,12 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     '',
     URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
     '',
-    'Entra aquí con el correo con el que te registraste y dinos si puedes. Si aceptas, ahí mismo nos dejas los días y las horas en las que podrías:',
+    'Ella va a elegir la hora directamente de tu agenda, entre los espacios que ya tienes marcados como libres. Cuando lo haga te llega la confirmación con el día, la hora y el enlace de la videollamada.',
+    '',
+    'Aquí ves el caso, entrando con el correo con el que te registraste:',
     d.enlace,
     '',
-    'Con eso cuadramos el horario con ella y te confirmamos. Sus datos de contacto aparecen cuando aceptas, no antes.',
-    '',
-    'Si no puedes, dínoslo en esa misma pantalla y se lo proponemos a otra persona. No pasa nada: es voluntario.',
+    'Si en este momento no puedes tomarlo, dilo ahí mismo y se lo pasamos a otra persona hoy. No pasa nada: es voluntario, y decirlo pronto ayuda más que un sí que no llega.',
     '',
     'Es un acompañamiento confidencial. Te pedimos manejarlo con responsabilidad ética y profesional, y no compartir los datos de la persona con nadie más.',
     '',
@@ -384,12 +414,29 @@ export const LINEA_DE_CRISIS = `Si en este momento estás en peligro o sientes q
 export function mensajeDeTamizaje({
   nombre,
   enlace,
+  plantilla,
 }: {
   nombre: string
   enlace: string
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   // Solo el nombre de pila, igual que en el mensaje al profesional.
   const primero = nombreDePila(nombre) || 'hola'
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (plantilla?.trim()) {
+    return renderPlantilla(plantilla, {
+      nombre: primero,
+      enlace,
+    })
+  }
 
   return [
     `Hola ${primero}, te escribimos de la Red Aquí Estamos.`,
@@ -486,10 +533,85 @@ export function mensajeParaCuadrarHorario(d: {
   dias: string[]
   franjas: string[]
   nota?: string | null
+  /** Enlace donde la persona elige su hora sola. */
+  enlaceAgenda?: string | null
+  /** El texto que la coordinación editó en Parametrización. Si viene, manda. */
+  plantilla?: string
+}): string {
+  /**
+   * La plantilla de Parametrización manda sobre el texto de aquí.
+   *
+   * Este archivo calcula las VARIABLES —el nombre de pila, los días en
+   * palabras— porque eso es lógica. Lo que se DICE con ellas es del portal:
+   * hasta ahora había dos versiones del mismo mensaje y ganaba siempre esta,
+   * así que editar el texto en la pantalla no cambiaba nada de lo que recibía
+   * la persona.
+   *
+   * El texto de abajo se queda como respaldo, para cuando la plantilla esté
+   * vacía o el portal no haya podido traerla. Un mensaje viejo es mejor que
+   * ningún mensaje cuando hay alguien esperando.
+   */
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre: nombreDePila(d.persona) || 'hola',
+      profesional: d.profesional,
+      horarios: [
+        enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase())),
+        enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase())),
+      ]
+        .filter(Boolean)
+        .join(' '),
+      enlaceAgenda: d.enlaceAgenda ?? null,
+      nota: d.nota ?? null,
+    })
+  }
+
+  return mensajeParaCuadrarHorarioPorDefecto(d)
+}
+
+function mensajeParaCuadrarHorarioPorDefecto(d: {
+  persona: string
+  profesional: string
+  dias: string[]
+  franjas: string[]
+  nota?: string | null
+  enlaceAgenda?: string | null
 }): string {
   const nombre = nombreDePila(d.persona) || 'hola'
   const dias = enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase()))
   const franjas = enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase()))
+
+  /**
+   * Con enlace, la persona elige sola. Sin enlace, el mensaje de siempre.
+   *
+   * Cuadrar una hora costaba tres toques humanos y dos esperas: este mensaje,
+   * su respuesta por WhatsApp, y alguien agendando en el portal. Entre medias
+   * podían pasar días, y esa demora es de donde salen buena parte de las
+   * asignaciones que se mueren esperando.
+   *
+   * Se le dice que lo guarde porque el enlace le sirve para TODAS sus
+   * sesiones, no solo la primera. Y sobrevive a un cambio de profesional: si
+   * más adelante la acompaña otra persona, ese mismo enlace muestra la agenda
+   * de quien la acompañe entonces.
+   *
+   * Se conserva la vía de responder por aquí: hay gente que prefiere escribir
+   * a que le manden a una pantalla, y quitarle esa puerta a alguien que está
+   * pidiendo ayuda sería cambiar comodidad nuestra por barrera suya.
+   */
+  if (d.enlaceAgenda) {
+    return [
+      `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
+      '',
+      `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`,
+      '',
+      '*Aquí puedes elegir tú misma la hora que te sirva*, entre las que tiene libres:',
+      d.enlaceAgenda,
+      '',
+      'Guarda ese enlace: te sirve para esta sesión y para las siguientes.',
+      '',
+      'Si prefieres, dinos por aquí cuándo puedes y lo cuadramos nosotros. Como te quede más cómodo.',
+    ].join('\n')
+  }
 
   return [
     `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
@@ -519,10 +641,28 @@ export function mensajeDePedirNuevaDisponibilidadAlProfesional(d: {
   persona: string
   cuandoAnterior?: string | null
   enlace?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombreProf = nombreDePila(d.profesional) || 'hola'
   const nombrePers = nombreDePila(d.persona) || 'la persona'
   const horarioRef = d.cuandoAnterior ? ` que teníamos acordado (${d.cuandoAnterior})` : ''
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      profesional: nombreProf,
+      persona: nombrePers,
+      cuandoAnterior: d.cuandoAnterior ?? null,
+      enlaceCaso: d.enlace ?? null,
+    })
+  }
 
   return [
     `Hola ${nombreProf}, te escribimos de la Red Aquí Estamos sobre el caso de ${nombrePers}.`,
@@ -554,6 +694,14 @@ export function mensajeDeExcusasYReagendamiento(d: {
   dias?: string[]
   franjas?: string[]
   nota?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombrePers = nombreDePila(d.persona) || 'hola'
   const nombreProf = nombreDePila(d.profesional) || 'el profesional'
@@ -562,6 +710,17 @@ export function mensajeDeExcusasYReagendamiento(d: {
 
   const razon = d.motivo?.trim() || 'un compromiso personal de fuerza mayor'
   const referenciaHorario = d.cuandoAnterior ? ` que teníamos acordado (${d.cuandoAnterior})` : ''
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre: nombrePers,
+      profesional: nombreProf,
+      motivo: razon,
+      cuandoAnterior: d.cuandoAnterior ?? null,
+      opcionesHorario: [dias, franjas].filter(Boolean).join(' '),
+    })
+  }
 
   return [
     `Hola ${nombrePers}, te escribimos de la Red Aquí Estamos.`,
@@ -596,9 +755,28 @@ export function mensajeDeCitaConfirmada(d: {
   cuando: string
   modalidad?: string | null
   enlaceReunion?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombre = nombreDePila(d.persona) || 'hola'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre,
+      profesional: d.profesional,
+      cuando: d.cuando,
+      modalidad,
+      enlaceReunion: d.enlaceReunion ?? null,
+    })
+  }
 
   return [
     `Listo, ${nombre}. Tu acompañamiento quedó agendado.`,
@@ -629,8 +807,25 @@ export function mensajeDeConsentimiento(d: {
   persona: string
   profesional: string
   enlace: string
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombre = nombreDePila(d.persona) || 'hola'
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre,
+      profesional: nombreDePila(d.profesional),
+      enlace: d.enlace,
+    })
+  }
 
   return [
     `Hola ${nombre}, antes de tu sesión con ${nombreDePila(d.profesional)} te pedimos leer y firmar el consentimiento informado. Es corto y se hace desde cualquier dispositivo en nuestro sitio web oficial:`,
@@ -654,6 +849,14 @@ export function mensajeDePedirDocumentos(d: {
   profesional: string
   enlace?: string | null
   tipo?: 'general' | 'graduado' | 'estudiante'
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombre = nombreDePila(d.profesional) || 'hola'
 
@@ -666,6 +869,14 @@ export function mensajeDePedirDocumentos(d: {
             '· Si ya eres graduado/a: tu *tarjeta profesional* (foto o PDF).',
             '· Si estás en formación: tu *certificado de estudios* o constancia de matrícula.',
           ]
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      profesional: nombre,
+      enlace: d.enlace ?? null,
+    })
+  }
 
   return [
     `Hola ${nombre}, te escribimos de Red Aquí Estamos.`,
@@ -847,10 +1058,10 @@ const CANAL_CONTACTO: Record<string, string> = {
 }
 
 /**
- * PASO 10 · Al profesional: la cita está confirmada y el consentimiento firmado.
+ * PASO 10 · Al profesional: la cita está confirmada, y qué falta.
  *
  * Entrega formal del caso al profesional:
- *   - Informa que el consentimiento informado ya está firmado y la cita confirmada.
+ *   - Dice si el consentimiento informado está firmado O si todavía falta.
  *   - Especifica fecha, hora, modalidad y el canal preferido de la persona.
  *   - Enfatiza su responsabilidad de dar el primer paso de contacto y la puntualidad/compromiso.
  *   - Proporciona el enlace seguro para consultar los datos protegidos y reportar post-sesión.
@@ -864,11 +1075,44 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
   canalContacto?: string | null
   enlace: string
   enlaceReunion?: string | null
+  /**
+   * Si la persona ya firmó el consentimiento informado.
+   *
+   * Antes esta línea era texto fijo: le decía «Firmado por la persona» a todo
+   * profesional, mirara o no el dato. El tablero marcaba «Falta consentimiento»
+   * en el mismo caso en el que este mensaje aseguraba que estaba firmado.
+   *
+   * Y la que se creía era la equivocada: el profesional lee que ya está, no lo
+   * pide, y la sesión ocurre sin consentimiento registrado. Un mensaje que
+   * afirma de más sobre un requisito legal es peor que uno que no diga nada.
+   */
+  consentimientoFirmado?: boolean
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombreProf = nombreDePila(d.profesional) || 'hola'
   const nombrePers = nombreDePila(d.persona) || 'la persona acompañada'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
   const canal = d.canalContacto ? CANAL_CONTACTO[d.canalContacto] ?? d.canalContacto.toLowerCase() : 'WhatsApp'
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      profesional: nombreProf,
+      persona: nombrePers,
+      cuando: d.cuando,
+      modalidad,
+      enlaceReunion: d.enlaceReunion ?? null,
+      canalContacto: canal,
+      enlaceCaso: d.enlace,
+    })
+  }
 
   return [
     `Hola ${nombreProf}, la cita ya está confirmada y lista para iniciar.`,
@@ -878,7 +1122,9 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
     modalidad ? `· *Modalidad:* ${modalidad}` : null,
     d.enlaceReunion ? `· *Enlace de videollamada:* ${d.enlaceReunion}` : null,
     `· *Canal preferido de la persona:* ${canal}`,
-    '· *Consentimiento informado:* Firmado por la persona',
+    d.consentimientoFirmado
+      ? '· *Consentimiento informado:* Firmado por la persona'
+      : '· *Consentimiento informado:* ⚠️ TODAVÍA NO lo ha firmado. Pídeselo antes de empezar la sesión.',
     '',
     '*Tu responsabilidad en este acompañamiento:*',
     `1. Tú das el primer paso: ponte en contacto con ella por ${canal} unos *15 minutos antes* de la cita para coordinar el inicio de la sesión en la fecha y hora acordadas. Ella ya sabe que la vas a contactar.`,
@@ -907,10 +1153,30 @@ export function mensajeDeSiguienteCitaConfirmadaAlProfesional(d: {
   modalidad?: string | null
   enlace: string
   enlaceReunion?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombreProf = nombreDePila(d.profesional) || 'hola'
   const nombrePers = nombreDePila(d.persona) || 'la persona acompañada'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      profesional: nombreProf,
+      persona: nombrePers,
+      cuando: d.cuando,
+      modalidad,
+      enlaceReunion: d.enlaceReunion ?? null,
+      enlaceCaso: d.enlace,
+    })
+  }
 
   return [
     `Hola ${nombreProf}, te escribimos de Red Aquí Estamos.`,
@@ -947,10 +1213,28 @@ export function mensajeDeConsentimientoFirmadoALaPersona(d: {
   profesional: string
   cuando: string
   modalidad?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombrePers = nombreDePila(d.persona) || 'hola'
   const nombreProf = nombreDePila(d.profesional) || 'el profesional'
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre: nombrePers,
+      profesional: nombreProf,
+      cuando: d.cuando,
+      modalidad,
+    })
+  }
 
   return [
     `Hola ${nombrePers}, confirmamos que recibimos tu consentimiento informado firmado.`,
@@ -978,9 +1262,26 @@ export function mensajeDePedirFeedbackALaPersona(d: {
   persona: string
   profesional?: string | null
   enlace: string
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombrePers = nombreDePila(d.persona) || 'hola'
   const nombreProf = d.profesional ? nombreDePila(d.profesional) : 'el profesional'
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre: nombrePers,
+      profesional: nombreProf,
+      enlace: d.enlace,
+    })
+  }
 
   return [
     `Hola ${nombrePers}, te escribimos de Red Aquí Estamos.`,
@@ -1006,6 +1307,14 @@ export function mensajeWhatsAppLider(d: {
   nombre: string
   territorio: string
   necesidades?: string[]
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombre = nombreDePila(d.nombre) || d.nombre.trim()
   const territorio = d.territorio.trim()
@@ -1013,6 +1322,14 @@ export function mensajeWhatsAppLider(d: {
     d.necesidades && d.necesidades.length > 0
       ? `\n\n📌 *Enfoque prioritario identificado:* ${d.necesidades.slice(0, 3).join(', ')}.`
       : ''
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre,
+      territorio,
+    })
+  }
 
   return [
     `¡Hola, ${nombre}! Te saludamos con mucho aprecio desde la coordinación de la *Red Aquí Estamos* (red de apoyo psicosocial y atención en crisis).`,
@@ -1038,9 +1355,28 @@ export function mensajeRecordatorioPrevioCitaProfesional(d: {
   modalidad?: string | null
   enlaceCaso?: string | null
   enlaceReunion?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombre = nombreDePila(d.profesional) || d.profesional.trim()
   const modalidad = d.modalidad ? ` en modalidad *${d.modalidad.toLowerCase()}*` : ''
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      profesional: nombre,
+      cuando: d.cuando,
+      modalidad: d.modalidad ?? null,
+      enlaceReunion: d.enlaceReunion ?? null,
+      enlaceCaso: d.enlaceCaso ?? null,
+    })
+  }
 
   return [
     `¡Hola ${nombre}! Te saludamos desde la coordinación de la Red Aquí Estamos.`,
@@ -1068,9 +1404,28 @@ export function mensajeRecordatorioPrevioCitaPersona(d: {
   cuando: string
   modalidad?: string | null
   enlaceReunion?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
 }): string {
   const nombre = nombreDePila(d.persona) || d.persona.trim()
   const modalidad = d.modalidad ? ` en modalidad *${d.modalidad.toLowerCase()}*` : ''
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre,
+      profesional: d.profesional,
+      cuando: d.cuando,
+      modalidad: d.modalidad ?? null,
+      enlaceReunion: d.enlaceReunion ?? null,
+    })
+  }
 
   return [
     `¡Hola ${nombre}! Te saludamos de la Red Aquí Estamos.`,

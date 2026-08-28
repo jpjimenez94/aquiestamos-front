@@ -29,8 +29,29 @@
   margin: 0 auto;
 }
 
+/* El título a la izquierda y la marca a la derecha, en la misma fila.
+ *
+ * El logo iba en una fila propia encima del encabezado y quedaba flotando,
+ * desconectado del nombre. En rejilla comparten fila: la columna del texto
+ * crece y la de la marca mide lo suyo. La marca abarca las dos filas del texto
+ * (título y subtítulo) para quedar centrada respecto al bloque, no pegada solo
+ * al h1. */
 .caso__intro {
   margin-bottom: 22px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 20px;
+  align-items: center;
+}
+
+.caso__intro h1,
+.caso__intro p {
+  grid-column: 1;
+}
+
+.caso__intro .caso__marca {
+  grid-column: 2;
+  grid-row: 1 / span 2;
 }
 
 .caso__intro h1 {
@@ -50,4 +71,31 @@
    una: si mañana hay que apretarlas, se aprieta en un solo sitio. */
 .caso__contenido > .panel + .panel {
   margin-top: 20px;
+}
+
+/* La marca de la red, arriba a la derecha.
+ *
+ * A esta pantalla se llega desde un enlace de WhatsApp: no hay menú ni sesión
+ * ni nada alrededor que diga de quién es. La esquina estaba vacía y la primera
+ * pantalla es justo la que pide un correo — que es donde más falta hace saber a
+ * quién se lo estás dando.
+ *
+ * `height: auto` con el ancho fijo: si no, `next/image` respeta el width que se
+ * le pasó y el alto se estira en pantallas estrechas. */
+.caso__marca {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.caso__marca img {
+  width: 160px;
+  height: auto;
+}
+
+/* En el móvil la columna es estrecha: el logo cede espacio antes de que el
+   nombre de la persona tenga que partirse raro. */
+@media (max-width: 520px) {
+  .caso__marca img {
+    width: 110px;
+  }
 }

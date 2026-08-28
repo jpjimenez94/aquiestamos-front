@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState, useEffect } from 'react'
 import { BellRing, Copy, Check, MessageSquare, X, Clock, User, Stethoscope } from 'lucide-react'
 import { paraWhatsapp } from '@/lib/telefono'
@@ -45,6 +46,7 @@ export function BotonRecordarCitaPrevia({
   enlaceCaso,
   compact = false,
 }: BotonRecordarCitaProps) {
+  const plantillasDelPortal = usePlantillas()
   const [modalAbierto, setModalAbierto] = useState(false)
   const [destinatario, setDestinatario] = useState<'PROFESIONAL' | 'PACIENTE'>('PACIENTE')
   const [copiado, setCopiado] = useState(false)
@@ -89,6 +91,7 @@ export function BotonRecordarCitaPrevia({
     : null
 
   const mensajeProf = mensajeRecordatorioPrevioCitaProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_RECORDATORIO_PREVIO,
     profesional: profesional.nombre,
     cuando: horaFormateada,
     modalidad: cita.modalidad,
@@ -97,6 +100,7 @@ export function BotonRecordarCitaPrevia({
   })
 
   const mensajePac = mensajeRecordatorioPrevioCitaPersona({
+              plantilla: plantillasDelPortal?.WHATSAPP_RECORDATORIO_PREVIO_PERSONA,
     persona: pacienteNombre,
     profesional: profesional.nombre,
     cuando: horaFormateada,

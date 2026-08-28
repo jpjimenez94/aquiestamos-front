@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { paraWhatsapp } from '@/lib/telefono'
 import { mensajeDePedirDocumentos } from '@/lib/mensajes'
@@ -60,6 +61,7 @@ export function SeccionTarjetaProfesional({
   puedeVerificar = false,
   enlaceDocumentos = null,
 }: SeccionTarjetaProps) {
+  const plantillasDelPortal = usePlantillas()
   const [modalAbierto, setModalAbierto] = useState(false)
   const [copiadoMsg, setCopiadoMsg] = useState(false)
   const [tipoPerfil, setTipoPerfil] = useState<'general' | 'graduado' | 'estudiante'>('general')
@@ -67,6 +69,7 @@ export function SeccionTarjetaProfesional({
   // El texto vive en lib/mensajes.ts con todos los demás: con saltos de
   // línea, negrita donde el ojo debe caer y sin emojis (llegaban rotos).
   const mensajeWhatsApp = mensajeDePedirDocumentos({
+              plantilla: plantillasDelPortal?.WHATSAPP_PEDIR_DOCUMENTOS,
     profesional: profesionalNombre,
     tipo: tipoPerfil,
     enlace: enlaceDocumentos,

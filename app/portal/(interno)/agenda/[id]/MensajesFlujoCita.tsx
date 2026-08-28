@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { Copy, Check, MessageSquare } from 'lucide-react'
 import {
@@ -47,7 +48,9 @@ export function MensajesFlujoCita({
   enlaceReunion?: string | null
   enlaceReunionProfesional?: string | null
 }) {
+  const plantillasDelPortal = usePlantillas()
   const mensajeConfirmacion = mensajeDeCitaConfirmada({
+              plantilla: plantillasDelPortal?.WHATSAPP_CONFIRMAR_CITA_PERSONA,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
@@ -57,6 +60,7 @@ export function MensajesFlujoCita({
 
   const mensajeFirma = enlaceConsentimiento
     ? mensajeDeConsentimiento({
+              plantilla: plantillasDelPortal?.WHATSAPP_CONSENTIMIENTO,
         persona: pacienteNombre,
         profesional: profesionalNombre,
         enlace: enlaceConsentimiento,
@@ -64,6 +68,7 @@ export function MensajesFlujoCita({
     : null
 
   const mensajeConsentimientoRecibido = mensajeDeConsentimientoFirmadoALaPersona({
+              plantilla: plantillasDelPortal?.WHATSAPP_CONSENTIMIENTO_FIRMADO,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
@@ -71,6 +76,8 @@ export function MensajesFlujoCita({
   })
 
   const mensajeProfesional = mensajeDeCitaConfirmadaAlProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_DESPACHO_PROFESIONAL,
+    consentimientoFirmado,
     profesional: profesionalNombre,
     persona: pacienteNombre,
     cuando: fechaHoraBogota,
@@ -81,6 +88,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajePedirNuevaDispProf = mensajeDePedirNuevaDisponibilidadAlProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_REAGENDAMIENTO_PEDIR_DISP,
     profesional: profesionalNombre,
     persona: pacienteNombre,
     cuandoAnterior: fechaHoraBogota,
@@ -88,6 +96,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeExcusasReagendar = mensajeDeExcusasYReagendamiento({
+              plantilla: plantillasDelPortal?.WHATSAPP_REAGENDAMIENTO_EXCUSAS,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuandoAnterior: fechaHoraBogota,
@@ -95,6 +104,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeRecordatorioPersona = mensajeRecordatorioPrevioCitaPersona({
+              plantilla: plantillasDelPortal?.WHATSAPP_RECORDATORIO_PREVIO_PERSONA,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
@@ -103,6 +113,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeRecordatorioProf = mensajeRecordatorioPrevioCitaProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_RECORDATORIO_PREVIO,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
     modalidad,
@@ -137,22 +148,22 @@ export function MensajesFlujoCita({
           Confirmarle la cita y gestionar la firma del consentimiento. Van por WhatsApp, como todo.
         </p>
 
-        <Mensaje titulo="Paso 8 · Confirmarle la cita" telefono={pacienteTelefono} texto={mensajeConfirmacion} />
+        <Mensaje titulo="Confirmarle la cita" telefono={pacienteTelefono} texto={mensajeConfirmacion} />
 
         {consentimientoFirmado ? (
           <div style={{ marginTop: 14 }}>
             <p className="panel__nota" style={{ color: 'var(--color-green, #059669)', fontWeight: 600, margin: '0 0 8px' }}>
-              ✓ Paso 9 · El consentimiento informado ya está firmado (no es necesario volver a solicitarlo en reagendamientos o citas posteriores).
+              ✓ El consentimiento informado ya está firmado. No hay que volver a pedirlo en reagendamientos ni en citas posteriores.
             </p>
             <Mensaje
-              titulo="Paso 9b · Confirmación de consentimiento recibido a la persona"
+              titulo="Avisarle que su consentimiento llegó"
               telefono={pacienteTelefono}
               texto={mensajeConsentimientoRecibido}
             />
           </div>
         ) : mensajeFirma ? (
           <Mensaje
-            titulo="Paso 9 · Pedirle la firma del consentimiento"
+            titulo="Pedirle la firma del consentimiento"
             telefono={pacienteTelefono}
             texto={mensajeFirma}
           />
@@ -172,26 +183,28 @@ export function MensajesFlujoCita({
         ) : null}
 
         <Mensaje
-          titulo="Paso 10 · Instrucciones y despacho de la cita al profesional"
+          titulo="Entregarle el caso al profesional"
           telefono={profesionalTelefono}
           texto={mensajeProfesional}
         />
       </div>
 
       <div className="panel">
-        <h2>¿El profesional tuvo un imprevisto en su agenda?</h2>
+        <h2>Mover esta sesión</h2>
         <p className="panel__nota">
-          Si el profesional te avisa de un compromiso personal/médico inesperado a esa hora, sigue estos dos pasos para coordinar la nueva fecha:
+          Para cuando al profesional le surge un imprevisto en esa hora. Primero se le
+          pide su nueva disponibilidad; con ella, se le avisa a la persona con excusas y
+          se cuadra el nuevo espacio.
         </p>
 
         <Mensaje
-          titulo="Reagendamiento (1) · Pedir nueva disponibilidad al profesional"
+          titulo="1 · Pedirle al profesional su nueva disponibilidad"
           telefono={profesionalTelefono}
           texto={mensajePedirNuevaDispProf}
         />
 
         <Mensaje
-          titulo="Reagendamiento (2) · Excusas y propuesta de nuevo espacio a la persona"
+          titulo="2 · Avisarle a la persona y proponerle el nuevo espacio"
           telefono={pacienteTelefono}
           texto={mensajeExcusasReagendar}
         />

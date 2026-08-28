@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import {
@@ -88,6 +89,7 @@ const estiloInputFiltro: React.CSSProperties = {
 }
 
 export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin = false }: Props) {
+  const plantillasDelPortal = usePlantillas()
   // Estado local para eliminación reactiva
   const [lideres, setLideres] = useState<LiderFila[]>(lideresIniciales)
 
@@ -591,6 +593,7 @@ export function TablaLideres({ lideresIniciales, catalogoNecesidades, esAdmin = 
                 lideresPaginados.map((l) => {
                   const badge = getBadgeStatus(l.status)
                   const mensajeTexto = mensajeWhatsAppLider({
+              plantilla: plantillasDelPortal?.WHATSAPP_LIDER_COMUNITARIO,
                     nombre: l.name,
                     territorio: l.territory,
                     necesidades: l.needs.map((n) => n.name),

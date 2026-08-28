@@ -12,7 +12,7 @@ type Metricas = {
   }
   embudo: {
     diasPromedioHastaPrimeraPropuesta: number | null
-    diasPromedioRespuestaDelProfesional: number | null
+    diasPromedioHastaElegirHora: number | null
   }
   asignaciones: {
     total: number
@@ -20,7 +20,7 @@ type Metricas = {
     rechazadas: number
     vencidasSinRespuesta: number
     canceladasOtras: number
-    tasaAceptacion: number | null
+    tasaDeclinada: number | null
   }
   motivosDeCierre: Record<string, number>
   casosPorProfesional: { nombre: string; casos: number }[]

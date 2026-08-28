@@ -9,9 +9,7 @@ export const metadata = { title: 'Cuéntanos tu experiencia · Red Aquí Estamos
 
 type Estado = {
   persona: string | null
-  nombreCompletoPersona?: string | null
   profesional: string | null
-  nombreCompletoProfesional?: string | null
 }
 
 async function leerEstado(token: string): Promise<Estado | null> {

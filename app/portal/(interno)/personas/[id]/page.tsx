@@ -1,7 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
+import { portalFetch, enBogota, usuarioActual, puede, traerPlantillas } from '@/lib/portal'
+
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
+import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
+import { pasoDelCaso, armarHechos } from '@/lib/pasosDelCaso'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
@@ -60,6 +63,8 @@ type Persona = {
   reportes: Reporte[]
   feedbacks?: FeedbackDeLaPersona[]
   enlaceFeedback?: string | null
+  /** Enlace con el que la persona agenda sus propias sesiones. */
+  enlaceAgenda?: string | null
   citas: CitaDeLaPersona[]
   notasSeguimiento?: NotaSeguimiento[]
   totalNotas?: number
@@ -116,9 +121,14 @@ const FRANJA: Record<string, string> = {
 
 export default async function PersonaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [respuesta, usuario] = await Promise.all([
+  // Las plantillas viajan con la ficha: los mensajes que se copian desde esta
+  // pantalla salen del texto que la coordinación editó en Parametrización, no
+  // de una copia escrita en el código. Se piden aquí una sola vez, para que no
+  // haya una petición por cada botón.
+  const [respuesta, usuario, plantillas] = await Promise.all([
     portalFetch<Persona>(`/patients/${id}`),
     usuarioActual(),
+    traerPlantillas(),
   ])
 
   if (!respuesta.success || !respuesta.data) notFound()
@@ -133,7 +143,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
     <>
       <Cabecera
         titulo={nombrePropio(persona.fullName)}
-        descripcion={`${persona.city} · lleva ${persona.diasEsperando} ${persona.diasEsperando === 1 ? 'día' : 'días'} en la red`}
+        descripcion={`${persona.city} · lleva ${persona.diasEsperando} ${persona.diasEsperando === 1 ? 'día' : 'días'} en la red · todo su acompañamiento, aquí`}
         acciones={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {puede(usuario, 'paciente:borrar') ? (
@@ -150,6 +160,68 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           </div>
         }
       />
+
+      {/*
+        El camino completo, con el paso actual encendido. La misma tira está en
+        el detalle de la cita: la ficha y la cita son dos ventanas al mismo
+        proceso, y esto es lo que lo hace visible.
+      */}
+      {(() => {
+        const ahora = Date.now()
+        const citas = persona.citas ?? []
+        const futuras = citas
+          .filter((c) => new Date(c.inicio).getTime() > ahora)
+          .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
+        const pasadas = citas
+          .filter((c) => new Date(c.inicio).getTime() <= ahora)
+          .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())
+        const proxima = futuras[0] ?? null
+        const ultima = pasadas[0] ?? null
+
+        return (
+          <IndicadorDePasos
+            actual={pasoDelCaso({
+              estadoPersona: persona.status,
+              estadoAsignacion: persona.asignacion?.estado,
+              citas: citas.map((c) => ({ startsAt: c.inicio, status: c.estado })),
+            })}
+            hechos={armarHechos({
+              recibida: enBogota(persona.createdAt),
+              prioridad: persona.prioridadLegible,
+              admision: persona.estadoLegible,
+              asignacion: persona.asignacion
+                ? {
+                    profesional: persona.asignacion.profesional.nombre,
+                    desde: enBogota(persona.asignacion.desde, false),
+                    estadoLegible: persona.asignacion.estadoLegible,
+                    motivo: persona.asignacion.motivoRechazo,
+                  }
+                : null,
+              eleccion: proxima ? { cuando: enBogota(proxima.inicio) } : null,
+              preparacion: proxima
+                ? { confirmada: proxima.estado === 'CONFIRMADA', consentimiento: proxima.consentSigned === true }
+                : null,
+              sesion: ultima ? { cuando: enBogota(ultima.inicio), estadoLegible: ultima.estadoLegible } : null,
+              seguimiento: {
+                reportes: persona.reportes?.length ?? 0,
+                notas: persona.totalNotas ?? 0,
+                encuestaRespondida: persona.encuesta?.respondida === true,
+                cerrado: persona.status === 'CERRADO',
+              },
+            })}
+            enlaces={
+              proxima
+                ? {
+                    5: { href: `/portal/agenda/${proxima.id}`, texto: 'Gestionar esta cita →' },
+                    6: { href: `/portal/agenda/${(ultima ?? proxima).id}`, texto: 'Ver la cita →' },
+                  }
+                : ultima
+                  ? { 6: { href: `/portal/agenda/${ultima.id}`, texto: 'Ver la cita →' } }
+                  : undefined
+            }
+          />
+        )
+      })()}
 
       <div className="panel">
         <div className="datos">
@@ -200,6 +272,8 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           persona={persona}
           asignacion={persona.asignacion}
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+          enlaceAgenda={persona.enlaceAgenda}
+          plantillas={plantillas}
           proximaCita={(() => {
             // La cita abierta más próxima: es la que se le confirma al
             // profesional. Vienen de la más próxima a la más lejana.
@@ -209,13 +283,13 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             return abierta
               ? {
                   id: abierta.id,
-                  cuando: abierta.inicioLocal || enBogota(abierta.inicio),
+                  cuando: enBogota(abierta.inicio),
                   modalidad: abierta.modalidad,
                   salaTokenPaciente: abierta.salaTokenPaciente,
+                  consentSigned: abierta.consentSigned,
                 }
               : null
           })()}
-          esPrimeraCita={!persona.citas || persona.citas.filter((c) => c.estado === 'REALIZADA' || c.estado === 'COMPLETADA' || c.estado === 'CERRADA').length === 0}
         />
       ) : persona.status === 'CERRADO' ? (
         /* Cerrado no es «sin asignar»: ofrecer candidatos aquí invitaría a
@@ -287,7 +361,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                   <tr key={c.id}>
                     <td>
                       <Link href={`/portal/agenda/${c.id}`} className="tabla__principal">
-                        {c.inicioLocal || enBogota(c.inicio)}
+                        {enBogota(c.inicio)}
                       </Link>
                     </td>
                     <td>{c.modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'}</td>

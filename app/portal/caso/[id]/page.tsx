@@ -1,9 +1,12 @@
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { BACKEND_URL } from '@/lib/api'
 import { AccesoCasoForm } from './AccesoCasoForm'
 import { ReporteCasoForm } from './ReporteCasoForm'
 import { DecidirPropuestaForm } from './DecidirPropuestaForm'
+import { momentoDelCaso } from '@/lib/momentoDelCaso'
+import { BotonDeclinar } from './BotonDeclinar'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
 import { Dato, Etiqueta } from '../../(interno)/componentes'
@@ -37,6 +40,27 @@ const DIA: Record<string, string> = {
 const FRANJA: Record<string, string> = { MANANA: 'mañana', TARDE: 'tarde', NOCHE: 'noche' }
 
 // La ruta recibe params con el id del paciente.
+/**
+ * La marca, arriba a la derecha.
+ *
+ * A esta pantalla se entra desde un enlace de WhatsApp y con un correo: no hay
+ * menú, ni sesión, ni nada alrededor que diga de quién es. Un profesional que
+ * recibe un mensaje con un enlace y aterriza en una página que le pide datos de
+ * una persona sin identificarse tiene todo el derecho a desconfiar — y hace
+ * bien.
+ *
+ * Va en las cuatro pantallas del caso —pedir acceso, enlace vencido, decidir y
+ * el caso ya asignado—, porque la primera que ve es justo la que le pide el
+ * correo, que es donde más falta hace saber a quién se lo está dando.
+ */
+function MarcaDeLaRed() {
+  return (
+    <div className="caso__marca">
+      <Image src="/images/logo.png" alt="Red Aquí Estamos" width={132} height={48} priority />
+    </div>
+  )
+}
+
 export default async function SharedCasePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
@@ -50,6 +74,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           <header className="caso__intro">
             <h1>Acceso al caso</h1>
             <p>Ingresa el correo con el que estás registrado en la red para ver los detalles de este paciente.</p>
+            <MarcaDeLaRed />
           </header>
           <AccesoCasoForm patientId={id} />
         </div>
@@ -75,6 +100,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           <header className="caso__intro">
             <h1>Enlace expirado o inválido</h1>
             <p>{message}</p>
+            <MarcaDeLaRed />
           </header>
         </div>
       </main>
@@ -97,6 +123,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           <header className="caso__intro">
             <h1>Te proponemos un acompañamiento</h1>
             <p>Mira si puedes tomarlo y dinos. No estás comprometido a nada.</p>
+            <MarcaDeLaRed />
           </header>
 
           <div className="panel">
@@ -134,14 +161,35 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     )
   }
 
-  // Renderizar la vista del paciente. Muy similar a la interna, pero más simplificada.
+  /**
+   * En qué momento está el caso.
+   *
+   * La pantalla pintaba todos sus paneles siempre, sin mirar dónde estaba el
+   * acompañamiento. Con el flujo viejo se disimulaba: el profesional llegaba
+   * aquí después de aceptar, y para entonces ya había hablado con la persona.
+   *
+   * Desde que se le asigna y se le avisa, entra en el minuto cero — y se
+   * encontraba «¿Puedes tomarlo?» y «¿Qué pasó con esta asignación?» una
+   * debajo de la otra. Son preguntas de dos momentos distintos y juntas no
+   * significan nada: cómo va a contar qué pasó si todavía no ha pasado nada.
+   *
+   * No es un problema de redacción. Un formulario que pregunta fuera de tiempo
+   * enseña a ignorarlo, y este es por donde coordinación se entera de que
+   * alguien no contesta el teléfono.
+   */
+  const { proximaCita, tocaReportar } = momentoDelCaso({
+    puedeDeclinar: paciente.puedeDeclinar,
+    citas: paciente.appointments ?? [],
+    reportes: paciente.reportes?.length ?? 0,
+  })
   return (
     <main className="caso">
       <div className="caso__contenido">
         <header className="caso__intro">
           <h1>{nombrePropio(paciente.fullName)}</h1>
           <p>{paciente.city} · Asignado a ti</p>
-        </header>
+          <MarcaDeLaRed />
+          </header>
 
         <div className="panel">
           <h2>Información de Contacto</h2>
@@ -154,14 +202,63 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           </div>
         </div>
 
-        <div className="panel">
-          <h2>¿Qué pasó con esta asignación?</h2>
-          <p className="panel__nota">
-            Cuéntanos cómo te fue. Es la forma de que quien coordina sepa en qué va el
-            caso sin tener que llamarte a preguntar.
-          </p>
-          <ReporteCasoForm patientId={id} />
-        </div>
+        {paciente.puedeDeclinar ? (
+          <div className="panel">
+            <h2>¿Puedes tomarlo?</h2>
+            <p className="panel__nota">
+              Este caso ya es tuyo y {nombrePropio(paciente.fullName).split(' ')[0]} va a
+              elegir la hora directamente de tu agenda. No tienes que confirmar nada.
+            </p>
+            <p className="panel__nota">
+              Si en este momento no puedes, dilo aquí y se lo pasamos hoy a otra persona
+              de la red. Es voluntario: no poder es normal, y avisar pronto ayuda mucho
+              más que un silencio.
+            </p>
+            <BotonDeclinar patientId={id} />
+          </div>
+        ) : null}
+
+        {/*
+          Hay cita y todavía no ha llegado: no hay nada que contar.
+        
+          Lo que necesita ver ahora es cuándo es y que no tiene que hacer nada
+          hasta entonces. El formulario sigue disponible plegado, porque entre
+          la asignación y la sesión sí puede pasar algo —que no conteste, que
+          avise de que no va— y quitarle el canal por ordenar la pantalla sería
+          cambiar un problema por otro.
+        */}
+        {proximaCita && !tocaReportar ? (
+          <div className="panel">
+            <h2>Tu próxima sesión</h2>
+            <p className="panel__nota">
+              {enBogota(proximaCita.startsAt)} · {proximaCita.modality?.toLowerCase()}
+            </p>
+            <p className="panel__nota">
+              No tienes que hacer nada hasta entonces. Cuando termine, vuelve aquí y
+              cuéntanos cómo fue.
+            </p>
+
+            <details style={{ marginTop: 12 }}>
+              <summary style={{ cursor: 'pointer', fontSize: '0.9rem' }}>
+                ¿Pasó algo antes de la sesión?
+              </summary>
+              <div style={{ marginTop: 12 }}>
+                <ReporteCasoForm patientId={id} />
+              </div>
+            </details>
+          </div>
+        ) : null}
+
+        {tocaReportar ? (
+          <div className="panel">
+            <h2>¿Qué pasó con esta asignación?</h2>
+            <p className="panel__nota">
+              Cuéntanos cómo te fue. Es la forma de que quien coordina sepa en qué va el
+              caso sin tener que llamarte a preguntar.
+            </p>
+            <ReporteCasoForm patientId={id} />
+          </div>
+        ) : null}
 
         {paciente.reportes?.length > 0 ? (
           <div className="panel">
@@ -199,6 +296,10 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           </div>
         ) : null}
 
+        {/*
+          El historial. La próxima ya se enseña arriba con lo que hay que hacer;
+          esto es para ver lo que hubo antes y lo que viene después.
+        */}
         <div className="panel">
           <h2>Citas programadas</h2>
           {paciente.appointments?.length > 0 ? (

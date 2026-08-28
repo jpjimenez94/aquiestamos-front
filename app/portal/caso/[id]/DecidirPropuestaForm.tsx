@@ -8,56 +8,34 @@ import { decidirPropuestaAction } from './actions'
 /**
  * Donde el profesional dice si puede tomar el caso.
  *
- * Que lo diga aquí y no por WhatsApp es lo que hace que el dato sirva. Antes
- * respondía por chat y alguien lo transcribía al portal; lo que el sistema
- * sabía dependía de que esa persona se acordara. Aquí sus días y sus franjas
- * entran tal como él los marca.
+ * Que lo diga aquí y no por WhatsApp es lo que hace que el dato sirva: antes
+ * respondía por chat y alguien lo transcribía, y lo que el sistema sabía
+ * dependía de que esa persona se acordara.
  *
- * Y decir que no es una opción de primera clase, no un camino escondido: es
+ * Ya no le pide días ni franjas. Su agenda está en su perfil y es de ahí de
+ * donde la persona elige la hora; volver a pedírselos caso por caso era pedirle
+ * dos veces lo mismo, y encima bloqueaba el «sí» hasta que rellenara una rejilla
+ * cuyo resultado ya no guarda nadie.
+ *
+ * Decir que no es una opción de primera clase, no un camino escondido: es
  * voluntario, no poder es normal, y un «no» claro hoy vale mucho más que un
- * silencio de dos semanas.
+ * silencio de dos semanas. Desde que el caso se le asigna sin preguntarle, esta
+ * es su única puerta de salida — y por eso no puede costar más de un toque.
  */
-
-const DIAS = [
-  { valor: 'LUNES', etiqueta: 'Lunes' },
-  { valor: 'MARTES', etiqueta: 'Martes' },
-  { valor: 'MIERCOLES', etiqueta: 'Miércoles' },
-  { valor: 'JUEVES', etiqueta: 'Jueves' },
-  { valor: 'VIERNES', etiqueta: 'Viernes' },
-  { valor: 'SABADO', etiqueta: 'Sábado' },
-  { valor: 'DOMINGO', etiqueta: 'Domingo' },
-]
-
-const FRANJAS = [
-  { valor: 'MANANA', etiqueta: 'Mañana (8 a. m. – 12 m.)' },
-  { valor: 'TARDE', etiqueta: 'Tarde (12 m. – 6 p. m.)' },
-  { valor: 'NOCHE', etiqueta: 'Noche (6 – 9 p. m.)' },
-]
 
 export function DecidirPropuestaForm({ patientId }: { patientId: string }) {
   const router = useRouter()
   const [decision, setDecision] = useState<'si' | 'no' | null>(null)
-  const [dias, setDias] = useState<string[]>([])
-  const [franjas, setFranjas] = useState<string[]>([])
   const [nota, setNota] = useState('')
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [listo, setListo] = useState<'si' | 'no' | null>(null)
 
-  function alternar(lista: string[], valor: string, set: (v: string[]) => void) {
-    set(lista.includes(valor) ? lista.filter((x) => x !== valor) : [...lista, valor])
-    setError(null)
-  }
-
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault()
     if (!decision) {
       setError('Dinos si puedes acompañar este caso.')
-      return
-    }
-    if (decision === 'si' && (dias.length === 0 || franjas.length === 0)) {
-      setError('Marca al menos un día y una franja en la que podrías.')
       return
     }
     if (decision === 'no' && motivo.trim().length < 3) {
@@ -70,8 +48,6 @@ export function DecidirPropuestaForm({ patientId }: { patientId: string }) {
 
     const salida = await decidirPropuestaAction(patientId, {
       acepta: decision === 'si',
-      dias: decision === 'si' ? dias : [],
-      franjas: decision === 'si' ? franjas : [],
       nota: decision === 'si' ? nota.trim() : '',
       motivo: decision === 'no' ? motivo.trim() : '',
     })
@@ -157,42 +133,6 @@ export function DecidirPropuestaForm({ patientId }: { patientId: string }) {
 
       {decision === 'si' ? (
         <>
-          <fieldset className="tamizaje__pregunta">
-            <legend>¿Qué días podrías?</legend>
-            <div className="tamizaje__opciones">
-              {DIAS.map((d) => (
-                <button
-                  className="tamizaje__opcion"
-                  type="button"
-                  key={d.valor}
-                  data-elegida={dias.includes(d.valor)}
-                  aria-pressed={dias.includes(d.valor)}
-                  onClick={() => alternar(dias, d.valor, setDias)}
-                >
-                  {d.etiqueta}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="tamizaje__pregunta">
-            <legend>¿En qué franjas?</legend>
-            <div className="tamizaje__opciones">
-              {FRANJAS.map((f) => (
-                <button
-                  className="tamizaje__opcion"
-                  type="button"
-                  key={f.valor}
-                  data-elegida={franjas.includes(f.valor)}
-                  aria-pressed={franjas.includes(f.valor)}
-                  onClick={() => alternar(franjas, f.valor, setFranjas)}
-                >
-                  {f.etiqueta}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
           <div>
             <label className="field__label" htmlFor="nota">
               ¿Algo más que debamos tener en cuenta? (opcional)

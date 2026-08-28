@@ -1,3 +1,5 @@
+import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
+import { pasoDeLaCita, armarHechos, sesionTerminada } from '@/lib/pasosDelCaso'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
@@ -91,6 +93,10 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
 
   const sitioUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
   const enlaceCasoProf = `${sitioUrl}/portal/caso/${cita.paciente.id}`
+
+  // «Terminó» lo dicen el estado de la cita y su hora de fin, no la falta de
+  // latidos: un latido que no llega puede ser la pestaña de fondo o la red.
+  const terminada = sesionTerminada({ estado: cita.estado, fin: cita.fin })
   // Estos enlaces se copian y se mandan por WhatsApp, así que llevan la llave
   // firmada que emite el backend: trae el rol sellado dentro y no se puede
   // fabricar desde fuera. Se cae al UUID solo si el backend no mandó token
@@ -108,12 +114,34 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
     <>
       <Cabecera
         titulo="Cita de Acompañamiento"
-        descripcion={enBogota(cita.inicio)}
+        descripcion={`Una sesión del acompañamiento de ${cita.paciente.nombre ?? 'la persona'} · ${enBogota(cita.inicio)}`}
         acciones={
           <Link className="boton-mini" href="/portal/agenda">
             Volver a la agenda
           </Link>
         }
+      />
+
+      {/* La misma tira que en la ficha de la persona: mismo proceso, otra ventana.
+          Esta vista sabe de su sesión; los pasos del caso los enlaza a la ficha
+          en vez de callarlos. */}
+      <IndicadorDePasos
+        actual={pasoDeLaCita({ inicio: cita.inicio, estado: cita.estado })}
+        hechos={armarHechos({
+          asignacion: cita.profesional.nombre ? { profesional: cita.profesional.nombre } : null,
+          eleccion: { cuando: enBogota(cita.inicio) },
+          preparacion: {
+            confirmada: cita.estado === 'CONFIRMADA',
+            consentimiento: cita.consentSigned === true,
+          },
+          sesion: { cuando: enBogota(cita.inicio), estadoLegible: cita.estadoLegible },
+        })}
+        enlaces={{
+          1: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+          2: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+          3: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+          7: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+        }}
       />
 
       <div className="panel">
@@ -182,18 +210,18 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Panel de Validación Legal y Consentimiento (Pasos 7 y 9) */}
+      {/* Verificaciones que condicionan la sesión: la tarjeta es del profesional (viene de su ficha), el consentimiento es de esta persona. Sin números de manual: el paso global lo dice la tira de arriba. */}
       <div className="panel">
         <h2>Requisitos Legales y Documentación</h2>
         <p className="panel__nota">
-          Verificación obligatoria según el flujo de recepción y atención de la red.
+          Lo que tiene que estar en regla antes de la sesión. La tarjeta se verifica una vez por profesional; el consentimiento, una vez por persona.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 14 }}>
           {/* Tarjeta Profesional */}
           <div style={{ padding: 14, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <strong style={{ fontSize: '0.9rem' }}>Paso 7: Tarjeta Profesional</strong>
+              <strong style={{ fontSize: '0.9rem' }}>Tarjeta profesional</strong>
               {cita.profesional.professionalCardVerified ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.8rem', fontWeight: 600 }}>
                   <ShieldCheck size={16} /> Verificada
@@ -223,7 +251,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
           {/* Consentimiento Informado */}
           <div style={{ padding: 14, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <strong style={{ fontSize: '0.9rem' }}>Paso 9: Consentimiento Informado</strong>
+              <strong style={{ fontSize: '0.9rem' }}>Consentimiento informado</strong>
               {cita.consentSigned ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.8rem', fontWeight: 600 }}>
                   <FileCheck2 size={16} /> Firmado Recibido
@@ -336,7 +364,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
                 </span>
               </div>
             </div>
-          ) : (cita.totalCallDurationSeconds ?? 0) > 0 ? (
+          ) : (cita.totalCallDurationSeconds ?? 0) > 0 && terminada ? (
             <div
               style={{
                 background: '#f8fafc',
@@ -356,6 +384,30 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
               <span>
                 <strong>Sesión virtual finalizada.</strong> Tiempo total efectivo registrado:{' '}
                 <strong>{cita.totalCallDurationMinutes} min ({cita.totalCallDurationSeconds}s)</strong>.
+              </span>
+            </div>
+          ) : (cita.totalCallDurationSeconds ?? 0) > 0 ? (
+            <div
+              style={{
+                background: '#fffbeb',
+                border: '1px solid #fde68a',
+                borderRadius: 10,
+                padding: '10px 16px',
+                marginTop: 14,
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                color: '#92400e',
+                fontSize: '0.86rem',
+              }}
+            >
+              <Timer size={16} style={{ color: '#d97706' }} />
+              <span>
+                <strong>Nadie está latiendo en este momento.</strong> Se llevan{' '}
+                <strong>{cita.totalCallDurationMinutes} min ({cita.totalCallDurationSeconds}s)</strong>{' '}
+                registrados. Puede que hayan salido un momento o que la pestaña de la sala se
+                cerrara: la sesión no se da por terminada hasta que pase su hora de fin.
               </span>
             </div>
           ) : null}

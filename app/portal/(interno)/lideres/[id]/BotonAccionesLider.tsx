@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Edit2, PhoneCall, MessageCircle } from 'lucide-react'
@@ -15,11 +16,13 @@ type Props = {
 }
 
 export function BotonAccionesLider({ lider, catalogoNecesidades, esAdmin = false }: Props) {
+  const plantillasDelPortal = usePlantillas()
   const router = useRouter()
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
   const [modalContactoAbierto, setModalContactoAbierto] = useState(false)
 
   const mensajeTexto = mensajeWhatsAppLider({
+              plantilla: plantillasDelPortal?.WHATSAPP_LIDER_COMUNITARIO,
     nombre: lider.name,
     territorio: lider.territory,
     necesidades: lider.needs?.map((n) => n.name),

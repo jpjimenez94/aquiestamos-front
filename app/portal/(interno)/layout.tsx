@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { usuarioActual, portalFetch } from '@/lib/portal'
+import { usuarioActual, portalFetch, traerPlantillas } from '@/lib/portal'
+import { PlantillasProvider } from '@/components/portal/Plantillas'
 import { LateralPortal, type ContadoresBadges } from './LateralPortal'
 import '../portal.css'
 
@@ -15,7 +16,11 @@ export default async function PortalLayout({ children }: { children: React.React
   // La cookie existía pero la sesión ya no vale (caducó o la revocaron).
   if (!usuario) redirect('/portal/entrar')
 
-  const respuestaBadges = await portalFetch<ContadoresBadges>('/dashboard/badges')
+  // Los textos editables van al contexto: los usan once componentes sueltos.
+  const [respuestaBadges, plantillas] = await Promise.all([
+    portalFetch<ContadoresBadges>('/dashboard/badges'),
+    traerPlantillas(),
+  ])
   const contadores = respuestaBadges.data ?? {
     solicitudes: 0,
     postulaciones: 0,
@@ -32,7 +37,9 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <div className="portal" data-rol={usuario.role}>
       <LateralPortal usuario={usuario} contadores={contadores} />
-      <main className="portal__principal">{children}</main>
+      <main className="portal__principal">
+        <PlantillasProvider valor={plantillas}>{children}</PlantillasProvider>
+      </main>
     </div>
   )
 }

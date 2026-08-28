@@ -9,9 +9,28 @@ type Metricas = {
     porEstado: Record<string, number>
     porPrioridad: Record<string, number>
   }
+  /** El camino desde que alguien pide ayuda. Cada paso encaja dentro del anterior. */
+  camino?: {
+    etapa: string
+    cuantas: number
+    porcentaje: number | null
+    seQuedaronAqui: number | null
+  }[]
+  caminoSobreCuantas?: number
+  tamizaje?: {
+    enviados: number
+    respondidos: number
+    tasaRespuesta: number | null
+    admitidasSinResponder: number
+  }
+  esperaHastaLaPrimeraSesion?: {
+    diasMediana: number | null
+    diasPromedio: number | null
+    sobreCuantasPersonas: number
+  }
   embudo: {
     diasPromedioHastaPrimeraPropuesta: number | null
-    diasPromedioRespuestaDelProfesional: number | null
+    diasPromedioHastaElegirHora: number | null
   }
   asignaciones: {
     total: number
@@ -19,7 +38,7 @@ type Metricas = {
     rechazadas: number
     vencidasSinRespuesta: number
     canceladasOtras: number
-    tasaAceptacion: number | null
+    tasaDeclinada: number | null
   }
   motivosDeCierre: Record<string, number>
   casosPorProfesional: { nombre: string; casos: number }[]
@@ -90,6 +109,81 @@ function Tabla({ titulo, filas }: { titulo: string; filas: [string, string][] })
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * El camino desde que alguien pide ayuda hasta que se sienta con un profesional.
+ *
+ * Se dibuja como barras y no como tabla a propósito: lo que hay que ver de un
+ * vistazo no son los números, es en qué escalón se cae la gente. Cada paso
+ * está encajado dentro del anterior, así que la resta entre dos significa
+ * personas que no llegaron al siguiente.
+ */
+function Camino({
+  pasos,
+  sobreCuantas,
+}: {
+  pasos: NonNullable<Metricas['camino']>
+  sobreCuantas?: number
+}) {
+  const pocas = (sobreCuantas ?? 0) < 20
+
+  return (
+    <div className="panel">
+      <h2>El camino de quien pide ayuda</h2>
+      <p className="tabla__secundario" style={{ margin: '0 0 14px', fontSize: '0.82rem' }}>
+        {pocas
+          ? `Sobre ${sobreCuantas} solicitudes. Con tan pocas, cada porcentaje es una persona o dos: sirve para ver el orden de las cosas, no como tendencia.`
+          : `Sobre ${sobreCuantas} solicitudes.`}
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {pasos.map((p) => (
+          <div key={p.etapa} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+              <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.etapa}</span>
+              {p.seQuedaronAqui && p.seQuedaronAqui > 0 ? (
+                <span className="tabla__secundario" style={{ fontSize: '0.78rem', color: '#b45309' }}>
+                  −{p.seQuedaronAqui} {p.seQuedaronAqui === 1 ? 'persona' : 'personas'}
+                </span>
+              ) : null}
+            </div>
+            <span
+              style={{
+                fontVariantNumeric: 'tabular-nums',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {p.cuantas}
+              {p.porcentaje !== null ? (
+                <span style={{ fontWeight: 400, opacity: 0.6 }}> · {p.porcentaje}%</span>
+              ) : null}
+            </span>
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                height: 8,
+                borderRadius: 999,
+                background: '#e2e8f0',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${p.porcentaje ?? 0}%`,
+                  height: '100%',
+                  borderRadius: 999,
+                  background: '#059669',
+                }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -242,22 +336,55 @@ export function MetricasView({ m }: { m: Metricas }) {
               📊 Impacto y Operación General
             </h2>
           )}
+          {m.camino?.length ? (
+            <div style={{ marginBottom: 18 }}>
+              <Camino pasos={m.camino} sobreCuantas={m.caminoSobreCuantas} />
+            </div>
+          ) : null}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
             <Indicador titulo="Personas en la red" valor={String(m.personas.total)} />
+
+            {m.esperaHastaLaPrimeraSesion?.diasMediana !== null &&
+            m.esperaHastaLaPrimeraSesion !== undefined ? (
+              <Indicador
+                titulo="De pedir ayuda a la primera sesión"
+                valor={`${m.esperaHastaLaPrimeraSesion.diasMediana} días`}
+                nota={`mediana · promedio ${m.esperaHastaLaPrimeraSesion.diasPromedio} · sobre ${m.esperaHastaLaPrimeraSesion.sobreCuantasPersonas} personas`}
+              />
+            ) : null}
+
+            {m.tamizaje ? (
+              <Indicador
+                titulo="Responden el tamizaje"
+                valor={m.tamizaje.tasaRespuesta !== null ? `${m.tamizaje.tasaRespuesta}%` : '—'}
+                nota={
+                  m.tamizaje.admitidasSinResponder > 0
+                    ? `${m.tamizaje.respondidos} de ${m.tamizaje.enviados} · ${m.tamizaje.admitidasSinResponder} entraron sin responder, con prioridad supuesta`
+                    : `${m.tamizaje.respondidos} de ${m.tamizaje.enviados}`
+                }
+              />
+            ) : null}
             <Indicador
-              titulo="Días hasta la primera propuesta"
+              titulo="Días hasta la primera asignación"
               valor={m.embudo.diasPromedioHastaPrimeraPropuesta?.toString() ?? '—'}
               nota="promedio, desde la admisión"
             />
+            {/*
+              Estas dos medían el paso de pedirle permiso al profesional, que ya
+              no existe. Tal cual estaban marcarían 0 días y 100 % para siempre
+              —en la pantalla que existe para enseñar lo que va mal—, así que
+              miran ahora donde de verdad se puede parar un caso.
+            */}
             <Indicador
-              titulo="Respuesta del profesional"
-              valor={m.embudo.diasPromedioRespuestaDelProfesional != null ? `${m.embudo.diasPromedioRespuestaDelProfesional}d` : '—'}
-              nota="promedio hasta responder la propuesta"
+              titulo="La persona tarda en elegir hora"
+              valor={m.embudo.diasPromedioHastaElegirHora != null ? `${m.embudo.diasPromedioHastaElegirHora}d` : '—'}
+              nota="promedio desde que se le asigna. A los 3 días se libera"
             />
             <Indicador
-              titulo="Tasa de aceptación"
-              valor={m.asignaciones.tasaAceptacion != null ? `${m.asignaciones.tasaAceptacion}%` : '—'}
-              nota={`${m.asignaciones.aceptadas} de ${m.asignaciones.total} propuestas`}
+              titulo="Declinadas por el profesional"
+              valor={m.asignaciones.tasaDeclinada != null ? `${m.asignaciones.tasaDeclinada}%` : '—'}
+              nota={`${m.asignaciones.rechazadas} de ${m.asignaciones.total} asignaciones`}
             />
             <Indicador
               titulo="Asistencia a sesiones"
@@ -287,10 +414,10 @@ export function MetricasView({ m }: { m: Metricas }) {
               filas={Object.entries(m.personas.porPrioridad).map(([k, v]) => [k, String(v)])}
             />
             <Tabla
-              titulo="Propuestas a profesionales"
+              titulo="Asignaciones a profesionales"
               filas={[
                 ['Aceptadas', String(m.asignaciones.aceptadas)],
-                ['Rechazadas (dijo que no)', String(m.asignaciones.rechazadas)],
+                ['Declinadas (el profesional no podía)', String(m.asignaciones.rechazadas)],
                 ['Vencidas sin respuesta', String(m.asignaciones.vencidasSinRespuesta)],
                 ['Canceladas por otra razón', String(m.asignaciones.canceladasOtras)],
               ]}

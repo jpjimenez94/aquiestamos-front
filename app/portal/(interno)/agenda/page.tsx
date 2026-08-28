@@ -387,12 +387,12 @@ export default async function AgendaPage({
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#d97706' }} />
-                2. Esperando al profesional
+                2. Propuestas antiguas
               </span>
               <span className="pipeline-columna__contador">{esperandoProfesional.length}</span>
             </div>
             {esperandoProfesional.length === 0 ? (
-              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin propuestas pendientes de respuesta</span>
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Ninguna. Ya no se pide permiso: se asigna y se avisa.</span>
             ) : (
               esperandoProfesional.map((p) => (
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #d97706' }}>
@@ -415,12 +415,12 @@ export default async function AgendaPage({
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <UserCheck size={15} style={{ color: '#0284c7' }} />
-                3. Aceptadas · falta cuadrar horario
+                3. Asignadas · falta que elija hora
               </span>
               <span className="pipeline-columna__contador">{porCuadrarHorario.length}</span>
             </div>
             {porCuadrarHorario.length === 0 ? (
-              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin horarios pendientes de cuadrar</span>
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Nadie pendiente de elegir hora</span>
             ) : (
               porCuadrarHorario.map((p) => (
                 <Link key={p.id} href={`/portal/personas/${p.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #0284c7' }}>
@@ -448,7 +448,7 @@ export default async function AgendaPage({
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#7c3aed' }} />
-                4. Cita propuesta
+                4. Cita agendada
               </span>
               <span className="pipeline-columna__contador">{citasPropuestas.length}</span>
             </div>
@@ -771,7 +771,7 @@ export default async function AgendaPage({
 
   const citasParaCSV = citas.map((c) => ({
     id: c.id,
-    inicioLocal: c.inicioLocal || enBogota(c.inicio),
+    inicioLocal: enBogota(c.inicio),
     finLocal: c.finLocal || enBogota(c.fin),
     pacienteNombre: c.paciente.nombre,
     profesionalNombre: c.profesional.nombre,

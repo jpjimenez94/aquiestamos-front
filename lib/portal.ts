@@ -16,10 +16,22 @@ export type Usuario = {
   id: string
   email: string
   name: string
-  role: 'ADMIN' | 'AGENDADOR' | 'ADMISION' | 'COORDINADOR_CASOS' | 'LIDERES_COMUNITARIOS' | 'PROFESIONAL' | 'LECTURA'
+  /** El campo de antes de que una cuenta pudiera tener varios roles. */
+  role: Rol
+  /** Los roles de verdad. El backend siempre los manda. */
+  roles?: Rol[]
   mustChangePassword: boolean
   permisos: string[]
 }
+
+export type Rol =
+  | 'ADMIN'
+  | 'AGENDADOR'
+  | 'ADMISION'
+  | 'COORDINADOR_CASOS'
+  | 'LIDERES_COMUNITARIOS'
+  | 'PROFESIONAL'
+  | 'LECTURA'
 
 export async function tokenDeSesion(): Promise<string | null> {
   const almacen = await cookies()
@@ -71,6 +83,44 @@ export async function usuarioActual(): Promise<Usuario | null> {
 export function puede(usuario: Usuario | null, permiso: string): boolean {
   if (!usuario) return false
   return usuario.permisos.includes('*') || usuario.permisos.includes(permiso)
+}
+
+/**
+ * ¿Es administradora esta cuenta?
+ *
+ * Se mira `permisos`, no `role`. El portal comparaba `role === 'ADMIN'` en
+ * ocho sitios, y ese es el campo viejo: una administradora con varios roles
+ * podía acabar viendo el menú de otra cosa.
+ *
+ * Aquí eso solo descuadra botones —el backend es la única autoridad sobre
+ * permisos y rechaza igual—, pero un portal que enseña lo que no debería o
+ * esconde lo que sí genera reportes de error que nadie sabe explicar.
+ */
+export function esAdministrador(usuario: Usuario | null): boolean {
+  return Boolean(usuario?.permisos.includes('*'))
+}
+
+/**
+ * Los textos de los mensajes, desde Parametrización.
+ *
+ * Vive aquí y no junto a `renderPlantilla` porque esto necesita la sesión, y
+ * ese módulo tiene que quedarse puro: lo importan componentes de cliente, y
+ * arrastrarles `next/headers` rompe el build entero.
+ *
+ * Devuelve `{}` si algo falla. Los constructores de mensaje caen entonces a su
+ * texto de respaldo: un mensaje viejo es mejor que ninguno cuando hay alguien
+ * esperando respuesta.
+ */
+export async function traerPlantillas(): Promise<Record<string, string>> {
+  const respuesta = await portalFetch<Record<string, string>>('/settings/plantillas')
+  return respuesta.success && respuesta.data ? respuesta.data : {}
+}
+
+/** ¿Tiene esta cuenta este rol? Para el menú y los atajos, no para permisos. */
+export function tieneRol(usuario: Usuario | null, rol: Rol): boolean {
+  if (!usuario) return false
+  const lista = usuario.roles?.length ? usuario.roles : usuario.role ? [usuario.role] : []
+  return lista.includes(rol)
 }
 
 // Los formateadores viven en `fechas.ts` para que los componentes de cliente

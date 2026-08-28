@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { portalFetch, usuarioActual, puede } from '@/lib/portal'
+import { portalFetch, usuarioActual, puede, esAdministrador } from '@/lib/portal'
 import { Cabecera, Indicador } from '../componentes'
 import { TablaLideres, type LiderFila } from './TablaLideres'
 import { BotonAccionesCabecera } from './BotonAccionesCabecera'
@@ -25,7 +25,7 @@ export default async function LideresPage() {
     notFound()
   }
 
-  const esAdmin = usuario.role === 'ADMIN'
+  const esAdmin = esAdministrador(usuario)
 
   // Consultar métricas, líderes y catálogo de necesidades
   const [resSummary, resLideres, resCatalogo] = await Promise.all([

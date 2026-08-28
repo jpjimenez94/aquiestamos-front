@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { Check, Copy, MessageCircle } from 'lucide-react'
 import { mensajeDePedirDocumentos, enlaceWhatsapp } from '@/lib/mensajes'
@@ -14,9 +15,11 @@ export function BotonPedirDocumentos({
   telefono: string
   enlace: string
 }) {
+  const plantillasDelPortal = usePlantillas()
   const [copiado, setCopiado] = useState(false)
 
-  const texto = mensajeDePedirDocumentos({ profesional, enlace })
+  const texto = mensajeDePedirDocumentos({
+              plantilla: plantillasDelPortal?.WHATSAPP_PEDIR_DOCUMENTOS, profesional, enlace })
   const whatsapp = enlaceWhatsapp(telefono, texto)
 
   function copiar() {
