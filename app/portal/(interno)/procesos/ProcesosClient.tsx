@@ -262,29 +262,40 @@ export function ProcesosClient() {
       id: '4',
       categoria: 'casos',
       numero: 'Etapa 4',
-      titulo: 'Cita propuesta y validación de agenda',
+      titulo: 'La cita queda agendada',
       tag: 'Agenda y Horarios',
-      descripcion: 'Agendamiento preliminar validado contra la oferta del profesional y sus bloqueos personales de agenda.',
-      estados: [
-        { estado: 'PROGRAMADA', texto: 'Programada / Propuesta' },
-      ],
+      descripcion:
+        'La elige ella desde su enlace, sobre los espacios libres reales del profesional. Coordinación ya no cuadra horarios por WhatsApp: solo interviene si hace falta.',
+      estados: [{ estado: 'PROGRAMADA', texto: 'Agendada' }],
       pasos: [
         {
-          quien: 'Coordinación',
-          rolTag: 'coordinacion',
-          titulo: 'Agenda fecha y modalidad de la sesión',
-          detalle: 'El sistema valida contra la disponibilidad ofrecida para el caso y la agenda general del profesional.',
+          quien: 'La persona acompañada',
+          rolTag: 'persona',
+          titulo: 'Escoge de los huecos libres, agrupados por día',
+          detalle:
+            'El sistema resta lo que ya está ocupado, respeta los bloqueos que el profesional marcó —descanso, vacaciones— y esconde las horas que chocan con otra cita suya. Lo que ve son huecos reales, no propuestas.',
           desvios: [
-            { tono: 'alerta', titulo: 'Bloqueos de agenda:', texto: 'si el profesional marcó días de descanso o vacaciones, el sistema impide agendar en ese rango.' },
+            {
+              tono: 'logro',
+              titulo: 'Al elegir:',
+              texto:
+                'la cita queda agendada, al profesional le llega la confirmación con el día, la hora y el enlace de videollamada, y la asignación pasa a ACTIVA.',
+            },
           ],
         },
         {
           quien: 'Coordinación',
           rolTag: 'coordinacion',
-          titulo: 'Envía propuesta de horario a la persona acompañada',
-          detalle: 'Notifica por WhatsApp el día y la hora sugerida para que la persona confirme su asistencia.',
+          titulo: 'Solo si hace falta: agendar a mano',
+          detalle:
+            'Si la persona prefiere escribir a entrar a una pantalla —hay quien lo prefiere, y a quien está mal no se le pone una barrera— coordinación puede agendarle desde su ficha. El enlace se conserva para las siguientes.',
           desvios: [
-            { tono: 'logro', titulo: 'Al confirmar:', texto: 'la cita pasa a estado CONFIRMADA y se habilita la solicitud de consentimiento.' },
+            {
+              tono: 'reloj',
+              titulo: '3 días sin elegir hora:',
+              texto:
+                'el barrido libera al profesional y el caso vuelve a la cola. El tablero avisa cuáles se liberan mañana, que es la ventana para escribirle antes.',
+            },
           ],
         },
       ],
@@ -460,6 +471,13 @@ export function ProcesosClient() {
           titulo: 'Liberación de propuestas viejas a los 2 días',
           detalle:
             'Solo aplica a las asignaciones anteriores al cambio, que quedaron esperando un «sí» que ya nadie va a dar: el enlace donde se respondía dejó de ser parte del camino. Ninguna asignación nueva pasa por ahí — nacen asignadas.',
+        },
+        {
+          quien: 'Reloj de Disponibilidad',
+          rolTag: 'sistema',
+          titulo: 'Confirmación de agenda cada mes',
+          detalle:
+            'Se le pregunta al profesional si su agenda sigue al día. Es lo que sostiene que se le asigne sin consultarle: la persona elige su hora de esa agenda, y una vieja la manda a una hora en la que él ya no está. No responder no tiene castigo — se le vuelve a preguntar al mes siguiente y sigue recibiendo casos. Guardar sus horarios cuenta como respuesta.',
         },
         {
           quien: 'Reloj de Cita',
