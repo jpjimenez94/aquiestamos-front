@@ -1,3 +1,5 @@
+import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
+import { pasoDeLaCita } from '@/lib/pasosDelCaso'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
@@ -116,6 +118,9 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         }
       />
 
+      {/* La misma tira que en la ficha de la persona: mismo proceso, otra ventana. */}
+      <IndicadorDePasos actual={pasoDeLaCita({ inicio: cita.inicio, estado: cita.estado })} />
+
       <div className="panel">
         <div className="datos">
           <Dato etiqueta="Estado de la Cita">
@@ -182,18 +187,18 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Panel de Validación Legal y Consentimiento (Pasos 7 y 9) */}
+      {/* Verificaciones que condicionan la sesión: la tarjeta es del profesional (viene de su ficha), el consentimiento es de esta persona. Sin números de manual: el paso global lo dice la tira de arriba. */}
       <div className="panel">
         <h2>Requisitos Legales y Documentación</h2>
         <p className="panel__nota">
-          Verificación obligatoria según el flujo de recepción y atención de la red.
+          Lo que tiene que estar en regla antes de la sesión. La tarjeta se verifica una vez por profesional; el consentimiento, una vez por persona.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 14 }}>
           {/* Tarjeta Profesional */}
           <div style={{ padding: 14, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <strong style={{ fontSize: '0.9rem' }}>Paso 7: Tarjeta Profesional</strong>
+              <strong style={{ fontSize: '0.9rem' }}>Tarjeta profesional</strong>
               {cita.profesional.professionalCardVerified ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.8rem', fontWeight: 600 }}>
                   <ShieldCheck size={16} /> Verificada
@@ -223,7 +228,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
           {/* Consentimiento Informado */}
           <div style={{ padding: 14, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <strong style={{ fontSize: '0.9rem' }}>Paso 9: Consentimiento Informado</strong>
+              <strong style={{ fontSize: '0.9rem' }}>Consentimiento informado</strong>
               {cita.consentSigned ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: '0.8rem', fontWeight: 600 }}>
                   <FileCheck2 size={16} /> Firmado Recibido

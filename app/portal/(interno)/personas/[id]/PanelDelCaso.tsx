@@ -8,8 +8,6 @@ import {
   mensajeParaCuadrarHorario,
   mensajeDePedirNuevaDisponibilidadAlProfesional,
   mensajeDeExcusasYReagendamiento,
-  mensajeDeCitaConfirmadaAlProfesional,
-  mensajeDeSiguienteCitaConfirmadaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 import { enBogota } from '@/lib/fechas'
@@ -71,7 +69,6 @@ export function PanelDelCaso({
   enlaceAgenda,
   plantillas,
   proximaCita,
-  esPrimeraCita = true,
 }: {
   persona: Persona
   asignacion: Asignacion
@@ -90,7 +87,6 @@ export function PanelDelCaso({
     /** Si la persona ya firmó el consentimiento informado de esta cita. */
     consentSigned?: boolean
   } | null
-  esPrimeraCita?: boolean
 }) {
   const [copiado, setCopiado] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -107,13 +103,6 @@ export function PanelDelCaso({
   const sitioUrl = typeof window !== 'undefined'
     ? window.location.origin
     : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
-
-  // Este enlace va en el mensaje a la persona acompañada, así que lleva SU
-  // llave firmada. El UUID crudo queda como respaldo para las citas
-  // agendadas antes de que el backend empezara a firmar.
-  const enlaceReunion = (proximaCita?.id && (proximaCita.modalidad === 'VIRTUAL' || !proximaCita.modalidad))
-    ? `${sitioUrl}/sala/${proximaCita.salaTokenPaciente || proximaCita.id}`
-    : null
 
   return (
     <div className="panel">
@@ -152,7 +141,7 @@ export function PanelDelCaso({
       {asignacion.estado === 'PROPUESTA' ? (
         <>
           <Mensaje
-            titulo="1 · Proponle el caso al profesional"
+            titulo="3 · Proponle el caso al profesional (asignación antigua)"
             nota="Los datos de contacto de la persona no van aquí: se los mostramos solo si acepta."
             telefono={asignacion.profesional.telefono}
             texto={mensajeDePropuesta({
@@ -197,7 +186,7 @@ export function PanelDelCaso({
           ) : null}
 
           <Mensaje
-            titulo="2 · Mándale su enlace para que elija hora"
+            titulo="4 · Mándale su enlace para que elija hora"
             nota="Ve la agenda real del profesional y agenda sola. El enlace le sirve para todas sus sesiones."
             telefono={persona.phone}
             texto={mensajeParaCuadrarHorario({
@@ -241,7 +230,7 @@ export function PanelDelCaso({
               </p>
 
               <Mensaje
-                titulo="Opción A · Pedirle otras franjas al mismo profesional"
+                titulo="Pedirle otras franjas al profesional"
                 nota="Úsalo si la persona te dio opciones y quieres ver si el profesional puede alguna de ellas."
                 telefono={asignacion.profesional.telefono}
                 texto={mensajeDePedirNuevaDisponibilidadAlProfesional({
@@ -255,7 +244,7 @@ export function PanelDelCaso({
               />
 
               <Mensaje
-                titulo="Opción B · Que vuelva a elegir hora en su enlace"
+                titulo="Mandarla de nuevo a su enlace, con excusas"
                 nota="Se disculpa y la manda a su agenda, donde ve las horas libres del profesional."
                 telefono={persona.phone}
                 texto={mensajeDeExcusasYReagendamiento({
@@ -277,37 +266,28 @@ export function PanelDelCaso({
         </>
       ) : null}
 
-      {/* PASO 3 — Hay cita. Se le confirma al profesional con sus responsabilidades. */}
+      {/*
+        Pasos 5 y 6 — preparar y tener la sesión — son de la CITA, no de la
+        ficha. Aquí vivía una copia del mensaje de despacho al profesional, el
+        mismo que el detalle de la cita llama «Paso 10»: dos nombres para el
+        mismo botón, y quien agendaba no sabía si eran dos cosas que hacer.
+        La ficha ahora lleva a la cita en vez de imitarla.
+      */}
       {asignacion.estado === 'ACTIVA' ? (
         <>
-          <Mensaje
-            titulo={esPrimeraCita ? '3 · Confírmale la cita al profesional' : '3 · Confírmale la siguiente sesión al profesional'}
-            nota={esPrimeraCita
-              ? 'Entrega de la cita confirmada al profesional con el canal preferido de la persona, sus responsabilidades de contacto/asistencia y el enlace seguro al caso.'
-              : 'Confirmación de la siguiente sesión acordada con enlace de videollamada y reporte de seguimiento.'}
-            telefono={asignacion.profesional.telefono}
-            texto={esPrimeraCita ? mensajeDeCitaConfirmadaAlProfesional({
-              plantilla: plantillas?.WHATSAPP_DESPACHO_PROFESIONAL,
-              profesional: asignacion.profesional.nombre,
-              persona: persona.fullName,
-              cuando: proximaCita?.cuando ?? 'la fecha acordada',
-              modalidad: proximaCita?.modalidad ?? persona.preferredModality,
-              canalContacto: persona.preferredContact,
-              enlace: enlaceCaso,
-              enlaceReunion,
-              consentimientoFirmado: proximaCita?.consentSigned === true,
-            }) : mensajeDeSiguienteCitaConfirmadaAlProfesional({
-              plantilla: plantillas?.WHATSAPP_SIGUIENTE_CITA_PROFESIONAL,
-              profesional: asignacion.profesional.nombre,
-              persona: persona.fullName,
-              cuando: proximaCita?.cuando ?? 'la fecha acordada',
-              modalidad: proximaCita?.modalidad ?? persona.preferredModality,
-              enlace: enlaceCaso,
-              enlaceReunion,
-            })}
-            copiado={copiado === 'cita-prof'}
-            alCopiar={(t) => copiar('cita-prof', t)}
-          />
+          {proximaCita?.id ? (
+            <a className="caso-proxima" href={`/portal/agenda/${proximaCita.id}`}>
+              <span>
+                <strong>Próxima sesión: {proximaCita.cuando}</strong>
+                <span className="caso-proxima__nota">
+                  Confirmación, consentimiento, despacho y recordatorios se manejan desde la cita.
+                </span>
+              </span>
+              <span className="boton-mini" data-tono="principal">
+                Gestionar esta cita →
+              </span>
+            </a>
+          ) : null}
 
           <div className="mensaje__acciones" style={{ marginTop: 14 }}>
             <button

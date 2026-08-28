@@ -1531,3 +1531,108 @@ body.sin-desplazamiento {
 @media (max-width: 560px) {
   .verificacion { grid-template-columns: 1fr; }
 }
+
+/* ═══ El camino de los siete pasos ═══
+ *
+ * La misma tira arriba de la ficha de la persona y del detalle de la cita.
+ * Los números de aquí son LOS números del proceso: ningún panel vuelve a
+ * inventarse los suyos. */
+.pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+}
+
+.pasos__paso {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 6px;
+  color: var(--color-text-light);
+  font-size: 0.78rem;
+  position: relative;
+}
+
+/* El conector entre pasos: una raya corta, no una flecha que grite. */
+.pasos__paso + .pasos__paso::before {
+  content: '';
+  width: 14px;
+  height: 1px;
+  background: var(--color-border-default);
+  margin-right: 8px;
+}
+
+.pasos__numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-default);
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pasos__paso[data-estado='hecho'] .pasos__numero {
+  background: #ecfdf5;
+  border-color: #059669;
+  color: #059669;
+}
+
+.pasos__paso[data-estado='actual'] {
+  color: var(--color-text-default);
+  font-weight: 600;
+}
+
+.pasos__paso[data-estado='actual'] .pasos__numero {
+  background: #059669;
+  border-color: #059669;
+  color: #ffffff;
+}
+
+/* En pantallas estrechas, los títulos de los pasos ya hechos y pendientes se
+   esconden y queda la fila de números: el camino entero sigue cabiendo, y el
+   título solo lo lleva el paso en el que estás. */
+@media (max-width: 720px) {
+  .pasos__paso:not([data-estado='actual']) .pasos__titulo {
+    display: none;
+  }
+}
+
+/* La tarjeta que lleva de la ficha al detalle de la cita.
+ *
+ * Sustituye a la copia del mensaje de despacho que vivía aquí: la ficha ya no
+ * imita a la cita, la señala. */
+.caso-proxima {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 15px;
+  border: 1px solid var(--color-border-default);
+  border-left: 3px solid #059669;
+  border-radius: 10px;
+  background: var(--color-bg-subtle, #f8fafc);
+  text-decoration: none;
+  color: inherit;
+  margin-top: 4px;
+}
+
+.caso-proxima:hover {
+  background: var(--color-card-bg-hover, #f4f2ee);
+}
+
+.caso-proxima__nota {
+  display: block;
+  color: var(--color-text-light);
+  font-size: 0.8rem;
+  margin-top: 3px;
+}

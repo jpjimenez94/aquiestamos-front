@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { portalFetch, enBogota, usuarioActual, puede, traerPlantillas } from '@/lib/portal'
 
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
+import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
+import { pasoDelCaso } from '@/lib/pasosDelCaso'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
@@ -159,6 +161,19 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
         }
       />
 
+      {/*
+        El camino completo, con el paso actual encendido. La misma tira está en
+        el detalle de la cita: la ficha y la cita son dos ventanas al mismo
+        proceso, y esto es lo que lo hace visible.
+      */}
+      <IndicadorDePasos
+        actual={pasoDelCaso({
+          estadoPersona: persona.status,
+          estadoAsignacion: persona.asignacion?.estado,
+          citas: (persona.citas ?? []).map((c) => ({ startsAt: c.inicio, status: c.estado })),
+        })}
+      />
+
       <div className="panel">
         <div className="datos">
           <Dato etiqueta="Estado">
@@ -226,7 +241,6 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                 }
               : null
           })()}
-          esPrimeraCita={!persona.citas || persona.citas.filter((c) => c.estado === 'REALIZADA' || c.estado === 'COMPLETADA' || c.estado === 'CERRADA').length === 0}
         />
       ) : persona.status === 'CERRADO' ? (
         /* Cerrado no es «sin asignar»: ofrecer candidatos aquí invitaría a
