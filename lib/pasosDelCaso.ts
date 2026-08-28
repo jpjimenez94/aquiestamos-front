@@ -98,3 +98,90 @@ export function pasoDeLaCita({
   const terminada = estado === 'REALIZADA' || estado === 'NO_ASISTIO' || estado === 'CANCELADA'
   return PASOS_DEL_CASO[(yaPaso || terminada ? 6 : 5) - 1]
 }
+
+/**
+ * Lo que pasó en cada paso, dicho en líneas cortas.
+ *
+ * La tira dejó de ser solo un mapa: cada paso se puede abrir y cuenta su
+ * historia — cuándo llegó la solicitud, a quién se asignó, cuándo eligió su
+ * hora. Las dos pantallas alimentan esto con lo que cada una sabe, y lo que
+ * una no sabe lo enlaza a la otra en vez de callarlo.
+ *
+ * Devuelve siete listas de líneas, una por paso. Lista vacía = esta vista no
+ * sabe nada de ese paso (que no es lo mismo que «no pasó nada»: el componente
+ * decide qué decir según si el paso ya llegó o no).
+ */
+export type EntradaDeHechos = {
+  /** Cuándo llegó la solicitud, ya en palabras. */
+  recibida?: string | null
+  prioridad?: string | null
+  /** Estado legible de la persona, para el paso de admisión. */
+  admision?: string | null
+  asignacion?: {
+    profesional: string
+    desde?: string | null
+    estadoLegible?: string | null
+    motivo?: string | null
+  } | null
+  /** La hora que la persona eligió (o la próxima sesión agendada). */
+  eleccion?: { cuando: string } | null
+  preparacion?: { confirmada?: boolean; consentimiento?: boolean } | null
+  sesion?: { cuando?: string | null; estadoLegible?: string | null } | null
+  seguimiento?: {
+    reportes?: number
+    notas?: number
+    encuestaRespondida?: boolean
+    cerrado?: boolean
+  } | null
+}
+
+export function armarHechos(e: EntradaDeHechos): string[][] {
+  const h: string[][] = [[], [], [], [], [], [], []]
+
+  // Las fechas legibles terminan en «p. m.», que ya trae punto: añadir otro a
+  // ciegas imprimía «p. m..» en la pantalla.
+  const frase = (t: string) => (t.endsWith('.') ? t : t + '.')
+
+  if (e.recibida) h[0].push(frase(`Recibida el ${e.recibida}`))
+  if (e.prioridad) h[0].push(frase(`Prioridad: ${e.prioridad}`))
+
+  if (e.admision) h[1].push(frase(`Estado: ${e.admision}`))
+
+  if (e.asignacion) {
+    h[2].push(
+      frase(
+        e.asignacion.desde
+          ? `Asignado a ${e.asignacion.profesional} desde el ${e.asignacion.desde}`
+          : `Asignado a ${e.asignacion.profesional}`,
+      ),
+    )
+    if (e.asignacion.estadoLegible) h[2].push(frase(e.asignacion.estadoLegible))
+    if (e.asignacion.motivo) h[2].push(frase(`Motivo: ${e.asignacion.motivo}`))
+  }
+
+  if (e.eleccion) h[3].push(frase(`Eligió: ${e.eleccion.cuando}`))
+
+  if (e.preparacion) {
+    h[4].push(e.preparacion.confirmada ? 'Cita confirmada.' : 'Cita sin confirmar todavía.')
+    h[4].push(
+      e.preparacion.consentimiento
+        ? 'Consentimiento informado firmado.'
+        : 'Consentimiento informado pendiente.',
+    )
+  }
+
+  if (e.sesion) {
+    if (e.sesion.cuando) h[5].push(frase(`Sesión: ${e.sesion.cuando}`))
+    if (e.sesion.estadoLegible) h[5].push(frase(`Estado: ${e.sesion.estadoLegible}`))
+  }
+
+  if (e.seguimiento) {
+    const s = e.seguimiento
+    if (s.reportes) h[6].push(`${s.reportes} ${s.reportes === 1 ? 'reporte' : 'reportes'} del profesional.`)
+    if (s.notas) h[6].push(`${s.notas} ${s.notas === 1 ? 'nota' : 'notas'} de seguimiento.`)
+    if (s.encuestaRespondida) h[6].push('La persona respondió la encuesta.')
+    if (s.cerrado) h[6].push('El caso está cerrado.')
+  }
+
+  return h
+}

@@ -85,3 +85,38 @@ describe('en qué paso está una cita', () => {
     expect(pasoDeLaCita({ inicio: enHoras(24), estado: 'CANCELADA', ahora: AHORA }).n).toBe(6)
   })
 })
+
+describe('lo que se cuenta de cada paso', async () => {
+  const { armarHechos } = await import('../lib/pasosDelCaso')
+
+  it('siempre devuelve siete listas, sepa lo que sepa', () => {
+    expect(armarHechos({})).toHaveLength(7)
+    expect(armarHechos({}).every((l) => Array.isArray(l))).toBe(true)
+  })
+
+  it('cada dato cae en su paso', () => {
+    const h = armarHechos({
+      recibida: '28/08/2026',
+      admision: 'En admisión',
+      asignacion: { profesional: 'Sofía Vélez', desde: '28/08/2026' },
+      eleccion: { cuando: 'lunes 9:00 a. m.' },
+      preparacion: { confirmada: false, consentimiento: false },
+      sesion: { cuando: 'lunes 9:00 a. m.', estadoLegible: 'Programada' },
+      seguimiento: { reportes: 2, cerrado: false },
+    })
+    expect(h[0][0]).toContain('28/08/2026')
+    expect(h[2][0]).toContain('Sofía Vélez')
+    expect(h[3][0]).toContain('lunes')
+    // Lo pendiente se dice, no se calla: «sin confirmar» y «pendiente» son
+    // información, no ausencia de ella.
+    expect(h[4].join(' ')).toMatch(/sin confirmar/i)
+    expect(h[4].join(' ')).toMatch(/pendiente/i)
+    expect(h[6][0]).toContain('2 reportes')
+  })
+
+  it('lo que no se sabe queda como lista vacía, no inventado', () => {
+    const h = armarHechos({ eleccion: { cuando: 'lunes' } })
+    expect(h[0]).toEqual([])
+    expect(h[6]).toEqual([])
+  })
+})

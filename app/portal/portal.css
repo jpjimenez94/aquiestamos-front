@@ -1536,12 +1536,8 @@ body.sin-desplazamiento {
  *
  * La misma tira arriba de la ficha de la persona y del detalle de la cita.
  * Los números de aquí son LOS números del proceso: ningún panel vuelve a
- * inventarse los suyos. */
+ * inventarse los suyos. Cada paso se abre y cuenta qué pasó en él. */
 .pasos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 0;
-  list-style: none;
   margin: 0 0 18px;
   padding: 10px 12px;
   background: var(--color-card-bg);
@@ -1549,11 +1545,18 @@ body.sin-desplazamiento {
   border-radius: 10px;
 }
 
+.pasos__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .pasos__paso {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 4px 10px 4px 6px;
   color: var(--color-text-light);
   font-size: 0.78rem;
   position: relative;
@@ -1566,6 +1569,30 @@ body.sin-desplazamiento {
   height: 1px;
   background: var(--color-border-default);
   margin-right: 8px;
+}
+
+/* El botón hereda el aspecto del paso: la tira se ve igual que antes, solo
+   que ahora cada paso se abre. */
+.pasos__boton {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pasos__boton:hover {
+  background: var(--color-card-bg-hover, #f4f2ee);
+}
+
+.pasos__paso[data-abierto='true'] .pasos__boton {
+  background: var(--color-bg-subtle, #f8fafc);
+  outline: 1px solid var(--color-border-default);
 }
 
 .pasos__numero {
@@ -1598,7 +1625,29 @@ body.sin-desplazamiento {
   color: #ffffff;
 }
 
-/* En pantallas estrechas, los títulos de los pasos ya hechos y pendientes se
+/* Lo que pasó en el paso elegido. */
+.pasos__detalle {
+  margin-top: 10px;
+  padding: 10px 12px 2px;
+  border-top: 1px solid var(--color-border-default);
+  font-size: 0.85rem;
+}
+
+.pasos__detalle ul {
+  margin: 6px 0 10px;
+  padding-left: 18px;
+}
+
+.pasos__detalle li {
+  margin: 2px 0;
+}
+
+.pasos__detalle p {
+  margin: 6px 0 10px;
+  color: var(--color-text-light);
+}
+
+/* En pantallas estrechas, los títulos de los pasos que no son el actual se
    esconden y queda la fila de números: el camino entero sigue cabiendo, y el
    título solo lo lleva el paso en el que estás. */
 @media (max-width: 720px) {

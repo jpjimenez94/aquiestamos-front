@@ -1,5 +1,5 @@
 import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
-import { pasoDeLaCita } from '@/lib/pasosDelCaso'
+import { pasoDeLaCita, armarHechos } from '@/lib/pasosDelCaso'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
@@ -118,8 +118,27 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         }
       />
 
-      {/* La misma tira que en la ficha de la persona: mismo proceso, otra ventana. */}
-      <IndicadorDePasos actual={pasoDeLaCita({ inicio: cita.inicio, estado: cita.estado })} />
+      {/* La misma tira que en la ficha de la persona: mismo proceso, otra ventana.
+          Esta vista sabe de su sesión; los pasos del caso los enlaza a la ficha
+          en vez de callarlos. */}
+      <IndicadorDePasos
+        actual={pasoDeLaCita({ inicio: cita.inicio, estado: cita.estado })}
+        hechos={armarHechos({
+          asignacion: cita.profesional.nombre ? { profesional: cita.profesional.nombre } : null,
+          eleccion: { cuando: enBogota(cita.inicio) },
+          preparacion: {
+            confirmada: cita.estado === 'CONFIRMADA',
+            consentimiento: cita.consentSigned === true,
+          },
+          sesion: { cuando: enBogota(cita.inicio), estadoLegible: cita.estadoLegible },
+        })}
+        enlaces={{
+          1: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+          2: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+          3: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+          7: { href: `/portal/personas/${cita.paciente.id}`, texto: 'Ver en la ficha →' },
+        }}
+      />
 
       <div className="panel">
         <div className="datos">
