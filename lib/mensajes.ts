@@ -89,6 +89,19 @@ export type DatosDelMensaje = {
  * puede acompañarla hace falta saber dónde está, cómo prefiere que sea y
  * cuándo puede, no quién es. Si dice que no, no se lleva nada.
  */
+/**
+ * Cuánto se espera al profesional antes de ofrecerle el caso a otro.
+ *
+ * Tiene que coincidir con `PROPUESTA_VENCE_HORAS` del backend, que es quien de
+ * verdad libera la propuesta. Va escrito aquí porque el mensaje se arma en el
+ * navegador, sin consultar al servidor; si algún día el plazo se vuelve
+ * configurable, este texto tiene que venir de la misma fuente que el barrido.
+ *
+ * Un mensaje que promete un plazo distinto del que se aplica es peor que no
+ * mencionarlo.
+ */
+const PLAZO_RESPUESTA_PROFESIONAL = '2 horas'
+
 export function mensajeDePropuesta(d: DatosDelMensaje): string {
   const dias = enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase()))
   const franjas = enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase()))
@@ -137,7 +150,9 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     '',
     'Con eso cuadramos el horario con ella y te confirmamos. Sus datos de contacto aparecen cuando aceptas, no antes.',
     '',
-    'Si no puedes, dínoslo en esa misma pantalla y se lo proponemos a otra persona. No pasa nada: es voluntario.',
+    `Te pedimos responder dentro de las próximas ${PLAZO_RESPUESTA_PROFESIONAL}. Si para entonces no sabemos de ti, le proponemos el caso a otro profesional para que la persona no siga esperando. No es un reclamo: del otro lado hay alguien que pidió ayuda, y preferimos que el silencio no le cueste días.`,
+    '',
+    'Si no puedes, dínoslo en esa misma pantalla y se lo proponemos a otra persona. No pasa nada: es voluntario, y decir que no a tiempo ayuda más que un sí que no llega.',
     '',
     'Es un acompañamiento confidencial. Te pedimos manejarlo con responsabilidad ética y profesional, y no compartir los datos de la persona con nadie más.',
     '',
