@@ -4,6 +4,7 @@ import { BACKEND_URL } from '@/lib/api'
 import { AccesoCasoForm } from './AccesoCasoForm'
 import { ReporteCasoForm } from './ReporteCasoForm'
 import { DecidirPropuestaForm } from './DecidirPropuestaForm'
+import { BotonDeclinar } from './BotonDeclinar'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
 import { Dato, Etiqueta } from '../../(interno)/componentes'
@@ -153,6 +154,22 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
             </Dato>
           </div>
         </div>
+
+        {paciente.puedeDeclinar ? (
+          <div className="panel">
+            <h2>¿Puedes tomarlo?</h2>
+            <p className="panel__nota">
+              Este caso ya es tuyo y {nombrePropio(paciente.fullName).split(' ')[0]} va a
+              elegir la hora directamente de tu agenda. No tienes que confirmar nada.
+            </p>
+            <p className="panel__nota">
+              Si en este momento no puedes, dilo aquí y se lo pasamos hoy a otra persona
+              de la red. Es voluntario: no poder es normal, y avisar pronto ayuda mucho
+              más que un silencio.
+            </p>
+            <BotonDeclinar patientId={id} />
+          </div>
+        ) : null}
 
         <div className="panel">
           <h2>¿Qué pasó con esta asignación?</h2>

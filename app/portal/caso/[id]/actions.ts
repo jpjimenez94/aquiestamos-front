@@ -100,8 +100,7 @@ export async function decidirPropuestaAction(
   patientId: string,
   datos: {
     acepta: boolean
-    dias: string[]
-    franjas: string[]
+    /** Un matiz que la agenda no dice. Su disponibilidad ya vive en su perfil. */
     nota: string
     motivo: string
   },

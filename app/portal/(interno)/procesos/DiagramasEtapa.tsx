@@ -63,36 +63,47 @@ export function DiagramaProfesionales() {
   )
 }
 
+/**
+ * Esta pantalla le enseña el proceso a quien acaba de entrar a coordinar, así
+ * que un diagrama viejo no es un dibujo desactualizado: es alguien aprendiendo
+ * un flujo que ya no existe y esperando un paso que nunca va a llegar.
+ *
+ * Lo que cambió: la asignación ya no nace en PROPUESTA esperando un «sí». Nace
+ * ACEPTADA —se le asigna al profesional y se le avisa— y la persona elige su
+ * hora sola desde su enlace. El profesional puede declinar, y esa puerta sigue
+ * abierta hasta que ella agenda.
+ */
 export function DiagramaAsignacion() {
   return (
     <Lienzo
       ancho={760}
-      alto={380}
-      etiqueta="La máquina de estados de la asignación: propuesta, aceptada, activa y cerrada, con las liberaciones por rechazo o silencio que devuelven el caso a la cola."
+      alto={330}
+      etiqueta="La máquina de estados de la asignación: se asigna y se avisa, la persona elige su hora y el acompañamiento arranca. Si el profesional declina o ella no elige hora a tiempo, el caso vuelve a la cola."
     >
       <Caja x={30} y={30} w={200} titulo="Emparejamiento" detalle="top 10 por afinidad y cupo" />
       <Flecha d="M 230 57 H 274" />
-      <Caja x={276} y={30} w={210} titulo="PROPUESTA" detalle="WhatsApp con su enlace" tono="espera" />
+      <Caja
+        x={276}
+        y={30}
+        w={210}
+        titulo="ACEPTADA"
+        detalle="se le asigna y se le avisa"
+        tono="espera"
+      />
 
       <Flecha d="M 381 84 V 128" />
-      <Nota x={478} y={110} texto="«sí puedo» + sus días y franjas" />
-      <Caja x={276} y={130} w={210} titulo="ACEPTADA" detalle="falta cuadrar horario" tono="espera" />
+      <Nota x={462} y={110} texto="elige su hora en su enlace" />
+      <Caja x={276} y={130} w={210} titulo="ACTIVA" detalle="en acompañamiento" tono="logro" />
 
-      <Flecha d="M 381 184 V 228" />
-      <Nota x={462} y={210} texto="la persona confirma" />
-      <Caja x={276} y={230} w={210} titulo="ACTIVA" detalle="en acompañamiento" tono="logro" />
-
-      <Flecha d="M 381 284 V 318" />
-      <Caja x={276} y={320} w={210} h={44} titulo="CERRADA" tono="final" />
+      <Flecha d="M 381 184 V 218" />
+      <Caja x={276} y={220} w={210} h={44} titulo="CERRADA" tono="final" />
 
       {/* la cola, a la derecha, recibe las liberaciones */}
-      <Caja x={560} y={130} w={170} titulo="Vuelve a la cola" detalle="Por Asignar · cupo libre" tono="alerta" />
-      <Flecha d="M 486 57 H 645 V 128" tono="alerta" />
-      <Nota x={651} y={78} texto="rechaza · 2 días en silencio" tono="alerta" />
-      <Flecha d="M 486 157 H 558" tono="alerta" />
-      <Nota x={522} y={148} texto="3 días" tono="alerta" />
+      <Caja x={560} y={30} w={170} titulo="Vuelve a la cola" detalle="Por Asignar · cupo libre" tono="alerta" />
+      <Flecha d="M 486 57 H 558" tono="alerta" />
+      <Nota x={528} y={78} texto="declina · 3 días sin elegir hora" tono="alerta" />
 
-      <Nota x={645} y={210} texto="se le propone a otro profesional" />
+      <Nota x={560} y={110} texto="se le asigna a otro profesional" />
     </Lienzo>
   )
 }
