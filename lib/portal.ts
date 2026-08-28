@@ -100,6 +100,22 @@ export function esAdministrador(usuario: Usuario | null): boolean {
   return Boolean(usuario?.permisos.includes('*'))
 }
 
+/**
+ * Los textos de los mensajes, desde Parametrización.
+ *
+ * Vive aquí y no junto a `renderPlantilla` porque esto necesita la sesión, y
+ * ese módulo tiene que quedarse puro: lo importan componentes de cliente, y
+ * arrastrarles `next/headers` rompe el build entero.
+ *
+ * Devuelve `{}` si algo falla. Los constructores de mensaje caen entonces a su
+ * texto de respaldo: un mensaje viejo es mejor que ninguno cuando hay alguien
+ * esperando respuesta.
+ */
+export async function traerPlantillas(): Promise<Record<string, string>> {
+  const respuesta = await portalFetch<Record<string, string>>('/settings/plantillas')
+  return respuesta.success && respuesta.data ? respuesta.data : {}
+}
+
 /** ¿Tiene esta cuenta este rol? Para el menú y los atajos, no para permisos. */
 export function tieneRol(usuario: Usuario | null, rol: Rol): boolean {
   if (!usuario) return false

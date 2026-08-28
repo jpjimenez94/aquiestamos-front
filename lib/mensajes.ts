@@ -1,6 +1,7 @@
 import { LINEAS_EMERGENCIA } from './consentimiento'
 import { nombreDePila } from './nombre'
 import { paraWhatsapp } from './telefono'
+import { renderPlantilla } from './plantillas'
 
 /**
  * El mensaje que la coordinación le manda al profesional cuando le asigna un
@@ -486,10 +487,85 @@ export function mensajeParaCuadrarHorario(d: {
   dias: string[]
   franjas: string[]
   nota?: string | null
+  /** Enlace donde la persona elige su hora sola. */
+  enlaceAgenda?: string | null
+  /** El texto que la coordinación editó en Parametrización. Si viene, manda. */
+  plantilla?: string
+}): string {
+  /**
+   * La plantilla de Parametrización manda sobre el texto de aquí.
+   *
+   * Este archivo calcula las VARIABLES —el nombre de pila, los días en
+   * palabras— porque eso es lógica. Lo que se DICE con ellas es del portal:
+   * hasta ahora había dos versiones del mismo mensaje y ganaba siempre esta,
+   * así que editar el texto en la pantalla no cambiaba nada de lo que recibía
+   * la persona.
+   *
+   * El texto de abajo se queda como respaldo, para cuando la plantilla esté
+   * vacía o el portal no haya podido traerla. Un mensaje viejo es mejor que
+   * ningún mensaje cuando hay alguien esperando.
+   */
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre: nombreDePila(d.persona) || 'hola',
+      profesional: d.profesional,
+      horarios: [
+        enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase())),
+        enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase())),
+      ]
+        .filter(Boolean)
+        .join(' '),
+      enlaceAgenda: d.enlaceAgenda ?? null,
+      nota: d.nota ?? null,
+    })
+  }
+
+  return mensajeParaCuadrarHorarioPorDefecto(d)
+}
+
+function mensajeParaCuadrarHorarioPorDefecto(d: {
+  persona: string
+  profesional: string
+  dias: string[]
+  franjas: string[]
+  nota?: string | null
+  enlaceAgenda?: string | null
 }): string {
   const nombre = nombreDePila(d.persona) || 'hola'
   const dias = enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase()))
   const franjas = enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase()))
+
+  /**
+   * Con enlace, la persona elige sola. Sin enlace, el mensaje de siempre.
+   *
+   * Cuadrar una hora costaba tres toques humanos y dos esperas: este mensaje,
+   * su respuesta por WhatsApp, y alguien agendando en el portal. Entre medias
+   * podían pasar días, y esa demora es de donde salen buena parte de las
+   * asignaciones que se mueren esperando.
+   *
+   * Se le dice que lo guarde porque el enlace le sirve para TODAS sus
+   * sesiones, no solo la primera. Y sobrevive a un cambio de profesional: si
+   * más adelante la acompaña otra persona, ese mismo enlace muestra la agenda
+   * de quien la acompañe entonces.
+   *
+   * Se conserva la vía de responder por aquí: hay gente que prefiere escribir
+   * a que le manden a una pantalla, y quitarle esa puerta a alguien que está
+   * pidiendo ayuda sería cambiar comodidad nuestra por barrera suya.
+   */
+  if (d.enlaceAgenda) {
+    return [
+      `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
+      '',
+      `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`,
+      '',
+      '*Aquí puedes elegir tú misma la hora que te sirva*, entre las que tiene libres:',
+      d.enlaceAgenda,
+      '',
+      'Guarda ese enlace: te sirve para esta sesión y para las siguientes.',
+      '',
+      'Si prefieres, dinos por aquí cuándo puedes y lo cuadramos nosotros. Como te quede más cómodo.',
+    ].join('\n')
+  }
 
   return [
     `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,

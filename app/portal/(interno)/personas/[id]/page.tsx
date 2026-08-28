@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
+import { portalFetch, enBogota, usuarioActual, puede, traerPlantillas } from '@/lib/portal'
+
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
@@ -60,6 +61,8 @@ type Persona = {
   reportes: Reporte[]
   feedbacks?: FeedbackDeLaPersona[]
   enlaceFeedback?: string | null
+  /** Enlace con el que la persona agenda sus propias sesiones. */
+  enlaceAgenda?: string | null
   citas: CitaDeLaPersona[]
   notasSeguimiento?: NotaSeguimiento[]
   totalNotas?: number
@@ -116,9 +119,14 @@ const FRANJA: Record<string, string> = {
 
 export default async function PersonaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [respuesta, usuario] = await Promise.all([
+  // Las plantillas viajan con la ficha: los mensajes que se copian desde esta
+  // pantalla salen del texto que la coordinación editó en Parametrización, no
+  // de una copia escrita en el código. Se piden aquí una sola vez, para que no
+  // haya una petición por cada botón.
+  const [respuesta, usuario, plantillas] = await Promise.all([
     portalFetch<Persona>(`/patients/${id}`),
     usuarioActual(),
+    traerPlantillas(),
   ])
 
   if (!respuesta.success || !respuesta.data) notFound()
@@ -200,6 +208,8 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           persona={persona}
           asignacion={persona.asignacion}
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
+          enlaceAgenda={persona.enlaceAgenda}
+          plantillas={plantillas}
           proximaCita={(() => {
             // La cita abierta más próxima: es la que se le confirma al
             // profesional. Vienen de la más próxima a la más lejana.

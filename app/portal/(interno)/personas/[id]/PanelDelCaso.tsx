@@ -70,12 +70,18 @@ export function PanelDelCaso({
   persona,
   asignacion,
   enlaceCaso,
+  enlaceAgenda,
+  plantillas,
   proximaCita,
   esPrimeraCita = true,
 }: {
   persona: Persona
   asignacion: Asignacion
   enlaceCaso: string
+  /** Enlace con el que la persona agenda sus propias sesiones. */
+  enlaceAgenda?: string | null
+  /** Textos editables desde Parametrización. Mandan sobre los del código. */
+  plantillas?: Record<string, string>
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
   proximaCita?: {
     id?: string
@@ -199,6 +205,8 @@ export function PanelDelCaso({
               dias: asignacion.diasQuePuede,
               franjas: asignacion.franjasQuePuede,
               nota: asignacion.nota,
+              enlaceAgenda,
+              plantilla: plantillas?.WHATSAPP_CUADRAR_HORARIO_PERSONA,
             })}
             copiado={copiado === 'cuadrar'}
             alCopiar={(t) => copiar('cuadrar', t)}
