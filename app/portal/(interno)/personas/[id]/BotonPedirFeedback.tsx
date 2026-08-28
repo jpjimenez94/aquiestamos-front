@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { Check, Copy, MessageCircle, Eye, EyeOff } from 'lucide-react'
 import { mensajeDePedirFeedbackALaPersona, enlaceWhatsapp } from '@/lib/mensajes'
@@ -15,10 +16,12 @@ export function BotonPedirFeedback({
   profesional?: string | null
   enlace: string
 }) {
+  const plantillasDelPortal = usePlantillas()
   const [copiado, setCopiado] = useState(false)
   const [verTexto, setVerTexto] = useState(false)
 
-  const texto = mensajeDePedirFeedbackALaPersona({ persona, profesional, enlace })
+  const texto = mensajeDePedirFeedbackALaPersona({
+              plantilla: plantillasDelPortal?.WHATSAPP_FEEDBACK_PERSONA, persona, profesional, enlace })
   const whatsapp = enlaceWhatsapp(telefono, texto)
 
   function copiar() {

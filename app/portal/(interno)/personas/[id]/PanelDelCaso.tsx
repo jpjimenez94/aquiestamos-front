@@ -156,6 +156,7 @@ export function PanelDelCaso({
             nota="Los datos de contacto de la persona no van aquí: se los mostramos solo si acepta."
             telefono={asignacion.profesional.telefono}
             texto={mensajeDePropuesta({
+              plantilla: plantillas?.WHATSAPP_PROPUESTA_PROFESIONAL,
               profesional: asignacion.profesional.nombre,
               ciudad: persona.city,
               modalidad: persona.preferredModality,
@@ -244,6 +245,7 @@ export function PanelDelCaso({
                 nota="Úsalo si la persona te dio opciones y quieres ver si el profesional puede alguna de ellas."
                 telefono={asignacion.profesional.telefono}
                 texto={mensajeDePedirNuevaDisponibilidadAlProfesional({
+              plantilla: plantillas?.WHATSAPP_REAGENDAMIENTO_PEDIR_DISP,
                   profesional: asignacion.profesional.nombre,
                   persona: persona.fullName,
                   enlace: enlaceCaso,
@@ -257,6 +259,7 @@ export function PanelDelCaso({
                 nota="Se disculpa y la manda a su agenda, donde ve las horas libres del profesional."
                 telefono={persona.phone}
                 texto={mensajeDeExcusasYReagendamiento({
+              plantilla: plantillas?.WHATSAPP_REAGENDAMIENTO_EXCUSAS,
                   persona: persona.fullName,
                   profesional: asignacion.profesional.nombre,
                   motivo: 'un compromiso médico/personal de última hora',
@@ -284,6 +287,7 @@ export function PanelDelCaso({
               : 'Confirmación de la siguiente sesión acordada con enlace de videollamada y reporte de seguimiento.'}
             telefono={asignacion.profesional.telefono}
             texto={esPrimeraCita ? mensajeDeCitaConfirmadaAlProfesional({
+              plantilla: plantillas?.WHATSAPP_DESPACHO_PROFESIONAL,
               profesional: asignacion.profesional.nombre,
               persona: persona.fullName,
               cuando: proximaCita?.cuando ?? 'la fecha acordada',
@@ -293,6 +297,7 @@ export function PanelDelCaso({
               enlaceReunion,
               consentimientoFirmado: proximaCita?.consentSigned === true,
             }) : mensajeDeSiguienteCitaConfirmadaAlProfesional({
+              plantilla: plantillas?.WHATSAPP_SIGUIENTE_CITA_PROFESIONAL,
               profesional: asignacion.profesional.nombre,
               persona: persona.fullName,
               cuando: proximaCita?.cuando ?? 'la fecha acordada',

@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { Copy, Check, MessageSquare } from 'lucide-react'
 import {
@@ -47,7 +48,9 @@ export function MensajesFlujoCita({
   enlaceReunion?: string | null
   enlaceReunionProfesional?: string | null
 }) {
+  const plantillasDelPortal = usePlantillas()
   const mensajeConfirmacion = mensajeDeCitaConfirmada({
+              plantilla: plantillasDelPortal?.WHATSAPP_CONFIRMAR_CITA_PERSONA,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
@@ -57,6 +60,7 @@ export function MensajesFlujoCita({
 
   const mensajeFirma = enlaceConsentimiento
     ? mensajeDeConsentimiento({
+              plantilla: plantillasDelPortal?.WHATSAPP_CONSENTIMIENTO,
         persona: pacienteNombre,
         profesional: profesionalNombre,
         enlace: enlaceConsentimiento,
@@ -64,6 +68,7 @@ export function MensajesFlujoCita({
     : null
 
   const mensajeConsentimientoRecibido = mensajeDeConsentimientoFirmadoALaPersona({
+              plantilla: plantillasDelPortal?.WHATSAPP_CONSENTIMIENTO_FIRMADO,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
@@ -71,6 +76,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeProfesional = mensajeDeCitaConfirmadaAlProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_DESPACHO_PROFESIONAL,
     consentimientoFirmado,
     profesional: profesionalNombre,
     persona: pacienteNombre,
@@ -82,6 +88,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajePedirNuevaDispProf = mensajeDePedirNuevaDisponibilidadAlProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_REAGENDAMIENTO_PEDIR_DISP,
     profesional: profesionalNombre,
     persona: pacienteNombre,
     cuandoAnterior: fechaHoraBogota,
@@ -89,6 +96,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeExcusasReagendar = mensajeDeExcusasYReagendamiento({
+              plantilla: plantillasDelPortal?.WHATSAPP_REAGENDAMIENTO_EXCUSAS,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuandoAnterior: fechaHoraBogota,
@@ -96,6 +104,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeRecordatorioPersona = mensajeRecordatorioPrevioCitaPersona({
+              plantilla: plantillasDelPortal?.WHATSAPP_RECORDATORIO_PREVIO_PERSONA,
     persona: pacienteNombre,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
@@ -104,6 +113,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeRecordatorioProf = mensajeRecordatorioPrevioCitaProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_RECORDATORIO_PREVIO,
     profesional: profesionalNombre,
     cuando: fechaHoraBogota,
     modalidad,

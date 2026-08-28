@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { paraWhatsapp } from '@/lib/telefono'
@@ -63,6 +64,7 @@ export function ModalTarjetaProfesional({
   abierto,
   onCerrar,
 }: ModalTarjetaProps) {
+  const plantillasDelPortal = usePlantillas()
   const router = useRouter()
   const [documentoUrl, setDocumentoUrl] = useState(documentoUrlActual || '')
   const [verificada, setVerificada] = useState(verificadaActual || false)
@@ -76,6 +78,7 @@ export function ModalTarjetaProfesional({
   // El texto vive en lib/mensajes.ts con todos los demás: con saltos de
   // línea, negrita donde el ojo debe caer y sin emojis (llegaban rotos).
   const mensajeWhatsApp = mensajeDePedirDocumentos({
+              plantilla: plantillasDelPortal?.WHATSAPP_PEDIR_DOCUMENTOS,
     profesional: profesionalNombre,
     tipo: tipoPerfil,
     enlace: enlaceDocumentos,

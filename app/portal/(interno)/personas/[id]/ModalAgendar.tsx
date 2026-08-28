@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarCheck, X, Check, Copy, MessageCircle, AlertTriangle, User, Stethoscope, Video } from 'lucide-react'
@@ -59,6 +60,7 @@ export function ModalAgendar({
   esNuevaSesion?: boolean
   onCerrar: () => void
 }) {
+  const plantillasDelPortal = usePlantillas()
   const router = useRouter()
   const [cuando, setCuando] = useState(() => formatoDatetimeLocal(fechaInicial))
   const [modalidad, setModalidad] = useState(
@@ -170,6 +172,7 @@ export function ModalAgendar({
 
   const mensajePersona = agendada
     ? mensajeDeCitaConfirmada({
+              plantilla: plantillasDelPortal?.WHATSAPP_CONFIRMAR_CITA_PERSONA,
         persona: persona.fullName,
         profesional: profesional.nombre,
         cuando: enBogota(agendada),
@@ -181,6 +184,7 @@ export function ModalAgendar({
   const mensajeProf = agendada
     ? esNuevaSesion
       ? mensajeDeSiguienteCitaConfirmadaAlProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_SIGUIENTE_CITA_PROFESIONAL,
           profesional: profesional.nombre,
           persona: persona.fullName,
           cuando: enBogota(agendada),
@@ -189,6 +193,7 @@ export function ModalAgendar({
           enlaceReunion: enlaceGeneradoProf || enlaceGenerado,
         })
       : mensajeDeCitaConfirmadaAlProfesional({
+              plantilla: plantillasDelPortal?.WHATSAPP_DESPACHO_PROFESIONAL,
           profesional: profesional.nombre,
           persona: persona.fullName,
           cuando: enBogota(agendada),

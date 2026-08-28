@@ -1,5 +1,6 @@
 'use client'
 
+import { usePlantillas } from '@/components/portal/Plantillas'
 import { useEffect, useState } from 'react'
 import { Check, ClipboardList, Copy, MessageCircle, X } from 'lucide-react'
 import {
@@ -33,6 +34,7 @@ export function BotonTamizaje({
   enlace: string | null
   yaRespondio: boolean
 }) {
+  const plantillasDelPortal = usePlantillas()
   const [abierto, setAbierto] = useState(false)
   const [copiado, setCopiado] = useState(false)
 
@@ -56,7 +58,8 @@ export function BotonTamizaje({
 
   if (!enlace) return null
 
-  const mensaje = mensajeDeTamizaje({ nombre, enlace })
+  const mensaje = mensajeDeTamizaje({
+              plantilla: plantillasDelPortal?.WHATSAPP_TAMIZAJE, nombre, enlace })
 
   // Puede ser null: el número no trae indicativo y no es colombiano, así que
   // no hay a qué país mandarlo. Copiar el mensaje sigue funcionando.
