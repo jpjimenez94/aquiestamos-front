@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X } from 'lucide-react'
+import { X, Send, Check } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { decidirPropuestaAction } from './actions'
 
 /**
@@ -80,11 +81,27 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
     router.refresh()
   }
 
+  /**
+   * Con el mismo botón que el resto de la pantalla.
+   *
+   * Llevaba unas clases —`boton`, `boton--suave`— que no existen en ninguna
+   * hoja de estilos, así que salía como un enlace plano mientras todo lo demás
+   * a su alrededor tenía forma de botón. Un control que no parece un control se
+   * lee como texto y no se pulsa.
+   *
+   * Importa más aquí que en otro sitio: esta es la única salida del profesional
+   * desde que el caso se le asigna sin preguntarle. Si no parece pulsable, dar
+   * marcha atrás cuesta más que callarse — que es justo el silencio que este
+   * flujo vino a quitar.
+   *
+   * En variante neutra y no destacada a propósito: se le ofrece la puerta sin
+   * empujarle hacia ella.
+   */
   if (!abierto) {
     return (
-      <button type="button" className="boton boton--suave" onClick={() => setAbierto(true)}>
+      <Button type="button" icon={<X size={16} />} onClick={() => setAbierto(true)}>
         Ahora no puedo tomar este caso
-      </button>
+      </Button>
     )
   }
 
@@ -117,19 +134,28 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
       ) : null}
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button type="submit" className="boton" disabled={enviando}>
+        {/*
+          Confirmar va en primario y volverse atrás en neutro, como en el resto
+          del portal: quien ya escribió el motivo viene a enviarlo.
+
+          El de atrás decía «Mejor no, sigo con él». Dos problemas: sonaba a
+          recular, cuando lo que hace es afirmar que sí puede; y ese «él» se
+          leía como la persona acompañada —que muchas veces es un él— y no como
+          el caso. Ahora dice lo que la persona está decidiendo.
+        */}
+        <Button type="submit" variant="primary" disabled={enviando} icon={<Send size={16} />}>
           {enviando ? 'Enviando…' : 'Enviar y liberar el caso'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="boton boton--suave"
+          icon={<Check size={16} />}
           onClick={() => {
             setAbierto(false)
             setError(null)
           }}
         >
-          Mejor no, sigo con él
-        </button>
+          Sí puedo, sigo con el caso
+        </Button>
       </div>
     </form>
   )

@@ -40,6 +40,37 @@ function sanitizarUrlVideollamada(url?: string | null): string | null {
   return url.replace(/meet\.ffrn\.de/g, 'meet.jit.si')
 }
 
+/**
+ * El botón verde de esta pantalla, en un sitio.
+ *
+ * Dos de los botones de aquí llevaban `className="boton"`, que no existe en
+ * ninguna hoja de estilos: salían como texto suelto. Uno de ellos es «Abrir la
+ * sala», el rescate para cuando el navegador bloquea la ventana emergente — o
+ * sea, el único camino que le queda a quien no consiguió entrar a su sesión,
+ * y encima sobre fondo oscuro.
+ *
+ * Esta pantalla se pinta con estilos en línea a propósito: es de cara a la
+ * persona acompañada y no comparte el lenguaje del portal. Por eso no usa el
+ * `<Button>` de dentro, pero sí necesita que su verde esté escrito una vez.
+ */
+const BOTON_SALA: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '13px 24px',
+  borderRadius: 12,
+  border: 'none',
+  background: '#059669',
+  color: '#ffffff',
+  fontSize: '0.95rem',
+  fontWeight: 700,
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  textDecoration: 'none',
+  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+  transition: 'all 0.2s ease',
+}
+
 export default function SalaEsperaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const searchParams = useSearchParams()
@@ -255,7 +286,7 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
           <p style={{ color: '#64748b', fontSize: '0.92rem', lineHeight: 1.5, marginBottom: 20 }}>
             {error || 'No pudimos encontrar la información de esta cita virtual.'}
           </p>
-          <a href="https://wa.me/573009121234" className="boton" data-tono="principal" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <a href="https://wa.me/573009121234" style={BOTON_SALA}>
             <PhoneCall size={16} /> Contactar a Coordinación
           </a>
         </div>
@@ -356,9 +387,7 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
           <button
             type="button"
             onClick={() => llevarASala(null, meetingUrl)}
-            className="boton"
-            data-tono="principal"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 700 }}
+            style={BOTON_SALA}
           >
             <ExternalLink size={17} />
             Abrir la sala
