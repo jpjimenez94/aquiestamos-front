@@ -29,8 +29,29 @@
   margin: 0 auto;
 }
 
+/* El título a la izquierda y la marca a la derecha, en la misma fila.
+ *
+ * El logo iba en una fila propia encima del encabezado y quedaba flotando,
+ * desconectado del nombre. En rejilla comparten fila: la columna del texto
+ * crece y la de la marca mide lo suyo. La marca abarca las dos filas del texto
+ * (título y subtítulo) para quedar centrada respecto al bloque, no pegada solo
+ * al h1. */
 .caso__intro {
   margin-bottom: 22px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 20px;
+  align-items: center;
+}
+
+.caso__intro h1,
+.caso__intro p {
+  grid-column: 1;
+}
+
+.caso__intro .caso__marca {
+  grid-column: 2;
+  grid-row: 1 / span 2;
 }
 
 .caso__intro h1 {
@@ -64,18 +85,17 @@
 .caso__marca {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 18px;
 }
 
 .caso__marca img {
-  width: 118px;
+  width: 160px;
   height: auto;
 }
 
-/* En el móvil la columna es estrecha y la cabecera manda: el logo se encoge
-   para no competir con el nombre de la persona. */
+/* En el móvil la columna es estrecha: el logo cede espacio antes de que el
+   nombre de la persona tenga que partirse raro. */
 @media (max-width: 520px) {
   .caso__marca img {
-    width: 96px;
+    width: 110px;
   }
 }

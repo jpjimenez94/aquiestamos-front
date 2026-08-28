@@ -71,10 +71,10 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     return (
       <main className="caso">
         <div className="caso__puerta">
-          <MarcaDeLaRed />
           <header className="caso__intro">
             <h1>Acceso al caso</h1>
             <p>Ingresa el correo con el que estás registrado en la red para ver los detalles de este paciente.</p>
+            <MarcaDeLaRed />
           </header>
           <AccesoCasoForm patientId={id} />
         </div>
@@ -97,10 +97,10 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     return (
       <main className="caso">
         <div className="caso__puerta">
-          <MarcaDeLaRed />
           <header className="caso__intro">
             <h1>Enlace expirado o inválido</h1>
             <p>{message}</p>
+            <MarcaDeLaRed />
           </header>
         </div>
       </main>
@@ -120,10 +120,10 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     return (
       <main className="caso">
         <div className="caso__contenido">
-        <MarcaDeLaRed />
           <header className="caso__intro">
             <h1>Te proponemos un acompañamiento</h1>
             <p>Mira si puedes tomarlo y dinos. No estás comprometido a nada.</p>
+            <MarcaDeLaRed />
           </header>
 
           <div className="panel">
@@ -185,11 +185,11 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
   return (
     <main className="caso">
       <div className="caso__contenido">
-        <MarcaDeLaRed />
         <header className="caso__intro">
           <h1>{nombrePropio(paciente.fullName)}</h1>
           <p>{paciente.city} · Asignado a ti</p>
-        </header>
+          <MarcaDeLaRed />
+          </header>
 
         <div className="panel">
           <h2>Información de Contacto</h2>

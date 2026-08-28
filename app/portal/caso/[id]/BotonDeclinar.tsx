@@ -33,7 +33,52 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [listo, setListo] = useState(false)
+  const [listo, setListo] = useState<'declino' | 'confirmo' | null>(null)
+
+  /**
+   * Confirmar también dice algo, así que también se registra.
+   *
+   * El «sí puedo» estaba escondido dentro del formulario de declinar, como
+   * botón de arrepentimiento: para verlo había que abrir primero «ahora no
+   * puedo». La confirmación es la respuesta más frecuente y no se veía.
+   *
+   * Y no solo cierra el panel: llama al backend, que lo deja en la auditoría.
+   * Donde antes coordinación solo tenía silencio, ahora hay un «lo vi y sigo».
+   */
+  async function confirmar() {
+    setEnviando(true)
+    setError(null)
+
+    const salida = await decidirPropuestaAction(patientId, {
+      acepta: true,
+      nota: '',
+      motivo: '',
+    })
+
+    if (!salida.success) {
+      setError(salida.message)
+      setEnviando(false)
+      return
+    }
+
+    setListo('confirmo')
+    router.refresh()
+  }
+
+  if (listo === 'confirmo') {
+    return (
+      <div className="tamizaje__gracias" role="status">
+        <span className="tamizaje__gracias-icono" aria-hidden>
+          <Check size={26} />
+        </span>
+        <h2>Quedamos así</h2>
+        <p>
+          El caso sigue contigo. Cuando la persona elija su hora te llega la
+          confirmación con el día, la hora y el enlace de la videollamada.
+        </p>
+      </div>
+    )
+  }
 
   if (listo) {
     return (
@@ -77,7 +122,7 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
       return
     }
 
-    setListo(true)
+    setListo('declino')
     router.refresh()
   }
 
@@ -97,11 +142,34 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
    * En variante neutra y no destacada a propósito: se le ofrece la puerta sin
    * empujarle hacia ella.
    */
+  /**
+   * Las dos respuestas a la vista, con el énfasis en quedarse.
+   *
+   * El primario es confirmar: es la respuesta más frecuente y la que deja al
+   * caso andando. Declinar queda al lado, en neutro — a un toque, como tiene
+   * que estar, pero sin que la pantalla empuje hacia ahí.
+   */
   if (!abierto) {
     return (
-      <Button type="button" icon={<X size={16} />} onClick={() => setAbierto(true)}>
-        Ahora no puedo tomar este caso
-      </Button>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <Button
+          type="button"
+          variant="primary"
+          disabled={enviando}
+          icon={<Check size={16} />}
+          onClick={confirmar}
+        >
+          {enviando ? 'Enviando…' : 'Sí puedo, sigo con el caso'}
+        </Button>
+        <Button
+          type="button"
+          disabled={enviando}
+          icon={<X size={16} />}
+          onClick={() => setAbierto(true)}
+        >
+          Ahora no puedo tomarlo
+        </Button>
+      </div>
     )
   }
 
@@ -157,14 +225,13 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
         </Button>
         <Button
           type="button"
-          variant="primary"
-          icon={<Check size={16} />}
+          icon={<X size={16} />}
           onClick={() => {
             setAbierto(false)
             setError(null)
           }}
         >
-          Sí puedo, sigo con el caso
+          Volver sin declinar
         </Button>
       </div>
     </form>
