@@ -38,6 +38,15 @@ export type ContadoresBadges = {
   agenda?: number;
   miAgenda?: number;
   tareas?: number;
+  /**
+   * Acompañadas cuenta TAREAS pendientes, no personas.
+   *
+   * Las demás secciones marcan lo que está sin revisar, y esa idea no traduce
+   * directo aquí: una persona no se revisa una vez, se acompaña durante
+   * semanas. Un punto que contara cuántas hay marcaría nueve para siempre, y
+   * en dos días nadie volvería a mirarlo.
+   */
+  personas?: number;
 };
 
 type Enlace = {
@@ -105,6 +114,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         texto: "Acompañadas",
         icono: <Users size={17} />,
         permiso: "paciente:leer",
+        badgeKey: "personas",
       },
       {
         href: "/portal/profesionales",

@@ -646,7 +646,13 @@ export function TablaPersonas({
 
                     <td>{p.city}</td>
 
-                    <td className="tabla__secundario" style={{ marginTop: 0 }}>
+                    {/*
+                      El color y el tamaño de "tabla__secundario", pero sin su
+                      "display: block" — que en un td le quita su condición de
+                      celda y hace que no crezca con la fila. Esta medía 45
+                      píxeles mientras las demás medían 92.
+                    */}
+                    <td style={{ color: 'var(--color-text-light)', fontSize: '0.8rem' }}>
                       {p.availableDays?.length
                         ? p.availableDays.map((d) => DIA_CORTO[d] ?? d).join(' ')
                         : '—'}

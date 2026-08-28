@@ -337,18 +337,25 @@ body.sin-desplazamiento {
  * `align-items: center` los centra entre sí, y la altura mínima común les da la
  * misma caja sin tener que tocar cada componente por separado — que es lo que
  * haría que el siguiente que se añada vuelva a desalinearse. */
+/* Un `td` NO puede ser flex.
+ *
+ * Estaba con `display: flex` y eso le quita su condición de celda: deja de
+ * respetar el `vertical-align` de la fila y su contenido se pega arriba. Los
+ * botones quedaban centrados entre sí pero diecinueve píxeles por encima de
+ * todas las demás columnas — que es exactamente lo que se veía torcido.
+ *
+ * La celda vuelve a ser celda, y el flex baja al div que ya envolvía los
+ * botones. */
 .tabla__acciones {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-end;
+  vertical-align: middle;
+  text-align: right;
+  white-space: nowrap;
 }
 
-/* Los controles van a cualquier profundidad —algunos vienen envueltos en un
-   div sin clase— así que la regla no puede ser solo de hijos directos. */
 .tabla__acciones > div {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
