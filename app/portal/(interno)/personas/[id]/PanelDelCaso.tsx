@@ -32,8 +32,6 @@ export type Asignacion = {
   siguientePaso: string | null
   desde: string
   respondioEn: string | null
-  diasQuePuede: string[]
-  franjasQuePuede: string[]
   nota: string | null
   motivoRechazo: string | null
   profesional: { id: string; nombre: string; telefono: string }
@@ -182,28 +180,28 @@ export function PanelDelCaso({
       {/* PASO 2 — El profesional aceptó y dejó sus días/horas. Toca cuadrar con la persona. */}
       {asignacion.estado === 'ACEPTADA' ? (
         <>
-          <div className="caso-horarios">
-            <strong>Lo que el profesional propuso:</strong>
-            {asignacion.diasQuePuede.length ? (
-              <span>Días: {asignacion.diasQuePuede.map((d) => DIA[d] ?? d).join(', ')}</span>
-            ) : null}
-            {asignacion.franjasQuePuede.length ? (
-              <span>
-                Horarios: {asignacion.franjasQuePuede.map((f) => FRANJA[f] ?? f).join(', ')}
-              </span>
-            ) : null}
-            {asignacion.nota ? <em>Nota: «{asignacion.nota}»</em> : null}
-          </div>
+          {/*
+            Aquí se listaban los días y franjas que el profesional escribía al
+            aceptar. Ya no se le piden: su agenda está cargada desde que se
+            registró y es de ahí de donde la persona elige. Queda la nota, que
+            es el matiz que una agenda no sabe decir.
+          */}
+          {asignacion.nota ? (
+            <div className="caso-horarios">
+              <strong>Lo que dijo el profesional:</strong>
+              <em>«{asignacion.nota}»</em>
+            </div>
+          ) : null}
 
           <Mensaje
-            titulo="2 · Cuadra el horario con la persona acompañada"
-            nota="Dile qué días y horas propuso el profesional, para que elija uno."
+            titulo="2 · Mándale su enlace para que elija hora"
+            nota="Ve la agenda real del profesional y agenda sola. El enlace le sirve para todas sus sesiones."
             telefono={persona.phone}
             texto={mensajeParaCuadrarHorario({
               persona: persona.fullName,
               profesional: asignacion.profesional.nombre,
-              dias: asignacion.diasQuePuede,
-              franjas: asignacion.franjasQuePuede,
+              dias: [],
+              franjas: [],
               nota: asignacion.nota,
               enlaceAgenda,
               plantilla: plantillas?.WHATSAPP_CUADRAR_HORARIO_PERSONA,
@@ -253,15 +251,17 @@ export function PanelDelCaso({
               />
 
               <Mensaje
-                titulo="Opción B · Ofrecerle las franjas habituales del profesional"
-                nota="Úsalo si el profesional no dejó nota y quieres proponerle a la persona su disponibilidad general."
+                titulo="Opción B · Que vuelva a elegir hora en su enlace"
+                nota="Se disculpa y la manda a su agenda, donde ve las horas libres del profesional."
                 telefono={persona.phone}
                 texto={mensajeDeExcusasYReagendamiento({
                   persona: persona.fullName,
                   profesional: asignacion.profesional.nombre,
                   motivo: 'un compromiso médico/personal de última hora',
-                  dias: asignacion.diasQuePuede,
-                  franjas: asignacion.franjasQuePuede,
+                  // Los días y franjas ya no se le piden al profesional: su
+                  // agenda es la fuente, y la persona elige de ella.
+                  dias: [],
+                  franjas: [],
                   nota: asignacion.nota,
                 })}
                 copiado={copiado === 'excusas'}
