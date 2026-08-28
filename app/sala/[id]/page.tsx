@@ -87,6 +87,26 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
   const [conectando, setConectando] = useState(false)
   const [segundosTranscurridos, setSegundosTranscurridos] = useState(0)
 
+  /**
+   * El mismo contador, en una referencia.
+   *
+   * El aviso de salida necesita saber cuántos segundos lleva la llamada, pero
+   * si lo lee del estado, el efecto tiene que declararlo como dependencia — y
+   * ese estado cambia CADA SEGUNDO. El efecto se desmontaba y se volvía a
+   * montar sesenta veces por minuto, y con él el intervalo de los pings: se
+   * borraba al segundo 1 y empezaba de cero, así que nunca llegaba a los 25
+   * segundos en los que debía enviar el primero.
+   *
+   * El resultado era que la telemetría no recibía un solo latido en toda la
+   * sesión: la duración se quedaba en «0 min» y el semáforo de «En vivo ahora»
+   * nunca se encendía, con las dos personas dentro de la sala. Nada fallaba a
+   * la vista — simplemente no llegaba nada.
+   *
+   * En una referencia, el valor está disponible sin que el efecto dependa de
+   * él, y el intervalo sobrevive.
+   */
+  const segundosRef = useRef(0)
+
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const pingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -119,10 +139,11 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
     if (!enLlamada || !logId) return
 
     timerRef.current = setInterval(() => {
-      setSegundosTranscurridos((s) => s + 1)
+      segundosRef.current += 1
+      setSegundosTranscurridos(segundosRef.current)
     }, 1000)
 
-    pingIntervalRef.current = setInterval(async () => {
+    const latir = async () => {
       try {
         await fetch(`/api/meetings/logs/${logId}/ping`, {
           method: 'POST',
@@ -132,12 +153,31 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
       } catch (e) {
         console.warn('Error enviando ping de telemetría:', e)
       }
-    }, 25000)
+    }
+
+    // Uno de entrada: quien coordina ve «En vivo ahora» al momento y no tras
+    // la primera espera.
+    latir()
+    pingIntervalRef.current = setInterval(latir, 20000)
+
+    /**
+     * Y otro cada vez que la pestaña vuelve a primer plano.
+     *
+     * La sala de Jitsi se abre en OTRA pestaña —tiene que ser así, embebida la
+     * corta a los cinco minutos— así que esta queda de fondo, y ahí el
+     * navegador estrangula los temporizadores a uno por minuto. Con el latido
+     * cada 20 segundos eso ya da margen, pero al volver se manda uno de
+     * inmediato para que el semáforo no parpadee mientras alguien mira.
+     */
+    const alVolver = () => {
+      if (document.visibilityState === 'visible') latir()
+    }
+    document.addEventListener('visibilitychange', alVolver)
 
     const enviarSalidaBeacon = () => {
       const payload = JSON.stringify({
         logId,
-        durationSeconds: segundosTranscurridos,
+        durationSeconds: segundosRef.current,
         role: cita?.rol,
       })
       if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
@@ -172,8 +212,12 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
       window.removeEventListener('beforeunload', enviarSalidaBeacon)
       window.removeEventListener('pagehide', enviarSalidaBeacon)
       window.removeEventListener('message', handleWindowMessage)
+      document.removeEventListener('visibilitychange', alVolver)
     }
-  }, [enLlamada, logId, segundosTranscurridos, id, cita?.rol])
+    // `segundosTranscurridos` NO va aquí: cambia cada segundo y reiniciaría el
+    // intervalo de pings antes de que llegara a enviar el primero. Su valor se
+    // lee de `segundosRef`.
+  }, [enLlamada, logId, id, cita?.rol])
 
   /**
    * Lleva la sala a su propia pestaña.
@@ -212,6 +256,8 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
         url = sanitizarUrlVideollamada(cita?.targetMeetingUrl || null)
       }
       setMeetingUrl(url)
+      segundosRef.current = 0
+      setSegundosTranscurridos(0)
       setEnLlamada(true)
       llevarASala(ventana, url)
     } catch {
