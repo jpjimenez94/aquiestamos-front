@@ -110,7 +110,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
     <>
       <Cabecera
         titulo="Cita de Acompañamiento"
-        descripcion={enBogota(cita.inicio)}
+        descripcion={`Una sesión del acompañamiento de ${cita.paciente.nombre ?? 'la persona'} · ${enBogota(cita.inicio)}`}
         acciones={
           <Link className="boton-mini" href="/portal/agenda">
             Volver a la agenda

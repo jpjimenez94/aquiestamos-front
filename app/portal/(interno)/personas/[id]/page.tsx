@@ -143,7 +143,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
     <>
       <Cabecera
         titulo={nombrePropio(persona.fullName)}
-        descripcion={`${persona.city} · lleva ${persona.diasEsperando} ${persona.diasEsperando === 1 ? 'día' : 'días'} en la red`}
+        descripcion={`${persona.city} · lleva ${persona.diasEsperando} ${persona.diasEsperando === 1 ? 'día' : 'días'} en la red · todo su acompañamiento, aquí`}
         acciones={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {puede(usuario, 'paciente:borrar') ? (

@@ -1685,3 +1685,15 @@ body.sin-desplazamiento {
   font-size: 0.8rem;
   margin-top: 3px;
 }
+
+/* El símbolo de la marca, a la altura del texto, con sus colores.
+ *
+ * Sin filtro: el logo va tal cual es. Se probó pasándolo a blanco para
+ * separarlo del azul noche de la barra, pero la marca de la red tiene color
+ * y aplanarla la despersonaliza — este portal lo abre gente de la red, no
+ * un cliente cualquiera. */
+.portal__logo {
+  width: auto;
+  height: 30px;
+  flex-shrink: 0;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -202,6 +203,33 @@ const NOMBRE_ROL: Record<string, string> = {
   LECTURA: "Solo lectura",
 };
 
+/**
+ * El logo junto al nombre, en la barra móvil y en el lateral.
+ *
+ * `portal__marca` ya era un flex con gap: estaba preparado para llevarlo y
+ * solo tenía el texto. El nombre se queda al lado del símbolo a propósito —
+ * un logo solo obliga a reconocerlo, y esta barra la ve también gente que
+ * entra por primera vez.
+ *
+ * `alt` vacío porque el texto de al lado ya dice «Aquí Estamos»: un lector de
+ * pantalla que lo anunciara lo repetiría dos veces.
+ */
+function Marca() {
+  return (
+    <>
+      <Image
+        className="portal__logo"
+        src="/images/logo.png"
+        alt=""
+        width={2000}
+        height={729}
+        priority
+      />
+      <span>Aquí Estamos</span>
+    </>
+  );
+}
+
 export function LateralPortal({
   usuario,
   contadores: contadoresIniciales = {},
@@ -297,7 +325,9 @@ export function LateralPortal({
     <>
       {/* Barra superior visible únicamente en pantallas móviles (< 900px) */}
       <div className="portal__barra">
-        <div className="portal__marca">Aquí Estamos</div>
+        <div className="portal__marca">
+          <Marca />
+        </div>
         <button
           className="portal__hamburguesa"
           type="button"
@@ -324,7 +354,9 @@ export function LateralPortal({
         className="portal__lateral"
         data-abierto={abierto}
       >
-        <div className="portal__marca portal__marca--lateral">Aquí Estamos</div>
+        <div className="portal__marca portal__marca--lateral">
+          <Marca />
+        </div>
 
         <nav className="portal__nav">
           {GRUPOS.map((grupo) => {
