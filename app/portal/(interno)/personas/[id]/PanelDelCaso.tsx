@@ -87,6 +87,8 @@ export function PanelDelCaso({
     modalidad: string
     /** Llave de sala firmada para la persona acompañada. */
     salaTokenPaciente?: string | null
+    /** Si la persona ya firmó el consentimiento informado de esta cita. */
+    consentSigned?: boolean
   } | null
   esPrimeraCita?: boolean
 }) {
@@ -289,6 +291,7 @@ export function PanelDelCaso({
               canalContacto: persona.preferredContact,
               enlace: enlaceCaso,
               enlaceReunion,
+              consentimientoFirmado: proximaCita?.consentSigned === true,
             }) : mensajeDeSiguienteCitaConfirmadaAlProfesional({
               profesional: asignacion.profesional.nombre,
               persona: persona.fullName,

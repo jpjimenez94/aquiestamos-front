@@ -71,6 +71,7 @@ export function MensajesFlujoCita({
   })
 
   const mensajeProfesional = mensajeDeCitaConfirmadaAlProfesional({
+    consentimientoFirmado,
     profesional: profesionalNombre,
     persona: pacienteNombre,
     cuando: fechaHoraBogota,

@@ -3,6 +3,36 @@
 import { useEffect, useState, use } from 'react'
 import { CalendarCheck, Clock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
 
+/**
+ * Parte «lunes, 25 de agosto, 7:30 p. m.» en el día y la hora.
+ *
+ * El texto lo arma el backend en un solo trozo, que es lo correcto: la zona
+ * horaria es de allá y no queremos dos formateadores diciendo cosas distintas.
+ * Aquí solo se corta por la última coma para poder agrupar, y si el formato
+ * cambia se devuelve entero en vez de romperse.
+ */
+function soloHora(cuando: string): string {
+  const i = cuando.lastIndexOf(',')
+  return i < 0 ? cuando : cuando.slice(i + 1).trim()
+}
+
+function soloDia(cuando: string): string {
+  const i = cuando.lastIndexOf(',')
+  return i < 0 ? cuando : cuando.slice(0, i).trim()
+}
+
+/** Agrupa conservando el orden en que vinieron: ya llegan de más pronto a más tarde. */
+function porDia(huecos: Hueco[]): [string, Hueco[]][] {
+  const mapa = new Map<string, Hueco[]>()
+  for (const h of huecos) {
+    const dia = soloDia(h.cuando)
+    const ya = mapa.get(dia)
+    if (ya) ya.push(h)
+    else mapa.set(dia, [h])
+  }
+  return [...mapa.entries()]
+}
+
 type Hueco = { inicio: string; fin: string; cuando: string }
 
 type Estado = {
@@ -230,28 +260,61 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
             contigo.
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {estado.huecos.map((h) => (
-              <button
-                key={h.inicio}
-                type="button"
-                onClick={() => elegir(h)}
-                disabled={eligiendo !== null}
-                style={{
-                  textAlign: 'left',
-                  padding: '13px 16px',
-                  borderRadius: 10,
-                  border: '1px solid #cbd5e1',
-                  background: eligiendo === h.inicio ? '#ecfdf5' : '#fff',
-                  color: '#0f172a',
-                  fontSize: '0.95rem',
-                  fontWeight: 600,
-                  cursor: eligiendo ? 'wait' : 'pointer',
-                  opacity: eligiendo && eligiendo !== h.inicio ? 0.5 : 1,
-                }}
-              >
-                {eligiendo === h.inicio ? 'Agendando…' : h.cuando}
-              </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+            {porDia(estado.huecos).map(([dia, delDia]) => (
+              <div key={dia}>
+                <h3
+                  style={{
+                    margin: '0 0 9px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    color: '#64748b',
+                  }}
+                >
+                  {dia}
+                </h3>
+
+                {/*
+                  En cuadrícula y solo la hora.
+                
+                  Eran sesenta botones en una columna, cada uno repitiendo el día
+                  entero. Quien abre esto puede estar mal; hacerle bajar por un
+                  muro de fechas para encontrar una hora es ponerle una barrera
+                  justo en el paso que existe para quitársela.
+                */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(104px, 1fr))',
+                    gap: 8,
+                  }}
+                >
+                  {delDia.map((h) => (
+                    <button
+                      key={h.inicio}
+                      type="button"
+                      onClick={() => elegir(h)}
+                      disabled={eligiendo !== null}
+                      style={{
+                        textAlign: 'center',
+                        padding: '12px 8px',
+                        borderRadius: 10,
+                        border: '1px solid #cbd5e1',
+                        background: eligiendo === h.inicio ? '#ecfdf5' : '#fff',
+                        color: '#0f172a',
+                        fontSize: '0.95rem',
+                        fontWeight: 600,
+                        cursor: eligiendo ? 'wait' : 'pointer',
+                        opacity: eligiendo && eligiendo !== h.inicio ? 0.5 : 1,
+                      }}
+                    >
+                      {eligiendo === h.inicio ? '…' : soloHora(h.cuando)}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}

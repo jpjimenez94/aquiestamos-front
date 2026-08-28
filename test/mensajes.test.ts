@@ -524,6 +524,7 @@ describe('mensajeDeCitaConfirmadaAlProfesional (Paso 10)', () => {
       modalidad: 'VIRTUAL',
       canalContacto: 'WHATSAPP',
       enlace: 'https://redaquiestamos.org/portal/caso/p-123',
+      consentimientoFirmado: true,
     })
 
     expect(texto).toContain('Hola Roberto')
@@ -532,6 +533,27 @@ describe('mensajeDeCitaConfirmadaAlProfesional (Paso 10)', () => {
     expect(texto).toContain('*Modalidad:* virtual')
     expect(texto).toContain('*Canal preferido de la persona:* WhatsApp')
     expect(texto).toContain('*Consentimiento informado:* Firmado por la persona')
+
+    /**
+     * Y si NO está firmado, tiene que decirlo.
+     *
+     * Esa línea era texto fijo: afirmaba «Firmado por la persona» sin mirar el
+     * dato, en el mismo caso en el que el tablero marcaba que faltaba. El
+     * profesional la lee, no lo pide, y la sesión ocurre sin consentimiento
+     * registrado.
+     *
+     * Es un fallo silencioso por partida doble: nada se rompe, y lo que se
+     * pierde solo se echa en falta el día que alguien pregunte qué se firmó.
+     */
+    const sinFirmar = mensajeDeCitaConfirmadaAlProfesional({
+      profesional: 'Roberto Gómez',
+      persona: 'María Camila Restrepo',
+      cuando: 'jueves, 28 de agosto a las 4:00 p. m.',
+      enlace: 'https://redaquiestamos.org/portal/caso/p-123',
+    })
+    expect(sinFirmar).not.toContain('Firmado por la persona')
+    expect(sinFirmar).toMatch(/TODAVÍA NO lo ha firmado/)
+    expect(sinFirmar).toMatch(/Pídeselo antes de empezar/)
     expect(texto).toContain('Tú das el primer paso')
     expect(texto).toContain('unos *15 minutos antes* de la cita')
     expect(texto).toContain('Compromiso y puntualidad')

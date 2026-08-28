@@ -923,10 +923,10 @@ const CANAL_CONTACTO: Record<string, string> = {
 }
 
 /**
- * PASO 10 · Al profesional: la cita está confirmada y el consentimiento firmado.
+ * PASO 10 · Al profesional: la cita está confirmada, y qué falta.
  *
  * Entrega formal del caso al profesional:
- *   - Informa que el consentimiento informado ya está firmado y la cita confirmada.
+ *   - Dice si el consentimiento informado está firmado O si todavía falta.
  *   - Especifica fecha, hora, modalidad y el canal preferido de la persona.
  *   - Enfatiza su responsabilidad de dar el primer paso de contacto y la puntualidad/compromiso.
  *   - Proporciona el enlace seguro para consultar los datos protegidos y reportar post-sesión.
@@ -940,6 +940,18 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
   canalContacto?: string | null
   enlace: string
   enlaceReunion?: string | null
+  /**
+   * Si la persona ya firmó el consentimiento informado.
+   *
+   * Antes esta línea era texto fijo: le decía «Firmado por la persona» a todo
+   * profesional, mirara o no el dato. El tablero marcaba «Falta consentimiento»
+   * en el mismo caso en el que este mensaje aseguraba que estaba firmado.
+   *
+   * Y la que se creía era la equivocada: el profesional lee que ya está, no lo
+   * pide, y la sesión ocurre sin consentimiento registrado. Un mensaje que
+   * afirma de más sobre un requisito legal es peor que uno que no diga nada.
+   */
+  consentimientoFirmado?: boolean
 }): string {
   const nombreProf = nombreDePila(d.profesional) || 'hola'
   const nombrePers = nombreDePila(d.persona) || 'la persona acompañada'
@@ -954,7 +966,9 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
     modalidad ? `· *Modalidad:* ${modalidad}` : null,
     d.enlaceReunion ? `· *Enlace de videollamada:* ${d.enlaceReunion}` : null,
     `· *Canal preferido de la persona:* ${canal}`,
-    '· *Consentimiento informado:* Firmado por la persona',
+    d.consentimientoFirmado
+      ? '· *Consentimiento informado:* Firmado por la persona'
+      : '· *Consentimiento informado:* ⚠️ TODAVÍA NO lo ha firmado. Pídeselo antes de empezar la sesión.',
     '',
     '*Tu responsabilidad en este acompañamiento:*',
     `1. Tú das el primer paso: ponte en contacto con ella por ${canal} unos *15 minutos antes* de la cita para coordinar el inicio de la sesión en la fecha y hora acordadas. Ella ya sabe que la vas a contactar.`,

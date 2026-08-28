@@ -219,9 +219,10 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             return abierta
               ? {
                   id: abierta.id,
-                  cuando: abierta.inicioLocal || enBogota(abierta.inicio),
+                  cuando: enBogota(abierta.inicio),
                   modalidad: abierta.modalidad,
                   salaTokenPaciente: abierta.salaTokenPaciente,
+                  consentSigned: abierta.consentSigned,
                 }
               : null
           })()}
@@ -297,7 +298,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                   <tr key={c.id}>
                     <td>
                       <Link href={`/portal/agenda/${c.id}`} className="tabla__principal">
-                        {c.inicioLocal || enBogota(c.inicio)}
+                        {enBogota(c.inicio)}
                       </Link>
                     </td>
                     <td>{c.modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'}</td>

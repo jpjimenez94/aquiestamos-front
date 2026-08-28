@@ -30,7 +30,7 @@ type Metricas = {
   }
   embudo: {
     diasPromedioHastaPrimeraPropuesta: number | null
-    diasPromedioRespuestaDelProfesional: number | null
+    diasPromedioHastaElegirHora: number | null
   }
   asignaciones: {
     total: number
@@ -38,7 +38,7 @@ type Metricas = {
     rechazadas: number
     vencidasSinRespuesta: number
     canceladasOtras: number
-    tasaAceptacion: number | null
+    tasaDeclinada: number | null
   }
   motivosDeCierre: Record<string, number>
   casosPorProfesional: { nombre: string; casos: number }[]
@@ -366,19 +366,25 @@ export function MetricasView({ m }: { m: Metricas }) {
               />
             ) : null}
             <Indicador
-              titulo="Días hasta la primera propuesta"
+              titulo="Días hasta la primera asignación"
               valor={m.embudo.diasPromedioHastaPrimeraPropuesta?.toString() ?? '—'}
               nota="promedio, desde la admisión"
             />
+            {/*
+              Estas dos medían el paso de pedirle permiso al profesional, que ya
+              no existe. Tal cual estaban marcarían 0 días y 100 % para siempre
+              —en la pantalla que existe para enseñar lo que va mal—, así que
+              miran ahora donde de verdad se puede parar un caso.
+            */}
             <Indicador
-              titulo="Respuesta del profesional"
-              valor={m.embudo.diasPromedioRespuestaDelProfesional != null ? `${m.embudo.diasPromedioRespuestaDelProfesional}d` : '—'}
-              nota="promedio hasta responder la propuesta"
+              titulo="La persona tarda en elegir hora"
+              valor={m.embudo.diasPromedioHastaElegirHora != null ? `${m.embudo.diasPromedioHastaElegirHora}d` : '—'}
+              nota="promedio desde que se le asigna. A los 3 días se libera"
             />
             <Indicador
-              titulo="Tasa de aceptación"
-              valor={m.asignaciones.tasaAceptacion != null ? `${m.asignaciones.tasaAceptacion}%` : '—'}
-              nota={`${m.asignaciones.aceptadas} de ${m.asignaciones.total} propuestas`}
+              titulo="Declinadas por el profesional"
+              valor={m.asignaciones.tasaDeclinada != null ? `${m.asignaciones.tasaDeclinada}%` : '—'}
+              nota={`${m.asignaciones.rechazadas} de ${m.asignaciones.total} asignaciones`}
             />
             <Indicador
               titulo="Asistencia a sesiones"
@@ -408,10 +414,10 @@ export function MetricasView({ m }: { m: Metricas }) {
               filas={Object.entries(m.personas.porPrioridad).map(([k, v]) => [k, String(v)])}
             />
             <Tabla
-              titulo="Propuestas a profesionales"
+              titulo="Asignaciones a profesionales"
               filas={[
                 ['Aceptadas', String(m.asignaciones.aceptadas)],
-                ['Rechazadas (dijo que no)', String(m.asignaciones.rechazadas)],
+                ['Declinadas (el profesional no podía)', String(m.asignaciones.rechazadas)],
                 ['Vencidas sin respuesta', String(m.asignaciones.vencidasSinRespuesta)],
                 ['Canceladas por otra razón', String(m.asignaciones.canceladasOtras)],
               ]}
