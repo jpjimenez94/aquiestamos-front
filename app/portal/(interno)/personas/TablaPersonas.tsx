@@ -1,5 +1,6 @@
 'use client'
 
+import { seguimientoPendiente, type Seguimiento } from '@/lib/seguimiento'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, UserCheck, Calendar, RotateCcw, MessageSquare } from 'lucide-react'
@@ -47,6 +48,8 @@ export type Persona = {
     estado?: string
     notaDisponibilidad?: string | null
     motivoCierre?: string | null
+    /** Si el profesional ya contó qué pasó con alguna sesión. */
+    hayReporte?: boolean
     profesional?: {
       id: string
       nombre: string
@@ -333,6 +336,14 @@ export function TablaPersonas({
                   <IconoOrden col="cita" />
                 </span>
               </th>
+              {/*
+                Qué hay que hacer con esta persona, no en qué estado está.
+              
+                La tabla contaba el estado —«Asignado», la cita si la hay— pero
+                alguien con cita mañana y alguien cuya sesión fue ayer se veían
+                igual, cuando lo que se necesita de cada uno es lo contrario.
+              */}
+              <th style={{ width: '13%' }}>Qué sigue</th>
               <th
                 onClick={() => alternarOrden('notas')}
                 style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
@@ -598,6 +609,20 @@ export function TablaPersonas({
                       )}
                     </td>
 
+                    {/* Qué sigue: la tarea, no el estado. */}
+                    <td>
+                      <AvisoDeSeguimiento
+                        seguimiento={seguimientoPendiente({
+                          estadoPersona: p.status,
+                          estadoAsignacion: p.asignacion?.estado,
+                          diasEsperando: p.diasEsperando,
+                          cita: cita ? { inicio: cita.inicio, estado: cita.estado } : null,
+                          hayReporte: p.asignacion?.hayReporte === true,
+                          asignadaDesde: p.asignacion?.desde,
+                        })}
+                      />
+                    </td>
+
                     {/* Columna Notas de seguimiento (con modal interactivo) */}
                     <td style={{ maxWidth: 220 }}>
                       <ModalNotasSeguimiento
@@ -685,5 +710,46 @@ export function TablaPersonas({
         }}
       />
     </>
+  )
+}
+
+
+/**
+ * El aviso de qué toca hacer, en una celda.
+ *
+ * Tres tonos y no cinco: si todo grita, nada grita. «Ahora» es lo que caduca
+ * hoy —una cita en tres horas, un caso que se libera mañana—; «pronto» es lo
+ * que conviene no dejar pasar; el resto va en gris, presente pero sin pedir
+ * atención.
+ *
+ * Sin aviso la celda queda vacía a propósito: un «—» en cada fila sin tarea
+ * llenaría la columna de ruido y haría más difícil ver las que sí tienen.
+ */
+function AvisoDeSeguimiento({ seguimiento }: { seguimiento: Seguimiento | null }) {
+  if (!seguimiento) return null
+
+  const tono =
+    seguimiento.urgencia === 'ahora'
+      ? { fondo: '#fef2f2', borde: '#fecaca', texto: '#b91c1c' }
+      : seguimiento.urgencia === 'pronto'
+        ? { fondo: '#fffbeb', borde: '#fde68a', texto: '#b45309' }
+        : { fondo: 'var(--color-bg-subtle, #f8fafc)', borde: 'var(--color-border-default)', texto: 'var(--color-text-light)' }
+
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        padding: '4px 9px',
+        borderRadius: 8,
+        background: tono.fondo,
+        border: `1px solid ${tono.borde}`,
+        color: tono.texto,
+        fontSize: '0.76rem',
+        fontWeight: 600,
+        lineHeight: 1.35,
+      }}
+    >
+      {seguimiento.texto}
+    </span>
   )
 }
