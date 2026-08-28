@@ -135,19 +135,29 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {/*
-          Confirmar va en primario y volverse atrás en neutro, como en el resto
-          del portal: quien ya escribió el motivo viene a enviarlo.
-
+          El primario es quedarse con el caso, no soltarlo.
+        
+          Estaba al revés: destacado el botón que libera y en neutro el que
+          confirma. El énfasis visual de una pantalla es una recomendación, y
+          esta estaba recomendando la salida — a alguien que llegó aquí porque
+          dudaba, no porque lo tuviera decidido.
+        
+          Liberar un caso no es urgente ni deseable: significa que una persona
+          que pidió ayuda vuelve a la cola. Que se pueda hacer en un toque es lo
+          justo; que la pantalla tire de ti hacia ahí, no. Declinar sigue a un
+          clic de distancia, solo que sin que nada te empuje.
+        
           El de atrás decía «Mejor no, sigo con él». Dos problemas: sonaba a
           recular, cuando lo que hace es afirmar que sí puede; y ese «él» se
           leía como la persona acompañada —que muchas veces es un él— y no como
-          el caso. Ahora dice lo que la persona está decidiendo.
+          el caso. Ahora dice lo que está decidiendo.
         */}
-        <Button type="submit" variant="primary" disabled={enviando} icon={<Send size={16} />}>
+        <Button type="submit" disabled={enviando} icon={<Send size={16} />}>
           {enviando ? 'Enviando…' : 'Enviar y liberar el caso'}
         </Button>
         <Button
           type="button"
+          variant="primary"
           icon={<Check size={16} />}
           onClick={() => {
             setAbierto(false)

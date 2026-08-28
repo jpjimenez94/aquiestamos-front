@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { BACKEND_URL } from '@/lib/api'
@@ -39,6 +40,27 @@ const DIA: Record<string, string> = {
 const FRANJA: Record<string, string> = { MANANA: 'mañana', TARDE: 'tarde', NOCHE: 'noche' }
 
 // La ruta recibe params con el id del paciente.
+/**
+ * La marca, arriba a la derecha.
+ *
+ * A esta pantalla se entra desde un enlace de WhatsApp y con un correo: no hay
+ * menú, ni sesión, ni nada alrededor que diga de quién es. Un profesional que
+ * recibe un mensaje con un enlace y aterriza en una página que le pide datos de
+ * una persona sin identificarse tiene todo el derecho a desconfiar — y hace
+ * bien.
+ *
+ * Va en las cuatro pantallas del caso —pedir acceso, enlace vencido, decidir y
+ * el caso ya asignado—, porque la primera que ve es justo la que le pide el
+ * correo, que es donde más falta hace saber a quién se lo está dando.
+ */
+function MarcaDeLaRed() {
+  return (
+    <div className="caso__marca">
+      <Image src="/images/logo.png" alt="Red Aquí Estamos" width={132} height={48} priority />
+    </div>
+  )
+}
+
 export default async function SharedCasePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
@@ -49,6 +71,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     return (
       <main className="caso">
         <div className="caso__puerta">
+          <MarcaDeLaRed />
           <header className="caso__intro">
             <h1>Acceso al caso</h1>
             <p>Ingresa el correo con el que estás registrado en la red para ver los detalles de este paciente.</p>
@@ -74,6 +97,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     return (
       <main className="caso">
         <div className="caso__puerta">
+          <MarcaDeLaRed />
           <header className="caso__intro">
             <h1>Enlace expirado o inválido</h1>
             <p>{message}</p>
@@ -96,6 +120,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     return (
       <main className="caso">
         <div className="caso__contenido">
+        <MarcaDeLaRed />
           <header className="caso__intro">
             <h1>Te proponemos un acompañamiento</h1>
             <p>Mira si puedes tomarlo y dinos. No estás comprometido a nada.</p>
@@ -160,6 +185,7 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
   return (
     <main className="caso">
       <div className="caso__contenido">
+        <MarcaDeLaRed />
         <header className="caso__intro">
           <h1>{nombrePropio(paciente.fullName)}</h1>
           <p>{paciente.city} · Asignado a ti</p>

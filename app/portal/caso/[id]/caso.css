@@ -51,3 +51,31 @@
 .caso__contenido > .panel + .panel {
   margin-top: 20px;
 }
+
+/* La marca de la red, arriba a la derecha.
+ *
+ * A esta pantalla se llega desde un enlace de WhatsApp: no hay menú ni sesión
+ * ni nada alrededor que diga de quién es. La esquina estaba vacía y la primera
+ * pantalla es justo la que pide un correo — que es donde más falta hace saber a
+ * quién se lo estás dando.
+ *
+ * `height: auto` con el ancho fijo: si no, `next/image` respeta el width que se
+ * le pasó y el alto se estira en pantallas estrechas. */
+.caso__marca {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
+}
+
+.caso__marca img {
+  width: 118px;
+  height: auto;
+}
+
+/* En el móvil la columna es estrecha y la cabecera manda: el logo se encoge
+   para no competir con el nombre de la persona. */
+@media (max-width: 520px) {
+  .caso__marca img {
+    width: 96px;
+  }
+}
