@@ -120,3 +120,36 @@ describe('lo que se cuenta de cada paso', async () => {
     expect(h[6]).toEqual([])
   })
 })
+
+describe('cuándo se puede decir que la sesión terminó', async () => {
+  const { sesionTerminada } = await import('../lib/pasosDelCaso')
+
+  /**
+   * El caso reportado: la pantalla anunciaba «Sesión virtual finalizada» con
+   * la llamada en curso, porque lo deducía de «hay duración registrada y nadie
+   * late ahora mismo». Los latidos no llegaban —otro fallo— pero la inferencia
+   * era mala de por sí: un latido que falta puede ser la pestaña de fondo o la
+   * red.
+   *
+   * Es peor que no decir nada: quien coordina lee «finalizada», deja de mirar
+   * y cierra el caso mientras las dos personas siguen hablando.
+   */
+  it('dentro de su horario NO ha terminado, latan o no', () => {
+    expect(sesionTerminada({ estado: 'PROGRAMADA', fin: enHoras(1), ahora: AHORA })).toBe(false)
+  })
+
+  it('pasada su hora de fin, sí', () => {
+    expect(sesionTerminada({ estado: 'PROGRAMADA', fin: enHoras(-1), ahora: AHORA })).toBe(true)
+  })
+
+  /** Y si alguien ya la resolvió a mano, se respeta aunque falte para su hora. */
+  it('marcada realizada o cancelada, terminó', () => {
+    expect(sesionTerminada({ estado: 'REALIZADA', fin: enHoras(1), ahora: AHORA })).toBe(true)
+    expect(sesionTerminada({ estado: 'CANCELADA', fin: enHoras(1), ahora: AHORA })).toBe(true)
+    expect(sesionTerminada({ estado: 'NO_ASISTIO', fin: enHoras(1), ahora: AHORA })).toBe(true)
+  })
+
+  it('sin hora de fin ni estado terminal, no se inventa un final', () => {
+    expect(sesionTerminada({ estado: 'PROGRAMADA', ahora: AHORA })).toBe(false)
+  })
+})

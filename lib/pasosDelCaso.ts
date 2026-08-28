@@ -185,3 +185,35 @@ export function armarHechos(e: EntradaDeHechos): string[][] {
 
   return h
 }
+
+/** Estados en los que una cita ya no va a ocurrir o ya ocurrió. */
+export const CITAS_TERMINADAS = ['REALIZADA', 'NO_ASISTIO', 'CANCELADA'] as const
+
+/**
+ * Si una sesión virtual ya terminó de verdad.
+ *
+ * La pantalla lo deducía de «hay duración registrada y nadie late ahora
+ * mismo», y anunciaba «Sesión virtual finalizada» con la llamada en curso: si
+ * los latidos se pierden un momento —la pestaña de la sala en segundo plano,
+ * la red, alguien que sale a abrir la puerta— la ausencia de latido se leía
+ * como el final.
+ *
+ * Es peor que no decir nada. Quien coordina lee «finalizada», deja de mirar y
+ * cierra el caso mientras las dos personas siguen hablando.
+ *
+ * Terminó cuando lo dice el estado de la cita o cuando ya pasó su hora de fin.
+ * Lo demás —duración registrada pero sin latidos y todavía dentro de su
+ * horario— es «ahora mismo no hay nadie», que no es lo mismo.
+ */
+export function sesionTerminada({
+  estado,
+  fin,
+  ahora = Date.now(),
+}: {
+  estado?: string | null
+  fin?: string | Date | null
+  ahora?: number
+}): boolean {
+  if (estado && (CITAS_TERMINADAS as readonly string[]).includes(estado)) return true
+  return fin ? new Date(fin).getTime() <= ahora : false
+}

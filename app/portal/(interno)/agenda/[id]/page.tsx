@@ -1,5 +1,5 @@
 import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
-import { pasoDeLaCita, armarHechos } from '@/lib/pasosDelCaso'
+import { pasoDeLaCita, armarHechos, sesionTerminada } from '@/lib/pasosDelCaso'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalFetch, enBogota } from '@/lib/portal'
@@ -93,6 +93,10 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
 
   const sitioUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.redaquiestamos.org').replace(/\/$/, '')
   const enlaceCasoProf = `${sitioUrl}/portal/caso/${cita.paciente.id}`
+
+  // «Terminó» lo dicen el estado de la cita y su hora de fin, no la falta de
+  // latidos: un latido que no llega puede ser la pestaña de fondo o la red.
+  const terminada = sesionTerminada({ estado: cita.estado, fin: cita.fin })
   // Estos enlaces se copian y se mandan por WhatsApp, así que llevan la llave
   // firmada que emite el backend: trae el rol sellado dentro y no se puede
   // fabricar desde fuera. Se cae al UUID solo si el backend no mandó token
@@ -360,7 +364,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
                 </span>
               </div>
             </div>
-          ) : (cita.totalCallDurationSeconds ?? 0) > 0 ? (
+          ) : (cita.totalCallDurationSeconds ?? 0) > 0 && terminada ? (
             <div
               style={{
                 background: '#f8fafc',
@@ -380,6 +384,30 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
               <span>
                 <strong>Sesión virtual finalizada.</strong> Tiempo total efectivo registrado:{' '}
                 <strong>{cita.totalCallDurationMinutes} min ({cita.totalCallDurationSeconds}s)</strong>.
+              </span>
+            </div>
+          ) : (cita.totalCallDurationSeconds ?? 0) > 0 ? (
+            <div
+              style={{
+                background: '#fffbeb',
+                border: '1px solid #fde68a',
+                borderRadius: 10,
+                padding: '10px 16px',
+                marginTop: 14,
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                color: '#92400e',
+                fontSize: '0.86rem',
+              }}
+            >
+              <Timer size={16} style={{ color: '#d97706' }} />
+              <span>
+                <strong>Nadie está latiendo en este momento.</strong> Se llevan{' '}
+                <strong>{cita.totalCallDurationMinutes} min ({cita.totalCallDurationSeconds}s)</strong>{' '}
+                registrados. Puede que hayan salido un momento o que la pestaña de la sala se
+                cerrara: la sesión no se da por terminada hasta que pase su hora de fin.
               </span>
             </div>
           ) : null}
