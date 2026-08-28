@@ -9,7 +9,7 @@
  * aquí, añádela también allá.
  */
 
-export const VERSION_CONSENTIMIENTO = '2026-08'
+export const VERSION_CONSENTIMIENTO = '2026-09'
 
 export const RESPONSABLE = {
   nombre: 'Red Aquí Estamos',
@@ -43,6 +43,29 @@ export const AVISO_DERECHOS =
 
 /** Texto exacto de cada casilla. Lo que se guarda como prueba es la versión. */
 export const CASILLAS = {
+  /**
+   * Atención psicológica, en una sola casilla.
+   *
+   * Eran dos: una para los datos y otra para el dato de salud. Las dos pedían
+   * la misma decisión, y se las estábamos pidiendo a alguien que escribe
+   * porque está mal. El formulario del voluntario ya enlazaba a la política y
+   * cabía en una línea; el de quien pide ayuda llevaba el párrafo entero.
+   *
+   * Juntarlas no relaja nada. La ley pide que la autorización del dato
+   * sensible sea explícita y que a la persona se le diga que es sensible, para
+   * qué se usa y que no está obligada a darlo (Ley 1581 art. 6, Decreto 1377
+   * art. 6). No pide dos casillas: pide que esas tres cosas estén dichas. Por
+   * eso esto es una frase y no un «acepto los términos».
+   */
+  atencion:
+    'Autorizo a Red Aquí Estamos a tratar mis datos para acompañarme, incluido el de mi salud mental, que es un dato sensible y que no estoy obligado ni obligada a entregar.',
+
+  /**
+   * Estos dos se quedan por los registros de la versión 2026-08, que los
+   * aceptaron por separado. No se editan nunca: son la prueba de qué autorizó
+   * cada quien.
+   */
+
   datos: 'Autorizo a Red Aquí Estamos a tratar mis datos personales para las finalidades descritas arriba.',
 
   sensiblesAtencion:

@@ -15,13 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { ConsentField, RadioField, TextField } from './fields'
 import { MunicipioSelector } from './MunicipioSelector'
 import { FormStatus, type Status } from './FormStatus'
-import {
-  AVISO_DERECHOS,
-  AVISO_TRATAMIENTO,
-  CASILLAS,
-  RESPONSABLE,
-  VERSION_CONSENTIMIENTO,
-} from '@/lib/consentimiento'
+import { CASILLAS, VERSION_CONSENTIMIENTO } from '@/lib/consentimiento'
 import { site, whatsappHref } from '@/lib/site'
 import { nombreDePila } from '@/lib/nombre'
 
@@ -139,7 +133,8 @@ export function SupportRequestForm() {
     const found: Record<string, string> = {}
     if (!form.preferredModality) found.preferredModality = 'Selecciona la modalidad de acompañamiento'
     if (!form.dataConsent) found.dataConsent = 'Necesitamos tu autorización para poder contactarte'
-    if (!form.sensitiveDataConsent) found.sensitiveDataConsent = 'Necesitamos tu autorización expresa para acompañarte'
+    // `sensitiveDataConsent` va pegado a `dataConsent` desde que son una sola
+    // casilla: no puede faltar por su cuenta.
     if (esMenor && !form.guardianConsent) {
       found.guardianConsent = 'Como es para un menor de edad, necesitamos la autorización del representante legal'
     }
@@ -737,27 +732,41 @@ export function SupportRequestForm() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShieldCheck size={18} color="#059669" />
                 <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>
-                  Autorizaciones y confidencialidad
+                  Tus datos y tu confidencialidad
                 </strong>
               </div>
 
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', lineHeight: 1.4 }}>
-                {AVISO_TRATAMIENTO.atencion} Conservamos tus datos durante {RESPONSABLE.retencionMeses / 12} años
-                bajo estricta confidencialidad. {AVISO_DERECHOS}
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', lineHeight: 1.45 }}>
+                Solo los ve el profesional que te acompañe y el equipo que coordina. No los
+                vendemos ni los damos a nadie más.{' '}
+                <a
+                  href="/politica-de-datos"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: '#059669', textDecoration: 'underline' }}
+                >
+                  Cómo tratamos tus datos y cómo puedes borrarlos
+                </a>
+                .
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                {/*
+                  Una sola casilla, no dos.
+                
+                  Eran una para los datos y otra para el dato de salud, y las dos pedían la
+                  misma decisión. Se las estábamos pidiendo a alguien que escribe porque
+                  está mal. Se guardan los dos campos —el registro no pierde nada— pero se
+                  decide una vez.
+                */}
                 <ConsentField
-                  label={CASILLAS.datos}
+                  label={CASILLAS.atencion}
                   checked={form.dataConsent}
                   error={errors.dataConsent}
-                  onChange={(c) => update('dataConsent', c)}
-                />
-                <ConsentField
-                  label={CASILLAS.sensiblesAtencion}
-                  checked={form.sensitiveDataConsent}
-                  error={errors.sensitiveDataConsent}
-                  onChange={(c) => update('sensitiveDataConsent', c)}
+                  onChange={(c) => {
+                    update('dataConsent', c)
+                    update('sensitiveDataConsent', c)
+                  }}
                 />
                 {esMenor && (
                   <ConsentField
@@ -767,11 +776,6 @@ export function SupportRequestForm() {
                     onChange={(c) => update('guardianConsent', c)}
                   />
                 )}
-                <ConsentField
-                  label={CASILLAS.comunicaciones}
-                  checked={form.communicationsConsent}
-                  onChange={(c) => update('communicationsConsent', c)}
-                />
               </div>
             </div>
 
