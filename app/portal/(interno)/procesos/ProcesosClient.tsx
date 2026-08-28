@@ -196,45 +196,67 @@ export function ProcesosClient() {
       id: '3',
       categoria: 'casos',
       numero: 'Etapa 3',
-      titulo: 'Asignación, propuesta y reasignación ágil',
+      titulo: 'Asignación y elección de hora',
       tag: 'Emparejamiento',
-      descripcion: 'La asignación es una negociación transparente. Si el profesional no puede o no responde, el caso se reasigna inmediatamente conservando el historial.',
+      descripcion:
+        'Al profesional se le asigna el caso y se le avisa, en vez de pedirle permiso y esperar. Luego la persona elige su hora directamente de la agenda de él.',
       diagrama: <DiagramaAsignacion />,
       estados: [
-        { estado: 'PROPUESTA', texto: 'Propuesta enviada' },
-        { estado: 'ACEPTADA', texto: 'Aceptada, falta horario' },
+        { estado: 'ACEPTADA', texto: 'Asignado, falta que elija hora' },
         { estado: 'ACTIVA', texto: 'En acompañamiento' },
+        { estado: 'RECHAZADA', texto: 'El profesional no pudo' },
         { estado: 'CERRADA', texto: 'Cerrada' },
       ],
       pasos: [
         {
           quien: 'Coordinación',
           rolTag: 'coordinacion',
-          titulo: 'Elige candidato del Top 10 y envía propuesta',
-          detalle: 'El algoritmo calcula compatibilidad por enfoque, modalidad, cercanía geográfica y cupo libre. El mensaje de WhatsApp lleva su enlace confidencial.',
+          titulo: 'Elige del Top 10 y le asigna el caso',
+          detalle:
+            'El algoritmo calcula compatibilidad por enfoque, modalidad, cercanía y cupo libre. El mensaje le avisa de que el caso ya es suyo y de que la persona elegirá hora de su agenda.',
+          desvios: [
+            {
+              tono: 'alerta',
+              titulo: 'Por qué ya no se le pregunta:',
+              texto:
+                'de ocho asignaciones hechas para una persona con prioridad ALTA, siete murieron con el motivo «el profesional no respondió». Esperar un sí no le daba margen a él: dejaba el caso parado.',
+            },
+          ],
         },
         {
           quien: 'El profesional',
           rolTag: 'profesional',
-          titulo: 'Acepta o declina desde su enlace seguro',
-          detalle: 'Si acepta, selecciona los días y horas exactas en las que puede atender este caso específico.',
+          titulo: 'Confirma, o dice que no puede',
+          detalle:
+            'Desde su enlace seguro. Confirmar no es obligatorio —el caso avanza igual— pero queda registrado. Ya no se le piden días ni horas: su agenda está en su perfil desde que se registró.',
           desvios: [
-            { tono: 'alerta', titulo: '«No puedo en este momento»:', texto: 'el caso se libera al instante con el motivo registrado para reasignarlo.' },
-            { tono: 'reloj', titulo: '2 días sin respuesta:', texto: 'el reloj del sistema libera la asignación automáticamente.' },
+            {
+              tono: 'alerta',
+              titulo: '«Ahora no puedo tomarlo»:',
+              texto:
+                'el caso se libera al instante con el motivo, la persona vuelve a «Por asignar» y se le asigna a otro el mismo día. Es voluntario: decirlo pronto ayuda más que un silencio.',
+            },
           ],
         },
         {
-          quien: 'Coordinación',
-          rolTag: 'coordinacion',
-          titulo: 'Acuerda el horario y permite reasignar si es necesario',
-          detalle: 'Contacta a la persona con los horarios ofrecidos. Si surgen incompatibilidades, coordinación puede usar el botón «Reasignar a otro profesional».',
+          quien: 'La persona acompañada',
+          rolTag: 'persona',
+          titulo: 'Elige su hora en su enlace de agenda',
+          detalle:
+            'Ve los espacios libres reales del profesional, agrupados por día, y escoge. El enlace le sirve para todas sus sesiones y sigue funcionando si más adelante la acompaña otra persona.',
           desvios: [
-            { tono: 'reloj', titulo: '3 días sin confirmación:', texto: 'se libera el profesional y el caso retorna a la cola.' },
+            {
+              tono: 'reloj',
+              titulo: '3 días sin elegir hora:',
+              texto:
+                'se libera el profesional y el caso vuelve a la cola. El plazo es más largo que el de él a propósito: quien pide ayuda puede estar sin batería, sin datos o sin cabeza.',
+            },
             { tono: 'logro', titulo: 'Resultado:', texto: 'Asignación activa y cita programada.' },
           ],
         },
       ],
-      notaFinal: 'Una propuesta reserva cupo preventivo para no sobrecargar profesionales. Al liberarse o reasignarse, el cupo se devuelve de inmediato.',
+      notaFinal:
+        'Una asignación reserva cupo preventivo para no sobrecargar profesionales. Al liberarse o reasignarse, el cupo se devuelve de inmediato.',
     },
     {
       id: '4',
@@ -433,10 +455,11 @@ export function ProcesosClient() {
           detalle: 'Si una persona no responde el tamizaje en 48 horas, el sistema la admite automáticamente con prioridad preventiva para no dejarla esperando.',
         },
         {
-          quien: 'Reloj de Propuesta',
+          quien: 'Reloj de asignaciones antiguas',
           rolTag: 'sistema',
-          titulo: 'Liberación de asignación a los 2 días',
-          detalle: 'Si el profesional propuesto no responde en 48 horas, se cancela la asignación y el caso regresa a «Por Asignar» para proponerse a otro profesional.',
+          titulo: 'Liberación de propuestas viejas a los 2 días',
+          detalle:
+            'Solo aplica a las asignaciones anteriores al cambio, que quedaron esperando un «sí» que ya nadie va a dar: el enlace donde se respondía dejó de ser parte del camino. Ninguna asignación nueva pasa por ahí — nacen asignadas.',
         },
         {
           quien: 'Reloj de Cita',
@@ -565,9 +588,9 @@ export function ProcesosClient() {
             <span className="proc-viaje__flecha">→</span>
             <span className="proc-viaje__etapa"><span>2</span>Tamizaje y admisión</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>3</span>Emparejamiento</span>
+            <span className="proc-viaje__etapa"><span>3</span>Asignación</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>4</span>Cita propuesta</span>
+            <span className="proc-viaje__etapa"><span>4</span>Elige su hora</span>
             <span className="proc-viaje__flecha">→</span>
             <span className="proc-viaje__etapa"><span>5</span>Cita confirmada</span>
             <span className="proc-viaje__flecha">→</span>
