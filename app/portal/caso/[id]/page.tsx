@@ -4,6 +4,7 @@ import { BACKEND_URL } from '@/lib/api'
 import { AccesoCasoForm } from './AccesoCasoForm'
 import { ReporteCasoForm } from './ReporteCasoForm'
 import { DecidirPropuestaForm } from './DecidirPropuestaForm'
+import { momentoDelCaso } from '@/lib/momentoDelCaso'
 import { BotonDeclinar } from './BotonDeclinar'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
@@ -135,7 +136,27 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
     )
   }
 
-  // Renderizar la vista del paciente. Muy similar a la interna, pero más simplificada.
+  /**
+   * En qué momento está el caso.
+   *
+   * La pantalla pintaba todos sus paneles siempre, sin mirar dónde estaba el
+   * acompañamiento. Con el flujo viejo se disimulaba: el profesional llegaba
+   * aquí después de aceptar, y para entonces ya había hablado con la persona.
+   *
+   * Desde que se le asigna y se le avisa, entra en el minuto cero — y se
+   * encontraba «¿Puedes tomarlo?» y «¿Qué pasó con esta asignación?» una
+   * debajo de la otra. Son preguntas de dos momentos distintos y juntas no
+   * significan nada: cómo va a contar qué pasó si todavía no ha pasado nada.
+   *
+   * No es un problema de redacción. Un formulario que pregunta fuera de tiempo
+   * enseña a ignorarlo, y este es por donde coordinación se entera de que
+   * alguien no contesta el teléfono.
+   */
+  const { proximaCita, tocaReportar } = momentoDelCaso({
+    puedeDeclinar: paciente.puedeDeclinar,
+    citas: paciente.appointments ?? [],
+    reportes: paciente.reportes?.length ?? 0,
+  })
   return (
     <main className="caso">
       <div className="caso__contenido">
@@ -171,14 +192,47 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           </div>
         ) : null}
 
-        <div className="panel">
-          <h2>¿Qué pasó con esta asignación?</h2>
-          <p className="panel__nota">
-            Cuéntanos cómo te fue. Es la forma de que quien coordina sepa en qué va el
-            caso sin tener que llamarte a preguntar.
-          </p>
-          <ReporteCasoForm patientId={id} />
-        </div>
+        {/*
+          Hay cita y todavía no ha llegado: no hay nada que contar.
+        
+          Lo que necesita ver ahora es cuándo es y que no tiene que hacer nada
+          hasta entonces. El formulario sigue disponible plegado, porque entre
+          la asignación y la sesión sí puede pasar algo —que no conteste, que
+          avise de que no va— y quitarle el canal por ordenar la pantalla sería
+          cambiar un problema por otro.
+        */}
+        {proximaCita && !tocaReportar ? (
+          <div className="panel">
+            <h2>Tu próxima sesión</h2>
+            <p className="panel__nota">
+              {enBogota(proximaCita.startsAt)} · {proximaCita.modality?.toLowerCase()}
+            </p>
+            <p className="panel__nota">
+              No tienes que hacer nada hasta entonces. Cuando termine, vuelve aquí y
+              cuéntanos cómo fue.
+            </p>
+
+            <details style={{ marginTop: 12 }}>
+              <summary style={{ cursor: 'pointer', fontSize: '0.9rem' }}>
+                ¿Pasó algo antes de la sesión?
+              </summary>
+              <div style={{ marginTop: 12 }}>
+                <ReporteCasoForm patientId={id} />
+              </div>
+            </details>
+          </div>
+        ) : null}
+
+        {tocaReportar ? (
+          <div className="panel">
+            <h2>¿Qué pasó con esta asignación?</h2>
+            <p className="panel__nota">
+              Cuéntanos cómo te fue. Es la forma de que quien coordina sepa en qué va el
+              caso sin tener que llamarte a preguntar.
+            </p>
+            <ReporteCasoForm patientId={id} />
+          </div>
+        ) : null}
 
         {paciente.reportes?.length > 0 ? (
           <div className="panel">
@@ -216,6 +270,10 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
           </div>
         ) : null}
 
+        {/*
+          El historial. La próxima ya se enseña arriba con lo que hay que hacer;
+          esto es para ver lo que hubo antes y lo que viene después.
+        */}
         <div className="panel">
           <h2>Citas programadas</h2>
           {paciente.appointments?.length > 0 ? (
