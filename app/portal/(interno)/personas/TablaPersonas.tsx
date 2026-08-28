@@ -343,7 +343,7 @@ export function TablaPersonas({
                 alguien con cita mañana y alguien cuya sesión fue ayer se veían
                 igual, cuando lo que se necesita de cada uno es lo contrario.
               */}
-              <th style={{ width: '13%' }}>Qué sigue</th>
+              <th style={{ width: '13%', minWidth: 170 }}>Qué sigue</th>
               <th
                 onClick={() => alternarOrden('notas')}
                 style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
@@ -441,6 +441,16 @@ export function TablaPersonas({
                   <option value="REALIZADA">Realizada</option>
                 </select>
               </th>
+              {/*
+                La celda de «Qué sigue» en la fila de filtros.
+              
+                Va vacía —el aviso se calcula, no se filtra— pero TIENE que
+                estar: al añadir la cabecera sin su hueco aquí, la fila de
+                filtros se corrió una columna entera y el buscador de notas
+                aparecía bajo «Qué sigue». Una tabla desalineada se lee como un
+                error de datos, no de maquetación.
+              */}
+              <th style={{ padding: '6px 6px' }} />
               <th style={{ padding: '6px 6px' }}>
                 <input
                   type="text"
@@ -728,28 +738,46 @@ export function TablaPersonas({
 function AvisoDeSeguimiento({ seguimiento }: { seguimiento: Seguimiento | null }) {
   if (!seguimiento) return null
 
-  const tono =
+  /**
+   * Un punto de color y el texto al lado, no una etiqueta rellena.
+   *
+   * La primera versión pintaba un recuadro de color con la frase entera
+   * dentro: en una columna estrecha se partía en una tira de siete líneas,
+   * estiraba la fila al triple y desalineaba toda la tabla.
+   *
+   * Con el punto, el color sigue diciendo la urgencia de un vistazo —que es
+   * para lo que estaba— y el texto se comporta como el de las demás columnas.
+   * El verbo no se parte nunca; el detalle sí puede, y no pasa nada porque va
+   * en gris y en pequeño.
+   */
+  const color =
     seguimiento.urgencia === 'ahora'
-      ? { fondo: '#fef2f2', borde: '#fecaca', texto: '#b91c1c' }
+      ? '#dc2626'
       : seguimiento.urgencia === 'pronto'
-        ? { fondo: '#fffbeb', borde: '#fde68a', texto: '#b45309' }
-        : { fondo: 'var(--color-bg-subtle, #f8fafc)', borde: 'var(--color-border-default)', texto: 'var(--color-text-light)' }
+        ? '#d97706'
+        : '#94a3b8'
 
   return (
-    <span
-      style={{
-        display: 'inline-block',
-        padding: '4px 9px',
-        borderRadius: 8,
-        background: tono.fondo,
-        border: `1px solid ${tono.borde}`,
-        color: tono.texto,
-        fontSize: '0.76rem',
-        fontWeight: 600,
-        lineHeight: 1.35,
-      }}
-    >
-      {seguimiento.texto}
+    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 7 }}>
+      <span
+        aria-hidden
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: '50%',
+          background: color,
+          flexShrink: 0,
+          transform: 'translateY(-1px)',
+        }}
+      />
+      <span>
+        <strong style={{ fontSize: '0.83rem', color, whiteSpace: 'nowrap' }}>
+          {seguimiento.accion}
+        </strong>
+        {seguimiento.detalle ? (
+          <span className="tabla__secundario">{seguimiento.detalle}</span>
+        ) : null}
+      </span>
     </span>
   )
 }

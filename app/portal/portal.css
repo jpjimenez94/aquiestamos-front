@@ -327,10 +327,41 @@ body.sin-desplazamiento {
   white-space: nowrap;
 }
 
+/* Los controles de acción, todos a la misma altura y centrados.
+ *
+ * Convivían tres componentes distintos en la misma celda —un botón propio, un
+ * enlace `boton-mini` y un icono de borrar— cada uno con su padding: medían 29,
+ * 35 y 23 píxeles y arrancaban en tres alturas diferentes. Se leía como algo
+ * mal cuadrado, que en una tabla se confunde con un error de datos.
+ *
+ * `align-items: center` los centra entre sí, y la altura mínima común les da la
+ * misma caja sin tener que tocar cada componente por separado — que es lo que
+ * haría que el siguiente que se añada vuelva a desalinearse. */
 .tabla__acciones {
   display: flex;
   gap: 8px;
+  align-items: center;
   justify-content: flex-end;
+}
+
+/* Los controles van a cualquier profundidad —algunos vienen envueltos en un
+   div sin clase— así que la regla no puede ser solo de hijos directos. */
+.tabla__acciones > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabla__acciones button,
+.tabla__acciones a {
+  /* El `boton-mini` como enlace heredaba un line-height de 21px y salía cinco
+     píxeles más alto que los botones de al lado. Con la altura mínima común y
+     el interlineado a 1, los tres miden lo mismo. */
+  line-height: 1;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ---------- Etiquetas de estado ---------- */

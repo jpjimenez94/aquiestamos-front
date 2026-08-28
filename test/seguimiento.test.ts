@@ -41,7 +41,7 @@ describe('la sesión ya pasó', () => {
       ahora: AHORA,
     })
     expect(s?.urgencia).toBe('ahora')
-    expect(s?.texto).toContain('2 días')
+    expect(s?.detalle).toContain('2 días')
   })
 
   /** Una cita cancelada no deja seguimiento pendiente: no hubo sesión. */
@@ -63,7 +63,7 @@ describe('la cita está por llegar', () => {
       ahora: AHORA,
     })
     expect(s?.clave).toBe('recordar-cita')
-    expect(s?.texto).toContain('6 horas')
+    expect(s?.detalle).toContain('6 horas')
   })
 
   /**
@@ -109,7 +109,7 @@ describe('asignada pero sin elegir hora', () => {
       asignadaDesde: enDias(-2),
       ahora: AHORA,
     })
-    expect(s?.texto).toContain('se libera mañana')
+    expect(s?.detalle).toContain('se libera mañana')
     expect(s?.urgencia).toBe('ahora')
   })
 

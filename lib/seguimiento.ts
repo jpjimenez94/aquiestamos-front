@@ -19,9 +19,24 @@
 
 export type Urgencia = 'ahora' | 'pronto' | 'cuando-puedas'
 
+/**
+ * El aviso va en dos piezas y no en una frase.
+ *
+ * Al principio era un solo texto —«No ha elegido hora · el caso se libera
+ * mañana»— y en una columna estrecha se partía en una tira de siete líneas que
+ * estiraba la fila entera y desalineaba la tabla.
+ *
+ * Partido en acción y detalle encaja con el idioma que la tabla ya usa en las
+ * demás columnas: el dato arriba y su matiz debajo, en gris. Y se lee mejor,
+ * que era el punto: quien mira una lista de veinte personas escanea verbos,
+ * no frases.
+ */
 export type Seguimiento = {
   clave: 'recordar-cita' | 'preguntar-como-fue' | 'sin-elegir-hora' | 'sin-asignar'
-  texto: string
+  /** El verbo, corto y en una línea: «Preguntar cómo le fue». */
+  accion: string
+  /** El porqué o el cuándo, en pequeño. Puede faltar. */
+  detalle: string | null
   urgencia: Urgencia
 }
 
@@ -74,10 +89,11 @@ export function seguimientoPendiente({
     const dias = Math.floor((ahora - cuandoCita) / DIA)
     return {
       clave: 'preguntar-como-fue',
-      texto:
+      accion: 'Preguntar cómo le fue',
+      detalle:
         dias >= 1
-          ? `Preguntar cómo le fue · la sesión fue hace ${dias} ${dias === 1 ? 'día' : 'días'}`
-          : 'Preguntar cómo le fue · la sesión ya pasó',
+          ? `la sesión fue hace ${dias} ${dias === 1 ? 'día' : 'días'}`
+          : 'la sesión ya pasó',
       urgencia: dias >= 2 ? 'ahora' : 'pronto',
     }
   }
@@ -92,10 +108,8 @@ export function seguimientoPendiente({
     const horas = Math.round((cuandoCita - ahora) / HORA)
     return {
       clave: 'recordar-cita',
-      texto:
-        horas <= 1
-          ? 'Recordarle la cita · es dentro de menos de una hora'
-          : `Recordarle la cita · es en ${horas} horas`,
+      accion: 'Recordarle la cita',
+      detalle: horas <= 1 ? 'es en menos de una hora' : `es en ${horas} horas`,
       urgencia: horas <= 3 ? 'ahora' : 'pronto',
     }
   }
@@ -110,10 +124,11 @@ export function seguimientoPendiente({
       const faltan = LIBERA_A_LOS_DIAS - dias
       return {
         clave: 'sin-elegir-hora',
-        texto:
+        accion: 'No ha elegido hora',
+        detalle:
           faltan <= 1
-            ? 'No ha elegido hora · el caso se libera mañana'
-            : `No ha elegido hora · lleva ${dias} ${dias === 1 ? 'día' : 'días'}`,
+            ? 'el caso se libera mañana'
+            : `lleva ${dias} ${dias === 1 ? 'día' : 'días'}`,
         urgencia: faltan <= 1 ? 'ahora' : 'pronto',
       }
     }
@@ -132,10 +147,11 @@ export function seguimientoPendiente({
   if (sinAsignacionViva && estadoPersona !== 'CERRADO' && estadoPersona !== 'NUEVO') {
     return {
       clave: 'sin-asignar',
-      texto:
+      accion: 'Asignarle profesional',
+      detalle:
         diasEsperando >= 1
-          ? `Asignarle profesional · lleva ${diasEsperando} ${diasEsperando === 1 ? 'día' : 'días'}`
-          : 'Asignarle profesional',
+          ? `lleva ${diasEsperando} ${diasEsperando === 1 ? 'día' : 'días'}`
+          : null,
       urgencia: diasEsperando >= 3 ? 'ahora' : 'cuando-puedas',
     }
   }
