@@ -791,6 +791,10 @@ export function mensajeDeCitaConfirmada(d: {
       : `${nombreDePila(d.profesional)} se va a poner en contacto contigo para ese momento. No tienes que hacer nada más.`,
     '',
     'Si te surge algo y no puedes, escríbenos por aquí con tiempo y lo movemos. No pasa nada.',
+    '',
+    // El enlace de agenda se menciona AQUÍ y no antes: ya lo usó, ya sabe qué
+    // hace, y guardarlo para las siguientes sesiones tiene sentido.
+    'Y guarda el enlace donde elegiste la hora: desde ahí puedes agendar tus próximas sesiones cuando las necesites.',
   ]
     .filter((l) => l !== null)
     .join('\n')
