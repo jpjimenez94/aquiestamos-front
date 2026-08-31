@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+import { momentoDelDia } from '@/lib/momentoDelDia'
 import { useEffect, useState, use } from 'react'
 import { CalendarCheck, Clock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
 
@@ -21,6 +23,9 @@ function soloDia(cuando: string): string {
   return i < 0 ? cuando : cuando.slice(0, i).trim()
 }
 
+/** Cuántos días se enseñan de entrada. El resto se pliega tras «ver más». */
+const DIAS_VISIBLES = 3
+
 /** Agrupa conservando el orden en que vinieron: ya llegan de más pronto a más tarde. */
 function porDia(huecos: Hueco[]): [string, Hueco[]][] {
   const mapa = new Map<string, Hueco[]>()
@@ -31,6 +36,31 @@ function porDia(huecos: Hueco[]): [string, Hueco[]][] {
     else mapa.set(dia, [h])
   }
   return [...mapa.entries()]
+}
+
+/**
+ * Los colores de la red, no los de una plantilla.
+ *
+ * Esta pantalla se hizo con un verde neón sobre gris azulado —los tonos por
+ * defecto de cualquier librería— y no se parecía en nada al resto del sitio.
+ * A quien llega por un enlace de WhatsApp eso le resta lo único que puede
+ * usar para confiar: reconocer de dónde viene.
+ *
+ * Salen de `globals.css`, escritos aquí porque esta página se pinta con
+ * estilos en línea —es de cara a la persona acompañada y no comparte la hoja
+ * del portal—. Si allá cambian, aquí también.
+ */
+const MARCA = {
+  fondo: '#efe5d9',
+  tarjeta: '#ffffff',
+  tinta: '#37352f',
+  tintaSuave: '#63625b',
+  borde: '#e9e9e7',
+  verde: '#448361',
+  verdeSuave: '#f1f5f2',
+  crema: '#e7e2d2',
+  noche: '#15162e',
+  rojo: '#b03730',
 }
 
 type Hueco = { inicio: string; fin: string; cuando: string }
@@ -63,6 +93,8 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [eligiendo, setEligiendo] = useState<string | null>(null)
+  // Las fechas más allá de las tres primeras, plegadas hasta que se pidan.
+  const [verTodo, setVerTodo] = useState(false)
   const [listo, setListo] = useState<{ cuando: string; profesional: string } | null>(null)
 
   async function cargar() {
@@ -116,18 +148,18 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
 
   const marco: React.CSSProperties = {
     minHeight: '100vh',
-    background: 'linear-gradient(180deg, #f0fdf4 0%, #f8fafc 100%)',
+    background: MARCA.fondo,
     display: 'flex',
     justifyContent: 'center',
-    padding: '32px 16px 64px',
+    padding: '28px 16px 64px',
   }
   const tarjeta: React.CSSProperties = {
     width: '100%',
-    maxWidth: 520,
-    background: '#fff',
+    maxWidth: 560,
+    background: MARCA.tarjeta,
     borderRadius: 16,
-    padding: 'clamp(20px, 5vw, 32px)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+    padding: 'clamp(22px, 5vw, 34px)',
+    boxShadow: '0 4px 24px rgba(55, 53, 47, 0.07)',
   }
 
   if (cargando) {
@@ -196,20 +228,45 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
   return (
     <div style={marco}>
       <div style={tarjeta}>
-        <h1 style={{ fontSize: '1.35rem', color: '#0f172a', margin: '0 0 6px' }}>
+        {/*
+          La marca antes que el saludo.
+        
+          A esta pantalla se llega desde un enlace de WhatsApp: sin menú, sin
+          sesión, sin nada que diga de quién es. Y lo primero que hace es
+          enseñarle a alguien el nombre de la profesional que la va a acompañar.
+          Saber de dónde viene el enlace no es decoración aquí.
+        */}
+        <Image
+          src="/images/1logo.png"
+          alt="Red Aquí Estamos"
+          width={150}
+          height={54}
+          priority
+          style={{ width: 132, height: 'auto', marginBottom: 22 }}
+        />
+
+        <h1
+          style={{
+            fontFamily: 'var(--font-cormorant), Georgia, serif',
+            fontSize: 'clamp(1.5rem, 5vw, 1.8rem)',
+            fontWeight: 600,
+            color: MARCA.tinta,
+            margin: '0 0 8px',
+          }}
+        >
           {estado.persona ? `Hola, ${estado.persona}` : 'Hola'}
         </h1>
         <p
           style={{
-            color: '#475569',
+            color: MARCA.tintaSuave,
             margin: '0 0 4px',
             display: 'flex',
             alignItems: 'center',
             gap: 6,
           }}
         >
-          <User size={16} style={{ color: '#059669' }} />
-          Tu acompañamiento es con <strong>{estado.profesional}</strong>
+          <User size={16} style={{ color: MARCA.verde }} />
+          Tu acompañamiento es con <strong style={{ color: MARCA.tinta }}>{estado.profesional}</strong>
         </p>
 
         {estado.proxima ? (
@@ -255,68 +312,162 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
         ) : null}
 
         {estado.huecos.length === 0 ? (
-          <p style={{ color: '#64748b', fontSize: '0.92rem', lineHeight: 1.6 }}>
+          <p style={{ color: MARCA.tintaSuave, fontSize: '0.94rem', lineHeight: 1.6 }}>
             Ahora mismo no hay horas libres en su agenda. Escríbenos por WhatsApp y lo cuadramos
             contigo.
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-            {porDia(estado.huecos).map(([dia, delDia]) => (
-              <div key={dia}>
-                <h3
+          <>
+            {/*
+              El atajo: la primera hora libre, a un toque.
+            
+              Es lo que quiere la mayoría —lo antes posible— y hasta ahora había
+              que buscarlo entre decenas de botones. Quien está mal no viene a
+              comparar horarios, viene a que la atiendan pronto; el que quiera
+              elegir tiene la lista justo debajo.
+            */}
+            {(() => {
+              const primero = estado.huecos[0]
+              return (
+                <button
+                  type="button"
+                  onClick={() => elegir(primero)}
+                  disabled={eligiendo !== null}
                   style={{
-                    margin: '0 0 9px',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    color: '#64748b',
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '15px 18px',
+                    borderRadius: 12,
+                    border: 'none',
+                    background: MARCA.noche,
+                    color: '#fff6eb',
+                    cursor: eligiendo ? 'wait' : 'pointer',
+                    marginBottom: 20,
+                    opacity: eligiendo && eligiendo !== primero.inicio ? 0.55 : 1,
                   }}
                 >
-                  {dia}
-                </h3>
+                  <span style={{ display: 'block', fontWeight: 700, fontSize: '0.98rem' }}>
+                    {eligiendo === primero.inicio ? 'Agendando…' : 'La más pronto posible'}
+                  </span>
+                  <span style={{ display: 'block', fontSize: '0.85rem', opacity: 0.82, marginTop: 3 }}>
+                    {primero.cuando}
+                  </span>
+                </button>
+              )
+            })()}
 
-                {/*
-                  En cuadrícula y solo la hora.
-                
-                  Eran sesenta botones en una columna, cada uno repitiendo el día
-                  entero. Quien abre esto puede estar mal; hacerle bajar por un
-                  muro de fechas para encontrar una hora es ponerle una barrera
-                  justo en el paso que existe para quitársela.
-                */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(104px, 1fr))',
-                    gap: 8,
-                  }}
-                >
-                  {delDia.map((h) => (
-                    <button
-                      key={h.inicio}
-                      type="button"
-                      onClick={() => elegir(h)}
-                      disabled={eligiendo !== null}
+            <p
+              style={{
+                color: MARCA.tintaSuave,
+                fontSize: '0.86rem',
+                margin: '0 0 14px',
+              }}
+            >
+              …o elige otra:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {porDia(estado.huecos)
+                .slice(0, verTodo ? undefined : DIAS_VISIBLES)
+                .map(([dia, delDia]) => (
+                  <div key={dia}>
+                    <h3
                       style={{
-                        textAlign: 'center',
-                        padding: '12px 8px',
-                        borderRadius: 10,
-                        border: '1px solid #cbd5e1',
-                        background: eligiendo === h.inicio ? '#ecfdf5' : '#fff',
-                        color: '#0f172a',
-                        fontSize: '0.95rem',
-                        fontWeight: 600,
-                        cursor: eligiendo ? 'wait' : 'pointer',
-                        opacity: eligiendo && eligiendo !== h.inicio ? 0.5 : 1,
+                        margin: '0 0 10px',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        color: MARCA.tintaSuave,
                       }}
                     >
-                      {eligiendo === h.inicio ? '…' : soloHora(h.cuando)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+                      {dia}
+                    </h3>
+
+                    {/*
+                      Por momento del día, no en rejilla plana.
+                    
+                      «Mañana / Tarde / Noche» es como la gente piensa su día:
+                      tres decisiones en vez de una lista de horas sueltas. La
+                      etiqueta solo aparece si ese momento tiene algo.
+                    */}
+                    {(['Mañana', 'Tarde', 'Noche'] as const).map((momento) => {
+                      const delMomento = delDia.filter((h) => momentoDelDia(h.cuando) === momento)
+                      if (delMomento.length === 0) return null
+
+                      return (
+                        <div
+                          key={momento}
+                          style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}
+                        >
+                          <span
+                            style={{
+                              minWidth: 54,
+                              fontSize: '0.78rem',
+                              color: MARCA.tintaSuave,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {momento}
+                          </span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {delMomento.map((h) => (
+                              <button
+                                key={h.inicio}
+                                type="button"
+                                onClick={() => elegir(h)}
+                                disabled={eligiendo !== null}
+                                style={{
+                                  padding: '10px 14px',
+                                  borderRadius: 10,
+                                  border: `1px solid ${MARCA.borde}`,
+                                  background:
+                                    eligiendo === h.inicio ? MARCA.verdeSuave : MARCA.tarjeta,
+                                  color: MARCA.tinta,
+                                  fontSize: '0.92rem',
+                                  fontWeight: 600,
+                                  cursor: eligiendo ? 'wait' : 'pointer',
+                                  opacity: eligiendo && eligiendo !== h.inicio ? 0.5 : 1,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {eligiendo === h.inicio ? '…' : soloHora(h.cuando)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+            </div>
+
+            {/*
+              El resto de fechas, plegado. Quien está mal quiere pronto, no
+              dentro de tres semanas — pero si ninguna de estas le sirve, las
+              demás siguen ahí a un toque.
+            */}
+            {!verTodo && porDia(estado.huecos).length > DIAS_VISIBLES ? (
+              <button
+                type="button"
+                onClick={() => setVerTodo(true)}
+                style={{
+                  marginTop: 18,
+                  width: '100%',
+                  padding: '11px',
+                  borderRadius: 10,
+                  border: `1px solid ${MARCA.borde}`,
+                  background: MARCA.crema,
+                  color: MARCA.tinta,
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Ver más fechas
+              </button>
+            ) : null}
+          </>
         )}
       </div>
     </div>

@@ -115,3 +115,33 @@ describe('qué se le pregunta al profesional, y cuándo', () => {
     }
   })
 })
+
+describe('el momento del día en la pantalla de agenda', async () => {
+  /**
+   * Se saca de la hora YA formateada por el backend, que es lo único que
+   * llega. Aquí no se vuelve a convertir nada: dos formateadores de hora
+   * acaban diciendo dos cosas distintas, y esta pantalla es donde alguien
+   * elige a qué hora se sienta con su psicóloga.
+   */
+  const { momentoDelDia } = await import('../lib/momentoDelDia')
+
+  it('la mañana llega hasta el mediodía', () => {
+    expect(momentoDelDia('lunes, 31 de agosto, 8:00 a. m.')).toBe('Mañana')
+    expect(momentoDelDia('lunes, 31 de agosto, 11:45 a. m.')).toBe('Mañana')
+  })
+
+  it('las 12 del mediodía son tarde, no mañana', () => {
+    expect(momentoDelDia('lunes, 31 de agosto, 12:00 p. m.')).toBe('Tarde')
+  })
+
+  /** Las 12 de la NOCHE son madrugada: hora 0, no 12. */
+  it('las 12 a. m. son madrugada', () => {
+    expect(momentoDelDia('lunes, 31 de agosto, 12:30 a. m.')).toBe('Mañana')
+  })
+
+  it('a partir de las 6 es noche', () => {
+    expect(momentoDelDia('lunes, 31 de agosto, 5:45 p. m.')).toBe('Tarde')
+    expect(momentoDelDia('lunes, 31 de agosto, 6:00 p. m.')).toBe('Noche')
+    expect(momentoDelDia('lunes, 31 de agosto, 8:15 p. m.')).toBe('Noche')
+  })
+})
