@@ -1115,7 +1115,9 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
   }
 
   return [
-    `Hola ${nombreProf}, la cita ya está confirmada y lista para iniciar.`,
+    `Hola ${nombreProf}, ${nombrePers} ya eligió su hora.`,
+    '',
+    'De acuerdo con la disponibilidad que tienes cargada en tu perfil, quedó agendado el acompañamiento:',
     '',
     `· *Persona acompañada:* ${nombrePers}`,
     `· *Cuándo:* ${d.cuando}`,
