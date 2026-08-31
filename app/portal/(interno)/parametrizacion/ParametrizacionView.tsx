@@ -1,5 +1,6 @@
 'use client'
 
+import { BurbujaWhatsApp } from "@/components/portal/BurbujaWhatsApp"
 import { useState, useEffect, useRef } from "react"
 import {
   MessageSquare,
@@ -666,34 +667,8 @@ export function ParametrizacionView({ usuario }: { usuario: Usuario }) {
                     </button>
                   </div>
 
-                  <div
-                    style={{
-                      background: "#e5ddd5",
-                      backgroundImage: "radial-gradient(#00000010 1px, transparent 1px)",
-                      backgroundSize: "16px 16px",
-                      padding: 16,
-                      borderRadius: 8,
-                      display: "flex",
-                      justifyContent: "flex-start",
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: "#dcf8c6",
-                        borderRadius: "8px 8px 8px 0px",
-                        padding: "10px 14px",
-                        maxWidth: "85%",
-                        boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
-                        fontSize: "0.84rem",
-                        color: "#111827",
-                        lineHeight: 1.5,
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      {renderizarVistaPrevia(valorEnEdicion)}
-                    </div>
-                  </div>
+                  {/* La misma burbuja que enseña la ficha de la persona. */}
+                  <BurbujaWhatsApp texto={renderizarVistaPrevia(valorEnEdicion)} />
                 </div>
               )}
             </div>

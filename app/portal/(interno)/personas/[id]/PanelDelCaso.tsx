@@ -1,5 +1,6 @@
 'use client'
 
+import { BurbujaWhatsApp } from '@/components/portal/BurbujaWhatsApp'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Copy, MessageCircle, CalendarCheck, RotateCcw, Clock } from 'lucide-react'
@@ -382,10 +383,17 @@ function Mensaje({
         </div>
       </div>
 
+      {/*
+        Como lo va a ver quien lo recibe, no como texto de configuración.
+      
+        Era un bloque gris con los asteriscos a la vista. Quien pulsa «Ver
+        texto» está a punto de escribirle a alguien que pidió ayuda: lo que
+        necesita comprobar es cómo llega el mensaje al otro lado.
+      */}
       {mostrando ? (
-        <pre className="mensaje__cuerpo" style={{ whiteSpace: 'pre-wrap' }}>
-          {texto}
-        </pre>
+        <div style={{ marginTop: 12 }}>
+          <BurbujaWhatsApp texto={texto} />
+        </div>
       ) : null}
     </div>
   )
