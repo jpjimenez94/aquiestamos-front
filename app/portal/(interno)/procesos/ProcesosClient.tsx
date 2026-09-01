@@ -265,8 +265,11 @@ export function ProcesosClient() {
       titulo: 'La cita queda agendada',
       tag: 'Agenda y Horarios',
       descripcion:
-        'La elige ella desde su enlace, sobre los espacios libres reales del profesional. Coordinación ya no cuadra horarios por WhatsApp: solo interviene si hace falta.',
-      estados: [{ estado: 'PROGRAMADA', texto: 'Agendada' }],
+        'La elige ella desde su enlace, sobre los espacios libres reales del profesional. Coordinación ya no cuadra horarios por WhatsApp: solo interviene si hace falta. La hora que escoge ella queda CONFIRMADA de una vez —es ella quien lo dijo, no hay a quién preguntarle—; PROGRAMADA queda solo para las horas que propone coordinación y aún esperan su sí.',
+      estados: [
+        { estado: 'PROGRAMADA', texto: 'Agendada, falta su sí' },
+        { estado: 'CONFIRMADA', texto: 'Confirmada' },
+      ],
       pasos: [
         {
           quien: 'La persona acompañada',

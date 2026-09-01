@@ -17,6 +17,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { enBogota } from '@/lib/fechas'
+import { momentoDeLaSesion } from '@/lib/momentoDeLaSesion'
 
 type InfoCita = {
   id: string
@@ -133,6 +134,27 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
   }, [id, rolQuery])
 
   const esProfesional = cita?.rol === 'PROFESIONAL' || rolQuery === 'profesional' || rolQuery === 'psicologo'
+
+  /**
+   * Un reloj propio, porque esta pantalla se queda abierta.
+   *
+   * Quien abre su enlace con tiempo lo deja puesto y espera mirandolo. Sin
+   * este latido, la cuenta atras se congela en el minuto en que cargo la
+   * pagina y el aviso seguiria diciendo «todavia no es la hora» pasada la
+   * hora: justo cuando importa, mentiria.
+   *
+   * Solo corre en la sala de espera. Una vez dentro de la llamada no hay nada
+   * que contar aqui, y el temporizador de la telemetria ya lleva lo suyo.
+   */
+  const [ahora, setAhora] = useState(() => Date.now())
+  useEffect(() => {
+    if (enLlamada) return
+    const reloj = setInterval(() => setAhora(Date.now()), 15000)
+    return () => clearInterval(reloj)
+  }, [enLlamada])
+
+  const momento = momentoDeLaSesion({ inicio: cita?.startsAt ?? '', ahora })
+  const esTemprano = Boolean(cita) && momento.clave === 'temprano'
 
   // Manejo de pings periódicos para telemetría de duración
   useEffect(() => {
@@ -521,31 +543,74 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
             </div>
           </div>
 
+          {/*
+            Cuánto falta, antes del botón.
+            La tarjeta de arriba dice a qué hora es; lo que la persona quiere
+            saber al abrir el enlace es si le toca ahora. Restar una hora de
+            otra no es trabajo suyo.
+          */}
+          {esTemprano ? (
+            <div
+              style={{
+                display: 'flex',
+                gap: 10,
+                alignItems: 'flex-start',
+                background: '#fffbeb',
+                border: '1px solid #fde68a',
+                borderRadius: 14,
+                padding: '14px 16px',
+                marginBottom: 16,
+              }}
+            >
+              <Clock size={18} style={{ color: '#b45309', flexShrink: 0, marginTop: 1 }} />
+              <div style={{ fontSize: '0.86rem', color: '#78350f', lineHeight: 1.5 }}>
+                <strong style={{ display: 'block', color: '#92400e' }}>
+                  Todavía no es la hora de la sesión.
+                </strong>
+                Faltan {momento.faltan} — es el {enBogota(cita.startsAt)}.
+                {esProfesional
+                  ? ' Puedes entrar antes para dejar cámara y micrófono listos.'
+                  : ` Puedes entrar antes para probar tu cámara y tu micrófono; ${cita.professionalName} entrará a la hora acordada.`}
+              </div>
+            </div>
+          ) : null}
+
           {/* Botón de Entrada Principal */}
           <button
             type="button"
             onClick={unirseALaSala}
             disabled={conectando}
+            /*
+              La puerta no se cierra nunca; lo que cambia es lo que promete.
+              Entrar antes a probar el equipo es justo lo que conviene hacer,
+              así que antes de la hora el botón sigue funcionando pero deja de
+              ser la llamada a la acción: en verde sólido diría «esto es lo que
+              toca ahora», y no lo es.
+            */
             style={{
               width: '100%',
               padding: '14px 20px',
               borderRadius: 12,
-              background: '#059669',
-              color: '#ffffff',
-              border: 'none',
-              fontSize: '1.05rem',
+              background: esTemprano ? '#ffffff' : '#059669',
+              color: esTemprano ? '#047857' : '#ffffff',
+              border: esTemprano ? '1.5px solid #a7f3d0' : 'none',
+              fontSize: esTemprano ? '0.98rem' : '1.05rem',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+              boxShadow: esTemprano ? 'none' : '0 4px 12px rgba(5, 150, 105, 0.25)',
               transition: 'all 0.2s ease',
             }}
           >
             <Video size={20} />
-            {conectando ? 'Abriendo sala segura…' : 'Entrar a la videollamada'}
+            {conectando
+              ? 'Abriendo sala segura…'
+              : esTemprano
+                ? 'Entrar de todas formas'
+                : 'Entrar a la videollamada'}
           </button>
 
           <p style={{ textAlign: 'center', fontSize: '0.76rem', color: '#94a3b8', margin: '14px 0 0' }}>

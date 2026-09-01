@@ -7,8 +7,17 @@ import { ModalReprogramar } from '@/components/portal/ModalReprogramar'
 import { ModalTarjetaProfesional } from '@/components/portal/ModalTarjetaProfesional'
 import { CalendarClock, FileCheck2, ShieldCheck } from 'lucide-react'
 
+/**
+ * El boton dice quien confirma, no solo «confirmar».
+ *
+ * «Confirmar Cita» no decia de parte de quien, y aparecia igual sobre una
+ * hora que la persona misma habia elegido: quien coordinaba leia una tarea
+ * pendiente donde no habia ninguna. Ahora la hora elegida por ella nace
+ * confirmada, y este boton queda para el unico caso que si lo necesita —
+ * la hora la propuso la coordinacion y falta el si de la persona.
+ */
 const ETIQUETA: Record<string, string> = {
-  CONFIRMADA: 'Confirmar Cita',
+  CONFIRMADA: 'La persona ya confirmó',
   REALIZADA: 'Marcar como Realizada',
   NO_ASISTIO: 'Marcar que No Asistió',
   CANCELADA: 'Cancelar Cita',

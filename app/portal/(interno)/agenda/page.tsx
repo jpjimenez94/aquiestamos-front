@@ -443,17 +443,28 @@ export default async function AgendaPage({
             )}
           </div>
 
-          {/* Columna 4: Cita propuesta (PROGRAMADA) */}
+  /*
+    Columna 4: hay hora, falta el sí de la persona (PROGRAMADA).
+
+    Se llamaba «Cita agendada» a secas, y quedaba a la izquierda de
+    «Citas confirmadas»: leído en fila, el tablero decía que una cita
+    agendada es un paso ANTES de una confirmada, cuando «agendada» suena
+    a mas cerrado que «confirmada». Quien coordina no podia saber que le
+    faltaba a una tarjeta de aqui.
+
+    Le falta el si de la persona, y ahora lo dice — con la misma forma
+    que la columna 3, que ya separaba el estado de lo que falta.
+  */
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#7c3aed' }} />
-                4. Cita agendada
+                4. Agendada · falta confirmar
               </span>
               <span className="pipeline-columna__contador">{citasPropuestas.length}</span>
             </div>
             {citasPropuestas.length === 0 ? (
-              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin citas propuestas</span>
+              <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>Sin citas por confirmar</span>
             ) : (
               citasPropuestas.map((c) => (
                 <Link key={c.id} href={`/portal/agenda/${c.id}`} className="pipeline-card" style={{ borderLeft: '3px solid #7c3aed' }}>

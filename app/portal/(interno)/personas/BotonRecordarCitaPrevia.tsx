@@ -70,7 +70,17 @@ export function BotonRecordarCitaPrevia({
     return null
   }
 
-  const horaFormateada = cita.inicioLocal ?? enBogota(cita.inicio)
+  /**
+   * En palabras, no en formato de máquina.
+   *
+   * `inicioLocal` viene del back como «2026-08-31 19:00»: la zona horaria es
+   * correcta —esa parte estaba bien— pero es un formato para ordenar
+   * columnas, no para escribirle a alguien. Iba primero en el `??`, así que
+   * ganaba siempre, y el recordatorio salía con esa fecha mientras
+   * `enBogota` —que dice «lunes, 31 de agosto, 7:00 p. m.»— esperaba de
+   * respaldo sin llegar a usarse nunca.
+   */
+  const horaFormateada = enBogota(cita.inicio) || cita.inicioLocal || ''
   const telProf = paraWhatsapp(profesional.telefono)
   const telPac = paraWhatsapp(pacienteTelefono)
 

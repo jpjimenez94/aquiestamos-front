@@ -1427,8 +1427,25 @@ export function mensajeRecordatorioPrevioCitaPersona(d: {
     return renderPlantilla(d.plantilla, {
       nombre,
       profesional: d.profesional,
+      /**
+       * El nombre de pila, para las veces que el mensaje vuelve a nombrarlo.
+       *
+       * La plantilla repetía el nombre legal completo cuatro veces —«Jorge
+       * Eduardo Calderon Velandia» en cada párrafo—: un recordatorio de tres
+       * líneas leído como un oficio. Nombrarlo entero una vez dice con quién
+       * es la cita; a partir de ahí basta el nombre de pila, que es como se
+       * van a saludar.
+       *
+       * El texto de respaldo de aquí abajo ya lo hacía así. La plantilla del
+       * portal no: la misma regla escrita en dos sitios, y solo uno se
+       * enteró.
+       */
+      profesionalNombre: nombreDePila(d.profesional) || d.profesional,
       cuando: d.cuando,
-      modalidad: d.modalidad ?? null,
+      // En minúscula, como en el texto de respaldo. Puesto en crudo salía
+      // «en modalidad *VIRTUAL*», gritándole a la persona el nombre interno
+      // del campo.
+      modalidad: d.modalidad ? d.modalidad.toLowerCase() : null,
       enlaceReunion: d.enlaceReunion ?? null,
     })
   }
