@@ -214,29 +214,31 @@ const NOMBRE_ROL: Record<string, string> = {
 };
 
 /**
- * El logo junto al nombre, en la barra móvil y en el lateral.
+ * La marca, en la barra móvil y en el lateral.
  *
- * `portal__marca` ya era un flex con gap: estaba preparado para llevarlo y
- * solo tenía el texto. El nombre se queda al lado del símbolo a propósito —
- * un logo solo obliga a reconocerlo, y esta barra la ve también gente que
- * entra por primera vez.
+ * Llevaba el logo y, al lado, un `<span>` con «Aquí Estamos». Pero el archivo
+ * no es un símbolo: es el lockup completo, nombre incluido. Así que la barra
+ * decía «Aquí Estamos» dos veces, y para que cupieran las dos el logo quedaba
+ * en 30px de alto — tan pequeño que el nombre dentro de la imagen no se leía,
+ * y parecía cortado.
  *
- * `alt` vacío porque el texto de al lado ya dice «Aquí Estamos»: un lector de
- * pantalla que lo anunciara lo repetiría dos veces.
+ * El texto se va y el logo se queda con el ancho entero. El razonamiento de
+ * antes —«un logo solo obliga a reconocerlo»— seguiría valiendo si el logo
+ * fuera solo el símbolo; con el nombre dentro, ya no.
+ *
+ * Ahora el `alt` sí dice el nombre: era lo único que lo aportaba a quien usa
+ * lector de pantalla, y estaba vacío justamente porque el texto lo repetía.
  */
 function Marca() {
   return (
-    <>
-      <Image
-        className="portal__logo"
-        src="/images/logo.png"
-        alt=""
-        width={2000}
-        height={729}
-        priority
-      />
-      <span>Aquí Estamos</span>
-    </>
+    <Image
+      className="portal__logo"
+      src="/images/logo.png"
+      alt="Aquí Estamos"
+      width={2000}
+      height={729}
+      priority
+    />
   );
 }
 

@@ -1735,3 +1735,17 @@ body.sin-desplazamiento {
   height: 30px;
   flex-shrink: 0;
 }
+
+/**
+ * En el lateral, el logo se queda con todo el ancho.
+ *
+ * Los 30px de arriba son para la barra móvil, que mide 62px de alto: ahí no
+ * cabe más. En el lateral no había ninguna razón para ese tamaño salvo
+ * dejarle sitio al texto que iba al lado, y ese texto era el mismo nombre
+ * que ya trae la imagen.
+ */
+.portal__marca--lateral .portal__logo {
+  width: 100%;
+  max-width: 176px;
+  height: auto;
+}
