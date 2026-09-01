@@ -17,6 +17,23 @@ type Metricas = {
     seQuedaronAqui: number | null
   }[]
   caminoSobreCuantas?: number
+  /** Lo que está parado ahora mismo y ya pasó de su plazo. */
+  atascos?: {
+    etapa: string
+    cuantas: number
+    diasMaximo: number | null
+    umbralDias: number
+    quePasaSiSeIgnora: string
+  }[]
+  /** Lo que el profesional responde al cerrar el caso. */
+  loQueDicenAlCerrar?: {
+    totalReportes: number
+    conRespuesta: number
+    necesitaMas: number
+    suficiente: number
+    noSabe: number
+    noSePresento: number
+  }
   /** Por qué cae el último escalón: no todo lo que falta es una pérdida. */
   desgloseUltimoPaso?: {
     conSesionPorDelante: number
@@ -245,6 +262,149 @@ function Camino({
   )
 }
 
+/**
+ * Lo que está parado ahora, y desde cuándo.
+ *
+ * El camino de arriba es historia acumulada: dice que la mitad eligió hora,
+ * no si la otra mitad está atascada o entró ayer. Un porcentaje no se puede
+ * atender; «tres personas llevan doce días» sí.
+ *
+ * Solo entra lo que ya pasó de su plazo, y el plazo es el mismo con el que
+ * los barridos liberan casos. Si esta pantalla dijera «atrasado» con un
+ * umbral propio, contradiría al tablero de al lado.
+ */
+function Atascos({ filas }: { filas: NonNullable<Metricas['atascos']> }) {
+  const conCosas = filas.filter((f) => f.cuantas > 0)
+
+  return (
+    <div className="panel">
+      <h2>Lo que está esperando</h2>
+      <p className="tabla__secundario" style={{ margin: '0 0 14px', fontSize: '0.82rem' }}>
+        Solo lo que ya pasó de su plazo. Los plazos se cambian en Parametrización.
+      </p>
+
+      {conCosas.length === 0 ? (
+        <p className="tabla__secundario" style={{ margin: 0, fontSize: '0.86rem' }}>
+          Nada atrasado. Todo lo que está abierto va dentro de su plazo.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {conCosas.map((f) => (
+            <div
+              key={f.etapa}
+              style={{
+                display: 'flex',
+                gap: 12,
+                alignItems: 'flex-start',
+                paddingBottom: 12,
+                borderBottom: '1px solid #f1f5f9',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '1.4rem',
+                  fontWeight: 800,
+                  color: '#b45309',
+                  fontVariantNumeric: 'tabular-nums',
+                  minWidth: 34,
+                  lineHeight: 1.1,
+                }}
+              >
+                {f.cuantas}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{f.etapa}</div>
+                <div className="tabla__secundario" style={{ fontSize: '0.8rem', marginTop: 2 }}>
+                  {f.diasMaximo !== null ? (
+                    <>
+                      {/* El más viejo, no el promedio: es el que hay que mirar hoy. */}
+                      El que más lleva, <strong>{f.diasMaximo}</strong>{' '}
+                      {f.diasMaximo === 1 ? 'día' : 'días'}. Plazo: {f.umbralDias}{' '}
+                      {f.umbralDias === 1 ? 'día' : 'días'}.
+                    </>
+                  ) : null}{' '}
+                  {f.quePasaSiSeIgnora}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Lo que responde el profesional al cerrar: si hizo falta más de una sesión.
+ *
+ * Se recogía en cada reporte y no salía en ninguna pantalla. Es lo más
+ * parecido a «¿sirvió?» que hay hoy, y además dice cuánta segunda sesión
+ * viene encima — que es lo que decide si la red aguanta.
+ */
+function AlCerrar({ d }: { d: NonNullable<Metricas['loQueDicenAlCerrar']> }) {
+  const total = d.conRespuesta
+  const filas = [
+    { etiqueta: 'Necesita más sesiones', valor: d.necesitaMas, color: '#b45309' },
+    { etiqueta: 'Con esta fue suficiente', valor: d.suficiente, color: '#059669' },
+    { etiqueta: 'Todavía no lo sé', valor: d.noSabe, color: '#64748b' },
+  ]
+  const pct = (v: number) => (total > 0 ? Math.round((v / total) * 100) : 0)
+
+  return (
+    <div className="panel">
+      <h2>Lo que dicen los profesionales al cerrar</h2>
+      <p className="tabla__secundario" style={{ margin: '0 0 14px', fontSize: '0.82rem' }}>
+        {total === 0
+          ? 'Todavía ningún reporte responde si hizo falta continuar.'
+          : `Sobre ${total} ${total === 1 ? 'reporte' : 'reportes'} de ${d.totalReportes} en total.`}
+      </p>
+
+      {total > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {filas.map((f) => (
+            <div key={f.etiqueta} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 4 }}>
+              <span style={{ fontSize: '0.88rem' }}>{f.etiqueta}</span>
+              <span style={{ fontWeight: 700, fontSize: '0.88rem', fontVariantNumeric: 'tabular-nums' }}>
+                {f.valor}
+                <span style={{ fontWeight: 400, opacity: 0.6 }}> · {pct(f.valor)}%</span>
+              </span>
+              <div
+                style={{
+                  gridColumn: '1 / -1',
+                  height: 8,
+                  borderRadius: 999,
+                  background: '#e2e8f0',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${pct(f.valor)}%`,
+                    height: '100%',
+                    borderRadius: 999,
+                    background: f.color,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {d.noSePresento > 0 ? (
+        <p
+          className="tabla__secundario"
+          style={{ margin: '14px 0 0', paddingTop: 12, borderTop: '1px solid #e2e8f0', fontSize: '0.82rem' }}
+        >
+          Aparte, <strong>{d.noSePresento}</strong>{' '}
+          {d.noSePresento === 1 ? 'vez el profesional reportó' : 'veces los profesionales reportaron'} que
+          la persona no se presentó a una sesión acordada.
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
 export function MetricasView({ m }: { m: Metricas }) {
   const [tab, setTab] = useState<'operacion' | 'virtual' | 'todo'>('operacion')
   const e = m.encuesta
@@ -392,6 +552,19 @@ export function MetricasView({ m }: { m: Metricas }) {
               📊 Impacto y Operación General
             </h2>
           )}
+          {/*
+            «Lo que está esperando» va ANTES del camino, y no al final.
+
+            El camino cuenta lo que pasó; esto cuenta lo que hay que hacer hoy.
+            Quien abre el informe por la mañana viene a lo segundo, y si está
+            debajo de cuatro paneles de historia no lo ve.
+          */}
+          {m.atascos?.length ? (
+            <div style={{ marginBottom: 18 }}>
+              <Atascos filas={m.atascos} />
+            </div>
+          ) : null}
+
           {m.camino?.length ? (
             <div style={{ marginBottom: 18 }}>
               <Camino
@@ -399,6 +572,12 @@ export function MetricasView({ m }: { m: Metricas }) {
                 sobreCuantas={m.caminoSobreCuantas}
                 desglose={m.desgloseUltimoPaso}
               />
+            </div>
+          ) : null}
+
+          {m.loQueDicenAlCerrar ? (
+            <div style={{ marginBottom: 18 }}>
+              <AlCerrar d={m.loQueDicenAlCerrar} />
             </div>
           ) : null}
 
