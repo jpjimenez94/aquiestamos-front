@@ -17,6 +17,11 @@ type Metricas = {
     seQuedaronAqui: number | null
   }[]
   caminoSobreCuantas?: number
+  /** Por qué cae el último escalón: no todo lo que falta es una pérdida. */
+  desgloseUltimoPaso?: {
+    conSesionPorDelante: number
+    esperandoCierre: number
+  }
   tamizaje?: {
     enviados: number
     respondidos: number
@@ -125,10 +130,14 @@ function Tabla({ titulo, filas }: { titulo: string; filas: [string, string][] })
 function Camino({
   pasos,
   sobreCuantas,
+  desglose,
 }: {
   pasos: NonNullable<Metricas['camino']>
   sobreCuantas?: number
+  desglose?: Metricas['desgloseUltimoPaso']
 }) {
+  const porDelante = desglose?.conSesionPorDelante ?? 0
+  const sinCerrar = desglose?.esperandoCierre ?? 0
   const pocas = (sobreCuantas ?? 0) < 20
 
   return (
@@ -185,6 +194,53 @@ function Camino({
           </div>
         ))}
       </div>
+
+      {/*
+        Por qué cae el último escalón.
+
+        La caída salía como «−4 personas» en el mismo ámbar que las demás, y
+        un embudo resta gente que se quedó en el camino. Pero estas no se
+        quedaron: su sesión es el jueves. Sin esta línea, el informe pedía
+        arreglar una cola como si fuera una fuga — y de paso escondía la parte
+        que sí lo es.
+      */}
+      {porDelante > 0 || sinCerrar > 0 ? (
+        <div
+          style={{
+            marginTop: 14,
+            paddingTop: 12,
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 18,
+            fontSize: '0.82rem',
+          }}
+        >
+          {porDelante > 0 ? (
+            <span>
+              <strong style={{ color: '#059669', fontVariantNumeric: 'tabular-nums' }}>
+                {porDelante}
+              </strong>{' '}
+              <span className="tabla__secundario">
+                {porDelante === 1 ? 'tiene su sesión' : 'tienen su sesión'} agendada, todavía sin
+                llegar. No {porDelante === 1 ? 'se perdió' : 'se perdieron'}: están en cola.
+              </span>
+            </span>
+          ) : null}
+          {sinCerrar > 0 ? (
+            <span>
+              <strong style={{ color: '#b45309', fontVariantNumeric: 'tabular-nums' }}>
+                {sinCerrar}
+              </strong>{' '}
+              <span className="tabla__secundario">
+                {sinCerrar === 1 ? 'sesión pasó' : 'sesiones pasaron'} sin que nadie
+                {sinCerrar === 1 ? ' dijera' : ' dijera'} qué ocurrió. No {sinCerrar === 1 ? 'cuenta' : 'cuentan'} como
+                sesión ni como ausencia: {sinCerrar === 1 ? 'falta' : 'faltan'} de cerrar.
+              </span>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -338,7 +394,11 @@ export function MetricasView({ m }: { m: Metricas }) {
           )}
           {m.camino?.length ? (
             <div style={{ marginBottom: 18 }}>
-              <Camino pasos={m.camino} sobreCuantas={m.caminoSobreCuantas} />
+              <Camino
+                pasos={m.camino}
+                sobreCuantas={m.caminoSobreCuantas}
+                desglose={m.desgloseUltimoPaso}
+              />
             </div>
           ) : null}
 
