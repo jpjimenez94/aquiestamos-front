@@ -235,6 +235,23 @@ export default async function AgendaPage({
     const citasAbiertas = tableroRes.data?.citasAbiertas ?? []
     const citasPropuestas = tableroRes.data?.citasPropuestas ?? citasAbiertas.filter((c) => c.estado === 'PROGRAMADA')
     const citasConfirmadas = tableroRes.data?.citasConfirmadas ?? citasAbiertas.filter((c) => c.estado === 'CONFIRMADA')
+    /**
+     * «Propuestas antiguas» solo aparece si queda alguna.
+     *
+     * Era la columna de cuando asignar significaba pedir permiso y esperar.
+     * Desde que se asigna y se avisa, ninguna asignación nace en PROPUESTA:
+     * la columna se quedó ocupando un séptimo del tablero para decir siempre
+     * cero, empujando de lado el trabajo que sí existe.
+     *
+     * No se borra: si alguna vieja sigue viva en algún sitio, tiene que poder
+     * verse. Se enseña cuando hay algo que enseñar, que es lo que hace una
+     * columna útil.
+     */
+    const hayPropuestasAntiguas = esperandoProfesional.length > 0
+    // Los números se recolocan solos: un tablero que salta del 1 al 3 hace
+    // pensar que falta una columna.
+    const n = (posicion: number) => (hayPropuestasAntiguas ? posicion : posicion - 1)
+
     const enAcompanamiento = tableroRes.data?.enAcompanamiento ?? []
     const cerrados = tableroRes.data?.cerrados ?? []
 
@@ -383,6 +400,7 @@ export default async function AgendaPage({
           </div>
 
           {/* Columna 2: la propuesta salió y el profesional no ha respondido */}
+          {hayPropuestasAntiguas ? (
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
@@ -409,13 +427,14 @@ export default async function AgendaPage({
               ))
             )}
           </div>
+          ) : null}
 
           {/* Columna 3: el profesional aceptó; falta que la persona confirme horario */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <UserCheck size={15} style={{ color: '#0284c7' }} />
-                3. Asignadas · falta que elija hora
+                {n(3)}. Asignadas · falta que elija hora
               </span>
               <span className="pipeline-columna__contador">{porCuadrarHorario.length}</span>
             </div>
@@ -443,8 +462,8 @@ export default async function AgendaPage({
             )}
           </div>
 
-  /*
-    Columna 4: hay hora, falta el sí de la persona (PROGRAMADA).
+          {/*
+            Columna 4: hay hora, falta el sí de la persona (PROGRAMADA).
 
     Se llamaba «Cita agendada» a secas, y quedaba a la izquierda de
     «Citas confirmadas»: leído en fila, el tablero decía que una cita
@@ -453,13 +472,13 @@ export default async function AgendaPage({
     faltaba a una tarjeta de aqui.
 
     Le falta el si de la persona, y ahora lo dice — con la misma forma
-    que la columna 3, que ya separaba el estado de lo que falta.
-  */
+            que la columna 3, que ya separaba el estado de lo que falta.
+          */}
           <div className="pipeline-columna">
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#7c3aed' }} />
-                4. Agendada · falta confirmar
+                {n(4)}. Agendada · falta confirmar
               </span>
               <span className="pipeline-columna__contador">{citasPropuestas.length}</span>
             </div>
@@ -516,7 +535,7 @@ export default async function AgendaPage({
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <CheckCircle2 size={15} style={{ color: '#059669' }} />
-                5. Citas confirmadas
+                {n(5)}. Citas confirmadas
               </span>
               <span className="pipeline-columna__contador">{citasConfirmadas.length}</span>
             </div>
@@ -553,7 +572,7 @@ export default async function AgendaPage({
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <UserCheck size={15} style={{ color: '#0284c7' }} />
-                6. En acompañamiento / seguimiento
+                {n(6)}. En acompañamiento / seguimiento
               </span>
               <span className="pipeline-columna__contador">{enAcompanamiento.length}</span>
             </div>
