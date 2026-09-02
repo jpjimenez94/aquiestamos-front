@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe,
+  it,
+  expect } from 'vitest'
 import {
   mensajeDePropuesta,
   enlaceWhatsapp,
@@ -14,6 +17,8 @@ import {
   mensajeDeCitaConfirmada,
   mensajeDeCitaAlProfesional,
   mensajeDeConsentimiento,
+  mensajeRecordatorioPrevioCitaProfesional,
+  mensajeRecordatorioPrevioCitaPersona,
 } from '../lib/mensajes'
 import { LINEAS_EMERGENCIA } from '../lib/consentimiento'
 
@@ -719,5 +724,39 @@ describe('mensajeDeCitaConfirmada con enlace de videollamada', () => {
     })
     expect(texto).toContain('https://meet.jit.si/AquiEstamos-Sesion-12345678')
     expect(texto).toContain('solo debes hacer clic en el enlace de videollamada')
+  })
+})
+
+/**
+ * La plantilla dice «en modalidad *{modalidad}*». Con el valor crudo salía
+ * «*VIRTUAL*»: el nombre interno del campo, a gritos, en el teléfono de alguien.
+ * El texto de respaldo ya lo ponía en minúscula; el camino de la plantilla no.
+ * La misma regla escrita en dos sitios, y solo uno se enteró — dos veces, una
+ * por cada recordatorio.
+ */
+describe('la modalidad en los recordatorios previos', () => {
+  const plantilla = 'Sesión {cuando} en modalidad *{modalidad}*.'
+
+  it('al profesional va en minúscula, no como el nombre del campo', () => {
+    const texto = mensajeRecordatorioPrevioCitaProfesional({
+      plantilla,
+      profesional: 'Andres Mauricio Zambrano',
+      cuando: 'mañana',
+      modalidad: 'VIRTUAL',
+    })
+    expect(texto).toContain('*virtual*')
+    expect(texto).not.toContain('VIRTUAL')
+  })
+
+  it('a la persona también', () => {
+    const texto = mensajeRecordatorioPrevioCitaPersona({
+      plantilla,
+      persona: 'Pierangely',
+      profesional: 'Andres Mauricio Zambrano',
+      cuando: 'mañana',
+      modalidad: 'PRESENCIAL',
+    })
+    expect(texto).toContain('*presencial*')
+    expect(texto).not.toContain('PRESENCIAL')
   })
 })

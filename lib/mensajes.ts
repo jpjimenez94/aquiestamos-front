@@ -1378,7 +1378,10 @@ export function mensajeRecordatorioPrevioCitaProfesional(d: {
     return renderPlantilla(d.plantilla, {
       profesional: nombre,
       cuando: d.cuando,
-      modalidad: d.modalidad ?? null,
+      // En minúscula, como en el texto de respaldo de abajo. Cruda salía
+      // «en modalidad *VIRTUAL*»: el nombre interno del campo, a gritos. La
+      // misma divergencia que ya tenía el recordatorio a la persona.
+      modalidad: d.modalidad ? d.modalidad.toLowerCase() : null,
       enlaceReunion: d.enlaceReunion ?? null,
       enlaceCaso: d.enlaceCaso ?? null,
     })
