@@ -70,6 +70,7 @@ export function PanelDelCaso({
   enlaceAgenda,
   plantillas,
   proximaCita,
+  siguientePaso,
 }: {
   persona: Persona
   asignacion: Asignacion
@@ -78,6 +79,12 @@ export function PanelDelCaso({
   enlaceAgenda?: string | null
   /** Textos editables desde Parametrización. Mandan sobre los del código. */
   plantillas?: Record<string, string>
+  /**
+   * Qué toca ahora, calculado con las citas reales. Si viene, manda sobre el
+   * texto fijo por estado que trae la asignación del backend — ese decía «ya
+   * hay cita» mirara lo que mirara.
+   */
+  siguientePaso?: string | null
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
   proximaCita?: {
     id?: string
@@ -119,9 +126,9 @@ export function PanelDelCaso({
         {enBogota(asignacion.desde, false)}.
       </p>
 
-      {asignacion.siguientePaso ? (
+      {siguientePaso ?? asignacion.siguientePaso ? (
         <p className="caso-siguiente">
-          <strong>Siguiente paso:</strong> {asignacion.siguientePaso}
+          <strong>Siguiente paso:</strong> {siguientePaso ?? asignacion.siguientePaso}
         </p>
       ) : null}
 

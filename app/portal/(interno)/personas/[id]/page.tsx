@@ -4,7 +4,7 @@ import { portalFetch, enBogota, usuarioActual, puede, traerPlantillas } from '@/
 
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
-import { pasoDelCaso, armarHechos } from '@/lib/pasosDelCaso'
+import { pasoDelCaso, armarHechos, proximaYUltima, siguientePasoDelCaso } from '@/lib/pasosDelCaso'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
@@ -172,16 +172,10 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
         proceso, y esto es lo que lo hace visible.
       */}
       {(() => {
-        const ahora = Date.now()
         const citas = persona.citas ?? []
-        const futuras = citas
-          .filter((c) => new Date(c.inicio).getTime() > ahora)
-          .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
-        const pasadas = citas
-          .filter((c) => new Date(c.inicio).getTime() <= ahora)
-          .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())
-        const proxima = futuras[0] ?? null
-        const ultima = pasadas[0] ?? null
+        // La misma regla que el panel del caso de abajo. Eran dos cálculos de
+        // «próxima» en este archivo, y no coincidían.
+        const { proxima, ultima } = proximaYUltima(citas)
 
         return (
           <IndicadorDePasos
@@ -279,12 +273,20 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
           enlaceAgenda={persona.enlaceAgenda}
           plantillas={plantillas}
+          siguientePaso={siguientePasoDelCaso({
+            estadoAsignacion: persona.asignacion?.estado,
+            citas: (persona.citas ?? []).map((c) => ({ ...c, reportada: Boolean(c.reporteId) })),
+            cuando: (fecha) => enBogota(fecha),
+          })}
           proximaCita={(() => {
-            // La cita abierta más próxima: es la que se le confirma al
-            // profesional. Vienen de la más próxima a la más lejana.
-            const abierta = persona.citas?.find(
-              (c) => c.estado === 'PROGRAMADA' || c.estado === 'CONFIRMADA',
-            )
+            /*
+              Decía «Vienen de la más próxima a la más lejana» y hacía find().
+              Venían al revés —de la más antigua— y una sesión ya pasada que
+              nadie marcó como realizada sigue CONFIRMADA: salía «Próxima
+              sesión: 27/08» el 2 de septiembre. Próxima es por delante y viva;
+              lo decide la misma regla que el paso a paso.
+            */
+            const abierta = proximaYUltima(persona.citas ?? []).proxima
             return abierta
               ? {
                   id: abierta.id,
