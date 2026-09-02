@@ -4,6 +4,8 @@ import Image from 'next/image'
 import { momentoDelDia } from '@/lib/momentoDelDia'
 import { useEffect, useState, use } from 'react'
 import { CalendarCheck, Clock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { FormularioConsentimiento } from '../../consentimiento/[token]/FormularioConsentimiento'
+import '../../tamizaje/[token]/tamizaje.css'
 
 /**
  * Parte «lunes, 25 de agosto, 7:30 p. m.» en el día y la hora.
@@ -95,7 +97,12 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
   const [eligiendo, setEligiendo] = useState<string | null>(null)
   // Las fechas más allá de las tres primeras, plegadas hasta que se pidan.
   const [verTodo, setVerTodo] = useState(false)
-  const [listo, setListo] = useState<{ cuando: string; profesional: string } | null>(null)
+  const [listo, setListo] = useState<{
+    cuando: string
+    profesional: string
+    consentimiento?: { firmado: boolean; token: string | null }
+    esMenor?: boolean
+  } | null>(null)
 
   async function cargar() {
     setCargando(true)
@@ -131,7 +138,12 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
       })
       const datos = await res.json()
       if (res.ok && datos?.success) {
-        setListo({ cuando: datos.data.cuando, profesional: datos.data.profesional })
+        setListo({
+          cuando: datos.data.cuando,
+          profesional: datos.data.profesional,
+          consentimiento: datos.data.consentimiento,
+          esMenor: datos.data.esMenor,
+        })
       } else {
         // El caso más probable aquí es que alguien tomara esa hora mientras la
         // persona decidía. Se recarga para que vea la lista de verdad y no
@@ -188,6 +200,33 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
             puedes, avísanos con tiempo y lo movemos: no pasa nada.
           </p>
         </div>
+
+        {/*
+          El consentimiento, aquí y ahora.
+
+          Era otro enlace y otro mensaje: la persona elegía su hora, y después
+          alguien tenía que acordarse de mandarle por WhatsApp el enlace para
+          firmar. Dos toques humanos —y a veces días— para una firma que puede
+          darse en este mismo momento, con la sesión recién acordada y la
+          persona delante de la pantalla. Si ya lo firmó en una sesión
+          anterior, la cita hereda la firma y esto no aparece.
+        */}
+        {listo.consentimiento && !listo.consentimiento.firmado && listo.consentimiento.token ? (
+          <div style={{ ...tarjeta, marginTop: 14 }}>
+            <h2 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 6px' }}>
+              Solo falta una cosa: tu consentimiento
+            </h2>
+            <p style={{ color: '#475569', margin: '0 0 14px', fontSize: '0.9rem', lineHeight: 1.6 }}>
+              Antes de la sesión necesitamos que leas y aceptes esto. Toma un minuto y se hace
+              aquí mismo.
+            </p>
+            <FormularioConsentimiento
+              token={listo.consentimiento.token}
+              esMenor={listo.esMenor === true}
+              yaFirmado={false}
+            />
+          </div>
+        ) : null}
       </div>
     )
   }
