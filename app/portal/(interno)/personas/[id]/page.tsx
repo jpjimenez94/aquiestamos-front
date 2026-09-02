@@ -95,6 +95,8 @@ type CitaDeLaPersona = {
   salaTokenPaciente?: string | null
   salaTokenProfesional?: string | null
   profesional: { id: string; nombre?: string }
+  /** La nota del profesional que cerró ESTA sesión, si ya la escribió. */
+  reporteId?: string | null
 }
 
 type Reporte = {
@@ -109,6 +111,9 @@ type Reporte = {
   reportedByEmail: string
   profesional: string | null
   createdAt: string
+  /** La sesión que esta nota cierra. Nulo si fue un contacto sin sesión. */
+  citaInicio?: string | null
+  citaId?: string | null
 }
 
 const DIA: Record<string, string> = {
@@ -354,6 +359,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                   <th>Profesional</th>
                   <th>Estado</th>
                   <th>Consentimiento</th>
+                  <th>Notas</th>
                 </tr>
               </thead>
               <tbody>
@@ -370,6 +376,27 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                       <Etiqueta estado={c.estado} texto={c.estadoLegible} />
                     </td>
                     <td>{c.consentSigned ? 'Firmado' : 'Pendiente'}</td>
+                    <td>
+                      {/*
+                        Tres citas en la tabla y una sola nota abajo, sin
+                        decir de cuál era: quien coordina tenía que adivinar
+                        por la fecha. Ahora cada fila dice si tiene nota y
+                        salta a ella; y si no la tiene, dice por qué.
+                      */}
+                      {c.reporteId ? (
+                        <a href={`#reporte-${c.reporteId}`} className="tabla__principal">
+                          Ver nota
+                        </a>
+                      ) : c.estado === 'CANCELADA' || c.estado === 'REPROGRAMADA' ? (
+                        <span className="tabla__secundario">—</span>
+                      ) : new Date(c.inicio).getTime() > Date.now() ? (
+                        <span className="tabla__secundario">Aún no ocurre</span>
+                      ) : (
+                        <span className="tabla__secundario" style={{ color: '#b45309' }}>
+                          Sin reportar
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -399,7 +426,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           {persona.reportes?.length ? (
             <ul className="bitacora">
               {persona.reportes.map((r) => (
-                <li key={r.id} className="bitacora__entrada">
+                <li key={r.id} id={`reporte-${r.id}`} className="bitacora__entrada">
                   <div className="bitacora__cabecera">
                     <strong>
                       {r.resultadoLegible}
@@ -407,6 +434,16 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                     </strong>
                     <span className="bitacora__fecha">{enBogota(r.createdAt)}</span>
                   </div>
+                  {r.citaInicio ? (
+                    <p className="bitacora__dato">
+                      <em>Sobre la sesión del</em>{' '}
+                      {r.citaId ? (
+                        <Link href={`/portal/agenda/${r.citaId}`}>{enBogota(r.citaInicio)}</Link>
+                      ) : (
+                        enBogota(r.citaInicio)
+                      )}
+                    </p>
+                  ) : null}
                   {r.modality || r.meetsAt ? (
                     <p className="bitacora__dato">
                       {r.modality ? r.modality.toLowerCase() : null}

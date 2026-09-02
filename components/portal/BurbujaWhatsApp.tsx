@@ -54,7 +54,15 @@ export function BurbujaWhatsApp({ texto }: { texto: string }) {
           color: '#111827',
           lineHeight: 1.5,
           whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
+          /*
+            Un enlace de sala son 60 letras sin un solo espacio. wordBreak:
+            break-word no basta en todos los navegadores para partirlo, y una
+            palabra que no se parte empuja la burbuja fuera de la caja.
+            overflowWrap: anywhere la parte donde haga falta; minWidth: 0 deja
+            que la burbuja se encoja dentro de un flex en vez de desbordarlo.
+          */
+          overflowWrap: 'anywhere',
+          minWidth: 0,
         }}
       >
         {conNegritas(texto)}

@@ -9,6 +9,7 @@ import {
   mensajeRecordatorioPrevioCitaPersona,
 } from '@/lib/mensajes'
 import { enBogota } from '@/lib/fechas'
+import { BurbujaWhatsApp } from '@/components/portal/BurbujaWhatsApp'
 
 type BotonRecordarCitaProps = {
   cita: {
@@ -168,7 +169,14 @@ export function BotonRecordarCitaPrevia({
         >
           <div
             className="modal-eliminar"
-            style={{ maxWidth: 560, textAlign: 'left', padding: '24px 26px' }}
+            /*
+              modal-eliminar viene con align-items: center porque es la caja de
+              «¿seguro que borras?». Reutilizada para contenido, ese centrado hace
+              que un hijo ancho —la burbuja con un enlace de sala de 60 letras—
+              no se envuelva: se sale por la derecha. De borde a borde, y se
+              envuelve.
+            */
+            style={{ maxWidth: 560, textAlign: 'left', padding: '24px 26px', alignItems: 'stretch' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Cabecera */}
@@ -316,24 +324,14 @@ export function BotonRecordarCitaPrevia({
               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Mensaje de WhatsApp ({destinatario === 'PACIENTE' ? 'Persona Acompañada' : 'Profesional'}):
               </span>
-              <pre
-                style={{
-                  whiteSpace: 'pre-wrap',
-                  fontFamily: 'inherit',
-                  fontSize: '0.84rem',
-                  color: '#1e293b',
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: 8,
-                  padding: '12px 14px',
-                  margin: '6px 0 0',
-                  lineHeight: 1.5,
-                  maxHeight: 190,
-                  overflowY: 'auto',
-                }}
-              >
-                {mensajeActivo}
-              </pre>
+              {/*
+                La misma burbuja que la ficha y Parametrización. Este modal tenía
+                su propio <pre> verde: el tercer dibujo del mismo mensaje, y el
+                único que se salía de la caja.
+              */}
+              <div style={{ marginTop: 6, maxHeight: 220, overflowY: 'auto', borderRadius: 8 }}>
+                <BurbujaWhatsApp texto={mensajeActivo} />
+              </div>
             </div>
 
             {/* Acciones */}

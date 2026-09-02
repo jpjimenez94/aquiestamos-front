@@ -89,7 +89,7 @@ export function BotonSeguimientoWhatsApp({
         <div className="modal-eliminar-overlay" onClick={() => setModalAbierto(false)}>
           <div
             className="modal-eliminar"
-            style={{ maxWidth: 540, textAlign: 'left', padding: '24px 26px' }}
+            style={{ maxWidth: 540, textAlign: 'left', padding: '24px 26px', alignItems: 'stretch' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderBottom: '1px solid var(--color-border-default, #e2e8f0)', paddingBottom: 12 }}>
@@ -117,8 +117,8 @@ export function BotonSeguimientoWhatsApp({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14, width: '100%' }}>
               {/* Opción 1: Mensaje al Profesional */}
               <div style={{ padding: 14, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <strong style={{ fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: 5 }}>
                       <UserCheck size={14} style={{ color: '#059669' }} />
                       Seguimiento al Psicólogo: {profesionalNombre}
@@ -129,7 +129,7 @@ export function BotonSeguimientoWhatsApp({
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                     <button
                       type="button"
                       className="boton-mini"
@@ -162,15 +162,15 @@ export function BotonSeguimientoWhatsApp({
                     )}
                   </div>
                 </div>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary, #475569)', fontStyle: 'italic' }}>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary, #475569)', fontStyle: 'italic', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                   &ldquo;{mensajeProfesional}&rdquo;
                 </p>
               </div>
 
               {/* Opción 2: Mensaje al Paciente */}
               <div style={{ padding: 14, borderRadius: 8, border: '1px solid var(--color-border-default, #e2e8f0)', background: 'var(--color-bg-subtle, #f8fafc)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <strong style={{ fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: 5 }}>
                       <Phone size={14} style={{ color: '#0284c7' }} />
                       Seguimiento a la Persona: {pacienteNombre}
@@ -181,7 +181,7 @@ export function BotonSeguimientoWhatsApp({
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                     <button
                       type="button"
                       className="boton-mini"
@@ -214,7 +214,7 @@ export function BotonSeguimientoWhatsApp({
                     )}
                   </div>
                 </div>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary, #475569)', fontStyle: 'italic' }}>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary, #475569)', fontStyle: 'italic', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                   &ldquo;{mensajePaciente}&rdquo;
                 </p>
               </div>

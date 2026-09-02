@@ -83,6 +83,18 @@ export function ReporteCasoForm({ patientId }: { patientId: string }) {
     if (!form.outcome) found.outcome = 'Cuéntanos qué pasó'
     if (huboEncuentro && !form.modality) found.modality = 'Dinos si fue presencial o virtual'
     if (esCitaFutura && !form.meetsAt) found.meetsAt = 'Dinos para cuándo quedaron'
+    /**
+     * «Quedamos en una cita» para una fecha que ya pasó no puede ser verdad.
+     *
+     * Una profesional escribió 9 de febrero queriendo decir 2 de septiembre
+     * —el campo se ve en el orden que decida el navegador, y se teclea al
+     * revés sin notarlo— y el reporte quedó guardado con una cita de hace
+     * medio año. Nada lo frenó: ni aquí ni en el servidor. La ficha lo enseñó
+     * tal cual durante días, al lado de la cita real.
+     */
+    if (esCitaFutura && form.meetsAt && new Date(form.meetsAt).getTime() < Date.now()) {
+      found.meetsAt = 'Esa fecha ya pasó. Revisa el día y el mes.'
+    }
     if (form.outcome === 'OTRO' && !form.notes.trim())
       found.notes = 'Cuéntanos brevemente qué pasó'
     if (form.outcome === 'YA_ATENDIDA' && !form.followUp)
