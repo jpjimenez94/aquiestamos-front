@@ -80,6 +80,7 @@ const DIA_CORTO: Record<string, string> = {
 }
 
 type ColumnaOrden =
+  | 'queSigue'
   | 'persona'
   | 'profesional'
   | 'cita'
@@ -105,6 +106,28 @@ const estiloInputFiltro: React.CSSProperties = {
   fontWeight: 'normal',
 }
 
+/** La regla de «qué toca», con los datos que trae cada fila. Una sola vez por fila. */
+function segDe(p: {
+  status: string
+  diasEsperando: number
+  cita?: { inicio: string; estado: string } | null
+  asignacion?: { estado?: string | null; hayReporte?: boolean; desde?: string | null } | null
+}): Seguimiento | null {
+  return seguimientoPendiente({
+    estadoPersona: p.status,
+    estadoAsignacion: p.asignacion?.estado,
+    diasEsperando: p.diasEsperando,
+    cita: p.cita ? { inicio: p.cita.inicio, estado: p.cita.estado } : null,
+    hayReporte: p.asignacion?.hayReporte === true,
+    asignadaDesde: p.asignacion?.desde,
+  })
+}
+
+const PESO_URGENCIA: Record<string, number> = { ahora: 3, pronto: 2, 'cuando-puedas': 1 }
+function pesoDeUrgencia(seg: Seguimiento | null): number {
+  return seg ? (PESO_URGENCIA[seg.urgencia] ?? 0) : 0
+}
+
 export function TablaPersonas({
   personas,
   enlaceDelSitio,
@@ -122,7 +145,16 @@ export function TablaPersonas({
   const [filtroPrioridad, setFiltroPrioridad] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
 
-  const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('esperando')
+  /**
+   * Por defecto, lo más urgente arriba.
+   *
+   * La lista abría ordenada por «esperando»: cuánto lleva cada persona en la
+   * red. Es un dato, no una tarea. Quien abre esta pantalla por la mañana
+   * viene a saber a quién atender primero, y eso lo dice «Qué sigue» — la
+   * misma regla que enciende la tarjeta de la ficha. Las demás columnas
+   * siguen ahí para quien quiera otro orden.
+   */
+  const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>('queSigue')
   const [direccion, setDireccion] = useState<Direccion>('desc')
 
   const [pagina, setPagina] = useState(1)
@@ -133,7 +165,7 @@ export function TablaPersonas({
       setDireccion(direccion === 'asc' ? 'desc' : 'asc')
     } else {
       setColumnaOrden(col)
-      setDireccion(col === 'esperando' ? 'desc' : 'asc')
+      setDireccion(col === 'esperando' || col === 'queSigue' ? 'desc' : 'asc')
     }
   }
 
@@ -243,6 +275,12 @@ export function TablaPersonas({
           cmp = tA - tB || (a.totalNotas ?? 0) - (b.totalNotas ?? 0)
           break
         }
+        case 'queSigue': {
+          // Sin tarea = 0; luego cuando-puedas, pronto, ahora. Empate: quien
+          // lleva más días esperando, primero.
+          cmp = pesoDeUrgencia(segDe(a)) - pesoDeUrgencia(segDe(b)) || a.diasEsperando - b.diasEsperando
+          break
+        }
         case 'ciudad':
           cmp = a.city.localeCompare(b.city, 'es', { sensitivity: 'base' })
           break
@@ -343,7 +381,16 @@ export function TablaPersonas({
                 alguien con cita mañana y alguien cuya sesión fue ayer se veían
                 igual, cuando lo que se necesita de cada uno es lo contrario.
               */}
-              <th style={{ width: '13%', minWidth: 170 }}>Qué sigue</th>
+              <th
+                onClick={() => alternarOrden('queSigue')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '13%', minWidth: 170 }}
+                title="Ordenar por lo que toca hacer"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Qué sigue
+                  <IconoOrden col="queSigue" />
+                </span>
+              </th>
               <th
                 onClick={() => alternarOrden('notas')}
                 style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
@@ -538,6 +585,7 @@ export function TablaPersonas({
             ) : (
               listaPaginada.map((p) => {
                 const cita = p.cita
+                const seg = segDe(p)
 
                 return (
                   <tr key={p.id}>
@@ -621,16 +669,7 @@ export function TablaPersonas({
 
                     {/* Qué sigue: la tarea, no el estado. */}
                     <td>
-                      <AvisoDeSeguimiento
-                        seguimiento={seguimientoPendiente({
-                          estadoPersona: p.status,
-                          estadoAsignacion: p.asignacion?.estado,
-                          diasEsperando: p.diasEsperando,
-                          cita: cita ? { inicio: cita.inicio, estado: cita.estado } : null,
-                          hayReporte: p.asignacion?.hayReporte === true,
-                          asignadaDesde: p.asignacion?.desde,
-                        })}
-                      />
+                      <AvisoDeSeguimiento seguimiento={seg} />
                     </td>
 
                     {/* Columna Notas de seguimiento (con modal interactivo) */}
@@ -689,7 +728,12 @@ export function TablaPersonas({
                             compact
                           />
                         )}
-                        {p.asignacion?.profesional && (
+                        {/*
+                          Antes salía en todas las filas, tocara o no: veinte
+                          botones verdes iguales no dicen nada. Ahora sale
+                          solo donde «Qué sigue» dice que hay que preguntar.
+                        */}
+                        {p.asignacion?.profesional && seg?.clave === 'preguntar-como-fue' && (
                           <BotonSeguimientoWhatsApp
                             pacienteNombre={p.fullName}
                             pacienteTelefono={p.phone}

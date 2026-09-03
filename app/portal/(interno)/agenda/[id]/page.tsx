@@ -542,6 +542,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         profesionalNombre={cita.profesional.nombre ?? 'Psicólogo'}
         profesionalTelefono={cita.profesional.telefono ?? ''}
         fechaHoraBogota={enBogota(cita.inicio)}
+        inicioIso={cita.inicio}
         modalidad={cita.modalidad}
         enlaceConsentimiento={cita.consentimiento?.enlace ?? null}
         consentimientoFirmado={cita.consentSigned === true}

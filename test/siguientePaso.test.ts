@@ -1,10 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { proximaYUltima, siguientePasoDelCaso } from '../lib/pasosDelCaso'
+import { proximaYUltima } from '../lib/pasosDelCaso'
 
 const HORA = 3600000
 const ahora = Date.parse('2026-09-02T20:00:00.000Z') // 2 sep, 3 p. m. Bogotá
 const en = (h: number) => new Date(ahora + h * HORA).toISOString()
-const cuando = (f: string | Date) => `[${new Date(f).toISOString().slice(0, 10)}]`
 
 /**
  * La ficha de Angie: tres citas, la de hoy ya pasó, y el bloque decía
@@ -42,53 +41,5 @@ describe('próxima y última', () => {
     expect(asc).toEqual(desc)
     expect(asc.proxima).toBeNull()
     expect(asc.ultima?.inicio).toBe(en(-2))
-  })
-})
-
-describe('el siguiente paso, con lo que de verdad hay', () => {
-  it('con una cita por delante, la nombra', () => {
-    const texto = siguientePasoDelCaso({
-      estadoAsignacion: 'ACTIVA',
-      citas: [{ inicio: en(24), estado: 'CONFIRMADA' }],
-      cuando,
-      ahora,
-    })
-    expect(texto).toContain(`Ya hay cita el ${cuando(en(24))}`)
-  })
-
-  it('con la sesión de hoy ya pasada y sin nota, pide cerrarla — no dice «ya hay cita»', () => {
-    const texto = siguientePasoDelCaso({ estadoAsignacion: 'ACTIVA', citas: citasDeAngie, cuando, ahora })
-    expect(texto).toContain('ya pasó y nadie la ha cerrado')
-    expect(texto).not.toContain('Ya hay cita')
-  })
-
-  it('con la última ya reportada, invita a agendar la siguiente o cerrar', () => {
-    const texto = siguientePasoDelCaso({
-      estadoAsignacion: 'ACTIVA',
-      citas: [{ inicio: en(-48), estado: 'CONFIRMADA', reportada: true }],
-      cuando,
-      ahora,
-    })
-    expect(texto).toContain('ya está reportada')
-  })
-
-  it('si la última se canceló, lo dice', () => {
-    const texto = siguientePasoDelCaso({
-      estadoAsignacion: 'ACTIVA',
-      citas: [{ inicio: en(-48), estado: 'CANCELADA' }],
-      cuando,
-      ahora,
-    })
-    expect(texto).toContain('se canceló')
-  })
-
-  it('sin ninguna cita, falta la primera', () => {
-    expect(siguientePasoDelCaso({ estadoAsignacion: 'ACTIVA', citas: [], cuando, ahora })).toBe(
-      'Falta agendar la primera sesión.',
-    )
-  })
-
-  it('solo opina sobre asignaciones activas', () => {
-    expect(siguientePasoDelCaso({ estadoAsignacion: 'ACEPTADA', citas: [], cuando, ahora })).toBeNull()
   })
 })

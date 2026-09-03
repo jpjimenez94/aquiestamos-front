@@ -169,3 +169,61 @@ describe('el orden de los avisos', () => {
     }
   })
 })
+
+/**
+ * Los dos avisos que la ficha necesitaba y la lista no tenía. Antes la ficha
+ * usaba su propia regla para decir «siguiente paso»; ahora lee esta, y esta
+ * tenía que saber decir «agenda la siguiente o cierra».
+ */
+describe('después de la sesión', () => {
+  const ahora = Date.parse('2026-09-02T20:00:00.000Z')
+  const hace = (h: number) => new Date(ahora - h * 3600000).toISOString()
+
+  it('reportada: toca agendar la siguiente o cerrar', () => {
+    const s = seguimientoPendiente({
+      estadoPersona: 'EN_ACOMPANAMIENTO',
+      estadoAsignacion: 'ACTIVA',
+      cita: { inicio: hace(30), estado: 'CONFIRMADA' },
+      hayReporte: true,
+      ahora,
+    })
+    expect(s?.clave).toBe('agendar-siguiente')
+  })
+
+  /**
+   * Cerrada sola como REALIZADA por la sala, sin reporte: sigue tocando
+   * preguntar. Sin esto, cerrar la cita la sacaba de la lista de tareas.
+   */
+  it('cerrada sola pero sin reporte: sigue tocando preguntar cómo fue', () => {
+    const s = seguimientoPendiente({
+      estadoPersona: 'EN_ACOMPANAMIENTO',
+      estadoAsignacion: 'ACTIVA',
+      cita: { inicio: hace(30), estado: 'REALIZADA' },
+      hayReporte: false,
+      ahora,
+    })
+    expect(s?.clave).toBe('preguntar-como-fue')
+  })
+
+  it('cancelada o sin presentarse: toca agendar otra', () => {
+    for (const estado of ['CANCELADA', 'NO_ASISTIO']) {
+      const s = seguimientoPendiente({
+        estadoPersona: 'EN_ACOMPANAMIENTO',
+        estadoAsignacion: 'ACTIVA',
+        cita: { inicio: hace(30), estado },
+        ahora,
+      })
+      expect(s?.clave).toBe('cita-cancelada')
+    }
+  })
+
+  it('con cita viva por delante y lejos, no hay nada pendiente', () => {
+    const s = seguimientoPendiente({
+      estadoPersona: 'EN_ACOMPANAMIENTO',
+      estadoAsignacion: 'ACTIVA',
+      cita: { inicio: hace(-72), estado: 'CONFIRMADA' },
+      ahora,
+    })
+    expect(s).toBeNull()
+  })
+})

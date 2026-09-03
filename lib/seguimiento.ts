@@ -32,7 +32,13 @@ export type Urgencia = 'ahora' | 'pronto' | 'cuando-puedas'
  * no frases.
  */
 export type Seguimiento = {
-  clave: 'recordar-cita' | 'preguntar-como-fue' | 'sin-elegir-hora' | 'sin-asignar'
+  clave:
+    | 'recordar-cita'
+    | 'preguntar-como-fue'
+    | 'agendar-siguiente'
+    | 'cita-cancelada'
+    | 'sin-elegir-hora'
+    | 'sin-asignar'
   /** El verbo, corto y en una línea: «Preguntar cómo le fue». */
   accion: string
   /** El porqué o el cuándo, en pequeño. Puede faltar. */
@@ -76,6 +82,15 @@ export function seguimientoPendiente({
 }: Entrada): Seguimiento | null {
   const cuandoCita = cita ? new Date(cita.inicio).getTime() : null
   const citaViva = cita?.estado === 'PROGRAMADA' || cita?.estado === 'CONFIRMADA'
+  /**
+   * Una sesión que el sistema ya cerró como REALIZADA —porque las dos personas
+   * entraron a la sala— sigue necesitando que el profesional cuente cómo fue.
+   * Antes de que las citas se cerraran solas esto no hacía falta: una sesión
+   * pasada siempre seguía CONFIRMADA. Ahora, sin esta línea, cerrarla sola
+   * la haría desaparecer de la lista de tareas justo cuando toca preguntar.
+   */
+  const citaOcurrida = citaViva || cita?.estado === 'REALIZADA'
+  const citaSeCayo = cita?.estado === 'CANCELADA' || cita?.estado === 'NO_ASISTIO'
 
   /**
    * La sesión ya pasó y nadie contó cómo fue.
@@ -85,7 +100,7 @@ export function seguimientoPendiente({
    * seguimiento se queda sin preguntar para siempre. Y es la conversación en la
    * que se decide si sigue con el mismo profesional o si hay que reasignar.
    */
-  if (cuandoCita !== null && cuandoCita <= ahora && citaViva && !hayReporte) {
+  if (cuandoCita !== null && cuandoCita <= ahora && citaOcurrida && !hayReporte) {
     const dias = Math.floor((ahora - cuandoCita) / DIA)
     return {
       clave: 'preguntar-como-fue',
@@ -111,6 +126,38 @@ export function seguimientoPendiente({
       accion: 'Recordarle la cita',
       detalle: horas <= 1 ? 'es en menos de una hora' : `es en ${horas} horas`,
       urgencia: horas <= 3 ? 'ahora' : 'pronto',
+    }
+  }
+
+  /**
+   * La sesión pasó y el profesional ya contó cómo fue. Lo que toca es decidir:
+   * otra sesión, o cerrar. La ficha lo decía con un texto fijo por estado
+   * —«ya hay cita»— mirara lo que mirara; ahora sale de aquí, de la misma regla
+   * que enciende la lista.
+   */
+  if (
+    estadoAsignacion === 'ACTIVA' &&
+    cuandoCita !== null &&
+    cuandoCita <= ahora &&
+    citaOcurrida &&
+    hayReporte
+  ) {
+    const dias = Math.floor((ahora - cuandoCita) / DIA)
+    return {
+      clave: 'agendar-siguiente',
+      accion: 'Agendar la siguiente o cerrar',
+      detalle: dias >= 1 ? `la última fue hace ${dias} ${dias === 1 ? 'día' : 'días'} y ya está reportada` : 'la sesión ya está reportada',
+      urgencia: dias >= 7 ? 'ahora' : 'pronto',
+    }
+  }
+
+  /** La última se canceló o la persona no se presentó: hay que volver a agendar. */
+  if (estadoAsignacion === 'ACTIVA' && cuandoCita !== null && citaSeCayo) {
+    return {
+      clave: 'cita-cancelada',
+      accion: 'Agendar otra sesión',
+      detalle: cita?.estado === 'NO_ASISTIO' ? 'no se presentó a la última' : 'la última se canceló',
+      urgencia: 'pronto',
     }
   }
 

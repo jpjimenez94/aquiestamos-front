@@ -265,7 +265,7 @@ export function ProcesosClient() {
       titulo: 'La cita queda agendada',
       tag: 'Agenda y Horarios',
       descripcion:
-        'La elige ella desde su enlace, sobre los espacios libres reales del profesional. Coordinación ya no cuadra horarios por WhatsApp: solo interviene si hace falta. La hora que escoge ella queda CONFIRMADA de una vez —es ella quien lo dijo, no hay a quién preguntarle—; PROGRAMADA queda solo para las horas que propone coordinación y aún esperan su sí.',
+        'La elige ella desde su enlace, sobre los espacios libres reales del profesional. Coordinación ya no cuadra horarios por WhatsApp: solo interviene si hace falta. La hora que escoge ella queda CONFIRMADA de una vez —es ella quien lo dijo, no hay a quién preguntarle—; PROGRAMADA queda solo para las horas que propone coordinación y aún esperan su sí. Y en esa misma pantalla, recién elegida la hora, firma el consentimiento: era otro enlace y otro mensaje por WhatsApp.',
       estados: [
         { estado: 'PROGRAMADA', texto: 'Agendada, falta su sí' },
         { estado: 'CONFIRMADA', texto: 'Confirmada' },
@@ -307,9 +307,10 @@ export function ProcesosClient() {
       id: '5',
       categoria: 'casos',
       numero: 'Etapa 5',
-      titulo: 'Citas confirmadas, consentimiento y recordatorio previo',
+      titulo: 'La sesión: lo que sale solo y lo que no',
       tag: 'Sesión y Consentimiento',
-      descripcion: 'Cita confirmada. La sesión dura 45 minutos. El consentimiento se firma digitalmente y el sistema habilita un recordatorio previo a los 60 minutos.',
+      descripcion:
+        'La sesión dura 45 minutos. Al agendarse, al profesional le sale solo un correo con la fecha y el enlace de su sala: no depende de que nadie se acuerde de despacharlo. Los recordatorios por correo también salen solos; los de WhatsApp siguen siendo manuales.',
       diagrama: <DiagramaCita />,
       estados: [
         { estado: 'CONFIRMADA', texto: 'Confirmada' },
@@ -319,8 +320,8 @@ export function ProcesosClient() {
         {
           quien: 'La persona',
           rolTag: 'persona',
-          titulo: 'Firma el consentimiento informado desde su celular',
-          detalle: 'Un enlace personal con 4 cláusulas claras sobre el alcance del acompañamiento psicosocial. Al reprogramar, el consentimiento previo se conserva automáticamente.',
+          titulo: 'Ya firmó el consentimiento al elegir su hora',
+          detalle: 'Se firma en la misma pantalla donde escoge la hora, con la sesión recién acordada. Si vuelve a agendar, la cita hereda la firma y no se le pide otra vez. Solo hay que pedírsela aparte si la cita la puso coordinación.',
           desvios: [
             { tono: 'logro', titulo: 'Firma inmutable:', texto: 'queda registrado con marca de tiempo e IP en la ficha del caso.' },
           ],
@@ -328,14 +329,14 @@ export function ProcesosClient() {
         {
           quien: 'El sistema y Coordinación',
           rolTag: 'sistema',
-          titulo: 'Recordatorio inteligente 60 minutos antes',
-          detalle: 'Cuando faltan 60 minutos o menos para la sesión, se habilita el botón «Recordar cita» en Personas para avisar al profesional por WhatsApp con un solo clic.',
+          titulo: 'El correo sale solo; el WhatsApp, a mano',
+          detalle: 'Horas antes de la sesión el sistema encola los recordatorios por correo, a la persona y al profesional. El WhatsApp sigue siendo manual: cuando faltan 60 minutos o menos, aparece el botón «Recordar cita» en Personas y en el detalle de la cita.',
         },
         {
           quien: 'El día de la sesión',
           rolTag: 'profesional',
-          titulo: 'Desarrollo de la sesión y desenlace',
-          detalle: 'La cita concluye en: Realizada, No Asistió, Cancelada o Reprogramada.',
+          titulo: 'La cita se cierra sola cuando hay prueba',
+          detalle: 'Ya no hay que marcarla a mano. Si el profesional reporta la sesión, o si las dos personas entraron a la sala, la cita pasa a Realizada sola; si él reporta que no se presentó, a No asistió. Sin ninguna de las dos pruebas se queda abierta y sale en «Lo que está esperando», en Métricas.',
         },
       ],
     },

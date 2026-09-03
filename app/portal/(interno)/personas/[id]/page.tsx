@@ -4,7 +4,8 @@ import { portalFetch, enBogota, usuarioActual, puede, traerPlantillas } from '@/
 
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
-import { pasoDelCaso, armarHechos, proximaYUltima, siguientePasoDelCaso } from '@/lib/pasosDelCaso'
+import { pasoDelCaso, armarHechos, proximaYUltima } from '@/lib/pasosDelCaso'
+import { seguimientoPendiente } from '@/lib/seguimiento'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
@@ -273,11 +274,24 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
           enlaceAgenda={persona.enlaceAgenda}
           plantillas={plantillas}
-          siguientePaso={siguientePasoDelCaso({
-            estadoAsignacion: persona.asignacion?.estado,
-            citas: (persona.citas ?? []).map((c) => ({ ...c, reportada: Boolean(c.reporteId) })),
-            cuando: (fecha) => enBogota(fecha),
-          })}
+          queToca={(() => {
+            // La misma regla que enciende la lista de personas. La cita que
+            // manda es la próxima si la hay; si no, la última.
+            const { proxima, ultima } = proximaYUltima(persona.citas ?? [])
+            const cita = proxima ?? ultima
+            return seguimientoPendiente({
+              estadoPersona: persona.status,
+              estadoAsignacion: persona.asignacion?.estado,
+              diasEsperando: persona.diasEsperando,
+              cita: cita ? { inicio: cita.inicio, estado: cita.estado } : null,
+              hayReporte: Boolean(ultima?.reporteId),
+              asignadaDesde: persona.asignacion?.desde,
+            })
+          })()}
+          ultimaCita={(() => {
+            const { ultima } = proximaYUltima(persona.citas ?? [])
+            return ultima ? { id: ultima.id, inicio: ultima.inicio, estado: ultima.estado } : null
+          })()}
           proximaCita={(() => {
             /*
               Decía «Vienen de la más próxima a la más lejana» y hacía find().

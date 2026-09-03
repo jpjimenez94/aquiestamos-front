@@ -14,6 +14,8 @@ import {
 import { enBogota } from '@/lib/fechas'
 import { ModalAgendar } from './ModalAgendar'
 import { BotonReasignar } from './BotonReasignar'
+import { QueTocaAhora } from './QueTocaAhora'
+import type { Seguimiento } from '@/lib/seguimiento'
 
 /**
  * El caso, según en qué punto va la negociación.
@@ -70,7 +72,8 @@ export function PanelDelCaso({
   enlaceAgenda,
   plantillas,
   proximaCita,
-  siguientePaso,
+  queToca,
+  ultimaCita,
 }: {
   persona: Persona
   asignacion: Asignacion
@@ -80,11 +83,13 @@ export function PanelDelCaso({
   /** Textos editables desde Parametrización. Mandan sobre los del código. */
   plantillas?: Record<string, string>
   /**
-   * Qué toca ahora, calculado con las citas reales. Si viene, manda sobre el
-   * texto fijo por estado que trae la asignación del backend — ese decía «ya
-   * hay cita» mirara lo que mirara.
+   * Qué toca ahora, con la misma regla que enciende la lista de personas.
+   * Nulo = nada pendiente. Manda sobre el texto fijo por estado del backend,
+   * que decía «ya hay cita» mirara lo que mirara.
    */
-  siguientePaso?: string | null
+  queToca?: Seguimiento | null
+  /** La última sesión ya pasada, para las acciones que la necesitan. */
+  ultimaCita?: { id: string; inicio: string; estado: string } | null
   /** La cita abierta más próxima, para que el mensaje diga la fecha real. */
   proximaCita?: {
     id?: string
@@ -126,9 +131,13 @@ export function PanelDelCaso({
         {enBogota(asignacion.desde, false)}.
       </p>
 
-      {siguientePaso ?? asignacion.siguientePaso ? (
+      {/*
+        En ACTIVA, «qué toca ahora» es una tarjeta con su botón (más abajo).
+        En los demás estados, el texto fijo del backend sigue valiendo.
+      */}
+      {asignacion.estado !== 'ACTIVA' && asignacion.siguientePaso ? (
         <p className="caso-siguiente">
-          <strong>Siguiente paso:</strong> {siguientePaso ?? asignacion.siguientePaso}
+          <strong>Siguiente paso:</strong> {asignacion.siguientePaso}
         </p>
       ) : null}
 
@@ -283,37 +292,52 @@ export function PanelDelCaso({
       */}
       {asignacion.estado === 'ACTIVA' ? (
         <>
-          {proximaCita?.id ? (
-            <a className="caso-proxima" href={`/portal/agenda/${proximaCita.id}`}>
-              <span>
-                <strong>Próxima sesión: {proximaCita.cuando}</strong>
-                <span className="caso-proxima__nota">
-                  Confirmación, consentimiento, despacho y recordatorios se manejan desde la cita.
-                </span>
-              </span>
-              <span className="boton-mini" data-tono="principal">
-                Gestionar esta cita →
-              </span>
-            </a>
-          ) : null}
+          {/*
+            Una acción por caso.
 
-          <div className="mensaje__acciones" style={{ marginTop: 14 }}>
-            <button
-              className="boton-mini"
-              data-tono="principal"
-              type="button"
-              onClick={() => setAgendando(true)}
-            >
-              <CalendarCheck size={14} />
-              Agendar nueva sesión
-            </button>
-            <BotonReasignar
-              asignacionId={asignacion.id}
-              profesionalNombre={asignacion.profesional.nombre}
-              textoBoton="Reasignar a otro profesional"
-              onError={setError}
-            />
-          </div>
+            Los mensajes de un caso vivían en cinco sitios —la ficha, el
+            detalle de la cita, el modal de recordatorio, el de seguimiento y
+            la lista— y quien coordina tenía que saber dónde estaba cada cosa.
+            Aquí hay UNA tarjeta que dice qué toca y UN botón para hacerlo. Lo
+            demás sigue existiendo, plegado debajo.
+          */}
+          <QueTocaAhora
+            queToca={queToca ?? null}
+            proximaCita={proximaCita ?? null}
+            persona={persona}
+            asignacion={asignacion}
+            enlaceCaso={enlaceCaso}
+            onAgendar={() => setAgendando(true)}
+            onError={setError}
+          />
+
+          <details style={{ marginTop: 12 }}>
+            <summary className="tabla__secundario" style={{ cursor: 'pointer', fontSize: '0.84rem' }}>
+              Más acciones
+            </summary>
+            <div className="mensaje__acciones" style={{ marginTop: 10 }}>
+              <button className="boton-mini" type="button" onClick={() => setAgendando(true)}>
+                <CalendarCheck size={14} />
+                Agendar nueva sesión
+              </button>
+              <BotonReasignar
+                asignacionId={asignacion.id}
+                profesionalNombre={asignacion.profesional.nombre}
+                textoBoton="Reasignar a otro profesional"
+                onError={setError}
+              />
+              {proximaCita?.id ? (
+                <a className="boton-mini" href={`/portal/agenda/${proximaCita.id}`}>
+                  Ver la próxima cita →
+                </a>
+              ) : null}
+              {ultimaCita?.id ? (
+                <a className="boton-mini" href={`/portal/agenda/${ultimaCita.id}`}>
+                  Ver la última cita →
+                </a>
+              ) : null}
+            </div>
+          </details>
         </>
       ) : null}
 

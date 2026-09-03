@@ -27,6 +27,7 @@ export function MensajesFlujoCita({
   profesionalNombre,
   profesionalTelefono,
   fechaHoraBogota,
+  inicioIso,
   modalidad,
   enlaceConsentimiento,
   consentimientoFirmado,
@@ -40,6 +41,8 @@ export function MensajesFlujoCita({
   profesionalNombre: string
   profesionalTelefono: string
   fechaHoraBogota: string
+  /** La misma hora, en ISO: para decidir si la sesión es hoy. */
+  inicioIso?: string
   modalidad: string
   enlaceConsentimiento: string | null
   consentimientoFirmado: boolean
@@ -121,9 +124,60 @@ export function MensajesFlujoCita({
     enlaceReunion: enlaceReunionProfesional || enlaceReunion,
   })
 
+  /**
+   * Qué toca con ESTA cita, en una tarjeta.
+   *
+   * Había cuatro paneles con diez mensajes y ningún orden: quien coordina
+   * tenía que saber cuál iba primero. La regla es corta —si falta la firma,
+   * pedirla; si la sesión es hoy, recordarla; si no, no toca nada— y cabe en
+   * una tarjeta. Los diez mensajes siguen ahí, plegados.
+   */
+  const faltaFirma = !consentimientoFirmado && Boolean(mensajeFirma)
+  const esHoy = (() => {
+    const t = inicioIso ? new Date(inicioIso).getTime() : NaN
+    return Number.isFinite(t) && t > Date.now() && t - Date.now() <= 24 * 3600 * 1000
+  })()
+
   return (
     <>
-      <div className="panel">
+      <div className="panel" style={{ borderLeft: `4px solid ${faltaFirma ? '#b45309' : esHoy ? '#059669' : '#94a3b8'}` }}>
+        <div className="tabla__secundario" style={{ fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>
+          Qué toca con esta cita
+        </div>
+        {faltaFirma ? (
+          <>
+            <h2 style={{ marginTop: 4 }}>Falta la firma del consentimiento</h2>
+            <p className="panel__nota">
+              Desde este cambio se firma en la misma pantalla donde elige la hora; si llegó
+              hasta aquí sin firmar, pídesela. No hace falta nada más antes de la sesión.
+            </p>
+            <Mensaje titulo="Pedirle la firma del consentimiento" telefono={pacienteTelefono} texto={mensajeFirma!} />
+          </>
+        ) : esHoy ? (
+          <>
+            <h2 style={{ marginTop: 4 }}>La sesión es hoy: recuérdasela a los dos</h2>
+            <p className="panel__nota">El correo ya salió solo. El WhatsApp, por ahora, se manda desde aquí.</p>
+            <Mensaje titulo="Recordatorio a la persona" telefono={pacienteTelefono} texto={mensajeRecordatorioPersona} />
+            <Mensaje titulo="Recordatorio al profesional" telefono={profesionalTelefono} texto={mensajeRecordatorioProf} />
+          </>
+        ) : (
+          <>
+            <h2 style={{ marginTop: 4 }}>Nada pendiente con esta cita</h2>
+            <p className="panel__nota">
+              La hora la eligió la persona y su pantalla se la confirmó; el consentimiento está
+              firmado; el profesional recibió el correo con la sala. El día de la sesión aparecerán
+              aquí los recordatorios.
+            </p>
+          </>
+        )}
+      </div>
+
+      <details style={{ marginBottom: 20 }}>
+        <summary className="tabla__secundario" style={{ cursor: 'pointer', fontSize: '0.86rem', padding: '6px 0' }}>
+          Todos los mensajes de esta cita
+        </summary>
+
+      <div className="panel" style={{ marginTop: 12 }}>
         <h2>Recordatorios previos de la sesión</h2>
         <p className="panel__nota">
           Recordatorios rápidos para enviar el día de la cita o en los minutos previos al inicio de la sesión.
@@ -145,10 +199,8 @@ export function MensajesFlujoCita({
       <div className="panel">
         <h2>Mensajes para la persona</h2>
         <p className="panel__nota">
-          Confirmarle la cita y gestionar la firma del consentimiento. Van por WhatsApp, como todo.
+          La firma del consentimiento y, si hace falta, la confirmación. Van por WhatsApp, como todo.
         </p>
-
-        <Mensaje titulo="Confirmarle la cita" telefono={pacienteTelefono} texto={mensajeConfirmacion} />
 
         {consentimientoFirmado ? (
           <div style={{ marginTop: 14 }}>
@@ -168,6 +220,21 @@ export function MensajesFlujoCita({
             texto={mensajeFirma}
           />
         ) : null}
+
+        {/*
+          Antes iba primero y se llamaba «Confirmarle la cita», como si fuera
+          un paso. Desde que la hora que elige la persona nace confirmada y su
+          pantalla se lo dice, este mensaje repite lo que ella ya vio. Se
+          queda para quien quiera mandarlo igual; deja de ser un paso.
+        */}
+        <div style={{ marginTop: 14 }}>
+          <Mensaje
+            titulo="Confirmarle la cita (opcional)"
+            nota="Su pantalla ya se la confirmó al elegir la hora. Úsalo solo si la cita la puso coordinación."
+            telefono={pacienteTelefono}
+            texto={mensajeConfirmacion}
+          />
+        </div>
       </div>
 
       <div className="panel">
@@ -209,12 +276,24 @@ export function MensajesFlujoCita({
           texto={mensajeExcusasReagendar}
         />
       </div>
+      </details>
     </>
   )
 }
 
 /** Un mensaje listo para mandar, con el mismo trío de siempre. */
-function Mensaje({ titulo, telefono, texto }: { titulo: string; telefono: string; texto: string }) {
+function Mensaje({
+  titulo,
+  nota,
+  telefono,
+  texto,
+}: {
+  titulo: string
+  /** Una línea en gris bajo el título: cuándo usarlo, o cuándo no. */
+  nota?: string
+  telefono: string
+  texto: string
+}) {
   const [copiado, setCopiado] = useState(false)
   const [verTexto, setVerTexto] = useState(false)
   const whatsapp = enlaceWhatsapp(telefono, texto)
@@ -228,6 +307,11 @@ function Mensaje({ titulo, telefono, texto }: { titulo: string; telefono: string
   return (
     <div className="mensaje" style={{ marginTop: 18 }}>
       <h3 className="caso-paso">{titulo}</h3>
+      {nota ? (
+        <p className="tabla__secundario" style={{ margin: '-2px 0 8px', fontSize: '0.8rem' }}>
+          {nota}
+        </p>
+      ) : null}
 
       <div className="mensaje__acciones">
         {whatsapp ? (

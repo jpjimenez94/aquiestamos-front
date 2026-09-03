@@ -219,17 +219,14 @@ export function sesionTerminada({
 }
 
 /**
- * El siguiente paso del caso, dicho en una frase — a partir de las citas
- * reales, no del estado de la asignación.
+ * La próxima y la última cita de un caso, con una sola regla.
  *
- * Decía «Ya hay cita. Haz seguimiento cuando pase.» para toda asignación
- * ACTIVA, mirara lo que mirara: era un texto fijo por estado. Lo decía con la
- * cita ya pasada y sin cerrar, y lo habría dicho sin ninguna cita. Al lado,
  * «Próxima sesión» enseñaba la más ANTIGUA abierta, porque la calculaba por su
- * cuenta sobre una lista ordenada al revés de lo que suponía.
- *
- * Aquí se decide una vez con lo que de verdad hay: la próxima (por delante y
- * viva) y la última (ya pasada). Las dos pantallas leen esto.
+ * cuenta sobre una lista ordenada al revés de lo que suponía, y una sesión ya
+ * pasada que nadie marcó como realizada sigue CONFIRMADA. Próxima es por
+ * delante y viva; última, la más reciente ya pasada. Qué toca hacer con ellas
+ * lo decide `seguimientoPendiente`, la misma regla que enciende la lista de
+ * personas: la ficha y la lista no pueden decir cosas distintas.
  */
 export type CitaBreve = {
   inicio: string | Date
@@ -249,33 +246,3 @@ export function proximaYUltima<T extends CitaBreve>(
   return { proxima: futuras[0] ?? null, ultima: pasadas[0] ?? null }
 }
 
-export function siguientePasoDelCaso({
-  estadoAsignacion,
-  citas,
-  cuando,
-  ahora = Date.now(),
-}: {
-  estadoAsignacion?: string | null
-  citas: CitaBreve[]
-  /** Cómo escribir una fecha; la ficha pasa `enBogota`. */
-  cuando: (fecha: string | Date) => string
-  ahora?: number
-}): string | null {
-  if (estadoAsignacion !== 'ACTIVA') return null
-
-  const { proxima, ultima } = proximaYUltima(citas, ahora)
-
-  if (proxima) {
-    return `Ya hay cita el ${cuando(proxima.inicio)}. Confirmación, consentimiento y recordatorios se manejan desde la cita.`
-  }
-  if (ultima && ultima.estado === 'CANCELADA') {
-    return `La última cita (${cuando(ultima.inicio)}) se canceló. Agenda otra o reasigna.`
-  }
-  if (ultima && !ultima.reportada) {
-    return `La sesión del ${cuando(ultima.inicio)} ya pasó y nadie la ha cerrado. Pídele el reporte al profesional; después, agenda la siguiente o cierra el caso.`
-  }
-  if (ultima) {
-    return `La sesión del ${cuando(ultima.inicio)} ya está reportada. Agenda la siguiente o cierra el caso.`
-  }
-  return 'Falta agendar la primera sesión.'
-}
