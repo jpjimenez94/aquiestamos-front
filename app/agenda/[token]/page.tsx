@@ -184,7 +184,14 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
 
   if (listo) {
     return (
-      <div style={{ ...marco, alignItems: 'center' }}>
+      /*
+        En columna, a propósito. El marco es un flex en fila: con una sola
+        tarjeta no se notaba, pero al añadir la del consentimiento las dos
+        quedaron una al lado de la otra —en el móvil, dos columnas de 150px
+        con el texto a trompicones—. Apiladas y centradas, cada una a su
+        ancho completo.
+      */
+      <div style={{ ...marco, flexDirection: 'column', alignItems: 'center', gap: 14 }}>
         <div style={{ ...tarjeta, textAlign: 'center' }}>
           <CheckCircle2 size={44} style={{ color: '#059669', margin: '0 auto 12px' }} />
           <h1 style={{ fontSize: '1.3rem', color: '#0f172a', margin: '0 0 8px' }}>
@@ -212,7 +219,7 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
           anterior, la cita hereda la firma y esto no aparece.
         */}
         {listo.consentimiento && !listo.consentimiento.firmado && listo.consentimiento.token ? (
-          <div style={{ ...tarjeta, marginTop: 14 }}>
+          <div style={tarjeta}>
             <h2 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 6px' }}>
               Solo falta una cosa: tu consentimiento
             </h2>
