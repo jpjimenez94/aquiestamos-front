@@ -6,6 +6,7 @@ import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonAdmitirSolicitud } from './BotonAdmitirSolicitud'
 import { BotonEliminarSolicitud } from './BotonEliminarSolicitud'
+import { BotonEditarSolicitud } from './BotonEditarSolicitud'
 import { BotonTamizaje } from './BotonTamizaje'
 import { ResultadoTamizaje } from './ResultadoTamizaje'
 import { nombrePropio } from '@/lib/nombre'
@@ -27,8 +28,14 @@ export type Solicitud = {
   id: string
   name: string
   phone: string
+  /** Opcional a propósito: la red trabaja por WhatsApp. */
+  email?: string | null
   city: string
   isMinor: boolean | null
+  forWhom?: string | null
+  /** Solo cuando la solicitud es para otra persona; los devuelve la vista de admin. */
+  contactName?: string | null
+  relationship?: string | null
   preferredContact: string | null
   preferredModality: string | null
   availableDays: string[]
@@ -456,6 +463,7 @@ export function TablaSolicitudes({
                           yaAdmitida={s.status !== 'NUEVO'}
                         />
                       )}
+                      {esAdmin && <BotonEditarSolicitud solicitud={s} />}
                       {esAdmin && (
                         <BotonEliminarSolicitud
                           solicitudId={s.id}

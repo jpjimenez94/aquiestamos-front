@@ -21,8 +21,9 @@ type Metricas = {
   atascos?: {
     etapa: string
     cuantas: number
-    diasMaximo: number | null
-    umbralDias: number
+    /** Lo que lleva el más viejo. En horas: hay atascos de horas y de días. */
+    horasMaximo: number | null
+    umbralHoras: number
     quePasaSiSeIgnora: string
   }[]
   /** Lo que el profesional responde al cerrar el caso. */
@@ -273,6 +274,22 @@ function Camino({
  * los barridos liberan casos. Si esta pantalla dijera «atrasado» con un
  * umbral propio, contradiría al tablero de al lado.
  */
+/**
+ * Horas o días, según cuánto sea.
+ *
+ * El panel contaba todo en días: un atasco de dos horas salía como «plazo:
+ * 0.083 días» y el que más llevaba, como «0 días» — que se lee como «ninguno»
+ * justo cuando sí hay uno.
+ */
+function enPalabras(horas: number): string {
+  if (horas < 24) {
+    const h = Math.max(1, Math.round(horas))
+    return `${h} ${h === 1 ? 'hora' : 'horas'}`
+  }
+  const d = Math.floor(horas / 24)
+  return `${d} ${d === 1 ? 'día' : 'días'}`
+}
+
 function Atascos({ filas }: { filas: NonNullable<Metricas['atascos']> }) {
   const conCosas = filas.filter((f) => f.cuantas > 0)
 
@@ -315,12 +332,11 @@ function Atascos({ filas }: { filas: NonNullable<Metricas['atascos']> }) {
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{f.etapa}</div>
                 <div className="tabla__secundario" style={{ fontSize: '0.8rem', marginTop: 2 }}>
-                  {f.diasMaximo !== null ? (
+                  {f.horasMaximo !== null ? (
                     <>
                       {/* El más viejo, no el promedio: es el que hay que mirar hoy. */}
-                      El que más lleva, <strong>{f.diasMaximo}</strong>{' '}
-                      {f.diasMaximo === 1 ? 'día' : 'días'}. Plazo: {f.umbralDias}{' '}
-                      {f.umbralDias === 1 ? 'día' : 'días'}.
+                      El que más lleva, <strong>{enPalabras(f.horasMaximo)}</strong>. Plazo:{' '}
+                      {enPalabras(f.umbralHoras)}.
                     </>
                   ) : null}{' '}
                   {f.quePasaSiSeIgnora}
