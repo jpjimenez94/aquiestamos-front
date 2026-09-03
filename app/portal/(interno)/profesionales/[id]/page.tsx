@@ -5,6 +5,7 @@ import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { EditorDisponibilidad } from './EditorDisponibilidad'
 import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
 import { BotonCambiarEstadoProfesional } from './BotonCambiarEstadoProfesional'
+import { BotonEditarProfesional } from './BotonEditarProfesional'
 import { nombrePropio } from '@/lib/nombre'
 
 type Profesional = {
@@ -94,9 +95,20 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
         titulo={nombrePropio(p.fullName)}
         descripcion={`${p.profession} · ${p.city}`}
         acciones={
-          <Link className="boton-mini" href="/portal/profesionales">
-            Volver
-          </Link>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {/*
+              El backend ya sabía editar —PATCH /professionals/:id, con su
+              permiso y su auditoría— y no había pantalla: un teléfono viejo
+              solo se arreglaba entrando a la base. Y ese teléfono es el que
+              abre los WhatsApp que le mandamos.
+            */}
+            {puede(usuario, 'profesional:editar') ? (
+              <BotonEditarProfesional profesional={p} />
+            ) : null}
+            <Link className="boton-mini" href="/portal/profesionales">
+              Volver
+            </Link>
+          </div>
         }
       />
 
