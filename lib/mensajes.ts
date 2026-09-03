@@ -537,6 +537,8 @@ export function mensajeParaCuadrarHorario(d: {
   enlaceAgenda?: string | null
   /** El texto que la coordinación editó en Parametrización. Si viene, manda. */
   plantilla?: string
+  /** Falso para una sesión siguiente con el mismo profesional: cambia el saludo. */
+  esPrimeraVez?: boolean
 }): string {
   /**
    * La plantilla de Parametrización manda sobre el texto de aquí.
@@ -576,10 +578,21 @@ function mensajeParaCuadrarHorarioPorDefecto(d: {
   franjas: string[]
   nota?: string | null
   enlaceAgenda?: string | null
+  esPrimeraVez?: boolean
 }): string {
   const nombre = nombreDePila(d.persona) || 'hola'
   const dias = enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase()))
   const franjas = enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase()))
+  /**
+   * «Ya tenemos quién te acompañe» tiene sentido al anunciar la asignación por
+   * primera vez. Para quien ya lleva sesiones con ese profesional y solo está
+   * eligiendo la siguiente hora, decirle otra vez que YA se le consiguió
+   * alguien suena a que el caso empieza de cero.
+   */
+  const saludo =
+    d.esPrimeraVez === false
+      ? `Es momento de agendar tu próxima sesión con ${d.profesional}.`
+      : `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`
 
   /**
    * Con enlace, la persona elige sola. Sin enlace, el mensaje de siempre.
@@ -602,7 +615,7 @@ function mensajeParaCuadrarHorarioPorDefecto(d: {
     return [
       `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
       '',
-      `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`,
+      saludo,
       '',
       '*Aquí puedes elegir tú misma la hora que te sirva*, entre las que tiene libres:',
       d.enlaceAgenda,
@@ -616,7 +629,7 @@ function mensajeParaCuadrarHorarioPorDefecto(d: {
   return [
     `Hola ${nombre}, te escribimos de la Red Aquí Estamos.`,
     '',
-    `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`,
+    saludo,
     '',
     dias || franjas ? 'Estos son los horarios en los que puede atenderte:' : 'Estamos cuadrando el horario.',
     dias ? `· ${dias}` : null,
@@ -1473,3 +1486,29 @@ export function mensajeRecordatorioPrevioCitaPersona(d: {
 
 
 
+
+/**
+ * Contactar a alguien del voluntariado de apoyo.
+ *
+ * El botón mandaba «Hola {nombre}, te contactamos de la Fundación Aquí
+ * Estamos.» y nada más: quien lo recibía no sabía por qué le escribían, ni
+ * qué se le estaba pidiendo. Es la primera vez que alguien de coordinación le
+ * habla después de haber llenado el formulario — el mensaje tiene que decir
+ * eso, y decir para qué.
+ */
+export function mensajeContactoColaborador(d: { nombre: string; disciplina?: string | null }): string {
+  const nombre = nombreDePila(d.nombre) || d.nombre.trim()
+  const porSuHabilidad = d.disciplina
+    ? ` Vimos que tu perfil en *${d.disciplina}* nos puede servir mucho.`
+    : ' Vimos tu perfil y creemos que nos puedes ayudar mucho.'
+
+  return [
+    `¡Hola ${nombre}! Te escribimos de la Red Aquí Estamos.`,
+    '',
+    `Te contactamos porque recibimos tu solicitud para sumarte al voluntariado de apoyo.${porSuHabilidad}`,
+    '',
+    'Queremos contarte en qué consiste y ver contigo cómo encajarías apoyando la operación que hay detrás del proyecto: todo lo que hace posible el acompañamiento, más allá de las sesiones.',
+    '',
+    '¿Tienes un momento estos días para hablarlo?',
+  ].join('\n')
+}

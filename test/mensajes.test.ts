@@ -19,6 +19,7 @@ import {
   mensajeDeConsentimiento,
   mensajeRecordatorioPrevioCitaProfesional,
   mensajeRecordatorioPrevioCitaPersona,
+  mensajeContactoColaborador,
 } from '../lib/mensajes'
 import { LINEAS_EMERGENCIA } from '../lib/consentimiento'
 
@@ -342,6 +343,36 @@ describe('cuadrar el horario con la persona', () => {
 
   it('deja salida si ninguno le sirve', () => {
     expect(texto).toContain('dinos tú cuándo puedes')
+  })
+
+  /**
+   * Sesión siguiente con el mismo profesional: nunca reportar como una
+   * primera asignación.
+   *
+   * «Ya tenemos quién te acompañe» tiene sentido al anunciar la asignación;
+   * repetírselo a alguien que ya lleva sesiones con ese profesional suena a
+   * que el caso empieza de cero. Le pasó a Carolina: el profesional reportó
+   * la sesión y no dijo fecha para la siguiente — eso lo decide ella, según
+   * su salud y su disponibilidad — así que el mensaje que le manda su enlace
+   * para elegir tiene que hablarle como a alguien que ya conoce, no como a
+   * quien recién se le asignó a alguien.
+   */
+  it('con esPrimeraVez en falso, no dice que ya se le consiguió alguien', () => {
+    const siguiente = mensajeParaCuadrarHorario({ ...datos, esPrimeraVez: false })
+    expect(siguiente).not.toContain('Ya tenemos quién te acompañe')
+    expect(siguiente).toContain('próxima sesión')
+    expect(siguiente).toContain('Ana María Pérez Gómez')
+  })
+
+  it('por defecto (o esPrimeraVez en verdad) sigue diciendo que ya se le consiguió alguien', () => {
+    expect(texto).toContain('Ya tenemos quién te acompañe')
+  })
+
+  it('esPrimeraVez en falso también aplica al mensaje con enlace de autoagenda', () => {
+    const siguiente = mensajeParaCuadrarHorario({ ...datos, enlaceAgenda: 'https://x.test/agenda/abc', esPrimeraVez: false })
+    expect(siguiente).not.toContain('Ya tenemos quién te acompañe')
+    expect(siguiente).toContain('próxima sesión')
+    expect(siguiente).toContain('https://x.test/agenda/abc')
   })
 })
 
@@ -758,5 +789,30 @@ describe('la modalidad en los recordatorios previos', () => {
     })
     expect(texto).toContain('*presencial*')
     expect(texto).not.toContain('PRESENCIAL')
+  })
+})
+
+/**
+ * Contactar a alguien del voluntariado de apoyo.
+ *
+ * El botón mandaba «te contactamos de la Fundación» y nada más: quien lo
+ * recibía no sabía por qué le escribían ni qué se le pedía.
+ */
+describe('mensaje de contacto al voluntariado de apoyo', () => {
+  it('dice por qué se le escribe: recibimos su solicitud', () => {
+    const texto = mensajeContactoColaborador({ nombre: 'Karen González' })
+    expect(texto).toContain('Karen')
+    expect(texto).toContain('solicitud')
+    expect(texto).toContain('voluntariado de apoyo')
+  })
+
+  it('menciona su disciplina cuando la conoce', () => {
+    const texto = mensajeContactoColaborador({ nombre: 'Karen', disciplina: 'Construcción y obra' })
+    expect(texto).toContain('Construcción y obra')
+  })
+
+  it('pide apoyo con la operación detrás del proyecto, no solo un saludo', () => {
+    const texto = mensajeContactoColaborador({ nombre: 'Karen' })
+    expect(texto.toLowerCase()).toContain('operación')
   })
 })

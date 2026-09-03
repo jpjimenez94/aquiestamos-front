@@ -7,6 +7,8 @@ import { Etiqueta, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
+import { paraWhatsapp } from '@/lib/telefono'
+import { mensajeContactoColaborador } from '@/lib/mensajes'
 
 export type Colaborador = {
   id: string
@@ -523,9 +525,17 @@ export function TablaColaboradores({
                       >
                         <Mail size={10} /> Copiar
                       </button>
-                      {c.phone && (
+                      {/*
+                        El número, resuelto por paraWhatsapp: «startsWith('57') ? tel : '57' + tel»
+                        le pegaba el 57 delante a un número de fuera de Colombia —un +34600… de
+                        España salía 5734600…, un enlace a ninguna parte—. Y el mensaje dejó de ser
+                        un saludo sin contenido: dice por qué se le escribe y para qué, que es lo
+                        que hace falta la primera vez que coordinación le habla a alguien que
+                        llenó el formulario.
+                      */}
+                      {paraWhatsapp(c.phone) && (
                         <a
-                          href={`https://wa.me/${c.phone.replace(/\D/g, '').startsWith('57') ? c.phone.replace(/\D/g, '') : '57' + c.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${c.fullName.split(' ')[0]}, te contactamos de la Fundación Aquí Estamos.`)}`}
+                          href={`https://wa.me/${paraWhatsapp(c.phone)}?text=${encodeURIComponent(mensajeContactoColaborador({ nombre: c.fullName, disciplina: c.discipline }))}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
