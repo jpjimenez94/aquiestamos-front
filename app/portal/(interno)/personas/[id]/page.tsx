@@ -423,18 +423,14 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
 
       {persona.asignacion?.estado === 'ACTIVA' ? (
         <div className="panel">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-            <h2 style={{ margin: 0 }}>Qué ha reportado quien acompaña</h2>
-            {persona.asignacion.profesional ? (
-              <BotonNuevaSesion
-                persona={persona}
-                profesional={persona.asignacion.profesional}
-                asignacionId={persona.asignacion.id}
-                enlaceCaso={`${enlaceDelSitio}/portal/caso/${persona.id}`}
-                texto="Agendar siguiente sesión"
-              />
-            ) : null}
-          </div>
+          {/*
+            El botón de agendar directo que vivía aquí se quita: es el mismo
+            que ya arregla «Qué toca ahora», más arriba en esta misma ficha —
+            ese ahora manda el enlace para que ELLA elija, en vez de que
+            coordinación escoja la hora por su cuenta. Tenerlo dos veces, uno
+            arreglado y otro no, es peor que tenerlo una sola vez.
+          */}
+          <h2 style={{ margin: 0 }}>Qué ha reportado quien acompaña</h2>
           <p className="panel__nota">
             Lo que respondió desde su enlace de acceso. Se va sumando: la entrada de
             arriba es la más reciente.

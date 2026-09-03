@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { CalendarCheck } from 'lucide-react'
 import type { Seguimiento } from '@/lib/seguimiento'
+import { mensajeParaCuadrarHorario } from '@/lib/mensajes'
 import { BotonNuevaSesion } from './BotonNuevaSesion'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { BotonReasignar } from './BotonReasignar'
 import { BotonSeguimientoWhatsApp } from '../BotonSeguimientoWhatsApp'
+import { Mensaje } from './Mensaje'
 
 /**
  * Una tarjeta, una frase, un botón.
@@ -31,6 +34,8 @@ export function QueTocaAhora({
   persona,
   asignacion,
   enlaceCaso,
+  enlaceAgenda,
+  plantillas,
   onAgendar,
   onError,
 }: {
@@ -39,9 +44,14 @@ export function QueTocaAhora({
   persona: { id: string; fullName: string; phone: string; preferredModality?: string | null }
   asignacion: { id: string; profesional: { id: string; nombre: string; telefono?: string } }
   enlaceCaso: string
+  /** Enlace con el que la persona elige su propia hora, sobre la agenda real del profesional. */
+  enlaceAgenda?: string | null
+  /** Textos editables desde Parametrización. Mandan sobre los del código. */
+  plantillas?: Record<string, string>
   onAgendar: () => void
   onError: (m: string) => void
 }) {
+  const [copiado, setCopiado] = useState(false)
   // Nada pendiente y una cita por delante: la frase dice cuándo, y el botón
   // lleva a la cita, que es donde vive todo lo de prepararla.
   if (!queToca) {
@@ -97,17 +107,7 @@ export function QueTocaAhora({
         ) : null}
 
         {queToca.clave === 'agendar-siguiente' ? (
-          <>
-            <BotonNuevaSesion
-              persona={persona}
-              profesional={asignacion.profesional}
-              asignacionId={asignacion.id}
-              enlaceCaso={enlaceCaso}
-              texto="Agendar la siguiente sesión"
-              variante="destacado"
-            />
-            <BotonCerrarCaso asignacionId={asignacion.id} />
-          </>
+          <BotonCerrarCaso asignacionId={asignacion.id} />
         ) : null}
 
         {queToca.clave === 'cita-cancelada' ? (
@@ -132,6 +132,51 @@ export function QueTocaAhora({
           </button>
         ) : null}
       </div>
+
+      {/*
+        Cuándo es la siguiente sesión no lo dijo el reporte del profesional a
+        propósito: depende de la disponibilidad y el estado de salud de la
+        persona, y eso solo lo sabe ella. Coordinación no debería escoger una
+        fecha por su cuenta — el mismo enlace con el que agendó la primera vez
+        sirve para todas las siguientes, sobre la agenda real del profesional.
+
+        «Ya me confirmó: agendar» sigue existiendo, para cuando ella respondió
+        por teléfono o WhatsApp y coordinación solo transcribe la hora que
+        dijo — no para que coordinación decida la hora.
+      */}
+      {queToca?.clave === 'agendar-siguiente' ? (
+        <div style={{ marginTop: 10 }}>
+          <Mensaje
+            titulo="Mándale su enlace para que elija hora"
+            nota="Ve la agenda real del profesional y agenda sola, cuando su salud y su tiempo se lo permitan. El enlace le sirve para todas sus sesiones."
+            telefono={persona.phone}
+            texto={mensajeParaCuadrarHorario({
+              persona: persona.fullName,
+              profesional: asignacion.profesional.nombre,
+              dias: [],
+              franjas: [],
+              enlaceAgenda,
+              esPrimeraVez: false,
+              plantilla: plantillas?.WHATSAPP_CUADRAR_HORARIO_PERSONA,
+            })}
+            copiado={copiado}
+            alCopiar={(t) => {
+              navigator.clipboard.writeText(t)
+              setCopiado(true)
+              setTimeout(() => setCopiado(false), 1500)
+            }}
+          />
+          <div style={{ marginTop: 8 }}>
+            <BotonNuevaSesion
+              persona={persona}
+              profesional={asignacion.profesional}
+              asignacionId={asignacion.id}
+              enlaceCaso={enlaceCaso}
+              texto="Ya me confirmó: agendar"
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
