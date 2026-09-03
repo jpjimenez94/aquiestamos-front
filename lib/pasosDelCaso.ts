@@ -246,3 +246,30 @@ export function proximaYUltima<T extends CitaBreve>(
   return { proxima: futuras[0] ?? null, ultima: pasadas[0] ?? null }
 }
 
+
+/**
+ * Si un reporte con fecha acordada todavía es una invitación válida para
+ * agendar, o ya quedó viejo.
+ *
+ * El botón «Agendar cita acordada del reporte» vivía sin fecha de
+ * caducidad: seguía ofreciendo agendar una hora mucho después de que esa
+ * hora ya pasara y ya estuviera reservada. Carolina tenía tres reportes —el
+ * de en medio ("Quedamos en una cita", con fecha 29/08) seguía ofreciendo esa
+ * fecha aunque un reporte MÁS NUEVO ("Otra cosa") ya contara que esa sesión
+ * se reprogramó por salud, y aunque la tabla de citas ya tuviera esa hora
+ * reservada.
+ *
+ * Solo vale si es el reporte más reciente de todos —uno viejo no puede
+ * competir con lo que se dijo después— y si esa fecha no se agendó ya.
+ */
+export function citaAcordadaVigente(
+  reporte: { id: string; meetsAt?: string | Date | null },
+  todosLosReportes: { id: string }[],
+  citas: { inicio: string | Date }[],
+): boolean {
+  if (!reporte.meetsAt) return false
+  if (reporte.id !== todosLosReportes[0]?.id) return false
+
+  const t = new Date(reporte.meetsAt).getTime()
+  return !citas.some((c) => new Date(c.inicio).getTime() === t)
+}

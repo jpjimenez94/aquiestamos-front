@@ -4,7 +4,7 @@ import { portalFetch, enBogota, usuarioActual, puede, traerPlantillas } from '@/
 
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
-import { pasoDelCaso, armarHechos, proximaYUltima } from '@/lib/pasosDelCaso'
+import { pasoDelCaso, armarHechos, proximaYUltima, citaAcordadaVigente } from '@/lib/pasosDelCaso'
 import { seguimientoPendiente } from '@/lib/seguimiento'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
@@ -473,7 +473,23 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                     <em>Lo reportó:</em> {r.profesional ?? r.reportedByEmail}
                   </p>
 
-                  {persona.asignacion?.profesional && (r.outcome === 'CITA_ACORDADA' || r.meetsAt) ? (
+                  {/*
+                    Solo si esa fecha acordada sigue vigente: es el reporte MÁS
+                    RECIENTE de todos, y esa hora no se agendó ya.
+
+                    Sin esto, el botón de un reporte viejo se quedaba
+                    ofreciendo para siempre agendar una fecha que ya pasó y ya
+                    está reservada: Carolina tenía tres reportes, y el de en
+                    medio ("Quedamos en una cita", 29/08) seguía ofreciendo
+                    "Agendar cita acordada (29/08, 8:00 p. m.)" mucho después
+                    de que esa sesión ya se cerrara. Un reporte posterior
+                    ("Otra cosa") contaba que ESA fecha se reprogramó por
+                    salud de la persona — el botón viejo no tenía forma de
+                    saberlo y seguía prometiendo agendar algo que ya no
+                    aplicaba.
+                  */}
+                  {persona.asignacion?.profesional &&
+                  citaAcordadaVigente(r, persona.reportes, persona.citas) ? (
                     <div style={{ marginTop: 6 }}>
                       <BotonNuevaSesion
                         persona={persona}
