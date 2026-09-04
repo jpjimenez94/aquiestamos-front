@@ -27,6 +27,8 @@ export function Footer() {
         <div className="footer__nav">
           <Link href="/#preguntas-frecuentes">Preguntas frecuentes</Link>
           <Link href="/politica-de-datos">Política de datos</Link>
+          {/* Al lado de la política: son los dos textos que la gente acepta. */}
+          <Link href="/consentimiento-informado">Consentimiento informado</Link>
           <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
             <MessageCircle size={15} style={{ verticalAlign: '-2px', marginRight: 6 }} />
             WhatsApp {site.whatsappDisplay}

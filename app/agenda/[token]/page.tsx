@@ -3,9 +3,8 @@
 import Image from 'next/image'
 import { momentoDelDia } from '@/lib/momentoDelDia'
 import { useEffect, useState, use } from 'react'
-import { CalendarCheck, Clock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { FormularioConsentimiento } from '../../consentimiento/[token]/FormularioConsentimiento'
-import '../../tamizaje/[token]/tamizaje.css'
+import { CalendarCheck, Clock, User, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { CONSENTIMIENTO_SESION } from '@/lib/consentimiento'
 
 /**
  * Parte «lunes, 25 de agosto, 7:30 p. m.» en el día y la hora.
@@ -74,6 +73,10 @@ type Estado = {
   estado: string
   proxima: { inicio: string; cuando: string } | null
   huecos: Hueco[]
+  /** Si ya firmó en una sesión anterior. Quien ya firmó no lo vuelve a ver. */
+  consentimiento?: { firmado: boolean }
+  /** Quien firma por un menor es su madre, su padre o su acudiente. */
+  esMenor?: boolean
 }
 
 /**
@@ -94,15 +97,24 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
   const [estado, setEstado] = useState<Estado | null>(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [eligiendo, setEligiendo] = useState<string | null>(null)
+  /**
+   * La hora que tocó, todavía sin agendar.
+   *
+   * Antes tocar una hora la agendaba: se creaba la cita APARTADA y la pantalla
+   * le pedía la firma después. Quien cerraba ahí dejaba ocupada una hora que
+   * no servía para nada —sin consentimiento no se empieza la sesión— y
+   * coordinación tenía que perseguir la firma o soltar el espacio a mano.
+   *
+   * Ahora tocar una hora es elegirla, no reservarla. Lo que la agenda es
+   * confirmar, con el consentimiento aceptado en el mismo acto.
+   */
+  const [elegida, setElegida] = useState<Hueco | null>(null)
+  const [acepta, setAcepta] = useState(false)
+  const [nombre, setNombre] = useState('')
+  const [enviando, setEnviando] = useState(false)
   // Las fechas más allá de las tres primeras, plegadas hasta que se pidan.
   const [verTodo, setVerTodo] = useState(false)
-  const [listo, setListo] = useState<{
-    cuando: string
-    profesional: string
-    consentimiento?: { firmado: boolean; token: string | null }
-    esMenor?: boolean
-  } | null>(null)
+  const [listo, setListo] = useState<{ cuando: string; profesional: string } | null>(null)
 
   async function cargar() {
     setCargando(true)
@@ -127,36 +139,73 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
-  async function elegir(h: Hueco) {
-    setEligiendo(h.inicio)
+  /** Tocar una hora la pone sobre la mesa. No agenda nada todavía. */
+  function elegir(h: Hueco) {
+    setElegida(h)
     setError(null)
+    // La lista se sustituye por la confirmación: en el móvil, sin esto la
+    // persona se queda mirando el sitio donde estaba el botón que tocó.
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  /**
+   * Agendar: la hora y el consentimiento, en una sola petición.
+   *
+   * Las dos cosas o ninguna. Si falta la firma, el servidor no crea la cita —y
+   * por eso aquí no hay ningún estado intermedio que deshacer.
+   */
+  async function confirmar() {
+    if (!elegida) return
+    setError(null)
+
+    if (debeFirmar) {
+      if (!acepta) {
+        setError('Marca la casilla para aceptar el consentimiento.')
+        return
+      }
+      if (nombre.trim().length < 5) {
+        setError('Escribe tu nombre completo: esa es tu firma.')
+        return
+      }
+    }
+
+    setEnviando(true)
     try {
       const res = await fetch(`/api/mi-agenda/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inicio: h.inicio }),
+        body: JSON.stringify({
+          inicio: elegida.inicio,
+          ...(debeFirmar
+            ? {
+                consentimiento: {
+                  acepta: true,
+                  nombreFirma: nombre.trim(),
+                  version: CONSENTIMIENTO_SESION.version,
+                },
+              }
+            : {}),
+        }),
       })
       const datos = await res.json()
       if (res.ok && datos?.success) {
-        setListo({
-          cuando: datos.data.cuando,
-          profesional: datos.data.profesional,
-          consentimiento: datos.data.consentimiento,
-          esMenor: datos.data.esMenor,
-        })
+        setListo({ cuando: datos.data.cuando, profesional: datos.data.profesional })
       } else {
-        // El caso más probable aquí es que alguien tomara esa hora mientras la
-        // persona decidía. Se recarga para que vea la lista de verdad y no
-        // vuelva a chocar contra lo mismo.
+        // Lo más probable: alguien tomó esa hora mientras ella leía. Se vuelve
+        // a la lista de verdad para que no choque otra vez contra lo mismo.
         setError(datos?.message ?? 'No pudimos agendar esa hora.')
+        setElegida(null)
         await cargar()
       }
     } catch {
       setError('No pudimos conectarnos. Inténtalo de nuevo.')
     } finally {
-      setEligiendo(null)
+      setEnviando(false)
     }
   }
+
+  /** A quien ya firmó no se le pide firmar otra vez. */
+  const debeFirmar = estado?.consentimiento?.firmado !== true
 
   const marco: React.CSSProperties = {
     minHeight: '100vh',
@@ -182,81 +231,39 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
     )
   }
 
+  /**
+   * Agendada, sin peros.
+   *
+   * Aquí solo se llega con la hora tomada y el consentimiento aceptado: ya no
+   * hay una variante «te guardamos la hora, ahora firma». Ese estado
+   * intermedio era una promesa a medias —el espacio ocupado, la sesión
+   * imposible— y se quitó de raíz moviendo la firma al momento de agendar.
+   */
   if (listo) {
-    /** Mientras no firme, la hora está apartada; no agendada. */
-    const faltaFirma = Boolean(
-      listo.consentimiento && !listo.consentimiento.firmado && listo.consentimiento.token,
-    )
-
     return (
-      /*
-        En columna, a propósito. El marco es un flex en fila: con una sola
-        tarjeta no se notaba, pero al añadir la del consentimiento las dos
-        quedaron una al lado de la otra —en el móvil, dos columnas de 150px
-        con el texto a trompicones—. Apiladas y centradas, cada una a su
-        ancho completo.
-      */
-      <div style={{ ...marco, flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-        {/*
-          «Agendada» solo cuando de verdad lo está.
-
-          Decía «Tu sesión quedó agendada» y justo debajo le pedía el
-          consentimiento. Si cerraba sin firmar, la cita quedaba en pie y
-          confirmada, el profesional ya tenía su aviso, el espacio estaba
-          ocupado — y la sesión no podía hacerse, porque sin consentimiento
-          firmado no se empieza. Le habíamos dicho que estaba lista una cosa
-          que no lo estaba, y el error solo aparecía el día de la sesión.
-
-          Con la firma pendiente, la hora está APARTADA: se le guarda mientras
-          lee —perderla por leer sería peor— pero no se le promete nada que
-          todavía dependa de ella.
-        */}
+      <div style={{ ...marco, alignItems: 'center' }}>
         <div style={{ ...tarjeta, textAlign: 'center' }}>
-          <CheckCircle2
-            size={44}
-            style={{ color: faltaFirma ? '#d97706' : '#059669', margin: '0 auto 12px' }}
-          />
-          <h1 style={{ fontSize: '1.3rem', color: '#0f172a', margin: '0 0 8px' }}>
-            {faltaFirma ? 'Te guardamos esta hora' : 'Tu sesión quedó agendada'}
+          <CheckCircle2 size={44} style={{ color: MARCA.verde, margin: '0 auto 12px' }} />
+          <h1 style={{ fontSize: '1.3rem', color: MARCA.tinta, margin: '0 0 8px' }}>
+            Tu sesión quedó agendada
           </h1>
-          <p style={{ color: '#475569', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ color: MARCA.tintaSuave, margin: 0, lineHeight: 1.6 }}>
             <strong>{listo.cuando}</strong>
             <br />
             con {listo.profesional}
           </p>
-          <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: 18, lineHeight: 1.6 }}>
-            {faltaFirma
-              ? 'Queda confirmada en cuanto aceptes el consentimiento, aquí abajo. Es un minuto.'
-              : 'Te escribimos por WhatsApp con el enlace para conectarte. Si te surge algo y no puedes, avísanos con tiempo y lo movemos: no pasa nada.'}
+          <p
+            style={{
+              color: MARCA.tintaSuave,
+              fontSize: '0.88rem',
+              marginTop: 18,
+              lineHeight: 1.6,
+            }}
+          >
+            Te escribimos por WhatsApp con el enlace para conectarte. Si te surge algo y no
+            puedes, avísanos con tiempo y lo movemos: no pasa nada.
           </p>
         </div>
-
-        {/*
-          El consentimiento, aquí y ahora.
-
-          Era otro enlace y otro mensaje: la persona elegía su hora, y después
-          alguien tenía que acordarse de mandarle por WhatsApp el enlace para
-          firmar. Dos toques humanos —y a veces días— para una firma que puede
-          darse en este mismo momento, con la sesión recién acordada y la
-          persona delante de la pantalla. Si ya lo firmó en una sesión
-          anterior, la cita hereda la firma y esto no aparece.
-        */}
-        {faltaFirma && listo.consentimiento?.token ? (
-          <div style={tarjeta}>
-            <h2 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 6px' }}>
-              Solo falta una cosa: tu consentimiento
-            </h2>
-            <p style={{ color: '#475569', margin: '0 0 14px', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              Con esto queda confirmada tu sesión. Necesitamos que lo leas y lo aceptes antes
-              de empezar: toma un minuto y se hace aquí mismo.
-            </p>
-            <FormularioConsentimiento
-              token={listo.consentimiento.token}
-              esMenor={listo.esMenor === true}
-              yaFirmado={false}
-            />
-          </div>
-        ) : null}
       </div>
     )
   }
@@ -382,14 +389,6 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
           </div>
         ) : null}
 
-        <h2 style={{ fontSize: '1rem', color: '#0f172a', margin: '20px 0 4px' }}>
-          Elige la hora que te sirva
-        </h2>
-        <p style={{ color: '#64748b', fontSize: '0.86rem', margin: '0 0 14px' }}>
-          Son las horas en las que {estado.profesional.split(' ')[0]} puede atenderte. Cada sesión
-          dura 45 minutos.
-        </p>
-
         {error ? (
           <p
             style={{
@@ -399,14 +398,270 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
               borderRadius: 8,
               padding: '10px 12px',
               fontSize: '0.88rem',
-              margin: '0 0 14px',
+              margin: '18px 0 0',
             }}
           >
             {error}
           </p>
         ) : null}
 
-        {estado.huecos.length === 0 ? (
+        {/*
+          Elegida la hora, la misma tarjeta pasa a confirmarla.
+
+          No es otra pantalla ni otro momento: la hora y el consentimiento son
+          una sola decisión, y hasta que no estén las dos no se agenda nada. La
+          lista se sustituye en vez de crecer hacia abajo porque en el móvil,
+          creciendo, la persona se queda mirando el sitio donde estaba el botón
+          que acaba de tocar.
+        */}
+        {elegida ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setElegida(null)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                margin: '20px 0 12px',
+                color: MARCA.tintaSuave,
+                fontSize: '0.86rem',
+                cursor: 'pointer',
+              }}
+            >
+              <ArrowLeft size={15} />
+              Elegir otra hora
+            </button>
+
+            <div
+              style={{
+                background: MARCA.verdeSuave,
+                border: `1px solid ${MARCA.borde}`,
+                borderRadius: 12,
+                padding: '14px 16px',
+                marginBottom: 22,
+              }}
+            >
+              <span
+                style={{
+                  display: 'block',
+                  fontSize: '0.74rem',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: MARCA.tintaSuave,
+                  marginBottom: 5,
+                }}
+              >
+                Tu sesión
+              </span>
+              <strong
+                style={{ display: 'block', fontSize: '1.02rem', color: MARCA.tinta, lineHeight: 1.4 }}
+              >
+                {elegida.cuando}
+              </strong>
+              <span style={{ fontSize: '0.88rem', color: MARCA.tintaSuave }}>
+                con {estado.profesional} · 45 minutos
+              </span>
+            </div>
+
+            {debeFirmar ? (
+              <>
+                <h2 style={{ fontSize: '1rem', color: MARCA.tinta, margin: '0 0 4px' }}>
+                  Léelo y acéptalo para agendar
+                </h2>
+                <p
+                  style={{
+                    color: MARCA.tintaSuave,
+                    fontSize: '0.86rem',
+                    margin: '0 0 16px',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Es lo único que falta, y solo se hace la primera vez.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+                  {CONSENTIMIENTO_SESION.puntos.map((punto) => (
+                    <div key={punto.titulo}>
+                      <strong
+                        style={{
+                          display: 'block',
+                          fontSize: '0.9rem',
+                          color: MARCA.tinta,
+                          marginBottom: 3,
+                        }}
+                      >
+                        {punto.titulo}
+                      </strong>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: '0.86rem',
+                          color: MARCA.tintaSuave,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {punto.texto}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Con URL propia: para leerlo con calma, guardarlo o enseñárselo a alguien. */}
+                <a
+                  href={CONSENTIMIENTO_SESION.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    fontSize: '0.84rem',
+                    color: MARCA.verde,
+                    marginBottom: 18,
+                  }}
+                >
+                  Ver el texto completo en una página aparte
+                </a>
+
+                {estado.esMenor ? (
+                  <p
+                    style={{
+                      background: MARCA.crema,
+                      borderRadius: 10,
+                      padding: '11px 13px',
+                      fontSize: '0.85rem',
+                      color: MARCA.tinta,
+                      lineHeight: 1.6,
+                      margin: '0 0 16px',
+                    }}
+                  >
+                    Como la persona acompañada es menor de edad, quien acepta y firma aquí debe
+                    ser su madre, su padre o su acudiente.
+                  </p>
+                ) : null}
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 10,
+                    marginBottom: 18,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={acepta}
+                    onChange={(e) => {
+                      setAcepta(e.target.checked)
+                      setError(null)
+                    }}
+                    style={{ marginTop: 3, width: 18, height: 18, flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: '0.88rem', color: MARCA.tinta, lineHeight: 1.6 }}>
+                    Leí y acepto este consentimiento para recibir el acompañamiento.
+                    {estado.esMenor
+                      ? ' Soy la madre, el padre o acudiente y autorizo la sesión.'
+                      : ''}
+                  </span>
+                </label>
+
+                <label
+                  htmlFor="firma"
+                  style={{
+                    display: 'block',
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    color: MARCA.tinta,
+                    marginBottom: 3,
+                  }}
+                >
+                  Tu nombre completo
+                </label>
+                <p style={{ fontSize: '0.82rem', color: MARCA.tintaSuave, margin: '0 0 7px' }}>
+                  Escribirlo aquí es tu firma.
+                </p>
+                <input
+                  id="firma"
+                  value={nombre}
+                  maxLength={120}
+                  autoComplete="name"
+                  onChange={(e) => {
+                    setNombre(e.target.value)
+                    setError(null)
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '11px 13px',
+                    borderRadius: 10,
+                    border: `1px solid ${MARCA.borde}`,
+                    background: MARCA.tarjeta,
+                    color: MARCA.tinta,
+                    fontSize: '0.95rem',
+                    marginBottom: 20,
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </>
+            ) : (
+              <p
+                style={{
+                  color: MARCA.tintaSuave,
+                  fontSize: '0.88rem',
+                  lineHeight: 1.6,
+                  margin: '0 0 20px',
+                }}
+              >
+                Ya aceptaste el consentimiento en una sesión anterior, así que no hay que
+                repetirlo.{' '}
+                <a
+                  href={CONSENTIMIENTO_SESION.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: MARCA.verde }}
+                >
+                  Puedes releerlo aquí
+                </a>
+                .
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={confirmar}
+              disabled={enviando}
+              style={{
+                width: '100%',
+                padding: '15px 18px',
+                borderRadius: 12,
+                border: 'none',
+                background: MARCA.noche,
+                color: '#fff6eb',
+                fontSize: '0.98rem',
+                fontWeight: 700,
+                cursor: enviando ? 'wait' : 'pointer',
+                opacity: enviando ? 0.7 : 1,
+              }}
+            >
+              {enviando ? 'Agendando…' : 'Confirmar mi sesión'}
+            </button>
+          </>
+        ) : (
+          <>
+            <h2 style={{ fontSize: '1rem', color: MARCA.tinta, margin: '20px 0 4px' }}>
+              Elige la hora que te sirva
+            </h2>
+            <p style={{ color: MARCA.tintaSuave, fontSize: '0.86rem', margin: '0 0 14px' }}>
+              Son las horas en las que {estado.profesional.split(' ')[0]} puede atenderte. Cada
+              sesión dura 45 minutos.
+              {debeFirmar
+                ? ' Al elegirla te pediremos aceptar el consentimiento: se agenda con las dos cosas.'
+                : ''}
+            </p>
+
+            {estado.huecos.length === 0 ? (
           <p style={{ color: MARCA.tintaSuave, fontSize: '0.94rem', lineHeight: 1.6 }}>
             Ahora mismo no hay horas libres en su agenda. Escríbenos por WhatsApp y lo cuadramos
             contigo.
@@ -427,7 +682,6 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
                 <button
                   type="button"
                   onClick={() => elegir(primero)}
-                  disabled={eligiendo !== null}
                   style={{
                     width: '100%',
                     textAlign: 'left',
@@ -436,13 +690,12 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
                     border: 'none',
                     background: MARCA.noche,
                     color: '#fff6eb',
-                    cursor: eligiendo ? 'wait' : 'pointer',
+                    cursor: 'pointer',
                     marginBottom: 20,
-                    opacity: eligiendo && eligiendo !== primero.inicio ? 0.55 : 1,
                   }}
                 >
                   <span style={{ display: 'block', fontWeight: 700, fontSize: '0.98rem' }}>
-                    {eligiendo === primero.inicio ? 'Agendando…' : 'La más pronto posible'}
+                    La más pronto posible
                   </span>
                   <span style={{ display: 'block', fontSize: '0.85rem', opacity: 0.82, marginTop: 3 }}>
                     {primero.cuando}
@@ -511,22 +764,19 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
                                 key={h.inicio}
                                 type="button"
                                 onClick={() => elegir(h)}
-                                disabled={eligiendo !== null}
                                 style={{
                                   padding: '10px 14px',
                                   borderRadius: 10,
                                   border: `1px solid ${MARCA.borde}`,
-                                  background:
-                                    eligiendo === h.inicio ? MARCA.verdeSuave : MARCA.tarjeta,
+                                  background: MARCA.tarjeta,
                                   color: MARCA.tinta,
                                   fontSize: '0.92rem',
                                   fontWeight: 600,
-                                  cursor: eligiendo ? 'wait' : 'pointer',
-                                  opacity: eligiendo && eligiendo !== h.inicio ? 0.5 : 1,
+                                  cursor: 'pointer',
                                   whiteSpace: 'nowrap',
                                 }}
                               >
-                                {eligiendo === h.inicio ? '…' : soloHora(h.cuando)}
+                                {soloHora(h.cuando)}
                               </button>
                             ))}
                           </div>
@@ -562,6 +812,8 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
                 Ver más fechas
               </button>
             ) : null}
+              </>
+            )}
           </>
         )}
       </div>

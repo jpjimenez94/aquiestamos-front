@@ -23,6 +23,69 @@ export const RESPONSABLE = {
   retencionMeses: 24,
 } as const
 
+/**
+ * EL CONSENTIMIENTO DE LA SESIÓN.
+ *
+ * Distinto de la autorización de datos de arriba: aquello es la Ley 1581
+ * —qué hacemos con lo que nos cuentas—; esto es la Ley 1090 —en qué consiste
+ * el acompañamiento y hasta dónde llega el secreto profesional—. Se firman en
+ * momentos distintos y por eso llevan versiones distintas.
+ *
+ * Vivía dentro del formulario de firma. Ahora lo leen tres pantallas —el
+ * formulario, la página pública y el momento de elegir hora—, y el texto que
+ * se firma no puede depender de por cuál de ellas entró la persona.
+ *
+ * Nunca edites el texto de una versión ya publicada: crea una nueva y súbela
+ * a `version`. Cada firma guarda la que aceptó, y esa es la única forma de
+ * probar en noviembre qué aceptó quien firmó en agosto.
+ *
+ * Versión sesion-2026-08-2 — revisada contra el marco colombiano:
+ *   · Ley 1090/2006 (secreto profesional del psicólogo y sus excepciones,
+ *     consentimiento informado) y Ley 1616/2013 (derechos en salud mental).
+ *   · Ley 1581/2012 y Decreto 1377/2013: los datos de salud son SENSIBLES y
+ *     su autorización debe ser explícita, informando que no es obligatoria.
+ *   · La confidencialidad tiene DOS límites legales, no uno: el riesgo serio
+ *     y el requerimiento formal de autoridad competente. Decir «un solo
+ *     límite» era jurídicamente impreciso.
+ */
+export const CONSENTIMIENTO_SESION = {
+  version: 'sesion-2026-08-2',
+  /** La página donde vive el texto completo, para enlazarlo desde donde se firma. */
+  url: '/consentimiento-informado',
+  /**
+   * Punto por punto y en el idioma de la red: sin párrafos de contrato que
+   * nadie lee. Cada punto es una frase que se entiende desde el teléfono y
+   * con poca cabeza.
+   */
+  puntos: [
+    {
+      titulo: 'Qué es esto',
+      texto:
+        'Un acompañamiento psicológico voluntario y gratuito, con un profesional de la Red Aquí Estamos. No reemplaza un tratamiento médico ni psiquiátrico, y no somos un servicio de emergencias.',
+    },
+    {
+      titulo: 'Confidencialidad',
+      texto:
+        'Lo que hables en la sesión es confidencial y está protegido por el secreto profesional. Solo tiene dos límites, ambos previstos por la ley: si hay riesgo serio para tu vida o la de otra persona, el profesional puede activar ayuda; y si una autoridad competente lo exige formalmente.',
+    },
+    {
+      titulo: 'Es voluntario',
+      texto:
+        'Puedes pausar o dejar el acompañamiento cuando quieras, sin dar explicaciones y sin que eso cambie cómo te tratamos.',
+    },
+    {
+      titulo: 'Tus datos',
+      texto:
+        'Tus datos de salud son sensibles según la ley colombiana y no estás obligado a autorizar su uso; si aceptas, los usamos solo para coordinar tu acompañamiento, como dice nuestra política de datos. Puedes pedir verlos, corregirlos o eliminarlos cuando quieras. La red no guarda historia clínica de tus sesiones.',
+    },
+    {
+      titulo: 'Tu firma',
+      texto:
+        'Al escribir tu nombre y aceptar, queda registrado qué versión de este texto aceptaste y cuándo. Si algo no te queda claro, pregúntanos por WhatsApp antes de firmar: con gusto te lo explicamos.',
+    },
+  ],
+} as const
+
 export const LINEAS_EMERGENCIA = [
   { nombre: 'Línea de emergencias', numero: '123', href: 'tel:123' },
   { nombre: 'Línea de salud mental', numero: '106', href: 'tel:106' },

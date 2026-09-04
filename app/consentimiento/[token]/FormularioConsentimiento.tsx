@@ -2,59 +2,18 @@
 
 import { useState } from 'react'
 import { firmarConsentimientoAction } from './actions'
+import { CONSENTIMIENTO_SESION } from '@/lib/consentimiento'
 
 /**
- * La versión del texto que se firma. Nunca edites el texto de una versión ya
- * publicada: crea una nueva y súbela aquí. Es lo único que permite probar
- * después qué aceptó exactamente quien firmó en agosto si el texto cambia en
- * noviembre — misma regla que la autorización de datos.
+ * El texto y su versión salen de `lib/consentimiento.ts`.
+ *
+ * Vivían aquí dentro, y eso los ataba a esta pantalla: el momento de elegir
+ * hora también los enseña, y la página pública también. Tres copias del texto
+ * que la gente firma es tres formas de que una deje de coincidir con las
+ * otras — y lo que se guarda como prueba es la versión, no el texto.
  */
-const VERSION = 'sesion-2026-08-2'
-
-/**
- * El texto del consentimiento, punto por punto y en el idioma de la red: sin
- * párrafos de contrato que nadie lee. Cada punto es una frase que la persona
- * puede entender desde el teléfono y con poca cabeza.
- */
-/**
- * Versión sesion-2026-08-2 — revisada contra el marco colombiano:
- *   · Ley 1090/2006 (secreto profesional del psicólogo y sus excepciones,
- *     consentimiento informado) y Ley 1616/2013 (derechos en salud mental).
- *   · Ley 1581/2012 y Decreto 1377/2013: los datos de salud son SENSIBLES y
- *     su autorización debe ser explícita, informando que no es obligatoria.
- *   · La confidencialidad tiene DOS límites legales, no uno: el riesgo serio
- *     y el requerimiento formal de autoridad competente. Decir «un solo
- *     límite» era jurídicamente impreciso.
- * Cambios de texto = versión nueva, nunca editar esta: cada firma guarda la
- * versión exacta que la persona aceptó.
- */
-const PUNTOS = [
-  {
-    titulo: 'Qué es esto',
-    texto:
-      'Un acompañamiento psicológico voluntario y gratuito, con un profesional de la Red Aquí Estamos. No reemplaza un tratamiento médico ni psiquiátrico, y no somos un servicio de emergencias.',
-  },
-  {
-    titulo: 'Confidencialidad',
-    texto:
-      'Lo que hables en la sesión es confidencial y está protegido por el secreto profesional. Solo tiene dos límites, ambos previstos por la ley: si hay riesgo serio para tu vida o la de otra persona, el profesional puede activar ayuda; y si una autoridad competente lo exige formalmente.',
-  },
-  {
-    titulo: 'Es voluntario',
-    texto:
-      'Puedes pausar o dejar el acompañamiento cuando quieras, sin dar explicaciones y sin que eso cambie cómo te tratamos.',
-  },
-  {
-    titulo: 'Tus datos',
-    texto:
-      'Tus datos de salud son sensibles según la ley colombiana y no estás obligado a autorizar su uso; si aceptas, los usamos solo para coordinar tu acompañamiento, como dice nuestra política de datos. Puedes pedir verlos, corregirlos o eliminarlos cuando quieras. La red no guarda historia clínica de tus sesiones.',
-  },
-  {
-    titulo: 'Tu firma',
-    texto:
-      'Al escribir tu nombre y aceptar, queda registrado qué versión de este texto aceptaste y cuándo. Si algo no te queda claro, pregúntanos por WhatsApp antes de firmar: con gusto te lo explicamos.',
-  },
-]
+const VERSION = CONSENTIMIENTO_SESION.version
+const PUNTOS = CONSENTIMIENTO_SESION.puntos
 
 export function FormularioConsentimiento({
   token,
@@ -137,6 +96,12 @@ export function FormularioConsentimiento({
           acudiente.
         </p>
       ) : null}
+
+      <p className="tamizaje__ayuda" style={{ marginLeft: 0 }}>
+        <a href={CONSENTIMIENTO_SESION.url} target="_blank" rel="noopener noreferrer">
+          Ver el texto completo en una página aparte
+        </a>
+      </p>
 
       <label className="tamizaje__autorizacion">
         <input
