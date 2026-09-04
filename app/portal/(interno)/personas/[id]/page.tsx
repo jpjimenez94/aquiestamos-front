@@ -2,6 +2,18 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalFetch, enBogota, usuarioActual, puede, traerPlantillas } from '@/lib/portal'
 
+/** Una asignación que ya se cerró: por quién pasó el caso antes, y por qué salió. */
+type HistorialAsignacion = {
+  id: string
+  estado: string
+  estadoLegible: string
+  profesional: string | null
+  profesionalId: string | null
+  desde: string | null
+  hasta: string | null
+  motivo: string | null
+}
+
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
 import { pasoDelCaso, armarHechos, proximaYUltima, citaAcordadaVigente } from '@/lib/pasosDelCaso'
@@ -42,6 +54,8 @@ type FeedbackDeLaPersona = {
 
 type Persona = {
   id: string
+  /** Por quién pasó antes. Vacío si es su primer profesional. */
+  historialAsignaciones?: HistorialAsignacion[]
   fullName: string
   phone: string
   email?: string | null
@@ -347,6 +361,66 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
       ) : (
         <PanelEmparejamiento personaId={persona.id} />
       )}
+
+      {/*
+        Por quién pasó antes, y por qué se soltó.
+
+        La ficha solo leía la asignación viva: al reasignar, el profesional
+        anterior, la fecha y el motivo desaparecían de la pantalla. Quedaban en
+        la auditoría, que nadie abre sin saber ya qué buscar — así que en la
+        práctica un caso que había pasado por tres personas se veía igual que
+        uno recién llegado.
+
+        Aquí va lo justo para saber que existió; el detalle completo —quién lo
+        hizo, cuándo, desde dónde— sigue en auditoría, y cada fila enlaza a su
+        propio rastro en vez de duplicar esa pantalla.
+      */}
+      {persona.historialAsignaciones?.length ? (
+        <div className="panel">
+          <h2>Antes de ahora</h2>
+          <p className="panel__nota">
+            Profesionales por los que ya pasó este acompañamiento.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+            {persona.historialAsignaciones.map((h: HistorialAsignacion) => (
+              <div
+                key={h.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  gap: 16,
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  border: '1px solid var(--color-border-default, #e2e8f0)',
+                  background: 'var(--color-bg-subtle, #f8fafc)',
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <strong>{h.profesional ?? 'Profesional dado de baja'}</strong>
+                  <span className="tabla__secundario">
+                    {' · '}
+                    {h.estadoLegible}
+                    {h.hasta ? ` · ${enBogota(h.hasta, false)}` : ''}
+                  </span>
+                  {h.motivo ? (
+                    <div className="tabla__secundario">
+                      <em>«{h.motivo}»</em>
+                    </div>
+                  ) : null}
+                </div>
+                <a
+                  className="boton-mini"
+                  style={{ flexShrink: 0 }}
+                  href={`/portal/auditoria?entity=asignacion&q=${h.id}`}
+                >
+                  Ver en auditoría →
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {persona.citas?.length ? (
         <div className="panel">

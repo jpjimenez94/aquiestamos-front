@@ -558,7 +558,7 @@ export function ProcesosClient() {
         >
           <HeartHandshake size={16} />
           <span>Acompañamiento Psicológico</span>
-          <span className="proc-tab-btn__badge">6 etapas</span>
+          <span className="proc-tab-btn__badge">7 pasos</span>
         </button>
 
         <button
@@ -607,22 +607,33 @@ export function ProcesosClient() {
             <HeartHandshake size={18} style={{ color: 'var(--color-primary, #059669)' }} />
             <h2 style={{ margin: 0, fontSize: '1.15rem' }}>El viaje del caso (Punta a Punta)</h2>
           </div>
+          {/*
+            Los mismos siete de `lib/pasosDelCaso.ts`, con sus mismos nombres.
+
+            Esta tira contaba seis: fundía «llega la solicitud» con «admisión» y
+            «la sesión» con «seguimiento y cierre». Quien aprendía el proceso
+            aquí y luego miraba una ficha veía dos numeraciones distintas para lo
+            mismo, y ninguna pantalla decía cuál mandaba. La secuencia viva es la
+            del código, así que es la que se enseña.
+          */}
           <p className="proc-intro">
-            Seis etapas coordinadas. Las esperas tienen reloj: si alguien no responde, el sistema libera automáticamente
+            Siete pasos coordinados. Las esperas tienen reloj: si nadie agenda, el sistema libera automáticamente
             y el caso regresa a la cola en vez de quedarse detenido.
           </p>
           <div className="proc-viaje">
-            <span className="proc-viaje__etapa"><span>1</span>Pide ayuda</span>
+            <span className="proc-viaje__etapa"><span>1</span>Llega la solicitud</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>2</span>Tamizaje y admisión</span>
+            <span className="proc-viaje__etapa"><span>2</span>Admisión</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>3</span>Asignación</span>
+            <span className="proc-viaje__etapa"><span>3</span>Asignar profesional</span>
             <span className="proc-viaje__flecha">→</span>
             <span className="proc-viaje__etapa"><span>4</span>Elige su hora</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>5</span>Cita confirmada</span>
+            <span className="proc-viaje__etapa"><span>5</span>Preparar la sesión</span>
             <span className="proc-viaje__flecha">→</span>
-            <span className="proc-viaje__etapa"><span>6</span>Sesión y cierre</span>
+            <span className="proc-viaje__etapa"><span>6</span>La sesión</span>
+            <span className="proc-viaje__flecha">→</span>
+            <span className="proc-viaje__etapa"><span>7</span>Seguimiento y cierre</span>
           </div>
 
           <div style={{ marginTop: 14 }}>
