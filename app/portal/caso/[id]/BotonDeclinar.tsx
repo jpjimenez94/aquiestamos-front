@@ -27,7 +27,20 @@ import { decidirPropuestaAction } from './actions'
  * esperando el día y la hora acordados, y soltarlo de un clic sería dejarla
  * plantada: eso se habla con coordinación.
  */
-export function BotonDeclinar({ patientId }: { patientId: string }) {
+export function BotonDeclinar({
+  patientId,
+  yaConfirmo = false,
+}: {
+  patientId: string
+  /**
+   * Si ya dijo que puede. Entonces sobra el botón de confirmar.
+   *
+   * Ofrecerle «Sí puedo, sigo con el caso» a quien ya lo pulsó es volver a
+   * preguntarle lo que ya contestó, y eso enseña a ignorar la pregunta. La
+   * salida se queda: puede echarse atrás mientras nadie tenga hora reservada.
+   */
+  yaConfirmo?: boolean
+}) {
   const router = useRouter()
   const [abierto, setAbierto] = useState(false)
   const [motivo, setMotivo] = useState('')
@@ -156,15 +169,17 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
   if (!abierto) {
     return (
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <Button
-          type="button"
-          variant="primary"
-          disabled={enviando}
-          icon={<Check size={16} />}
-          onClick={confirmar}
-        >
-          {enviando ? 'Enviando…' : 'Sí puedo, sigo con el caso'}
-        </Button>
+        {yaConfirmo ? null : (
+          <Button
+            type="button"
+            variant="primary"
+            disabled={enviando}
+            icon={<Check size={16} />}
+            onClick={confirmar}
+          >
+            {enviando ? 'Enviando…' : 'Sí puedo, sigo con el caso'}
+          </Button>
+        )}
         <Button
           type="button"
           disabled={enviando}

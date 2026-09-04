@@ -205,10 +205,23 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
 
         {paciente.puedeDeclinar ? (
           <div className="panel">
-            <h2>¿Puedes tomarlo?</h2>
+            {/*
+              La pregunta cambia cuando ya la contestó.
+
+              Seguía diciendo «¿Puedes tomarlo?» después de que él confirmara,
+              mientras la ficha de coordinación ya lo daba por confirmado: dos
+              pantallas del mismo sistema afirmando cosas distintas sobre lo
+              mismo. Y volver a preguntar lo ya respondido enseña a ignorar la
+              pregunta.
+
+              La puerta de salida se queda abierta igual: puede echarse atrás
+              mientras nadie tenga hora reservada.
+            */}
+            <h2>{paciente.confirmadoEn ? 'Ya confirmaste este caso' : '¿Puedes tomarlo?'}</h2>
             <p className="panel__nota">
-              Este caso ya es tuyo y {nombrePropio(paciente.fullName).split(' ')[0]} va a
-              elegir la hora directamente de tu agenda.
+              {paciente.confirmadoEn
+                ? `Gracias. ${nombrePropio(paciente.fullName).split(' ')[0]} va a elegir la hora directamente de tu agenda, y te avisamos en cuanto lo haga.`
+                : `Este caso ya es tuyo y ${nombrePropio(paciente.fullName).split(' ')[0]} va a elegir la hora directamente de tu agenda.`}
             </p>
 
             {/*
@@ -238,13 +251,15 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
             <EditorDeMiAgenda patientId={id} franjas={paciente.franjas ?? []} />
 
             <p className="panel__nota">
-              {paciente.agenda
-                ? 'Si siguen vigentes, confírmanoslo. Si cambiaron o ahora mismo no puedes, dilo aquí y se lo pasamos hoy a otra persona de la red.'
-                : 'Si en este momento no puedes, dilo aquí y se lo pasamos hoy a otra persona de la red.'}{' '}
+              {paciente.confirmadoEn
+                ? 'Si algo cambia y ya no puedes, dilo aquí mientras no haya hora reservada y se lo pasamos a otra persona de la red.'
+                : paciente.agenda
+                  ? 'Si siguen vigentes, confírmanoslo. Si cambiaron o ahora mismo no puedes, dilo aquí y se lo pasamos hoy a otra persona de la red.'
+                  : 'Si en este momento no puedes, dilo aquí y se lo pasamos hoy a otra persona de la red.'}{' '}
               Es voluntario: no poder es normal, y avisar pronto ayuda mucho más que un
               silencio.
             </p>
-            <BotonDeclinar patientId={id} />
+            <BotonDeclinar patientId={id} yaConfirmo={Boolean(paciente.confirmadoEn)} />
           </div>
         ) : null}
 
