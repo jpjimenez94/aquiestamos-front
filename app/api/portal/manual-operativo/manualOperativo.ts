@@ -92,8 +92,26 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   h2 {
     font-family: var(--display); font-weight: 700;
     font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.15;
-    margin: 0 0 6px; scroll-margin-top: 20px;
+    margin: 0 0 6px;
   }
+  /* Cada capítulo se pliega desde su título. */
+  details.capitulo { scroll-margin-top: 20px; }
+  details.capitulo > summary {
+    cursor: pointer; list-style: none; position: relative; padding-right: 40px;
+    -webkit-user-select: none; user-select: none;
+  }
+  details.capitulo > summary::-webkit-details-marker { display: none; }
+  details.capitulo > summary::after {
+    content: ''; position: absolute; right: 6px; top: 12px;
+    width: 12px; height: 12px;
+    border-right: 2.5px solid var(--tinta-suave); border-bottom: 2.5px solid var(--tinta-suave);
+    transform: rotate(45deg); transition: transform 0.18s ease;
+  }
+  details.capitulo:not([open]) > summary::after { transform: rotate(-45deg); }
+  details.capitulo:not([open]) > summary .quien { margin-bottom: 0; }
+  details.capitulo > summary:hover h2 { color: var(--verde); }
+  /* Plegado, el capítulo se ve como una fila del índice, no como una caja vacía. */
+  details.capitulo:not([open]) { padding: 18px 30px; }
   h3 {
     font-size: 1.02rem; font-weight: 800; margin: 30px 0 8px;
     padding-top: 18px; border-top: 1px solid var(--borde);
@@ -228,6 +246,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     figure.pantalla { break-inside: avoid; }
     header.portada { background: #23254c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .chip, .btn, .aviso, .lienzo, .barra { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    details.capitulo > summary::after { display: none; }
   }
 </style>
 </head>
@@ -256,9 +275,11 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
 </nav>
 
 <!-- ==================================================================== -->
-<section class="capitulo" id="leeme">
-  <h2>Antes de empezar</h2>
-  <p class="quien">Léelo una vez · dos minutos</p>
+<details class="capitulo" id="leeme" open>
+  <summary>
+    <h2>Antes de empezar</h2>
+    <p class="quien">Léelo una vez · dos minutos</p>
+  </summary>
 
   <h3>Las pantallas de este manual están dibujadas, no fotografiadas</h3>
   <p>
@@ -290,12 +311,14 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     Quién consultó, quién editó, quién aprobó y cuándo. No es para vigilar a nadie: es lo que
     permite responder «¿por qué apareció esta cita?» sin que la respuesta sea «no se sabe».
   </div>
-</section>
+</details>
 
 <!-- ==================================================================== -->
-<section class="capitulo" id="verificaciones">
-  <h2>Verificaciones</h2>
-  <p class="quien">Lo hace: coordinación · Lo espera: quien se postuló</p>
+<details class="capitulo" id="verificaciones" open>
+  <summary>
+    <h2>Verificaciones</h2>
+    <p class="quien">Lo hace: coordinación · Lo espera: quien se postuló</p>
+  </summary>
   <p>
     Verificar es comprobar que quien va a acompañar a alguien es de verdad psicólogo y puede
     ejercer. Es el único trámite de la red que <b>no se puede saltar</b>: sin tarjeta
@@ -406,6 +429,32 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     <li><b>Documento de identidad — cara de adelante</b></li>
     <li>Documento de identidad — respaldo <span class="apagado">(si aplica)</span></li>
   </ul>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/documentos/&lt;su enlace&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="max-width:480px;margin:0 auto">
+          <div class="fuerte" style="font-size:1rem;margin-bottom:2px">Tus documentos</div>
+          <div class="apagado" style="margin-bottom:12px">Se guardan en privado. Solo los ve coordinación para verificar tu tarjeta.</div>
+          <div style="font-size:0.82rem;font-weight:700">Tarjeta profesional o certificado de estudios *</div>
+          <div class="campo" style="width:100%;margin:4px 0 10px">Elegir archivo…</div>
+          <div style="font-size:0.82rem;font-weight:700">Documento de identidad — cara de adelante *</div>
+          <div class="campo" style="width:100%;margin:4px 0 10px">Elegir archivo…</div>
+          <div style="font-size:0.82rem;font-weight:700">Documento de identidad — respaldo <span class="apagado">(si aplica)</span></div>
+          <div class="campo" style="width:100%;margin:4px 0 14px">Elegir archivo…</div>
+          <div class="btn principal" style="width:100%;justify-content:center;padding:11px">Enviar mis documentos</div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      Lo que ve él en el celular al abrir su enlace. Tres archivos, dos obligatorios. Al enviar,
+      pasa a tu lista de «Pendientes de aprobación» — y ahí se queda hasta que alguien entre.
+    </figcaption>
+  </figure>
   <p>
     Al darle a <b>«Enviar mis documentos»</b> pasa de la lista de abajo a la de arriba, y ahí
     te aparece a ti. <b>Nadie te avisa</b> de que llegaron: hay que entrar a mirar. Vale la
@@ -473,6 +522,34 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   </ul>
   <p>La postulación queda archivada como inactiva y sale de la lista.</p>
 
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/verificaciones</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="max-width:520px;margin:0 auto;border-left:4px solid var(--rojo)">
+          <div class="fuerte" style="font-size:1rem">Rechazar Postulación</div>
+          <div class="apagado" style="margin-bottom:10px">Mariana Restrepo Ortiz</div>
+          <div class="apagado" style="margin-bottom:12px">Al rechazar esta postulación, el registro quedará archivado como inactivo y se retirará de las verificaciones pendientes.</div>
+          <div style="font-size:0.78rem;font-weight:700">Motivo Principal:</div>
+          <div class="campo" style="width:100%;margin:4px 0 10px;color:var(--tinta)">Tarjeta profesional no verificable o inválida en Colpsic / ReTHUS ▾</div>
+          <div style="font-size:0.78rem;font-weight:700">Detalles Adicionales (Interno):</div>
+          <div class="campo" style="width:100%;margin:4px 0 14px;min-height:44px">Ej. No registra en Colpsic con cédula suministrada.</div>
+          <div class="fila">
+            <span class="btn peligro">Rechazar y archivar postulación</span>
+            <span class="btn">Cancelar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      El cuadro de rechazo. El motivo es de lista cerrada para poder contarlos después; los
+      detalles son texto libre y <b>solo los ve el equipo</b>. Ahí va lo concreto.
+    </figcaption>
+  </figure>
+
   <h3>7 · Cuando no es psicólogo, pero sirve</h3>
   <p>
     Pasa seguido: se postula alguien de Trabajo Social, Derecho, Enfermería, Diseño o
@@ -491,12 +568,14 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     Pasa a <span class="mono">Voluntariado de apoyo</span> y desde ahí se le pueden asignar
     tareas internas. No se pierde a nadie que quiso ayudar.
   </p>
-</section>
+</details>
 
 <!-- ==================================================================== -->
-<section class="capitulo" id="agendamiento">
-  <h2>Agendamiento: los 7 pasos</h2>
-  <p class="quien">Lo hacen: la persona · coordinación · el profesional · el sistema</p>
+<details class="capitulo" id="agendamiento" open>
+  <summary>
+    <h2>Agendamiento: los 7 pasos</h2>
+    <p class="quien">Lo hacen: la persona · coordinación · el profesional · el sistema</p>
+  </summary>
   <p>
     Todo acompañamiento recorre los mismos siete pasos, y el portal los enseña siempre con
     los mismos números. La tira aparece arriba de la ficha de cada persona, con el paso
@@ -519,6 +598,37 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     es un retroceso: es que toca agendar la siguiente.
   </div>
 
+  <h3>El mapa: el tablero de casos</h3>
+  <p>
+    Antes de entrar paso por paso, la vista que lo resume todo. Cada columna del tablero es
+    un tramo del camino, y cada tarjeta es una persona. Se abre desde
+    <span class="mono">Agenda de la red → Tablero de Casos</span>.
+  </p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/agenda</span>
+      </div>
+      <div class="lienzo" style="overflow-x:auto">
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:8px;min-width:780px">
+          <div class="tarjeta" style="padding:10px"><div class="titulillo">1. Por Asignar</div><div class="tarjeta" style="padding:8px;border-left:3px solid var(--rojo);background:var(--rojo-suave)"><div class="fuerte" style="font-size:0.8rem">Elena Cardona <span class="chip rojo">Alta</span></div><div class="apagado" style="font-size:0.72rem">Pereira · 3d en espera</div></div></div>
+          <div class="tarjeta" style="padding:10px"><div class="titulillo">2. Asignadas · falta que elija hora</div><div class="tarjeta" style="padding:8px;border-left:3px solid var(--azul)"><div class="fuerte" style="font-size:0.8rem">Sara Múnera</div><div class="apagado" style="font-size:0.72rem">Aceptó: Mariana Restrepo</div><div style="font-size:0.7rem;color:var(--ambar);font-weight:700">Se libera en 1 día si no hay respuesta</div></div></div>
+          <div class="tarjeta" style="padding:10px"><div class="titulillo">3. Agendada · falta confirmar</div><div class="apagado" style="font-size:0.75rem">Sin citas por confirmar</div></div>
+          <div class="tarjeta" style="padding:10px"><div class="titulillo">4. Citas confirmadas</div><div class="tarjeta" style="padding:8px;border-left:3px solid var(--verde)"><div class="fuerte" style="font-size:0.8rem">Sara Múnera <span class="chip verde">Confirmada</span></div><div class="apagado" style="font-size:0.72rem">12/09, 4:00 p. m. · Mariana Restrepo</div><div style="font-size:0.7rem;color:var(--verde);font-weight:700">✓ Consentimiento firmado</div></div></div>
+          <div class="tarjeta" style="padding:10px"><div class="titulillo">5. En acompañamiento / seguimiento</div><div class="tarjeta" style="padding:8px;border-left:3px solid var(--azul)"><div class="fuerte" style="font-size:0.8rem">Julián Ospina</div><div style="font-size:0.7rem;color:var(--ambar);font-weight:700">Esperando reporte</div><div class="apagado" style="font-size:0.72rem">Sesión: 4/09, 6:00 p. m. (Virtual)</div></div></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      <b>Las columnas siguen los pasos:</b> «Por Asignar» es el paso 3 pendiente ·
+      «Asignadas · falta que elija hora» es el 4 · «Agendada» y «Citas confirmadas» son el 5 ·
+      «En acompañamiento» es el 7. Si hay asignaciones viejas en PROPUESTA aparece una columna
+      más, «Propuestas antiguas», y las demás se renumeran. Toca cualquier tarjeta para ir a la
+      ficha.
+    </figcaption>
+  </figure>
+
   <h3>Paso 1 · Llega la solicitud</h3>
   <h4>Quién · La persona, sola, desde el sitio</h4>
   <p>
@@ -530,6 +640,40 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     Entrar a <span class="mono">Solicitudes</span> y mandarle el <b>enlace de tamizaje</b> por
     WhatsApp: son 7 preguntas cortas que se responden en un minuto desde el celular.
   </p>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/solicitudes</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="padding:0;overflow:hidden">
+          <div class="fila entre" style="padding:8px 14px;background:#f4f1ea;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;font-weight:800;color:var(--tinta-suave)">
+            <span style="flex:2">Persona</span><span style="flex:1">Tamizaje</span><span style="flex:1">Estado</span><span style="flex:1.4">Acciones</span>
+          </div>
+          <div class="fila entre" style="padding:10px 14px;border-top:1px solid var(--borde)">
+            <span style="flex:2"><span class="fuerte">Elena Cardona</span><br><span class="apagado" style="font-size:0.76rem">Pereira · hace 2 horas</span></span>
+            <span style="flex:1"><span class="chip ambar">Pendiente</span></span>
+            <span style="flex:1"><span class="chip gris">Nuevo</span></span>
+            <span style="flex:1.4" class="fila"><span class="btn principal">Preguntar</span><span class="btn">Copiar mensaje</span></span>
+          </div>
+          <div class="fila entre" style="padding:10px 14px;border-top:1px solid var(--borde)">
+            <span style="flex:2"><span class="fuerte">Tomás Aristizábal</span><br><span class="apagado" style="font-size:0.76rem">Dosquebradas · ayer</span></span>
+            <span style="flex:1"><span class="chip verde">Respondido</span></span>
+            <span style="flex:1"><span class="chip verde">Admitida</span></span>
+            <span style="flex:1.4"><span class="chip rojo">Prioridad Alta</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      Cada solicitud es una fila. <b>«Preguntar»</b> arma el WhatsApp con el enlace del
+      tamizaje; si ya se mandó, el botón pasa a decir «Reenviar». La segunda fila ya
+      respondió: el sistema la admitió solo y le puso prioridad — de ahí en adelante vive en
+      <span class="mono">Acompañadas</span>, no aquí.
+    </figcaption>
+  </figure>
 
   <h3>Paso 2 · Admisión</h3>
   <h4>Quién · El sistema</h4>
@@ -567,6 +711,45 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     Eliges al profesional y mandas el mensaje del <b>paso 3</b> que aparece en la ficha:
     le dice que el caso ya es suyo y que la persona elegirá hora de su agenda.
   </p>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/personas/&lt;id de la persona&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tira" style="margin-bottom:10px">
+          <span class="p hecho"><b>1</b></span><span class="p hecho"><b>2</b></span>
+          <span class="p ahora"><b>3</b> Asignar profesional</span>
+          <span class="p"><b>4</b></span><span class="p"><b>5</b></span><span class="p"><b>6</b></span><span class="p"><b>7</b></span>
+        </div>
+        <div class="tarjeta">
+          <div class="fuerte" style="font-size:1rem">¿Quién puede acompañarla?</div>
+          <div class="apagado" style="margin-bottom:10px">Top 10 ordenado por trayectoria clínica (+5 años primero), modalidad solicitada y disponibilidad. Asignar le entrega el caso de una vez: después le avisas por WhatsApp desde la ficha, y si no puede lo dice desde su enlace.</div>
+          <div class="fila entre" style="padding:8px 0;border-top:1px solid var(--borde)">
+            <span><span class="fuerte">Mariana Restrepo Ortiz</span><br><span class="apagado" style="font-size:0.78rem">Psicología · 6 años · Virtual · Pereira · cupo 2/4</span></span>
+            <span class="btn principal">Asignar</span>
+          </div>
+          <div class="fila entre" style="padding:8px 0;border-top:1px solid var(--borde)">
+            <span><span class="fuerte">Camilo Betancur</span><br><span class="apagado" style="font-size:0.78rem">Psicología · 3 años · Presencial · Pereira · cupo 4/4</span></span>
+            <span class="btn apagado">Sin cupo</span>
+          </div>
+        </div>
+        <div class="tarjeta" style="border-left:4px solid var(--azul)">
+          <div class="fuerte">3 · Avísale al profesional que tiene el caso</div>
+          <div class="apagado" style="margin-bottom:8px">Con su enlace para confirmar, corregir su agenda o decir que no puede.</div>
+          <div class="fila"><span class="btn principal">Abrir WhatsApp</span><span class="btn">Copiar mensaje</span><span class="apagado" style="font-size:0.78rem">Ver el mensaje</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      La ficha en el paso 3. Arriba, el Top 10 con <b>«Asignar»</b> — quien está sin cupo sale
+      apagado. Abajo, en cuanto asignas, aparece el mensaje del paso 3 para mandárselo. La
+      tira de arriba marca en qué paso está el caso, y se abre paso por paso para ver qué
+      pasó en cada uno.
+    </figcaption>
+  </figure>
   <h4>Qué puede hacer él</h4>
   <p>Desde su enlace, tres cosas:</p>
   <ul>
@@ -574,6 +757,34 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     <li><b>Corregir su agenda</b>, si sus horarios cambiaron. Importa: es de ahí de donde la persona va a escoger.</li>
     <li><b>Decir que no puede.</b> El caso se libera al instante y vuelve a «Por Asignar» el mismo día. El motivo es opcional a propósito: exigirlo para decir que no es cobrarle a alguien por avisar a tiempo.</li>
   </ul>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/caso/&lt;id del caso&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="max-width:520px;margin:0 auto">
+          <div class="titulillo">Te proponemos un acompañamiento</div>
+          <div class="fuerte" style="font-size:1rem;margin-bottom:4px">¿Puedes acompañar este caso?</div>
+          <div class="apagado" style="margin-bottom:12px">Mira si puedes tomarlo y dinos. No estás comprometido a nada.</div>
+          <div style="font-size:0.82rem;font-weight:700;margin-bottom:4px">Estos son los espacios que vamos a ofrecerle:</div>
+          <div class="apagado" style="font-size:0.82rem;line-height:1.7;margin-bottom:12px">
+            Lunes · 2:00 a 6:00 p. m.<br>Miércoles · 8:00 a. m. a 12:00 m.<br>Viernes · 2:00 a 6:00 p. m.
+          </div>
+          <div class="fila" style="margin-bottom:8px"><span class="btn principal">Sí puedo, sigo con el caso</span><span class="btn">Cambiar mis horarios</span></div>
+          <div class="apagado" style="font-size:0.78rem;margin-bottom:6px">¿No puedes tomarlo? Dinos y lo liberamos <span class="apagado">(el motivo es opcional)</span></div>
+          <div class="fila"><span class="btn">Enviar y liberar el caso</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      Lo que ve él al abrir su enlace: <b>sus propios horarios</b> —los que la persona va a
+      ver— y tres salidas. Confirmar, corregir los horarios («Guardar mis horarios»), o
+      liberar el caso. Si no toca nada, el caso avanza igual.
+    </figcaption>
+  </figure>
 
   <h3>Paso 4 · Elige su hora</h3>
   <h4>Quién · La persona, sola, desde su enlace</h4>
@@ -708,6 +919,33 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     llaves distintas, una por rol— y la pantalla de la cita enseña en vivo quién ya entró y
     cuánto llevan.
   </p>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/agenda/&lt;id de la cita&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta">
+          <div class="fila entre" style="margin-bottom:10px">
+            <span><span class="fuerte">Telemetría y Asistencia a la Sala Virtual</span><br><span class="apagado" style="font-size:0.78rem">Rastreo en tiempo real de conexión a la videollamada, ingresos a la sala y tiempo efectivo en sesión.</span></span>
+            <span class="btn principal">Entrar a la sala</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">
+            <div class="tarjeta" style="margin:0"><div class="titulillo">Persona acompañada</div><div class="fuerte" style="color:var(--verde)">En la sala</div><div class="apagado" style="font-size:0.75rem">entró hace 3 min</div></div>
+            <div class="tarjeta" style="margin:0"><div class="titulillo">Psicólogo(a)</div><div class="fuerte">Sin conexión aún</div><div class="apagado" style="font-size:0.75rem">Aún no abre el enlace</div></div>
+            <div class="tarjeta" style="margin:0"><div class="titulillo">Tiempo en videollamada</div><div class="fuerte">0 min</div><div class="apagado" style="font-size:0.75rem">Esperando inicio</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      La ficha de la cita durante la sesión. Aquí ella ya entró y él todavía no: es el momento
+      de escribirle a él. <b>«Entrar a la sala»</b> es para supervisar, no para participar. El
+      contador arranca cuando están los dos.
+    </figcaption>
+  </figure>
   <div class="aviso bien">
     <b>La cita se cierra sola cuando hay prueba.</b>
     Si el profesional reporta la sesión, o si los dos entraron a la sala, pasa a
@@ -759,12 +997,53 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
       </p>
     </div>
   </div>
-</section>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/personas/&lt;id de la persona&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tira" style="margin-bottom:10px">
+          <span class="p hecho"><b>1</b></span><span class="p hecho"><b>2</b></span><span class="p hecho"><b>3</b></span>
+          <span class="p hecho"><b>4</b></span><span class="p hecho"><b>5</b></span>
+          <span class="p ahora"><b>6</b> La sesión</span>
+          <span class="p"><b>7</b> Seguimiento y cierre</span>
+        </div>
+        <div class="tarjeta" style="border-left:4px solid var(--verde);background:var(--verde-suave)">
+          <div class="fila entre">
+            <span><div class="titulillo">Qué toca ahora</div><span class="fuerte" style="font-size:1rem">Preguntar cómo le fue</span><br><span class="apagado">la sesión fue hace 1 día</span></span>
+            <span class="btn principal">Seguimiento</span>
+          </div>
+        </div>
+        <div class="apagado" style="font-size:0.82rem;margin-bottom:10px">Más acciones</div>
+        <div class="tarjeta">
+          <div class="fuerte">Qué ha reportado quien acompaña</div>
+          <div class="apagado" style="margin-bottom:8px">Lo que respondió desde su enlace de acceso. Se va sumando: la entrada de arriba es la más reciente.</div>
+          <div style="border-left:3px solid var(--borde);padding-left:12px">
+            <div class="fuerte" style="font-size:0.9rem">Quedamos en una cita</div>
+            <div class="apagado" style="font-size:0.8rem">Sobre la sesión del 4/09, 6:00 p. m. · virtual · próxima: 11/09, 6:00 p. m.</div>
+            <div class="apagado" style="font-size:0.8rem">Lo reportó: Mariana Restrepo Ortiz</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      La ficha después de una sesión. «Qué toca ahora» pide preguntar cómo le fue, y
+      <b>«Seguimiento»</b> abre los dos WhatsApp: a ella y a él. Abajo, lo que él ya reportó
+      desde su enlace; cuando dice «necesita más», el caso vuelve al paso 4 y la tarjeta pasa
+      a ofrecerte su enlace para que elija la siguiente hora.
+    </figcaption>
+  </figure>
+</details>
 
 <!-- ==================================================================== -->
-<section class="capitulo" id="cuando-falla">
-  <h2>Cuando algo se sale del carril</h2>
-  <p class="quien">Los casos que de verdad pasan</p>
+<details class="capitulo" id="cuando-falla" open>
+  <summary>
+    <h2>Cuando algo se sale del carril</h2>
+    <p class="quien">Los casos que de verdad pasan</p>
+  </summary>
 
   <table>
     <tr><th>Pasa esto</th><th>Haces esto</th></tr>
@@ -819,7 +1098,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
       </td>
     </tr>
   </table>
-</section>
+</details>
 
 <footer>
   Red Aquí Estamos · Manual operativo, primera entrega: verificaciones y agendamiento.<br>
@@ -828,5 +1107,27 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
 </footer>
 
 </div>
+<script>
+  // Un capítulo plegado no se lee, ni en papel ni desde el índice.
+  // Al saltar a un ancla se abre el capítulo que la contiene; al imprimir se
+  // abren todos. Sin esto, el índice llevaría a una caja cerrada y la
+  // impresión saldría con los títulos y nada más.
+  (function () {
+    function abrirDestino() {
+      var id = location.hash.replace('#', '');
+      if (!id) return;
+      var el = document.getElementById(id);
+      if (!el) return;
+      var det = el.closest('details');
+      if (det) det.open = true;
+      el.scrollIntoView({ block: 'start' });
+    }
+    window.addEventListener('hashchange', abrirDestino);
+    window.addEventListener('load', abrirDestino);
+    window.addEventListener('beforeprint', function () {
+      document.querySelectorAll('details.capitulo').forEach(function (d) { d.open = true; });
+    });
+  })();
+</script>
 </body>
 </html>`
