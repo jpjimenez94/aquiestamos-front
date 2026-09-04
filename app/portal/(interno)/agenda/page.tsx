@@ -75,6 +75,8 @@ type Paciente = {
     fin?: string | null
     estado: string
     modalidad: string
+    /** El reporte de ESTA sesión, no el último de la asignación. */
+    reporte?: { id: string; outcome: string } | null
   } | null
   ultimoReporte?: {
     id: string
@@ -600,37 +602,41 @@ export default async function AgendaPage({
                     <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
                     {(() => {
                       /*
-                        Decía «Esperando reporte» a todo caso sin reporte. Un caso
-                        cuya única cita se canceló no tiene sesión de la que
-                        reportar: pedía el reporte de algo que no pasó, y quien
-                        coordina iba a perseguir al profesional en vez de volver a
-                        agendar. Primero se mira si hubo sesión.
+                        La insignia habla de la ÚLTIMA SESIÓN, así que se pregunta
+                        por ella y en este orden. Antes preguntaba dos cosas
+                        distintas y las dos mal: «¿tiene reporte la asignación?»
+                        —la tarjeta de Sofía decía «Con reporte» de su sesión del
+                        4/09 con el único reporte que había escrito en agosto,
+                        mientras su ficha decía «Sin reportar» de esa misma
+                        sesión— y, sin reporte, «Esperando reporte» aunque la
+                        sesión se hubiera cancelado y no hubiera nada que
+                        reportar.
                       */
-                      if (p.ultimoReporte) {
+                      if (!p.ultimaCita) {
                         return (
-                          <span style={{ ...INSIGNIA, color: '#059669' }}>
-                            <CheckCircle2 size={12} /> Con reporte
+                          <span style={{ ...INSIGNIA, color: '#d97706' }}>
+                            <Clock size={12} /> Sin sesión agendada
                           </span>
                         )
                       }
-                      if (p.ultimaCita?.estado === 'CANCELADA') {
+                      if (p.ultimaCita.estado === 'CANCELADA') {
                         return (
                           <span style={{ ...INSIGNIA, color: '#dc2626' }}>
                             <AlertCircle size={12} /> Se canceló · falta agendar
                           </span>
                         )
                       }
-                      if (p.ultimaCita?.estado === 'NO_ASISTIO') {
+                      if (p.ultimaCita.estado === 'NO_ASISTIO') {
                         return (
                           <span style={{ ...INSIGNIA, color: '#dc2626' }}>
                             <AlertCircle size={12} /> No asistió · falta agendar
                           </span>
                         )
                       }
-                      if (!p.ultimaCita) {
+                      if (p.ultimaCita.reporte) {
                         return (
-                          <span style={{ ...INSIGNIA, color: '#d97706' }}>
-                            <Clock size={12} /> Sin sesión agendada
+                          <span style={{ ...INSIGNIA, color: '#059669' }}>
+                            <CheckCircle2 size={12} /> Con reporte
                           </span>
                         )
                       }
@@ -653,9 +659,15 @@ export default async function AgendaPage({
                           : `Sesión: ${enBogota(p.ultimaCita.inicio)} (${p.ultimaCita.modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'})`}
                     </span>
                   ) : null}
-                  {p.ultimoReporte?.outcome ? (
+                  {/*
+                      El resultado de la sesión que la tarjeta enseña arriba. Salía
+                      el del último reporte de la asignación: bajo «Sesión: 4/09»
+                      se leía «Quedaron en una cita», que era el desenlace de una
+                      sesión de agosto.
+                  */}
+                  {p.ultimaCita?.reporte?.outcome ? (
                     <span style={{ fontSize: '0.74rem', color: '#4b5563', fontStyle: 'italic', marginTop: 2 }}>
-                      {OUTCOME_LABEL[p.ultimoReporte.outcome] ?? p.ultimoReporte.outcome}
+                      {OUTCOME_LABEL[p.ultimaCita.reporte.outcome] ?? p.ultimaCita.reporte.outcome}
                     </span>
                   ) : null}
                 </Link>
