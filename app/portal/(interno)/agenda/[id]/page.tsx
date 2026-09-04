@@ -81,6 +81,8 @@ type Cita = {
     city?: string
     isMinor?: boolean
     canalPreferido?: string | null
+    /** Si el sistema pudo avisarle solo. Dar correo es opcional al pedir ayuda. */
+    tieneCorreo?: boolean
   }
 }
 
@@ -548,6 +550,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         enlaceConsentimiento={cita.consentimiento?.enlace ?? null}
         consentimientoFirmado={cita.consentSigned === true}
         canalContacto={cita.paciente.canalPreferido ?? null}
+        personaTieneCorreo={cita.paciente.tieneCorreo === true}
         enlaceCaso={enlaceCasoProf}
         enlaceReunion={enlaceSalaPaciente}
         enlaceReunionProfesional={enlaceSalaProfesional}

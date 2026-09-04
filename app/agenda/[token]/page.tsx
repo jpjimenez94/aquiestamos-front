@@ -260,8 +260,8 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
               lineHeight: 1.6,
             }}
           >
-            Te escribimos por WhatsApp con el enlace para conectarte. Si te surge algo y no
-            puedes, avísanos con tiempo y lo movemos: no pasa nada.
+            Te llegan los detalles y tu enlace para entrar. Si te surge algo y no puedes,
+            avísanos con tiempo y lo movemos: no pasa nada.
           </p>
         </div>
       </div>

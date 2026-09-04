@@ -40,6 +40,7 @@ export function MensajesFlujoCita({
   enlaceConsentimiento,
   consentimientoFirmado,
   canalContacto,
+  personaTieneCorreo,
   enlaceCaso,
   enlaceReunion,
   enlaceReunionProfesional,
@@ -65,6 +66,15 @@ export function MensajesFlujoCita({
   enlaceConsentimiento: string | null
   consentimientoFirmado: boolean
   canalContacto?: string | null
+  /**
+   * Si a la persona le llegó sola la confirmación de su sesión.
+   *
+   * Dar correo es opcional al pedir ayuda, y quien no lo dio no recibe nada:
+   * ni la confirmación de que quedó agendada, ni el recordatorio del día. Para
+   * esas, el WhatsApp no es un extra —es el único aviso que van a tener—, y la
+   * tarjeta lo pide en vez de decir «nada pendiente».
+   */
+  personaTieneCorreo?: boolean
   enlaceCaso: string
   enlaceReunion?: string | null
   enlaceReunionProfesional?: string | null
@@ -239,13 +249,27 @@ export function MensajesFlujoCita({
             <Mensaje titulo="Recordatorio a la persona" telefono={pacienteTelefono} texto={mensajeRecordatorioPersona} />
             <Mensaje titulo="Recordatorio al profesional" telefono={profesionalTelefono} texto={mensajeRecordatorioProf} />
           </>
+        ) : personaTieneCorreo === false ? (
+          <>
+            <h2 style={{ marginTop: 4 }}>Ella no tiene correo: confírmasela tú</h2>
+            <p className="panel__nota">
+              Al profesional le llegó su correo con la sala, y a ella no le llegó nada: no dejó
+              correo al pedir ayuda, y darlo es opcional. Este WhatsApp es el único registro que
+              va a tener de su cita hasta el día de la sesión.
+            </p>
+            <Mensaje
+              titulo="Confirmarle la sesión"
+              telefono={pacienteTelefono}
+              texto={mensajeConfirmacion}
+            />
+          </>
         ) : (
           <>
             <h2 style={{ marginTop: 4 }}>Nada pendiente con esta cita</h2>
             <p className="panel__nota">
-              La hora la eligió la persona y su pantalla se la confirmó; el consentimiento está
-              firmado; el profesional recibió el correo con la sala. El día de la sesión aparecerán
-              aquí los recordatorios.
+              El consentimiento está firmado y los dos recibieron su correo: él con la sala y el
+              caso, ella con la hora y su enlace de entrada. El día de la sesión aparecerán aquí
+              los recordatorios.
             </p>
           </>
         )}
