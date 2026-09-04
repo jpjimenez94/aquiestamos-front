@@ -147,7 +147,21 @@ export function PanelDelCaso({
       */}
       {asignacion.estado !== 'ACTIVA' && asignacion.siguientePaso ? (
         <p className="caso-siguiente">
-          <strong>Siguiente paso:</strong> {asignacion.siguientePaso}
+          <strong>Siguiente paso:</strong>{' '}
+          {/*
+            Una acción, no la lista de las dos.
+
+            El texto del backend nombra los dos pasos de ACEPTADA —avisar al
+            profesional y mandarle a ella su enlace— porque desde allí no se
+            sabe si él ya confirmó. Aquí sí, y decir las dos cosas cuando solo
+            una se puede hacer es lo que hacía que la pantalla no dijera qué
+            toca ahora.
+          */}
+          {asignacion.estado === 'ACEPTADA'
+            ? asignacion.confirmadoEn
+              ? 'Mándale a la persona su enlace de agenda para que elija hora.'
+              : `Avísale a ${asignacion.profesional.nombre.split(' ')[0]} que tiene el caso, y espera a que confirme su agenda.`
+            : asignacion.siguientePaso}
         </p>
       ) : null}
 
@@ -224,25 +238,64 @@ export function PanelDelCaso({
             profesional, y que elija antes de que él sepa que tiene el caso es
             justo el orden que hay que evitar.
           */}
-          <Mensaje
-            titulo="3 · Avísale al profesional que tiene el caso"
-            nota="Se le avisa, no se le pide permiso. Si no puede, lo dice desde su enlace y el caso vuelve a la cola el mismo día."
-            telefono={asignacion.profesional.telefono}
-            texto={mensajeDePropuesta({
-              plantilla: plantillas?.WHATSAPP_PROPUESTA_PROFESIONAL,
-              profesional: asignacion.profesional.nombre,
-              ciudad: persona.city,
-              modalidad: persona.preferredModality,
-              dias: persona.availableDays,
-              franjas: persona.availableSlots,
-              enlace: enlaceCaso,
-              prioridad: persona.priority,
-              // Su disponibilidad, para que no acepte a ciegas.
-              agenda: asignacion.profesional.agenda ?? null,
-            })}
-            copiado={copiado === 'aviso-profesional'}
-            alCopiar={(t) => copiar('aviso-profesional', t)}
-          />
+          {/*
+            Un paso a la vez: el que toca abierto, el hecho plegado.
+
+            Bloquear el 4 hasta que él confirme no bastaba. Una vez confirmaba,
+            el 3 y el 4 quedaban los dos abiertos y con los mismos botones, así
+            que la pantalla dejaba de decir qué toca ahora: dos mensajes listos
+            para mandar, sin nada que distinguiera el que ya se mandó del que
+            falta.
+
+            Es el mismo patrón que `QueTocaAhora` ya usa en los casos activos:
+            una tarjeta con la acción de ahora, y lo demás plegado debajo. El 3
+            no desaparece —a veces hay que reenviarlo— pero deja de competir.
+          */}
+          {asignacion.confirmadoEn ? (
+            <details className="caso-alternativas">
+              <summary>3 · Ya le avisaste, y confirmó — volver a mandarle el mensaje</summary>
+              <div className="caso-alternativas__cuerpo">
+                <Mensaje
+                  titulo="3 · Aviso al profesional"
+                  nota="Ya está avisado y confirmó. Vuelve a mandárselo solo si hace falta."
+                  telefono={asignacion.profesional.telefono}
+                  texto={mensajeDePropuesta({
+                    plantilla: plantillas?.WHATSAPP_PROPUESTA_PROFESIONAL,
+                    profesional: asignacion.profesional.nombre,
+                    ciudad: persona.city,
+                    modalidad: persona.preferredModality,
+                    dias: persona.availableDays,
+                    franjas: persona.availableSlots,
+                    enlace: enlaceCaso,
+                    prioridad: persona.priority,
+                    agenda: asignacion.profesional.agenda ?? null,
+                  })}
+                  copiado={copiado === 'aviso-profesional'}
+                  alCopiar={(t) => copiar('aviso-profesional', t)}
+                />
+              </div>
+            </details>
+          ) : (
+            <Mensaje
+              titulo="3 · Avísale al profesional que tiene el caso"
+              nota="Se le avisa, no se le pide permiso. Si no puede, lo dice desde su enlace y el caso vuelve a la cola el mismo día."
+              telefono={asignacion.profesional.telefono}
+              texto={mensajeDePropuesta({
+                plantilla: plantillas?.WHATSAPP_PROPUESTA_PROFESIONAL,
+                profesional: asignacion.profesional.nombre,
+                ciudad: persona.city,
+                modalidad: persona.preferredModality,
+                dias: persona.availableDays,
+                franjas: persona.availableSlots,
+                enlace: enlaceCaso,
+                prioridad: persona.priority,
+                // Su disponibilidad, para que no acepte a ciegas.
+                agenda: asignacion.profesional.agenda ?? null,
+              })}
+              copiado={copiado === 'aviso-profesional'}
+              alCopiar={(t) => copiar('aviso-profesional', t)}
+            />
+          )}
 
           {/*
             Aquí se listaban los días y franjas que el profesional escribía al
