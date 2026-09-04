@@ -254,6 +254,32 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
     )
   }
 
+  /**
+   * Sin profesional hay dos pantallas, no una.
+   *
+   * Esta decía siempre «todavía estamos buscando… te avisamos por WhatsApp».
+   * Con el acompañamiento ya cerrado eso no es cierto —nadie está buscando— y
+   * quien vuelva a abrir su enlace meses después se queda esperando un aviso
+   * que no va a llegar. El enlace le sirve para todas sus sesiones, así que
+   * volver a abrirlo es lo normal, no la excepción.
+   */
+  if (estado.estado === 'ACOMPANAMIENTO_CERRADO') {
+    return (
+      <div style={{ ...marco, alignItems: 'center' }}>
+        <div style={{ ...tarjeta, textAlign: 'center' }}>
+          <Clock size={40} style={{ color: '#0284c7', margin: '0 auto 12px' }} />
+          <h1 style={{ fontSize: '1.2rem', color: '#0f172a', margin: '0 0 8px' }}>
+            Tu acompañamiento está cerrado
+          </h1>
+          <p style={{ color: '#475569', fontSize: '0.94rem', margin: 0, lineHeight: 1.6 }}>
+            Por eso no hay horas para elegir. Si quieres retomarlo o necesitas hablar con
+            alguien, escríbenos por WhatsApp y lo abrimos de nuevo: aquí seguimos.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (!estado.profesional) {
     return (
       <div style={{ ...marco, alignItems: 'center' }}>

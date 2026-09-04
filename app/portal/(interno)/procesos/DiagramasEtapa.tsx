@@ -49,7 +49,7 @@ export function DiagramaProfesionales() {
     >
       <Caja x={30} y={30} w={200} titulo="Se postula" detalle="«Quiero dar apoyo»" />
       <Flecha d="M 230 57 H 274" />
-      <Caja x={276} y={30} w={200} titulo="Coordinación aprueba" detalle="correo de bienvenida" />
+      <Caja x={276} y={30} w={200} titulo="Coordinación aprueba" detalle="correo de bienvenida (sin portal)" />
       <Flecha d="M 476 57 H 520" />
       <Caja x={522} y={30} w={170} titulo="Activo" detalle="en la red" tono="logro" />
 
@@ -87,7 +87,7 @@ export function DiagramaAsignacion() {
         y={30}
         w={210}
         titulo="ACEPTADA"
-        detalle="se le asigna y se le avisa"
+        detalle="se le asigna · coordinación avisa"
         tono="espera"
       />
 
@@ -124,7 +124,7 @@ export function DiagramaCita() {
       <Caja x={552} y={30} w={180} titulo="PROGRAMADA" detalle="cita sobre la mesa" tono="logro" />
 
       <Flecha d="M 642 84 V 128" />
-      <Caja x={552} y={130} w={180} titulo="Confirmar a los dos" detalle="WhatsApp · pasos 8 y 9" />
+      <Caja x={552} y={130} w={180} titulo="Confirmar a los dos" detalle="WhatsApp · paso 5" />
 
       <Flecha d="M 552 157 H 508" />
       <Caja x={276} y={130} w={230} titulo="Consentimiento firmado" detalle="su nombre tecleado es la firma" tono="logro" />

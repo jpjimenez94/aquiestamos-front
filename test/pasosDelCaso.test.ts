@@ -31,6 +31,21 @@ describe('en qué paso está el caso', () => {
     expect(pasoDelCaso({ estadoPersona: 'EN_ADMISION', estadoAsignacion: 'RECHAZADA', ahora: AHORA }).n).toBe(3)
   })
 
+  /**
+   * Y el 2 no se enciende desde la ficha, a propósito.
+   *
+   * Existir como ficha ES haber sido admitida. Había una rama que buscaba
+   * `EN_REVISION`, que es un estado de SOLICITUD y no de persona: parecía
+   * cubrir la admisión y no se cumplía nunca. Se deja fijado para que nadie
+   * «arregle» el 2 mapeándolo a un estado que significa otra cosa.
+   */
+  it('desde la ficha nunca se está en el paso 2: admitir es lo que la creó', () => {
+    const desdeLaFicha = ['EN_ADMISION', 'ASIGNADO', 'EN_ACOMPANAMIENTO', 'CERRADO']
+    for (const estado of desdeLaFicha) {
+      expect(pasoDelCaso({ estadoPersona: estado, ahora: AHORA }).n).not.toBe(2)
+    }
+  })
+
   it('asignado sin cita: falta que elija hora', () => {
     expect(
       pasoDelCaso({ estadoPersona: 'EN_ACOMPANAMIENTO', estadoAsignacion: 'ACEPTADA', ahora: AHORA }).n,

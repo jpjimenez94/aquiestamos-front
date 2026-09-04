@@ -178,7 +178,10 @@ export function ProcesosClient() {
           quien: 'Coordinación',
           rolTag: 'coordinacion',
           titulo: 'Revisa y aprueba la postulación',
-          detalle: 'Al aprobar, el profesional queda ACTIVO en la red y recibe su correo de bienvenida y acceso al portal.',
+          // Decía «y acceso al portal». No lo hay: aprobar crea la ficha del
+          // profesional, no una cuenta, y ninguna pantalla enlaza las dos. El
+          // correo que sí sale es el de bienvenida, sin credenciales.
+          detalle: 'Al aprobar, el profesional queda ACTIVO en la red y recibe su correo de bienvenida. La agenda la mantiene coordinación desde su ficha.',
         },
         {
           quien: 'El profesional',
@@ -199,7 +202,10 @@ export function ProcesosClient() {
       titulo: 'Asignación y elección de hora',
       tag: 'Emparejamiento',
       descripcion:
-        'Al profesional se le asigna el caso y se le avisa, en vez de pedirle permiso y esperar. Luego la persona elige su hora directamente de la agenda de él.',
+        // «Se le avisa» en pasiva sonaba a automático y no lo es: el aviso lo
+        // manda quien coordina, desde la ficha, con el mensaje del paso 3.
+        // Escribirlo sin sujeto era justo lo que hacía que nadie lo mandara.
+        'Al profesional se le asigna el caso y coordinación le avisa por WhatsApp desde la ficha, en vez de pedirle permiso y esperar. Luego la persona elige su hora directamente de la agenda de él.',
       diagrama: <DiagramaAsignacion />,
       estados: [
         { estado: 'ACEPTADA', texto: 'Asignado, falta que elija hora' },

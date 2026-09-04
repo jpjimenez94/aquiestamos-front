@@ -165,7 +165,7 @@ export function ModalConsentimiento({
         </div>
 
         <p className="panel__nota" style={{ marginTop: 4, marginBottom: 16 }}>
-          Paso 9 del flujo: El <strong>consentimiento informado firmado</strong> por {pacienteNombre} es requisito obligatorio antes de iniciar la sesión de atención psicológica.
+          Paso 5 · Preparar la sesión: el <strong>consentimiento informado firmado</strong> por {pacienteNombre} es requisito obligatorio antes de iniciar la sesión de atención psicológica.
         </p>
 
         {mensaje && (

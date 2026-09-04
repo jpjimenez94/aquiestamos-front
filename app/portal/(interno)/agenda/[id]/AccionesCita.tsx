@@ -94,6 +94,9 @@ export function AccionesCita({
 
   const posibles = siguientesEstados.filter((e) => e !== 'REPROGRAMADA')
 
+  /** Los mismos que `FINALES` en `appointmentState.service.js`: de aquí no se sale. */
+  const ESTADOS_FINALES = ['REALIZADA', 'CANCELADA', 'NO_ASISTIO', 'REPROGRAMADA']
+
   return (
     <>
       <div className="panel">
@@ -131,7 +134,15 @@ export function AccionesCita({
             {profesionalVerificado ? 'Ver Tarjeta Profesional' : 'Verificar Tarjeta Profesional'}
           </button>
 
-          {estado !== 'CANCELADA' && estado !== 'REALIZADA' && (
+          {/*
+            Reprogramar solo desde donde el backend lo permite.
+            La lista era «ni cancelada ni realizada» y se dejaba fuera
+            NO_ASISTIO y REPROGRAMADA, que también son finales: el botón
+            aparecía, el backend respondía TRANSICION_INVALIDA, y encima
+            convivía con el texto de abajo diciendo que ya no se pueden
+            aplicar cambios de estado.
+          */}
+          {!ESTADOS_FINALES.includes(estado) && (
             <button
               type="button"
               className="boton-mini"

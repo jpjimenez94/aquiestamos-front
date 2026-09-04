@@ -55,7 +55,20 @@ export function pasoDelCaso({
   const paso = (n: PasoDelCaso['n']) => PASOS_DEL_CASO[n - 1]
 
   if (estadoPersona === 'NUEVO') return paso(1)
-  if (estadoPersona === 'EN_REVISION') return paso(2)
+
+  /**
+   * El paso 2 no se enciende aquí, y no es un olvido.
+   *
+   * Había un `estadoPersona === 'EN_REVISION'` que no se cumplía nunca:
+   * EN_REVISION es un estado de SOLICITUD, y `PatientStatus` solo tiene NUEVO,
+   * EN_ADMISION, ASIGNADO, EN_ACOMPANAMIENTO y CERRADO. La rama parecía cubrir
+   * la admisión y no cubría nada.
+   *
+   * Lo correcto es lo que ya hace el resto de la función: cuando existe una
+   * ficha, la admisión YA ocurrió —es justo lo que crea la ficha—, así que
+   * desde aquí los pasos 1 y 2 se ven cumplidos y el primero vivo es el 3. Los
+   * dos primeros son de la pantalla de solicitudes, que es su dueña.
+   */
 
   // Cerrado o sin asignación viva tras haberla tenido: lo que queda es el
   // cierre — encuesta, reporte final, o volver a asignar desde la ficha.
