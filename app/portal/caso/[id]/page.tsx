@@ -8,6 +8,7 @@ import { DecidirPropuestaForm } from './DecidirPropuestaForm'
 import { momentoDelCaso } from '@/lib/momentoDelCaso'
 import { BotonDeclinar } from './BotonDeclinar'
 import { EditorDeMiAgenda } from './EditorDeMiAgenda'
+import { porDia, enPalabras } from './franjas'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
 import { Dato, Etiqueta } from '../../(interno)/componentes'
@@ -233,10 +234,41 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
               confirmar, y de ahí salen las cancelaciones tardías — las que
               dejan a alguien esperando el día de la sesión.
             */}
-            {paciente.agenda ? (
+            {/*
+              Un día por línea, no una lista con comas.
+
+              Iba todo seguido —«lunes de 6 a 10, martes de 6 a 9, miércoles de
+              6 a 9…»— y a partir del tercer día deja de leerse: hay que buscar
+              con el dedo qué hora corresponde a qué día. Es justo lo que se le
+              pide comprobar antes de aceptar el caso.
+            */}
+            {porDia(paciente.franjas ?? []).length > 0 ? (
               <div className="caso-horarios">
                 <strong>Estos son los espacios que vamos a ofrecerle:</strong>
-                <em>{paciente.agenda}</em>
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    margin: '8px 0 0',
+                    padding: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  {porDia(paciente.franjas ?? []).map((d) => (
+                    <li
+                      key={d.weekday}
+                      style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}
+                    >
+                      <span style={{ fontWeight: 600, minWidth: 88 }}>{d.dia}</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {d.tramos
+                          .map((t) => `${enPalabras(t.startMinute)} a ${enPalabras(t.endMinute)}`)
+                          .join(' · ')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : null}
 

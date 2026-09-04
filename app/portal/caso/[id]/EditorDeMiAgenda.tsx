@@ -20,29 +20,7 @@ import { actualizarDisponibilidadAction } from './actions'
  * veces lo mismo.
  */
 
-const DIAS = [
-  ['LUNES', 'Lunes'],
-  ['MARTES', 'Martes'],
-  ['MIERCOLES', 'Miércoles'],
-  ['JUEVES', 'Jueves'],
-  ['VIERNES', 'Viernes'],
-  ['SABADO', 'Sábado'],
-  ['DOMINGO', 'Domingo'],
-] as const
-
-type Franja = { weekday: string; startMinute: number; endMinute: number; modality?: string }
-
-/** 480 → "08:00", que es lo que entiende un <input type="time">. */
-function aHora(minutos: number) {
-  const h = Math.floor(minutos / 60)
-  const m = minutos % 60
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-}
-
-function aMinutos(hora: string) {
-  const [h, m] = hora.split(':').map(Number)
-  return (h || 0) * 60 + (m || 0)
-}
+import { DIAS, aHora, aMinutos, type Franja } from './franjas'
 
 export function EditorDeMiAgenda({
   patientId,
@@ -130,14 +108,34 @@ export function EditorDeMiAgenda({
         dentro de ellos, así que déjalos como de verdad los tengas.
       </p>
 
+      {/*
+        Cada franja, una fila con forma.
+
+        Era un select y dos inputs sueltos uno detrás de otro, sin bordes ni
+        agrupación: siete de esas seguidas se leen como una lista de campos, no
+        como «mis siete días». Con la fila delimitada y la hora alineada, se ve
+        de un vistazo cuál es cada día y dónde empieza y acaba.
+      */}
       {filas.map((f, i) => (
-        <div key={i} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            gap: 10,
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: '1px solid var(--color-border-default, #e2e8f0)',
+            background: 'var(--color-bg-subtle, #f8fafc)',
+          }}
+        >
           <select
             className="field__input"
-            style={{ maxWidth: 150 }}
+            style={{ flex: '1 1 130px', maxWidth: 160, fontWeight: 600 }}
             value={f.weekday}
             onChange={(e) => cambiar(i, 'weekday', e.target.value)}
-            aria-label="Día"
+            aria-label={`Día del espacio ${i + 1}`}
           >
             {DIAS.map(([valor, texto]) => (
               <option key={valor} value={valor}>
@@ -146,31 +144,40 @@ export function EditorDeMiAgenda({
             ))}
           </select>
 
-          <input
-            className="field__input"
-            style={{ maxWidth: 120 }}
-            type="time"
-            value={aHora(f.startMinute)}
-            onChange={(e) => cambiar(i, 'startMinute', aMinutos(e.target.value))}
-            aria-label="Desde"
-          />
-          <span className="tabla__secundario">a</span>
-          <input
-            className="field__input"
-            style={{ maxWidth: 120 }}
-            type="time"
-            value={aHora(f.endMinute)}
-            onChange={(e) => cambiar(i, 'endMinute', aMinutos(e.target.value))}
-            aria-label="Hasta"
-          />
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: '1 1 240px' }}>
+            <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>
+              de
+            </span>
+            <input
+              className="field__input"
+              style={{ maxWidth: 120, fontVariantNumeric: 'tabular-nums' }}
+              type="time"
+              value={aHora(f.startMinute)}
+              onChange={(e) => cambiar(i, 'startMinute', aMinutos(e.target.value))}
+              aria-label={`Desde, espacio ${i + 1}`}
+            />
+            <span className="tabla__secundario" style={{ fontSize: '0.8rem' }}>
+              a
+            </span>
+            <input
+              className="field__input"
+              style={{ maxWidth: 120, fontVariantNumeric: 'tabular-nums' }}
+              type="time"
+              value={aHora(f.endMinute)}
+              onChange={(e) => cambiar(i, 'endMinute', aMinutos(e.target.value))}
+              aria-label={`Hasta, espacio ${i + 1}`}
+            />
+          </div>
 
           <button
             className="boton-mini"
             type="button"
+            style={{ marginLeft: 'auto' }}
             onClick={() => setFilas((x) => x.filter((_, j) => j !== i))}
-            aria-label={`Quitar el espacio ${i + 1}`}
+            aria-label={`Quitar el espacio del ${DIAS.find(([v]) => v === f.weekday)?.[1] ?? 'día'}`}
           >
             <Trash2 size={14} />
+            Quitar
           </button>
         </div>
       ))}
