@@ -79,6 +79,86 @@ describe('en qué paso está el caso', () => {
     ).toBe(6)
   })
 
+  /**
+   * El caso de Juan Pablo: su única cita se canceló y la ficha seguía en el
+   * paso 5, «Preparar la sesión» — no había ninguna sesión que preparar. La
+   * tira encendía el 5 por descarte: si no había cita viva por delante ni
+   * ninguna con hora ya pasada, se quedaba en el 5.
+   *
+   * Cancelada la única cita, lo que falta es volver a elegir hora: el 4.
+   */
+  it('cancelada la única cita: vuelve a «elige su hora», no a «prepara la sesión»', () => {
+    expect(
+      pasoDelCaso({
+        estadoPersona: 'EN_ACOMPANAMIENTO',
+        estadoAsignacion: 'ACTIVA',
+        citas: [{ startsAt: enHoras(48), status: 'CANCELADA' }],
+        ahora: AHORA,
+      }).n,
+    ).toBe(4)
+  })
+
+  /**
+   * Y una cancelada cuya hora ya pasó tampoco es una sesión ocurrida. Antes
+   * contaba: cualquier cita con hora pasada empujaba al paso 6, y la ficha
+   * pedía el reporte de algo que nunca pasó.
+   */
+  it('una cancelada con hora ya pasada tampoco cuenta como sesión', () => {
+    expect(
+      pasoDelCaso({
+        estadoPersona: 'EN_ACOMPANAMIENTO',
+        estadoAsignacion: 'ACTIVA',
+        citas: [{ startsAt: enHoras(-48), status: 'CANCELADA' }],
+        ahora: AHORA,
+      }).n,
+    ).toBe(4)
+  })
+
+  /**
+   * Pero si ya hubo una sesión de verdad y la siguiente se cayó, el caso no
+   * retrocede: seis sesiones hechas no se borran porque la séptima se cancele.
+   */
+  it('con una sesión ya hecha, una cancelada después no lo devuelve al 4', () => {
+    expect(
+      pasoDelCaso({
+        estadoPersona: 'EN_ACOMPANAMIENTO',
+        estadoAsignacion: 'ACTIVA',
+        citas: [
+          { startsAt: enHoras(-72), status: 'REALIZADA' },
+          { startsAt: enHoras(48), status: 'CANCELADA' },
+        ],
+        ahora: AHORA,
+      }).n,
+    ).toBe(6)
+  })
+
+  /** No presentarse sí gasta la hora: la sesión llegó, aunque nadie entrara. */
+  it('no asistir cuenta como sesión ocurrida', () => {
+    expect(
+      pasoDelCaso({
+        estadoPersona: 'EN_ACOMPANAMIENTO',
+        estadoAsignacion: 'ACTIVA',
+        citas: [{ startsAt: enHoras(-2), status: 'NO_ASISTIO' }],
+        ahora: AHORA,
+      }).n,
+    ).toBe(6)
+  })
+
+  /** Y una cancelada no tapa la que sí está viva por delante. */
+  it('una cancelada no le quita el paso a la que sigue en pie', () => {
+    expect(
+      pasoDelCaso({
+        estadoPersona: 'EN_ACOMPANAMIENTO',
+        estadoAsignacion: 'ACTIVA',
+        citas: [
+          { startsAt: enHoras(24), status: 'CANCELADA' },
+          { startsAt: enHoras(48), status: 'CONFIRMADA' },
+        ],
+        ahora: AHORA,
+      }).n,
+    ).toBe(5)
+  })
+
   it('cerrado: seguimiento y cierre', () => {
     expect(pasoDelCaso({ estadoPersona: 'CERRADO', ahora: AHORA }).n).toBe(7)
   })

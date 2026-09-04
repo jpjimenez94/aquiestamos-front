@@ -34,6 +34,39 @@ describe('próxima y última', () => {
     expect(proxima).toBeNull()
   })
 
+  /**
+   * Pero alguien tiene que verla. La de Juan Pablo se canceló con su hora
+   * todavía por delante: no era «próxima» —no está viva— ni «última» —no ha
+   * pasado—, así que la ficha calculaba con cita nula y decía «nada
+   * pendiente» con el caso esperando que le agendaran otra.
+   */
+  it('una cita cancelada que aún no llega es «caída», para que no la pierda nadie', () => {
+    const { proxima, ultima, caida } = proximaYUltima(
+      [{ inicio: en(24), estado: 'CANCELADA' }],
+      ahora,
+    )
+    expect(proxima).toBeNull()
+    expect(ultima).toBeNull()
+    expect(caida?.inicio).toBe(en(24))
+  })
+
+  it('la caída es la más reciente de las que se cayeron', () => {
+    const { caida } = proximaYUltima(
+      [
+        { inicio: en(-72), estado: 'CANCELADA' },
+        { inicio: en(-2), estado: 'NO_ASISTIO' },
+      ],
+      ahora,
+    )
+    expect(caida?.inicio).toBe(en(-2))
+  })
+
+  /** Sin ninguna que se haya caído, no se inventa una. */
+  it('sin citas caídas, «caida» es nula', () => {
+    const { caida } = proximaYUltima([{ inicio: en(24), estado: 'CONFIRMADA' }], ahora)
+    expect(caida).toBeNull()
+  })
+
   /** El fallo exacto: la lista venía de la más antigua a la más nueva. */
   it('no depende del orden en que vengan las citas', () => {
     const asc = proximaYUltima(citasDeAngie, ahora)

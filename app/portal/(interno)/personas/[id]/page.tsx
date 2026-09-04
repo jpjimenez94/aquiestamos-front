@@ -190,7 +190,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
         const citas = persona.citas ?? []
         // La misma regla que el panel del caso de abajo. Eran dos cálculos de
         // «próxima» en este archivo, y no coincidían.
-        const { proxima, ultima } = proximaYUltima(citas)
+        const { proxima, ultima, caida } = proximaYUltima(citas)
 
         return (
           <IndicadorDePasos
@@ -229,6 +229,9 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                 ? { confirmada: proxima.estado === 'CONFIRMADA', consentimiento: proxima.consentSigned === true }
                 : null,
               sesion: ultima ? { cuando: enBogota(ultima.inicio), estadoLegible: ultima.estadoLegible } : null,
+              // La hora que se cayó, solo si no hay otra viva que la reemplace.
+              citaCaida:
+                !proxima && caida ? { cuando: enBogota(caida.inicio), estado: caida.estado } : null,
               seguimiento: {
                 reportes: persona.reportes?.length ?? 0,
                 notas: persona.totalNotas ?? 0,
@@ -304,8 +307,12 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           queToca={(() => {
             // La misma regla que enciende la lista de personas. La cita que
             // manda es la próxima si la hay; si no, la última.
-            const { proxima, ultima } = proximaYUltima(persona.citas ?? [])
-            const cita = proxima ?? ultima
+            // Y si no hay ninguna de las dos, la que se cayó: una cita
+            // cancelada que todavía no ha llegado no es ni próxima ni última, y
+            // sin ella «qué toca ahora» decía «nada pendiente» con el caso
+            // esperando que alguien vuelva a agendar.
+            const { proxima, ultima, caida } = proximaYUltima(persona.citas ?? [])
+            const cita = proxima ?? ultima ?? caida
             return seguimientoPendiente({
               estadoPersona: persona.status,
               estadoAsignacion: persona.asignacion?.estado,
@@ -316,8 +323,12 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             })
           })()}
           ultimaCita={(() => {
-            const { ultima } = proximaYUltima(persona.citas ?? [])
-            return ultima ? { id: ultima.id, inicio: ultima.inicio, estado: ultima.estado } : null
+            // Y si ninguna ha pasado, la que se cayó: «Ver la última cita» no
+            // llevaba a ninguna parte cuando la única del caso estaba
+            // cancelada, que es justo donde está escrito por qué se canceló.
+            const { ultima, caida } = proximaYUltima(persona.citas ?? [])
+            const cita = ultima ?? caida
+            return cita ? { id: cita.id, inicio: cita.inicio, estado: cita.estado } : null
           })()}
           proximaCita={(() => {
             /*

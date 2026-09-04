@@ -217,6 +217,23 @@ describe('después de la sesión', () => {
     }
   })
 
+  /**
+   * La cancelada de Juan Pablo tenía su hora TODAVÍA POR DELANTE. La regla ya
+   * la cubría, pero la ficha nunca se la pasaba —no era ni próxima ni última—
+   * y respondía «nada pendiente» con el caso esperando otra hora. Queda fijado
+   * que da igual si la hora ya llegó: cancelada es cancelada.
+   */
+  it('una cancelada que aún no llegaba también manda agendar otra', () => {
+    const s = seguimientoPendiente({
+      estadoPersona: 'EN_ACOMPANAMIENTO',
+      estadoAsignacion: 'ACTIVA',
+      cita: { inicio: hace(-48), estado: 'CANCELADA' },
+      ahora,
+    })
+    expect(s?.clave).toBe('cita-cancelada')
+    expect(s?.accion).toBe('Agendar otra sesión')
+  })
+
   it('con cita viva por delante y lejos, no hay nada pendiente', () => {
     const s = seguimientoPendiente({
       estadoPersona: 'EN_ACOMPANAMIENTO',

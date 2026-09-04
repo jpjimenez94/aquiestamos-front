@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { portalFetch, soloHora, enBogota } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
@@ -158,6 +159,15 @@ const ESTADO_PACIENTE_LABEL: Record<string, string> = {
   ASIGNADO: 'Asignado',
   EN_ACOMPANAMIENTO: 'En acompañamiento',
   CERRADO: 'Cerrado',
+}
+
+/** Las insignias de la esquina de cada card: solo cambian el color y el texto. */
+const INSIGNIA: CSSProperties = {
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 3,
 }
 
 const ESTADO_CITA_LABEL: Record<string, string> = {
@@ -588,40 +598,59 @@ export default async function AgendaPage({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
-                    {p.ultimoReporte ? (
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          color: '#059669',
-                          fontWeight: 600,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 3,
-                        }}
-                      >
-                        <CheckCircle2 size={12} /> Con reporte
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          color: '#d97706',
-                          fontWeight: 600,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 3,
-                        }}
-                      >
-                        <Clock size={12} /> Esperando reporte
-                      </span>
-                    )}
+                    {(() => {
+                      /*
+                        Decía «Esperando reporte» a todo caso sin reporte. Un caso
+                        cuya única cita se canceló no tiene sesión de la que
+                        reportar: pedía el reporte de algo que no pasó, y quien
+                        coordina iba a perseguir al profesional en vez de volver a
+                        agendar. Primero se mira si hubo sesión.
+                      */
+                      if (p.ultimoReporte) {
+                        return (
+                          <span style={{ ...INSIGNIA, color: '#059669' }}>
+                            <CheckCircle2 size={12} /> Con reporte
+                          </span>
+                        )
+                      }
+                      if (p.ultimaCita?.estado === 'CANCELADA') {
+                        return (
+                          <span style={{ ...INSIGNIA, color: '#dc2626' }}>
+                            <AlertCircle size={12} /> Se canceló · falta agendar
+                          </span>
+                        )
+                      }
+                      if (p.ultimaCita?.estado === 'NO_ASISTIO') {
+                        return (
+                          <span style={{ ...INSIGNIA, color: '#dc2626' }}>
+                            <AlertCircle size={12} /> No asistió · falta agendar
+                          </span>
+                        )
+                      }
+                      if (!p.ultimaCita) {
+                        return (
+                          <span style={{ ...INSIGNIA, color: '#d97706' }}>
+                            <Clock size={12} /> Sin sesión agendada
+                          </span>
+                        )
+                      }
+                      return (
+                        <span style={{ ...INSIGNIA, color: '#d97706' }}>
+                          <Clock size={12} /> Esperando reporte
+                        </span>
+                      )
+                    })()}
                   </div>
                   <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
                     Psicólogo: <strong>{nombrePropio(p.asignacion?.profesional.nombre) || 'Asignado'}</strong>
                   </span>
                   {p.ultimaCita ? (
                     <span className="tabla__secundario" style={{ fontSize: '0.74rem', marginTop: 2 }}>
-                      Sesión: {enBogota(p.ultimaCita.inicio)} ({p.ultimaCita.modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'})
+                      {p.ultimaCita.estado === 'CANCELADA'
+                        ? `Cancelada: ${enBogota(p.ultimaCita.inicio)}`
+                        : p.ultimaCita.estado === 'NO_ASISTIO'
+                          ? `No asistió: ${enBogota(p.ultimaCita.inicio)}`
+                          : `Sesión: ${enBogota(p.ultimaCita.inicio)} (${p.ultimaCita.modalidad === 'PRESENCIAL' ? 'Presencial' : 'Virtual'})`}
                     </span>
                   ) : null}
                   {p.ultimoReporte?.outcome ? (

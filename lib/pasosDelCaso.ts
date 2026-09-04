@@ -93,7 +93,7 @@ export function pasoDelCaso({
     return estadoAsignacion === 'PROPUESTA' ? paso(3) : paso(4)
   }
 
-  // ACTIVA: hay cita. ¿Está por delante, o ya pasó?
+  // ACTIVA: ¿hay sesión por delante, ya hubo alguna, o se cayó la que había?
   const vivasPorDelante = citas.some(
     (c) =>
       new Date(c.startsAt).getTime() > ahora &&
@@ -101,8 +101,30 @@ export function pasoDelCaso({
   )
   if (vivasPorDelante) return paso(5)
 
-  const algunaPaso = citas.some((c) => new Date(c.startsAt).getTime() <= ahora)
-  return algunaPaso ? paso(6) : paso(5)
+  /**
+   * «Ya hubo sesión» es que llegó su hora sin cancelarse. Contaba cualquier
+   * cita con hora pasada, cancelada incluida: una sesión que nunca ocurrió
+   * empujaba el caso al paso de seguimiento, y la ficha pedía el reporte de
+   * algo que no pasó.
+   *
+   * NO_ASISTIO sí cuenta: la hora llegó y se gastó. Qué hacer con eso —volver
+   * a agendar— lo dice `seguimientoPendiente`, no el número del paso.
+   */
+  const algunaOcurrio = citas.some(
+    (c) =>
+      new Date(c.startsAt).getTime() <= ahora &&
+      c.status !== 'CANCELADA' &&
+      c.status !== 'REPROGRAMADA',
+  )
+  if (algunaOcurrio) return paso(6)
+
+  /**
+   * Ni sesión por delante ni sesión ocurrida: la que había se canceló y no hay
+   * otra todavía. Decía «Preparar la sesión» —ahí se quedó un caso cuya única
+   * cita se canceló— y no hay ninguna sesión que preparar. Lo que falta es
+   * volver a elegir hora, que es el paso 4.
+   */
+  return paso(4)
 }
 
 /**
@@ -149,6 +171,15 @@ export type EntradaDeHechos = {
   } | null
   /** La hora que la persona eligió (o la próxima sesión agendada). */
   eleccion?: { cuando: string } | null
+  /**
+   * La hora que se cayó y todavía no se ha reemplazado.
+   *
+   * Sin esto, un caso cuya única cita se canceló enseñaba el paso 4 vacío: la
+   * tira decía «falta que elija hora» sin contar que ya había elegido una y
+   * que esa se cayó, que es justo lo que quien coordina necesita para saber
+   * qué escribirle.
+   */
+  citaCaida?: { cuando: string; estado?: string | null } | null
   preparacion?: { confirmada?: boolean; consentimiento?: boolean } | null
   sesion?: { cuando?: string | null; estadoLegible?: string | null } | null
   seguimiento?: {
@@ -184,6 +215,17 @@ export function armarHechos(e: EntradaDeHechos): string[][] {
   }
 
   if (e.eleccion) h[3].push(frase(`Eligió: ${e.eleccion.cuando}`))
+
+  if (e.citaCaida) {
+    h[3].push(
+      frase(
+        e.citaCaida.estado === 'NO_ASISTIO'
+          ? `No se presentó a la del ${e.citaCaida.cuando}`
+          : `La del ${e.citaCaida.cuando} se canceló`,
+      ),
+    )
+    h[3].push('Falta elegir otra hora.')
+  }
 
   if (e.preparacion) {
     h[4].push(e.preparacion.confirmada ? 'Cita confirmada.' : 'Cita sin confirmar todavía.')
@@ -251,6 +293,13 @@ export function sesionTerminada({
  * delante y viva; última, la más reciente ya pasada. Qué toca hacer con ellas
  * lo decide `seguimientoPendiente`, la misma regla que enciende la lista de
  * personas: la ficha y la lista no pueden decir cosas distintas.
+ *
+ * Y `caida`: la más reciente que se canceló o a la que no se presentó. Una
+ * cita cancelada con su hora todavía por delante no era ni próxima —no está
+ * viva— ni última —no ha pasado—, así que no la miraba nadie: la ficha se
+ * quedaba en «preparar la sesión» y en «nada pendiente» con la única cita del
+ * caso cancelada. Va de última en la cadena `proxima ?? ultima ?? caida`:
+ * solo manda cuando no hay nada mejor que mirar.
  */
 export type CitaBreve = {
   inicio: string | Date
@@ -262,12 +311,14 @@ export type CitaBreve = {
 export function proximaYUltima<T extends CitaBreve>(
   citas: T[],
   ahora = Date.now(),
-): { proxima: T | null; ultima: T | null } {
+): { proxima: T | null; ultima: T | null; caida: T | null } {
   const viva = (c: T) => c.estado === 'PROGRAMADA' || c.estado === 'CONFIRMADA'
+  const cayo = (c: T) => c.estado === 'CANCELADA' || c.estado === 'NO_ASISTIO'
   const t = (c: T) => new Date(c.inicio).getTime()
   const futuras = citas.filter((c) => viva(c) && t(c) > ahora).sort((a, b) => t(a) - t(b))
   const pasadas = citas.filter((c) => t(c) <= ahora).sort((a, b) => t(b) - t(a))
-  return { proxima: futuras[0] ?? null, ultima: pasadas[0] ?? null }
+  const caidas = citas.filter(cayo).sort((a, b) => t(b) - t(a))
+  return { proxima: futuras[0] ?? null, ultima: pasadas[0] ?? null, caida: caidas[0] ?? null }
 }
 
 
