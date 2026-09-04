@@ -42,7 +42,13 @@ export function QueTocaAhora({
   queToca: Seguimiento | null
   proximaCita: { id?: string; cuando: string; modalidad: string } | null
   persona: { id: string; fullName: string; phone: string; preferredModality?: string | null }
-  asignacion: { id: string; profesional: { id: string; nombre: string; telefono?: string } }
+  /**
+   * `estado` viaja porque `BotonReasignar` lo necesita: decide si soltar el
+   * caso se escribe como RECHAZADA —«el profesional no podía»— o como
+   * CANCELADA. Aquí siempre será ACTIVA, que no admite rechazo, pero pasarlo
+   * de verdad evita que la respuesta dependa de dónde esté montado el botón.
+   */
+  asignacion: { id: string; estado?: string; profesional: { id: string; nombre: string; telefono?: string } }
   enlaceCaso: string
   /** Enlace con el que la persona elige su propia hora, sobre la agenda real del profesional. */
   enlaceAgenda?: string | null
@@ -119,6 +125,10 @@ export function QueTocaAhora({
             <BotonReasignar
               asignacionId={asignacion.id}
               profesionalNombre={asignacion.profesional.nombre}
+              personaNombre={persona.fullName}
+              personaTelefono={persona.phone}
+              cuandoAnterior={proximaCita?.cuando ?? null}
+              estadoAsignacion={asignacion.estado}
               textoBoton="Reasignar"
               onError={onError}
             />

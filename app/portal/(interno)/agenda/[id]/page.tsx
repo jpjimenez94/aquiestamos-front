@@ -535,7 +535,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         </div>
       ) : null}
 
-      {/* Plantillas de Mensajes de WhatsApp (Pasos 8, 9 y 10) */}
+      {/* Los mensajes para preparar la sesión: paso 5 del acompañamiento. */}
       <MensajesFlujoCita
         pacienteNombre={cita.paciente.nombre ?? 'Persona'}
         pacienteTelefono={cita.paciente.telefono ?? ''}
@@ -543,6 +543,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         profesionalTelefono={cita.profesional.telefono ?? ''}
         fechaHoraBogota={enBogota(cita.inicio)}
         inicioIso={cita.inicio}
+        estado={cita.estado}
         modalidad={cita.modalidad}
         enlaceConsentimiento={cita.consentimiento?.enlace ?? null}
         consentimientoFirmado={cita.consentSigned === true}

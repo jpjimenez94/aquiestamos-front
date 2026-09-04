@@ -201,6 +201,15 @@ export function ModalAgendar({
           canalContacto: persona.preferredContact,
           enlace: urlCaso,
           enlaceReunion: enlaceGeneradoProf || enlaceGenerado,
+          /**
+           * La cita se acaba de crear, así que su consentimiento no está
+           * firmado: se pide después, con su propio enlace.
+           *
+           * Iba sin este campo, y sin él el mensaje afirmaba de más sobre un
+           * requisito legal. Decirlo explícito —aunque el valor sea el mismo
+           * que el de omitirlo— es lo que impide que vuelva a colarse.
+           */
+          consentimientoFirmado: false,
         })
     : ''
 

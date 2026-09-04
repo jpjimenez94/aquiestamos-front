@@ -62,6 +62,15 @@ const CASOS: [string, (plantilla: string) => string][] = [
 
   ['líder comunitario', (plantilla) =>
     M.mensajeWhatsAppLider({ nombre: 'Ana Ruiz', territorio: 'Comuna 4', plantilla })],
+
+  ['cambio de profesional', (plantilla) =>
+    M.mensajeDeCambioDeProfesional({ persona: 'Ana Ruiz', profesional: 'Sofía Vélez', cuandoAnterior: 'jueves 11 a las 3:00 p. m.', plantilla })],
+
+  ['cita cancelada · a la persona', (plantilla) =>
+    M.mensajeDeCitaCanceladaALaPersona({ persona: 'Ana Ruiz', profesional: 'Sofía Vélez', cuando: 'jueves 11 a las 3:00 p. m.', plantilla })],
+
+  ['cita cancelada · al profesional', (plantilla) =>
+    M.mensajeDeCitaCanceladaAlProfesional({ profesional: 'Sofía Vélez', persona: 'Ana Ruiz', cuando: 'jueves 11 a las 3:00 p. m.', plantilla })],
 ]
 
 describe('el texto del portal manda sobre el del código', () => {
@@ -86,8 +95,12 @@ describe('el texto del portal manda sobre el del código', () => {
   /**
    * Este número es el que cuenta la historia: eran 15 plantillas y 1 conectada.
    * Si alguien añade una plantilla al portal y no la conecta aquí, esto avisa.
+   *
+   * Las tres últimas no existían, y son las tres del mismo agujero: reasignar y
+   * cancelar cambiaban el estado y no le decían nada a nadie. La persona podía
+   * presentarse a una sesión que ya no existía, y el profesional también.
    */
-  it('están las quince', () => {
-    expect(CASOS).toHaveLength(15)
+  it('están las dieciocho', () => {
+    expect(CASOS).toHaveLength(18)
   })
 })

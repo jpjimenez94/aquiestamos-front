@@ -566,7 +566,7 @@ describe('mensaje de pedir documentos', () => {
   })
 })
 
-describe('mensajeDeCitaConfirmadaAlProfesional (Paso 10)', () => {
+describe('mensajeDeCitaConfirmadaAlProfesional (paso 5 · el despacho)', () => {
   it('incluye el nombre del profesional, nombre de la persona, fecha, canal preferido y enlace seguro', async () => {
     const { mensajeDeCitaConfirmadaAlProfesional } = await import('../lib/mensajes')
     const texto = mensajeDeCitaConfirmadaAlProfesional({

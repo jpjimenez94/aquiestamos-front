@@ -178,6 +178,10 @@ export function PanelDelCaso({
             <BotonReasignar
               asignacionId={asignacion.id}
               profesionalNombre={asignacion.profesional.nombre}
+              personaNombre={persona.fullName}
+              personaTelefono={persona.phone}
+              cuandoAnterior={proximaCita?.cuando ?? null}
+              estadoAsignacion={asignacion.estado}
               textoBoton="No contestó / Proponer a otra persona"
               onError={setError}
             />
@@ -188,6 +192,43 @@ export function PanelDelCaso({
       {/* PASO 2 — El profesional aceptó y dejó sus días/horas. Toca cuadrar con la persona. */}
       {asignacion.estado === 'ACEPTADA' ? (
         <>
+          {/*
+            Primero el profesional, después la persona.
+
+            Este aviso vivía SOLO en la rama PROPUESTA. Desde que asignar dejó
+            de pedir permiso ninguna asignación nueva pasa por ahí —nacen en
+            ACEPTADA—, así que el panel saltaba directo al paso 4 y este
+            mensaje no se le ofrecía a nadie: quien coordina no tenía botón
+            para avisarle, y el profesional se enteraba de que tenía un caso
+            cuando ya había alguien con hora escogida, si es que se enteraba.
+
+            Importa más que un paso perdido. El texto le promete «si no puedes,
+            dilo ahí mismo», y ese «ahí» es el enlace del caso, que solo viaja
+            en este mensaje. Sin mandarlo, la puerta de salida existe en el
+            código y en la máquina de estados, pero él nunca recibe la llave.
+
+            Va antes del 4 a propósito: la persona elige sobre la agenda del
+            profesional, y que elija antes de que él sepa que tiene el caso es
+            justo el orden que hay que evitar.
+          */}
+          <Mensaje
+            titulo="3 · Avísale al profesional que tiene el caso"
+            nota="Se le avisa, no se le pide permiso. Si no puede, lo dice desde su enlace y el caso vuelve a la cola el mismo día."
+            telefono={asignacion.profesional.telefono}
+            texto={mensajeDePropuesta({
+              plantilla: plantillas?.WHATSAPP_PROPUESTA_PROFESIONAL,
+              profesional: asignacion.profesional.nombre,
+              ciudad: persona.city,
+              modalidad: persona.preferredModality,
+              dias: persona.availableDays,
+              franjas: persona.availableSlots,
+              enlace: enlaceCaso,
+              prioridad: persona.priority,
+            })}
+            copiado={copiado === 'aviso-profesional'}
+            alCopiar={(t) => copiar('aviso-profesional', t)}
+          />
+
           {/*
             Aquí se listaban los días y franjas que el profesional escribía al
             aceptar. Ya no se le piden: su agenda está cargada desde que se
@@ -231,6 +272,10 @@ export function PanelDelCaso({
             <BotonReasignar
               asignacionId={asignacion.id}
               profesionalNombre={asignacion.profesional.nombre}
+              personaNombre={persona.fullName}
+              personaTelefono={persona.phone}
+              cuandoAnterior={proximaCita?.cuando ?? null}
+              estadoAsignacion={asignacion.estado}
               textoBoton="No se pudo cuadrar / Reasignar"
               onError={setError}
             />
@@ -285,7 +330,7 @@ export function PanelDelCaso({
       {/*
         Pasos 5 y 6 — preparar y tener la sesión — son de la CITA, no de la
         ficha. Aquí vivía una copia del mensaje de despacho al profesional, el
-        mismo que el detalle de la cita llama «Paso 10»: dos nombres para el
+        mismo que el detalle de la cita ofrece en el paso 5: dos sitios para el
         mismo botón, y quien agendaba no sabía si eran dos cosas que hacer.
         La ficha ahora lleva a la cita en vez de imitarla.
       */}
@@ -324,6 +369,10 @@ export function PanelDelCaso({
               <BotonReasignar
                 asignacionId={asignacion.id}
                 profesionalNombre={asignacion.profesional.nombre}
+                personaNombre={persona.fullName}
+                personaTelefono={persona.phone}
+                cuandoAnterior={proximaCita?.cuando ?? null}
+                estadoAsignacion={asignacion.estado}
                 textoBoton="Reasignar a otro profesional"
                 onError={setError}
               />

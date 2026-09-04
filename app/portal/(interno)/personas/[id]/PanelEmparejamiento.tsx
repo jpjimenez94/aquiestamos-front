@@ -123,7 +123,7 @@ export function PanelEmparejamiento({ personaId }: { personaId: string }) {
         )}
       </div>
       <p className="panel__nota" style={{ marginTop: 0, marginBottom: 16 }}>
-        Top 10 ordenado por trayectoria clínica (+5 años primero), modalidad solicitada y disponibilidad. Proponer no asigna: le manda la propuesta y él decide desde su enlace.
+        Top 10 ordenado por trayectoria clínica (+5 años primero), modalidad solicitada y disponibilidad. Asignar le entrega el caso de una vez: después le avisas por WhatsApp desde la ficha, y si no puede lo dice desde su enlace.
       </p>
 
       {error ? (
@@ -341,7 +341,7 @@ export function PanelEmparejamiento({ personaId }: { personaId: string }) {
                   onClick={() => asignar(c.id)}
                   style={{ minWidth: 85, padding: '5px 10px', fontSize: '0.82rem' }}
                 >
-                  {asignando === c.id ? 'Proponiendo…' : c.sinCupo ? 'Sin cupo' : 'Proponer'}
+                  {asignando === c.id ? 'Asignando…' : c.sinCupo ? 'Sin cupo' : 'Asignar'}
                 </button>
               </div>
             </div>

@@ -12,14 +12,21 @@ import {
   mensajeDeExcusasYReagendamiento,
   mensajeRecordatorioPrevioCitaPersona,
   mensajeRecordatorioPrevioCitaProfesional,
+  mensajeDeCitaCanceladaALaPersona,
+  mensajeDeCitaCanceladaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 
 /**
- * Los mensajes que salen desde el detalle de la cita:
- *   - Confirmación a la persona (Paso 8)
- *   - Solicitud de firma del consentimiento (Paso 9)
- *   - Instrucciones y despacho al profesional con consentimiento y canal preferido (Paso 10)
+ * Los mensajes que salen desde el detalle de la cita.
+ *
+ * Son los del paso 5 del acompañamiento —preparar la sesión—: confirmarle la
+ * hora a la persona, pedirle la firma del consentimiento, entregarle el caso
+ * al profesional y los dos recordatorios previos.
+ *
+ * Iban numerados 8, 9 y 10, del manual viejo de diez pasos. La secuencia viva
+ * es la de `lib/pasosDelCaso.ts` y tiene siete; los números de allí son los
+ * únicos que salen en pantalla.
  */
 export function MensajesFlujoCita({
   pacienteNombre,
@@ -28,6 +35,7 @@ export function MensajesFlujoCita({
   profesionalTelefono,
   fechaHoraBogota,
   inicioIso,
+  estado,
   modalidad,
   enlaceConsentimiento,
   consentimientoFirmado,
@@ -43,6 +51,16 @@ export function MensajesFlujoCita({
   fechaHoraBogota: string
   /** La misma hora, en ISO: para decidir si la sesión es hoy. */
   inicioIso?: string
+  /**
+   * En qué estado está la cita.
+   *
+   * Este componente no lo recibía, y «la sesión es hoy» se decidía solo con la
+   * hora. Sobre una cita cancelada o movida cuya hora original cayera dentro
+   * de las 24 h, la tarjeta anunciaba «La sesión es hoy: recuérdasela a los
+   * dos» y ofrecía los recordatorios de una sesión que no iba a ocurrir — o
+   * pedía la firma del consentimiento de una cita que ya no existe.
+   */
+  estado?: string | null
   modalidad: string
   enlaceConsentimiento: string | null
   consentimientoFirmado: boolean
@@ -132,19 +150,80 @@ export function MensajesFlujoCita({
    * pedirla; si la sesión es hoy, recordarla; si no, no toca nada— y cabe en
    * una tarjeta. Los diez mensajes siguen ahí, plegados.
    */
-  const faltaFirma = !consentimientoFirmado && Boolean(mensajeFirma)
+  /**
+   * Una cita resuelta no tiene nada que preparar.
+   *
+   * Son los mismos estados finales que la máquina del backend
+   * (`appointmentState.service.js`): desde ellos no sale ninguna transición, y
+   * la sesión o ya pasó, o se movió, o no va a ocurrir. Sin esta comprobación
+   * la tarjeta seguía pidiendo firmas y recordatorios por la hora original.
+   */
+  const RESUELTAS = ['REALIZADA', 'NO_ASISTIO', 'CANCELADA', 'REPROGRAMADA']
+  const resuelta = RESUELTAS.includes(String(estado ?? ''))
+
+  const mensajeCancelacionPersona = mensajeDeCitaCanceladaALaPersona({
+    plantilla: plantillasDelPortal?.WHATSAPP_CITA_CANCELADA_PERSONA,
+    persona: pacienteNombre,
+    profesional: profesionalNombre,
+    cuando: fechaHoraBogota,
+  })
+
+  const mensajeCancelacionProf = mensajeDeCitaCanceladaAlProfesional({
+    plantilla: plantillasDelPortal?.WHATSAPP_CITA_CANCELADA_PROFESIONAL,
+    profesional: profesionalNombre,
+    persona: pacienteNombre,
+    cuando: fechaHoraBogota,
+  })
+
+  const faltaFirma = !resuelta && !consentimientoFirmado && Boolean(mensajeFirma)
   const esHoy = (() => {
+    if (resuelta) return false
     const t = inicioIso ? new Date(inicioIso).getTime() : NaN
     return Number.isFinite(t) && t > Date.now() && t - Date.now() <= 24 * 3600 * 1000
   })()
 
+  const ETIQUETA_RESUELTA: Record<string, string> = {
+    REALIZADA: 'Esta sesión ya se hizo',
+    NO_ASISTIO: 'La persona no asistió a esta sesión',
+    CANCELADA: 'Esta cita está cancelada',
+    REPROGRAMADA: 'Esta cita se movió a otra hora',
+  }
+
   return (
     <>
-      <div className="panel" style={{ borderLeft: `4px solid ${faltaFirma ? '#b45309' : esHoy ? '#059669' : '#94a3b8'}` }}>
+      <div className="panel" style={{ borderLeft: `4px solid ${resuelta ? '#94a3b8' : faltaFirma ? '#b45309' : esHoy ? '#059669' : '#94a3b8'}` }}>
         <div className="tabla__secundario" style={{ fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>
           Qué toca con esta cita
         </div>
-        {faltaFirma ? (
+        {resuelta ? (
+          <>
+            <h2 style={{ marginTop: 4 }}>{ETIQUETA_RESUELTA[String(estado)] ?? 'Esta cita ya está resuelta'}</h2>
+            {estado === 'CANCELADA' ? (
+              <>
+                <p className="panel__nota">
+                  Cancelar no le avisa a nadie: el estado cambia y ya. Ninguno de los dos se
+                  entera por el sistema, y el recordatorio que ya estaba en la cola sale igual.
+                </p>
+                <Mensaje
+                  titulo="Avisarle a la persona"
+                  telefono={pacienteTelefono}
+                  texto={mensajeCancelacionPersona}
+                />
+                <Mensaje
+                  titulo="Avisarle al profesional"
+                  telefono={profesionalTelefono}
+                  texto={mensajeCancelacionProf}
+                />
+              </>
+            ) : (
+              <p className="panel__nota">
+                No hay nada que preparar: no se piden firmas ni se mandan recordatorios de una
+                sesión que no va a ocurrir. Si aun así necesitas escribirle a alguien sobre ella,
+                los mensajes siguen abajo.
+              </p>
+            )}
+          </>
+        ) : faltaFirma ? (
           <>
             <h2 style={{ marginTop: 4 }}>Falta la firma del consentimiento</h2>
             <p className="panel__nota">

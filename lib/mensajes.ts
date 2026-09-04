@@ -87,7 +87,7 @@ export type DatosDelMensaje = {
 }
 
 /**
- * PASO 1 · Al profesional: te asignamos un caso, y puedes decir que no.
+ * PASO 3 · Al profesional: te asignamos un caso, y puedes decir que no.
  *
  * Este es el TEXTO DE RESPALDO: manda la plantilla de Parametrización, y solo
  * se usa esto si no se pudo traer. Por eso tiene que decir lo mismo que ella —
@@ -135,12 +135,30 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     !cuando ? 'qué días puede' : null,
   ].filter((x): x is string => x !== null)
 
+  /**
+   * El hueco de información también viaja. Era lo único que no.
+   *
+   * La rama de plantilla pasaba ciudad, modalidad, urgencia y enlace — y se
+   * dejaba fuera los días y, sobre todo, la frase de «no sabemos». Que es
+   * justo la que el comentario de arriba explica que no se puede callar: un
+   * profesional lee el silencio como «no tiene restricciones», acepta creyendo
+   * que es flexible, y se entera después de que solo puede los domingos.
+   *
+   * La frase se arma aquí entera y va como una variable: una plantilla no sabe
+   * enumerar en castellano ni decidir si hace falta decirlo.
+   */
+  const faltan = faltantes.length
+    ? `No sabemos ${enumerar(faltantes)}: no quedó en el formulario. Eso lo cuadramos contigo después.`
+    : null
+
   // Lo que se DICE es del portal; aquí solo se calculan las variables.
   if (d.plantilla?.trim()) {
     return renderPlantilla(d.plantilla, {
       profesional: nombre,
       ciudad: d.ciudad,
       modalidad,
+      cuando: cuando || null,
+      faltan,
       urgencia: URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
       enlace: d.enlace,
     })
@@ -156,9 +174,7 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
     cuando ? `· Puede ${cuando}.` : null,
-    faltantes.length
-      ? `· No sabemos ${enumerar(faltantes)}: no quedó en el formulario. Eso lo cuadramos contigo después.`
-      : null,
+    faltan ? `· ${faltan}` : null,
     '',
     URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
     '',
@@ -520,7 +536,7 @@ export const REGLAS_DE_LECTURA = [
 // ---------------------------------------------------------------------------
 
 /**
- * PASO 2 · A la persona acompañada: ya hay profesional, ¿cuándo puedes?
+ * PASO 4 · A la persona acompañada: ya hay profesional, elige tu hora.
  *
  * Lleva el NOMBRE del profesional pero no su teléfono. Saber quién la va a
  * acompañar es lo que convierte «alguien te va a llamar» en algo real; darle
@@ -557,6 +573,19 @@ export function mensajeParaCuadrarHorario(d: {
     return renderPlantilla(d.plantilla, {
       nombre: nombreDePila(d.persona) || 'hola',
       profesional: d.profesional,
+      /**
+       * El saludo, ya elegido. Es la misma razón que en el respaldo.
+       *
+       * La plantilla abría fija con «Ya tenemos quién te acompañe», así que a
+       * quien iba por su quinta sesión con la misma profesional se le
+       * anunciaba otra vez que le habían conseguido a alguien — como si el
+       * caso empezara de cero. El respaldo sí distinguía; la plantilla, que es
+       * la que se envía, no podía.
+       */
+      saludo:
+        d.esPrimeraVez === false
+          ? `Es momento de agendar tu próxima sesión con ${d.profesional}.`
+          : `Ya tenemos quién te acompañe: ${d.profesional}, profesional de la red.`,
       horarios: [
         enumerar(d.dias.map((x) => DIA_LARGO[x] ?? x.toLowerCase())),
         enumerar(d.franjas.map((x) => FRANJA_LARGA[x] ?? x.toLowerCase())),
@@ -755,7 +784,158 @@ export function mensajeDeExcusasYReagendamiento(d: {
 }
 
 /**
- * PASO 3 · A la persona acompañada: quedó agendada.
+ * A la persona: su acompañamiento cambia de profesional.
+ *
+ * El mensaje que faltaba. Reasignar no avisaba a nadie: ni al profesional que
+ * perdía el caso, ni al que lo recibía, ni a ella — que podía tener nombre y
+ * una sesión el jueves. Su cita se cancelaba en silencio y la única noticia
+ * era su enlace de agenda, que a partir de ese momento le decía «todavía
+ * estamos buscando quién te acompañe» sin explicar que algo había cambiado.
+ *
+ * Dice tres cosas, y las tres hacen falta: que hay un cambio, que no es culpa
+ * suya, y que su proceso sigue. Lo que NO dice es el motivo: por qué el
+ * profesional no puede es asunto de él, y en la mitad de los casos —«no tengo
+ * cupo», «me queda lejos»— contarlo solo añade ruido a alguien que ya está
+ * esperando.
+ *
+ * No nombra al profesional nuevo porque todavía no hay: al reasignar el caso
+ * vuelve a la cola. El siguiente mensaje que reciba será el de su enlace de
+ * agenda, ya con nombre.
+ */
+export function mensajeDeCambioDeProfesional(d: {
+  persona: string
+  profesional: string
+  /** La sesión que se cae con el cambio, si la había. */
+  cuandoAnterior?: string | null
+  /**
+   * El texto que la coordinación editó en Parametrización. Si viene, manda.
+   *
+   * El de abajo se queda de respaldo, para cuando la plantilla esté vacía o el
+   * portal no haya podido traerla. Un mensaje viejo es mejor que ninguno
+   * cuando hay alguien esperando.
+   */
+  plantilla?: string
+}): string {
+  const nombrePers = nombreDePila(d.persona) || 'hola'
+  const nombreProf = nombreDePila(d.profesional) || 'la persona que te acompañaba'
+
+  /**
+   * La cita cancelada se nombra solo si existía.
+   *
+   * Si no había sesión agendada, la línea entera se cae en vez de dejar un
+   * «La sesión que tenías queda cancelada» sin fecha, que asusta sin informar.
+   */
+  const citaCancelada = d.cuandoAnterior
+    ? `La sesión que tenías el ${d.cuandoAnterior} queda cancelada.`
+    : null
+
+  // Lo que se DICE es del portal; aquí solo se calculan las variables.
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre: nombrePers,
+      profesional: nombreProf,
+      citaCancelada,
+    })
+  }
+
+  return [
+    `Hola ${nombrePers}, te escribimos de la Red Aquí Estamos.`,
+    '',
+    `Tenemos que contarte un cambio: ${nombreProf} no va a poder seguir con tu acompañamiento.`,
+    citaCancelada ? '' : null,
+    citaCancelada,
+    '',
+    'No es por nada que hayas hecho, y tu proceso sigue en pie. Ya estamos buscando a otra persona de la red para ti; te escribimos por aquí en cuanto la tengamos, con su nombre y con tu enlace para elegir hora.',
+    '',
+    'Sentimos el cambio y la espera. Si necesitas algo mientras tanto, escríbenos por aquí.',
+    '',
+    'Si en este momento estás en peligro o sientes que puedes hacerte daño, no esperes nuestra respuesta: llama al *106* (línea 106) o al *192* (línea 192). Son gratuitas y atienden a toda hora.',
+  ]
+    .filter((l) => l !== null)
+    .join('\n')
+}
+
+/**
+ * A la persona: se cancela su sesión.
+ *
+ * Cancelar una cita no avisaba a nadie. El estado cambiaba, quedaba el motivo
+ * en la auditoría, y las dos personas que tenían esa hora apartada seguían
+ * creyendo que existía: ella podía presentarse a una sesión cancelada, y el
+ * recordatorio que ya estaba en la cola salía igual, porque el despachador no
+ * vuelve a mirar el estado de la cita antes de enviarlo.
+ *
+ * No lleva el motivo. El que se escribe al cancelar es interno —«el
+ * profesional no respondió», «incompatibilidad de horarios»— y está redactado
+ * para coordinación, no para quien pidió ayuda. Si hay algo que contarle, se
+ * cuenta en la conversación.
+ */
+export function mensajeDeCitaCanceladaALaPersona(d: {
+  persona: string
+  profesional: string
+  cuando: string
+  /** El texto que la coordinación editó en Parametrización. Si viene, manda. */
+  plantilla?: string
+}): string {
+  const nombrePers = nombreDePila(d.persona) || 'hola'
+  const nombreProf = nombreDePila(d.profesional) || 'quien te acompaña'
+
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      nombre: nombrePers,
+      profesional: nombreProf,
+      cuando: d.cuando,
+    })
+  }
+
+  return [
+    `Hola ${nombrePers}, te escribimos de la Red Aquí Estamos.`,
+    '',
+    `Tenemos que cancelar la sesión que tenías el ${d.cuando} con ${nombreProf}. Sentimos el cambio.`,
+    '',
+    `Tu acompañamiento sigue en pie. Con el mismo enlace donde elegiste la hora puedes escoger otra, entre las que ${nombreProf} tiene libres.`,
+    '',
+    'Si prefieres que la cuadremos nosotros, dinos por aquí qué días y horas te sirven y lo hacemos.',
+  ].join('\n')
+}
+
+/**
+ * Al profesional: se cancela su sesión.
+ *
+ * Hace falta por lo mismo que el de ella, y con un motivo de más: él no tiene
+ * cuenta en el portal —nada enlaza su ficha con un usuario—, así que no puede
+ * entrar a mirar su agenda y comprobarlo. Si nadie le escribe, se presenta.
+ */
+export function mensajeDeCitaCanceladaAlProfesional(d: {
+  profesional: string
+  persona: string
+  cuando: string
+  /** El texto que la coordinación editó en Parametrización. Si viene, manda. */
+  plantilla?: string
+}): string {
+  const nombreProf = nombreDePila(d.profesional) || 'hola'
+  const nombrePers = nombreDePila(d.persona) || 'la persona que acompañas'
+
+  if (d.plantilla?.trim()) {
+    return renderPlantilla(d.plantilla, {
+      profesional: nombreProf,
+      persona: nombrePers,
+      cuando: d.cuando,
+    })
+  }
+
+  return [
+    `Hola ${nombreProf}, te escribimos de Red Aquí Estamos.`,
+    '',
+    `Cancelamos la sesión que tenías el ${d.cuando} con ${nombrePers}. Ese espacio te queda libre.`,
+    '',
+    'El caso sigue contigo: ella puede elegir otra hora de tu agenda, y cuando lo haga te llega la confirmación con el día, la hora y el enlace de la videollamada.',
+    '',
+    'Gracias por tu tiempo.',
+  ].join('\n')
+}
+
+/**
+ * PASO 5 · A la persona acompañada: quedó agendada.
  *
  * Con la fecha, la hora y el nombre de quien la va a acompañar, y diciéndole
  * claramente que el profesional la va a contactar. Sin esa última frase, la
@@ -814,7 +994,7 @@ export function mensajeDeCitaConfirmada(d: {
 }
 
 /**
- * PASO 3b · A la persona: firma el consentimiento antes de la sesión.
+ * PASO 5 · A la persona: firma el consentimiento antes de la sesión.
  *
  * El enlace va COMPLETO y lo arma el servidor con SITIO_URL, como todos los
  * enlaces que salen por WhatsApp. Dice para qué es y qué pasa si no se firma,
@@ -887,10 +1067,20 @@ export function mensajeDePedirDocumentos(d: {
             '· Si estás en formación: tu *certificado de estudios* o constancia de matrícula.',
           ]
 
+  /**
+   * Qué documentos se le piden también es una variable.
+   *
+   * Las tres pantallas que mandan este mensaje ofrecen elegir entre General,
+   * Graduado y Estudiante, y ese botón movía `tipo` — que solo usaba el
+   * respaldo. Con la plantilla puesta, que es lo que se envía, los tres
+   * producían texto idéntico: quien pulsaba «Estudiante» creía estar pidiendo
+   * un certificado de matrícula y mandaba la lista genérica.
+   */
   // Lo que se DICE es del portal; aquí solo se calculan las variables.
   if (d.plantilla?.trim()) {
     return renderPlantilla(d.plantilla, {
       profesional: nombre,
+      documentos: pedido.join('\n'),
       enlace: d.enlace ?? null,
     })
   }
@@ -1022,7 +1212,17 @@ export function mensajeDeSeguimientoGeneral(): string {
 }
 
 /**
- * PASO 4 · Al profesional: quedó para tal día.
+ * ⚠️ SIN USO. No lo llama ninguna pantalla — solo sus propias pruebas.
+ *
+ * Nació como «paso 4 · al profesional: quedó para tal día», de la numeración
+ * vieja de diez pasos. Hoy ese aviso es `mensajeDeCitaConfirmadaAlProfesional`
+ * —el despacho—, que sí tiene clave en Parametrización, sí lleva el estado del
+ * consentimiento y sí se renderiza. Este quedó detrás, con el mismo contenido
+ * a medias y sin plantilla que lo respalde.
+ *
+ * Se deja marcado en vez de borrado para que la decisión sea de quien conoce
+ * el producto. Lo que no hay que hacer es cablearlo: si alguien necesita
+ * avisarle al profesional de una cita, el bueno es el otro.
  *
  * Los datos de contacto de la persona siguen sin viajar por WhatsApp: van
  * detrás del enlace, como siempre.
@@ -1075,7 +1275,7 @@ const CANAL_CONTACTO: Record<string, string> = {
 }
 
 /**
- * PASO 10 · Al profesional: la cita está confirmada, y qué falta.
+ * PASO 5 · Al profesional: la cita está confirmada, y qué falta.
  *
  * Entrega formal del caso al profesional:
  *   - Dice si el consentimiento informado está firmado O si todavía falta.
@@ -1118,6 +1318,23 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
   const modalidad = d.modalidad ? MODALIDAD_LARGA[d.modalidad] ?? d.modalidad.toLowerCase() : null
   const canal = d.canalContacto ? CANAL_CONTACTO[d.canalContacto] ?? d.canalContacto.toLowerCase() : 'WhatsApp'
 
+  /**
+   * El estado del consentimiento es una VARIABLE, no una frase de la plantilla.
+   *
+   * Estuvo escrito fijo en el texto de Parametrización —«Firmado por la
+   * persona», pasara lo que pasara— mientras el respaldo de aquí abajo sí
+   * miraba el dato. Como la plantilla manda, lo que salía era la afirmación
+   * falsa: justo el fallo que el comentario de `consentimientoFirmado`
+   * describe, reaparecido por la puerta de al lado.
+   *
+   * Calcularlo aquí y pasarlo como variable deja el hecho del lado del código
+   * —que es donde se sabe— y el tono del lado del portal, que es lo que la
+   * coordinación tiene que poder ajustar.
+   */
+  const consentimiento = d.consentimientoFirmado
+    ? 'Firmado por la persona'
+    : '⚠️ TODAVÍA NO lo ha firmado. Pídeselo antes de empezar la sesión.'
+
   // Lo que se DICE es del portal; aquí solo se calculan las variables.
   if (d.plantilla?.trim()) {
     return renderPlantilla(d.plantilla, {
@@ -1128,6 +1345,7 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
       enlaceReunion: d.enlaceReunion ?? null,
       canalContacto: canal,
       enlaceCaso: d.enlace,
+      consentimiento,
     })
   }
 
@@ -1141,9 +1359,7 @@ export function mensajeDeCitaConfirmadaAlProfesional(d: {
     modalidad ? `· *Modalidad:* ${modalidad}` : null,
     d.enlaceReunion ? `· *Enlace de videollamada:* ${d.enlaceReunion}` : null,
     `· *Canal preferido de la persona:* ${canal}`,
-    d.consentimientoFirmado
-      ? '· *Consentimiento informado:* Firmado por la persona'
-      : '· *Consentimiento informado:* ⚠️ TODAVÍA NO lo ha firmado. Pídeselo antes de empezar la sesión.',
+    `· *Consentimiento informado:* ${consentimiento}`,
     '',
     '*Tu responsabilidad en este acompañamiento:*',
     `1. Tú das el primer paso: ponte en contacto con ella por ${canal} unos *15 minutos antes* de la cita para coordinar el inicio de la sesión en la fecha y hora acordadas. Ella ya sabe que la vas a contactar.`,
