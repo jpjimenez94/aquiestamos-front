@@ -7,6 +7,7 @@ import { ReporteCasoForm } from './ReporteCasoForm'
 import { DecidirPropuestaForm } from './DecidirPropuestaForm'
 import { momentoDelCaso } from '@/lib/momentoDelCaso'
 import { BotonDeclinar } from './BotonDeclinar'
+import { EditorDeMiAgenda } from './EditorDeMiAgenda'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
 import { Dato, Etiqueta } from '../../(interno)/componentes'
@@ -225,6 +226,16 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
                 <em>{paciente.agenda}</em>
               </div>
             ) : null}
+
+            {/*
+              Y puede corregirlos aquí mismo.
+
+              El texto le pedía «si cambiaron, dínoslo» sin darle dónde: la
+              pantalla del portal que edita disponibilidad exige una cuenta que
+              él no tiene a propósito. La petición se quedaba en un «escríbenos»
+              sin destinatario, y la agenda sobre la que ella elige envejecía.
+            */}
+            <EditorDeMiAgenda patientId={id} franjas={paciente.franjas ?? []} />
 
             <p className="panel__nota">
               {paciente.agenda

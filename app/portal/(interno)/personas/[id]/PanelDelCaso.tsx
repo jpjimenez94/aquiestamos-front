@@ -12,6 +12,7 @@ import {
 import { enBogota } from '@/lib/fechas'
 import { ModalAgendar } from './ModalAgendar'
 import { BotonReasignar } from './BotonReasignar'
+import { BotonConfirmoAparte } from './BotonConfirmoAparte'
 import { QueTocaAhora } from './QueTocaAhora'
 import { Mensaje } from './Mensaje'
 import type { Seguimiento } from '@/lib/seguimiento'
@@ -32,6 +33,15 @@ export type Asignacion = {
   siguientePaso: string | null
   desde: string
   respondioEn: string | null
+  /**
+   * Cuándo el profesional confirmó ÉL que puede. Nulo = todavía no.
+   *
+   * No vale `respondioEn`: se escribe al asignar, así que dice lo mismo para
+   * «me avisaron» que para «dije que sí». De este campo cuelga el paso 4.
+   */
+  confirmadoEn?: string | null
+  /** Con valor, lo dio por confirmado coordinación y no él. */
+  confirmadoPor?: string | null
   nota: string | null
   motivoRechazo: string | null
   /** `agenda` son sus franjas en palabras: lo que ella va a ver para elegir. */
@@ -247,22 +257,59 @@ export function PanelDelCaso({
             </div>
           ) : null}
 
-          <Mensaje
-            titulo="4 · Mándale su enlace para que elija hora"
-            nota="Ve la agenda real del profesional y agenda sola. El enlace le sirve para todas sus sesiones."
-            telefono={persona.phone}
-            texto={mensajeParaCuadrarHorario({
-              persona: persona.fullName,
-              profesional: asignacion.profesional.nombre,
-              dias: [],
-              franjas: [],
-              nota: asignacion.nota,
-              enlaceAgenda,
-              plantilla: plantillas?.WHATSAPP_CUADRAR_HORARIO_PERSONA,
-            })}
-            copiado={copiado === 'cuadrar'}
-            alCopiar={(t) => copiar('cuadrar', t)}
-          />
+          {/*
+            El paso 4 espera al 3, y no es burocracia.
+
+            Ella elige la hora de la agenda de ÉL. Mandarle el enlace antes de
+            que él confirme que esa agenda sigue vigente la expone a reservar un
+            espacio que ya no existe — y a que la sesión se caiga después, que
+            es peor que esperar un día.
+
+            La espera tiene puerta a propósito: esperar un clic es justo lo que
+            mató siete de cada ocho asignaciones del modelo anterior. Si él
+            contestó por WhatsApp o por teléfono, quien coordina lo hace constar
+            y sigue.
+          */}
+          {asignacion.confirmadoEn ? (
+            <Mensaje
+              titulo="4 · Mándale su enlace para que elija hora"
+              nota={
+                asignacion.confirmadoPor
+                  ? `Confirmó por otro medio (lo registró ${asignacion.confirmadoPor}). Ve su agenda real y agenda sola.`
+                  : 'Él ya confirmó que su agenda sigue vigente. Ve la agenda real y agenda sola; el enlace le sirve para todas sus sesiones.'
+              }
+              telefono={persona.phone}
+              texto={mensajeParaCuadrarHorario({
+                persona: persona.fullName,
+                profesional: asignacion.profesional.nombre,
+                dias: [],
+                franjas: [],
+                nota: asignacion.nota,
+                enlaceAgenda,
+                plantilla: plantillas?.WHATSAPP_CUADRAR_HORARIO_PERSONA,
+              })}
+              copiado={copiado === 'cuadrar'}
+              alCopiar={(t) => copiar('cuadrar', t)}
+            />
+          ) : (
+            <div className="mensaje" style={{ opacity: 0.72 }}>
+              <div className="mensaje__cabecera">
+                <div>
+                  <strong className="mensaje__titulo">
+                    4 · Mándale su enlace para que elija hora
+                  </strong>
+                  <span className="mensaje__nota">
+                    Esperando a que {asignacion.profesional.nombre.split(' ')[0]} confirme que
+                    su agenda sigue vigente. Ella va a elegir de esa agenda: si cambió,
+                    reservaría un espacio que ya no existe.
+                  </span>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <BotonConfirmoAparte asignacionId={asignacion.id} />
+              </div>
+            </div>
+          )}
 
           <div className="mensaje__acciones" style={{ marginTop: 16 }}>
             <button

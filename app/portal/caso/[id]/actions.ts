@@ -135,3 +135,49 @@ export async function decidirPropuestaAction(
     return { success: false, message: 'Error de conexión con el servidor.' }
   }
 }
+
+/**
+ * El profesional corrige su propia agenda desde su enlace.
+ *
+ * Va por server action por lo mismo que el reporte y la decisión: el token del
+ * caso vive en una cookie httpOnly y el navegador no puede leerlo. Aquí se
+ * queda en el servidor.
+ *
+ * De quién es la agenda que se toca lo decide el backend a partir del token, no
+ * de nada que venga de esta pantalla: el enlace no es una credencial para
+ * moverse por el sistema, es una llave para una puerta concreta.
+ */
+export async function actualizarDisponibilidadAction(
+  patientId: string,
+  franjas: { weekday: string; startMinute: number; endMinute: number; modality?: string }[],
+) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(`case_token_${patientId}`)?.value
+
+  if (!token) {
+    return { success: false, message: 'El acceso venció. Vuelve a ingresar tu correo.' }
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/shared-cases/${patientId}/disponibilidad`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-shared-case-token': token },
+      body: JSON.stringify({ franjas }),
+      cache: 'no-store',
+    })
+
+    const payload = await response.json()
+
+    if (!response.ok || !payload.success) {
+      return {
+        success: false,
+        message: payload.message ?? 'No pudimos guardar tus horarios.',
+        details: payload.details as Record<string, string> | undefined,
+      }
+    }
+
+    return { success: true, message: payload.message as string }
+  } catch {
+    return { success: false, message: 'Error de conexión con el servidor.' }
+  }
+}
