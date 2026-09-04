@@ -54,9 +54,17 @@ const MODALIDAD_LARGA: Record<string, string> = {
   INDIFERENTE: 'presencial o virtual, le da igual',
 }
 
+/**
+ * Con qué prisa se le pide que conteste.
+ *
+ * En MEDIA decía «en los próximos días», y eso ya no encaja: al otro lado hay
+ * alguien esperando y el caso se libera solo a los tres días de asignarlo. Dar
+ * por buena una respuesta que llegue «en unos días» es invitar justo al retraso
+ * que hace que el caso se caiga.
+ */
 const URGENCIA: Record<string, string> = {
   ALTA: 'Es un caso de *prioridad alta*: si puedes, respóndenos hoy mismo.',
-  MEDIA: 'Te pedimos responder en los próximos días.',
+  MEDIA: 'Te pedimos responder lo antes posible.',
   BAJA: 'Puedes responder cuando tengas un momento esta semana.',
 }
 
@@ -75,6 +83,14 @@ export type DatosDelMensaje = {
   dias: string[]
   franjas: string[]
   enlace: string
+  /**
+   * SU agenda, en palabras, tal como está cargada hoy.
+   *
+   * Es de lo que la persona va a elegir, y él no la ve por ningún lado: la
+   * mantiene coordinación y no tiene cuenta en el portal. Sin esto, el mensaje
+   * le pide aceptar sobre una disponibilidad a ciegas.
+   */
+  agenda?: string | null
   /**
    * El texto que la coordinación editó en Parametrización. Si viene, manda.
    *
@@ -116,24 +132,21 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
   const nombre = nombreDePila(d.profesional)
 
   /**
-   * Lo que NO sabemos se dice, no se calla.
+   * Lo que NO sabemos se dice, no se calla — pero solo lo que le sirve.
    *
-   * Sigue valiendo aunque el formulario ya no pregunte días: hay solicitudes
-   * viejas que sí los traen, y callar el hueco es peor que nombrarlo.
+   * Aquí se nombraba también «qué días puede», y eso dejó de tener sentido con
+   * el flujo nuevo: en el paso 4 ella elige de LA AGENDA DE ÉL, así que sus
+   * días no se le preguntan a nadie y no los vamos a saber nunca. Prometerle
+   * que «eso lo cuadramos contigo después» era comprometer una conversación
+   * que ya no ocurre.
    *
-   * Antes, si la solicitud llegaba sin modalidad y sin días, esas líneas
-   * simplemente no salían y el mensaje quedaba en «la persona está en Cali».
-   * Un profesional lee ese silencio como «no tiene restricciones» —que es lo
-   * contrario de lo que significa— y puede aceptar creyendo que es flexible
-   * para descubrir después que solo puede los domingos.
-   *
-   * No es un caso raro: el formulario público pide la disponibilidad como
-   * opcional y en la práctica casi nadie la llena.
+   * La modalidad se queda: presencial o virtual sí cambia lo que él hace, y si
+   * la solicitud llegó sin ella, callarlo se lee como «no tiene preferencia»,
+   * que es lo contrario de la verdad.
    */
-  const faltantes = [
-    !modalidad ? 'qué modalidad prefiere' : null,
-    !cuando ? 'qué días puede' : null,
-  ].filter((x): x is string => x !== null)
+  const faltantes = [!modalidad ? 'qué modalidad prefiere' : null].filter(
+    (x): x is string => x !== null,
+  )
 
   /**
    * El hueco de información también viaja. Era lo único que no.
@@ -157,8 +170,8 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
       profesional: nombre,
       ciudad: d.ciudad,
       modalidad,
-      cuando: cuando || null,
       faltan,
+      agenda: d.agenda ?? null,
       urgencia: URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
       enlace: d.enlace,
     })
@@ -173,12 +186,29 @@ export function mensajeDePropuesta(d: DatosDelMensaje): string {
     '',
     `· La persona está en ${d.ciudad}.`,
     modalidad ? `· Prefiere que sea ${modalidad}.` : null,
-    cuando ? `· Puede ${cuando}.` : null,
     faltan ? `· ${faltan}` : null,
     '',
     URGENCIA[d.prioridad] ?? URGENCIA.MEDIA,
     '',
-    'Ella va a elegir la hora directamente de tu agenda, entre los espacios que ya tienes marcados como libres. Cuando lo haga te llega la confirmación con el día, la hora y el enlace de la videollamada.',
+    /**
+     * Su agenda, delante, y la pregunta que faltaba.
+     *
+     * El mensaje le decía que ella elegiría «entre los espacios que ya tienes
+     * marcados como libres» sin enseñarle cuáles son — y él no puede mirarlos:
+     * su agenda la mantiene coordinación desde la ficha y no tiene cuenta en el
+     * portal. Se le pedía aceptar sobre una disponibilidad a ciegas, y de ahí
+     * salen las cancelaciones tardías, que son las que dejan a alguien
+     * esperando.
+     *
+     * Verlos convierte el «si no puedes, dilo» en una pregunta contestable:
+     * o siguen vigentes, o hay que ajustarlos, o no toma el caso.
+     */
+    'Ella va a elegir la hora directamente de tu agenda, entre los espacios que ya tienes marcados como libres.',
+    d.agenda ? `· ${d.agenda}` : null,
+    '',
+    '*Confírmanos que esos espacios siguen vigentes.* Si cambiaron, dínoslo y los ajustamos antes de pasárselos.',
+    '',
+    'Cuando ella elija te llega la confirmación con el día, la hora y el enlace de la videollamada.',
     '',
     'Aquí ves el caso, entrando con el correo con el que te registraste:',
     d.enlace,

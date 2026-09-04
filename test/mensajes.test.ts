@@ -39,32 +39,60 @@ describe('mensaje de propuesta al profesional', () => {
     expect(mensajeDePropuesta(base)).not.toContain('Pérez Gómez')
   })
 
-  it('enumera los días como se dicen', () => {
-    expect(mensajeDePropuesta(base)).toContain(
-      'lunes, miércoles y viernes en la tarde (de 12:00 p. m. a 6:00 p. m.)',
-    )
+  /**
+   * Los días de ELLA no se le cuentan a él, ni aunque se sepan.
+   *
+   * El mensaje los enumeraba, y decía «no sabemos qué días puede: eso lo
+   * cuadramos contigo después» cuando faltaban. Las dos frases son del flujo
+   * viejo, el de negociar horarios por WhatsApp. Hoy ella elige del calendario
+   * de él en el paso 4: sus días no se le preguntan a nadie, no los vamos a
+   * saber, y prometer que se cuadran «después» compromete una conversación que
+   * ya no ocurre.
+   */
+  it('no le cuenta los días de la persona: ella elige de la agenda de él', () => {
+    const texto = mensajeDePropuesta(base)
+    expect(texto).not.toContain('· Puede ')
+    expect(texto).not.toContain('lunes, miércoles y viernes')
+    expect(texto).not.toContain('No sabemos qué días puede')
+    expect(texto).not.toContain('lo cuadramos contigo')
   })
 
   /**
-   * Lo que no se sabe se dice. El silencio se lee como "no tiene
-   * restricciones", que es lo contrario de lo que significa, y en la práctica
-   * casi ninguna solicitud trae la disponibilidad llena.
+   * La modalidad sí, porque cambia lo que él hace. Y su ausencia también: el
+   * silencio se lee como «no tiene preferencia», que es lo contrario.
    */
-  it('dice lo que NO sabemos en vez de callarlo', () => {
+  it('dice lo que NO sabemos de la modalidad en vez de callarlo', () => {
     const texto = mensajeDePropuesta({ ...base, dias: [], franjas: [], modalidad: null })
-    expect(texto).toContain('No sabemos qué modalidad prefiere y qué días puede')
+    expect(texto).toContain('No sabemos qué modalidad prefiere')
     expect(texto).toContain('no quedó en el formulario')
-    expect(texto).not.toContain('· Puede ')
     expect(texto).not.toContain('· Prefiere')
     // Y el enlace sigue ahí: el mensaje es útil aunque falten datos.
     expect(texto).toContain(base.enlace)
   })
 
-  it('nombra solo lo que de verdad falta', () => {
-    const sinDias = mensajeDePropuesta({ ...base, dias: [], franjas: [] })
-    expect(sinDias).toContain('No sabemos qué días puede')
-    expect(sinDias).not.toContain('qué modalidad prefiere')
-    expect(sinDias).toContain('· Prefiere que sea virtual.')
+  it('con modalidad, no inventa que falte nada', () => {
+    const conModalidad = mensajeDePropuesta({ ...base, dias: [], franjas: [] })
+    expect(conModalidad).not.toContain('No sabemos')
+    expect(conModalidad).toContain('· Prefiere que sea virtual.')
+  })
+
+  /**
+   * Y le enseña SU agenda, que es de lo que ella va a elegir.
+   *
+   * Él no puede verla por ningún lado —la mantiene coordinación y no tiene
+   * cuenta en el portal—, así que sin esto se le pedía aceptar a ciegas. Verla
+   * convierte «si no puedes, dilo» en una pregunta que se puede contestar.
+   */
+  it('le enseña su propia agenda y le pide confirmarla', () => {
+    const texto = mensajeDePropuesta({ ...base, agenda: 'martes de 8:00 a. m. a 12:00 p. m.' })
+    expect(texto).toContain('martes de 8:00 a. m. a 12:00 p. m.')
+    expect(texto).toContain('siguen vigentes')
+  })
+
+  it('sin agenda cargada, no deja una línea coja', () => {
+    const texto = mensajeDePropuesta({ ...base, agenda: null })
+    expect(texto).not.toMatch(/\n· \n/)
+    expect(texto).not.toMatch(/\n· $/)
   })
 
   it('cuando está todo, no dice que falte nada', () => {

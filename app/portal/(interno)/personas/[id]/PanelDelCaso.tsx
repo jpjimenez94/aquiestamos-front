@@ -34,7 +34,8 @@ export type Asignacion = {
   respondioEn: string | null
   nota: string | null
   motivoRechazo: string | null
-  profesional: { id: string; nombre: string; telefono: string }
+  /** `agenda` son sus franjas en palabras: lo que ella va a ver para elegir. */
+  profesional: { id: string; nombre: string; telefono: string; agenda?: string | null }
 }
 
 type Persona = {
@@ -169,6 +170,8 @@ export function PanelDelCaso({
               franjas: persona.availableSlots,
               enlace: enlaceCaso,
               prioridad: persona.priority,
+              // Su disponibilidad, para que no acepte a ciegas.
+              agenda: asignacion.profesional.agenda ?? null,
             })}
             copiado={copiado === 'propuesta'}
             alCopiar={(t) => copiar('propuesta', t)}
@@ -224,6 +227,8 @@ export function PanelDelCaso({
               franjas: persona.availableSlots,
               enlace: enlaceCaso,
               prioridad: persona.priority,
+              // Su disponibilidad, para que no acepte a ciegas.
+              agenda: asignacion.profesional.agenda ?? null,
             })}
             copiado={copiado === 'aviso-profesional'}
             alCopiar={(t) => copiar('aviso-profesional', t)}
