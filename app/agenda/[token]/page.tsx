@@ -183,6 +183,11 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
   }
 
   if (listo) {
+    /** Mientras no firme, la hora está apartada; no agendada. */
+    const faltaFirma = Boolean(
+      listo.consentimiento && !listo.consentimiento.firmado && listo.consentimiento.token,
+    )
+
     return (
       /*
         En columna, a propósito. El marco es un flex en fila: con una sola
@@ -192,10 +197,27 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
         ancho completo.
       */
       <div style={{ ...marco, flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+        {/*
+          «Agendada» solo cuando de verdad lo está.
+
+          Decía «Tu sesión quedó agendada» y justo debajo le pedía el
+          consentimiento. Si cerraba sin firmar, la cita quedaba en pie y
+          confirmada, el profesional ya tenía su aviso, el espacio estaba
+          ocupado — y la sesión no podía hacerse, porque sin consentimiento
+          firmado no se empieza. Le habíamos dicho que estaba lista una cosa
+          que no lo estaba, y el error solo aparecía el día de la sesión.
+
+          Con la firma pendiente, la hora está APARTADA: se le guarda mientras
+          lee —perderla por leer sería peor— pero no se le promete nada que
+          todavía dependa de ella.
+        */}
         <div style={{ ...tarjeta, textAlign: 'center' }}>
-          <CheckCircle2 size={44} style={{ color: '#059669', margin: '0 auto 12px' }} />
+          <CheckCircle2
+            size={44}
+            style={{ color: faltaFirma ? '#d97706' : '#059669', margin: '0 auto 12px' }}
+          />
           <h1 style={{ fontSize: '1.3rem', color: '#0f172a', margin: '0 0 8px' }}>
-            Tu sesión quedó agendada
+            {faltaFirma ? 'Te guardamos esta hora' : 'Tu sesión quedó agendada'}
           </h1>
           <p style={{ color: '#475569', margin: 0, lineHeight: 1.6 }}>
             <strong>{listo.cuando}</strong>
@@ -203,8 +225,9 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
             con {listo.profesional}
           </p>
           <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: 18, lineHeight: 1.6 }}>
-            Te escribimos por WhatsApp con el enlace para conectarte. Si te surge algo y no
-            puedes, avísanos con tiempo y lo movemos: no pasa nada.
+            {faltaFirma
+              ? 'Queda confirmada en cuanto aceptes el consentimiento, aquí abajo. Es un minuto.'
+              : 'Te escribimos por WhatsApp con el enlace para conectarte. Si te surge algo y no puedes, avísanos con tiempo y lo movemos: no pasa nada.'}
           </p>
         </div>
 
@@ -218,14 +241,14 @@ export default function MiAgendaPage({ params }: { params: Promise<{ token: stri
           persona delante de la pantalla. Si ya lo firmó en una sesión
           anterior, la cita hereda la firma y esto no aparece.
         */}
-        {listo.consentimiento && !listo.consentimiento.firmado && listo.consentimiento.token ? (
+        {faltaFirma && listo.consentimiento?.token ? (
           <div style={tarjeta}>
             <h2 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 6px' }}>
               Solo falta una cosa: tu consentimiento
             </h2>
             <p style={{ color: '#475569', margin: '0 0 14px', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              Antes de la sesión necesitamos que leas y aceptes esto. Toma un minuto y se hace
-              aquí mismo.
+              Con esto queda confirmada tu sesión. Necesitamos que lo leas y lo aceptes antes
+              de empezar: toma un minuto y se hace aquí mismo.
             </p>
             <FormularioConsentimiento
               token={listo.consentimiento.token}
