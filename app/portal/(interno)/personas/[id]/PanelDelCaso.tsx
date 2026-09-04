@@ -380,11 +380,30 @@ export function PanelDelCaso({
           )}
 
           <div className="mensaje__acciones" style={{ marginTop: 16 }}>
+            {/*
+              Agendar también espera al 3. Bloquear el mensaje no bastaba.
+
+              «Ya me confirmó: agendar» es para cuando ella responde por
+              WhatsApp y coordinación transcribe la hora — pero esa hora se pone
+              sobre la agenda de ÉL. Dejarlo abierto mientras el paso 4 sigue
+              esperando su confirmación permitía saltarse el bloqueo entero por
+              el lado: una sesión creada sobre una disponibilidad que nadie ha
+              validado, que es exactamente lo que se quería evitar.
+
+              Reasignar sí se queda disponible: soltar el caso tiene que poder
+              hacerse en cualquier momento.
+            */}
             <button
               className="boton-mini"
               data-tono="principal"
               type="button"
               onClick={() => setAgendando(true)}
+              disabled={!asignacion.confirmadoEn}
+              title={
+                asignacion.confirmadoEn
+                  ? undefined
+                  : `Espera a que ${asignacion.profesional.nombre.split(' ')[0]} confirme su agenda: la hora se pone sobre ella.`
+              }
             >
               <CalendarCheck size={14} />
               Ya me confirmó: agendar
