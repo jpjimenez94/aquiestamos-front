@@ -102,11 +102,15 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
   async function declinar(evento: React.FormEvent) {
     evento.preventDefault()
 
-    if (motivo.trim().length < 3) {
-      setError('Cuéntanos brevemente por qué no puedes.')
-      return
-    }
-
+    /**
+     * Sin peaje para decir que no.
+     *
+     * Aquí se exigía el motivo. Contradecía al mensaje que le trae hasta esta
+     * pantalla —«no pasa nada, es voluntario, decirlo pronto ayuda más que un sí
+     * que no llega»— y ponía la barrera justo delante de la conducta que le
+     * pedimos. Quien no quiere explicarse no escribe «no puedo y ya»: cierra la
+     * pestaña, y nos quedamos sin el motivo Y sin la respuesta.
+     */
     setEnviando(true)
     setError(null)
 
@@ -177,11 +181,12 @@ export function BotonDeclinar({ patientId }: { patientId: string }) {
     <form onSubmit={declinar} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
         <label className="field__label" htmlFor="motivo-declinar">
-          ¿Por qué no puedes? *
+          ¿Por qué no puedes? <span style={{ fontWeight: 400 }}>(opcional)</span>
         </label>
         <p className="tamizaje__ayuda">
-          Con una línea basta: «no tengo cupo este mes», «me queda muy lejos», «no es mi
-          población». Nos sirve para no volver a asignarte casos que no encajan.
+          Si quieres contarnos, con una línea basta: «no tengo cupo este mes», «me queda
+          muy lejos», «no es mi población». Nos sirve para no volver a asignarte casos que
+          no encajan — pero puedes dejarlo en blanco y mandarlo igual.
         </p>
         <textarea
           id="motivo-declinar"
