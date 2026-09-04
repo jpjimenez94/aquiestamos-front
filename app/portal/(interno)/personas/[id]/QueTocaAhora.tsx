@@ -158,7 +158,9 @@ export function QueTocaAhora({
         <div style={{ marginTop: 10 }}>
           <Mensaje
             titulo="Mándale su enlace para que elija hora"
-            nota="Ve la agenda real del profesional y agenda sola, cuando su salud y su tiempo se lo permitan. El enlace le sirve para todas sus sesiones."
+            // Con sujeto, por lo mismo que en el paso 4 de la ficha: «ve» y
+            // «agenda» sin sujeto se leen como órdenes a quien coordina.
+            nota="Ella elige su hora sobre la agenda real del profesional, cuando su salud y su tiempo se lo permitan. El enlace le sirve para todas sus sesiones."
             telefono={persona.phone}
             texto={mensajeParaCuadrarHorario({
               persona: persona.fullName,

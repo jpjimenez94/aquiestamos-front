@@ -273,10 +273,18 @@ export function PanelDelCaso({
           {asignacion.confirmadoEn ? (
             <Mensaje
               titulo="4 · Mándale su enlace para que elija hora"
+              /**
+               * Quién hace qué, dicho con sujeto.
+               *
+               * Decía «Ve la agenda real y agenda sola», y así no se entiende:
+               * en pantalla parece una orden a quien coordina —ve, agenda—
+               * cuando quien mira la agenda y elige es ELLA. La frase describía
+               * el flujo desde dentro, no desde el lado de quien la lee.
+               */
               nota={
                 asignacion.confirmadoPor
-                  ? `Confirmó por otro medio (lo registró ${asignacion.confirmadoPor}). Ve su agenda real y agenda sola.`
-                  : 'Él ya confirmó que su agenda sigue vigente. Ve la agenda real y agenda sola; el enlace le sirve para todas sus sesiones.'
+                  ? `Lo dio por confirmado ${asignacion.confirmadoPor}, no ${asignacion.profesional.nombre.split(' ')[0]}. Con este enlace ella elige su hora sobre la agenda de él.`
+                  : `${asignacion.profesional.nombre.split(' ')[0]} ya confirmó que su agenda sigue vigente. Con este enlace ella elige su hora, y le sirve para todas sus sesiones.`
               }
               telefono={persona.phone}
               texto={mensajeParaCuadrarHorario({
@@ -294,11 +302,18 @@ export function PanelDelCaso({
           ) : (
             <div className="mensaje" style={{ opacity: 0.72 }}>
               <div className="mensaje__cabecera">
-                <div>
-                  <strong className="mensaje__titulo">
+                {/* Mismos estilos en línea que `Mensaje`: esas clases no existen. */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                  <strong style={{ fontSize: '0.95rem', color: 'var(--color-text-default)' }}>
                     4 · Mándale su enlace para que elija hora
                   </strong>
-                  <span className="mensaje__nota">
+                  <span
+                    style={{
+                      fontSize: '0.84rem',
+                      lineHeight: 1.5,
+                      color: 'var(--color-text-light, #64748b)',
+                    }}
+                  >
                     Esperando a que {asignacion.profesional.nombre.split(' ')[0]} confirme que
                     su agenda sigue vigente. Ella va a elegir de esa agenda: si cambió,
                     reservaría un espacio que ya no existe.

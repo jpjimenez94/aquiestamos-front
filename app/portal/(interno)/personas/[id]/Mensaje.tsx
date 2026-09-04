@@ -32,9 +32,32 @@ export function Mensaje({
   return (
     <div className="mensaje">
       <div className="mensaje__cabecera">
-        <div>
-          <strong className="mensaje__titulo">{titulo}</strong>
-          <span className="mensaje__nota">{nota}</span>
+        {/*
+          El título y la nota, en dos líneas.
+
+          Llevaban `mensaje__titulo` y `mensaje__nota`, que no existen en
+          ninguna hoja de estilos: salían como un `<strong>` y un `<span>`
+          seguidos, pegados sin espacio ni salto. En pantalla se leía
+          «4 · Mándale su enlace para que elija horaÉl ya confirmó que…».
+
+          Es el mismo fallo que ya tuvo el botón de declinar con unas clases de
+          botón inventadas: una clase que no existe no falla, solo deja el
+          elemento sin forma. Y aquí lo que pierde la forma es la frase que le
+          dice a quien coordina qué está a punto de mandar.
+        */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+          <strong style={{ fontSize: '0.95rem', color: 'var(--color-text-default)' }}>
+            {titulo}
+          </strong>
+          <span
+            style={{
+              fontSize: '0.84rem',
+              lineHeight: 1.5,
+              color: 'var(--color-text-light, #64748b)',
+            }}
+          >
+            {nota}
+          </span>
         </div>
         <div className="mensaje__acciones">
           {enlace ? (
