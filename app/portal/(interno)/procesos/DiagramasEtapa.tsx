@@ -112,29 +112,50 @@ export function DiagramaCita() {
   return (
     <Lienzo
       ancho={760}
-      alto={390}
-      etiqueta="Flujo de la cita: validación del horario contra la oferta del caso y la agenda, confirmaciones por WhatsApp, firma del consentimiento por enlace, y los cuatro finales de la cita."
+      alto={430}
+      etiqueta="Flujo de la cita. Arriba, el camino normal: ella escoge una hora libre y acepta el consentimiento en el mismo acto, así que la cita nace CONFIRMADA. Abajo, el camino de coordinación, que sí crea la cita antes de la firma. Después, los momentos de prepararla y los cuatro finales."
     >
-      <Caja x={30} y={30} w={200} titulo="Coordinación agenda" detalle="fecha + modalidad" />
-      <Flecha d="M 230 57 H 274" />
-      <Caja x={276} y={30} w={230} titulo="¿El horario cabe?" detalle="oferta del caso · agenda general" tono="espera" />
-      <Nota x={392} y={100} texto="fuera de ambas: casilla auditada · bloqueo: nunca" tono="alerta" />
+      {/* el camino normal: la persona, en un solo acto */}
+      <Caja x={30} y={26} w={210} titulo="Ella abre su enlace" detalle="huecos libres reales" />
+      <Flecha d="M 240 53 H 284" />
+      <Caja
+        x={286}
+        y={26}
+        w={230}
+        titulo="Escoge hora + acepta"
+        detalle="una sola decisión"
+        tono="espera"
+      />
+      <Nota x={401} y={96} texto="sin la firma no se crea nada: la hora sigue libre" tono="alerta" />
 
-      <Flecha d="M 506 57 H 550" />
-      <Caja x={552} y={30} w={180} titulo="PROGRAMADA" detalle="cita sobre la mesa" tono="logro" />
+      <Flecha d="M 516 53 H 560" />
+      <Caja x={562} y={26} w={170} titulo="CONFIRMADA" detalle="no le falta nada" tono="logro" />
 
-      <Flecha d="M 642 84 V 128" />
-      <Caja x={552} y={130} w={180} titulo="Confirmar a los dos" detalle="WhatsApp · paso 5" />
+      {/* el camino de coordinación, que sí necesita la firma después */}
+      <Caja x={30} y={140} w={210} titulo="O la pone coordinación" detalle="si ella prefiere escribir" />
+      <Flecha d="M 240 167 H 284" />
+      <Caja x={286} y={140} w={230} titulo="PROGRAMADA" detalle="falta que ella firme" tono="alerta" />
+      <Flecha d="M 401 194 V 218" />
+      <Caja x={286} y={220} w={230} titulo="Firma por su enlace" detalle="su nombre tecleado es la firma" tono="logro" />
+      {/* rodea por fuera para no cruzar las cajas de la derecha */}
+      <Flecha d="M 516 247 H 540 V 157 H 560" />
 
-      <Flecha d="M 552 157 H 508" />
-      <Caja x={276} y={130} w={230} titulo="Consentimiento firmado" detalle="su nombre tecleado es la firma" tono="logro" />
-      <Nota x={392} y={200} texto="menor: firma su acudiente · papel: se sube el escaneo" />
+      {/* preparar la sesión: primero confirmar, después recordar */}
+      <Flecha d="M 647 80 V 128" />
+      <Caja x={562} y={130} w={170} titulo="Confirmar a los dos" detalle="correo solo · WhatsApp a mano" />
+      <Flecha d="M 647 184 V 228" />
+      <Caja x={562} y={230} w={170} titulo="Recordar a los dos" detalle="cuando se acerca la hora" />
 
-      <Flecha d="M 642 184 V 228" />
-      <Caja x={552} y={230} w={180} titulo="CONFIRMADA" detalle="la persona confirmó" tono="logro" />
-
-      <Flecha d="M 642 284 V 318" />
-      <Caja x={432} y={320} w={300} h={54} titulo="El día de la sesión" detalle="realizada · no asistió · cancelada · reprogramada" />
+      <Flecha d="M 647 284 V 358" />
+      <Caja
+        x={432}
+        y={360}
+        w={300}
+        h={54}
+        titulo="El día de la sesión"
+        detalle="realizada · no asistió · cancelada · reprogramada"
+      />
+      <Nota x={230} y={380} texto="cancelada: el caso vuelve a «elige su hora»" tono="alerta" />
     </Lienzo>
   )
 }

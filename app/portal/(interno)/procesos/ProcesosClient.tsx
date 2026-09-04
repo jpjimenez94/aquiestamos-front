@@ -232,15 +232,15 @@ export function ProcesosClient() {
         {
           quien: 'El profesional',
           rolTag: 'profesional',
-          titulo: 'Confirma, o dice que no puede',
+          titulo: 'Confirma, corrige su agenda, o dice que no puede',
           detalle:
-            'Desde su enlace seguro. Confirmar no es obligatorio —el caso avanza igual— pero queda registrado. Ya no se le piden días ni horas: su agenda está en su perfil desde que se registró.',
+            'Desde su enlace seguro. Confirmar no es obligatorio —el caso avanza igual— pero queda registrado. No se le piden días ni horas: ya están en su perfil, y desde ese mismo enlace puede corregirlas si cambiaron, que es de donde la persona va a escoger.',
           desvios: [
             {
               tono: 'alerta',
               titulo: '«Ahora no puedo tomarlo»:',
               texto:
-                'el caso se libera al instante con el motivo, la persona vuelve a «Por asignar» y se le asigna a otro el mismo día. Es voluntario: decirlo pronto ayuda más que un silencio.',
+                'el caso se libera al instante, la persona vuelve a «Por asignar» y se le asigna a otro el mismo día. Decir por qué es opcional: exigir un motivo para decir que no es cobrarle a alguien por avisar a tiempo, que es justo lo que queremos que haga.',
             },
           ],
         },
@@ -271,10 +271,10 @@ export function ProcesosClient() {
       titulo: 'La cita queda agendada',
       tag: 'Agenda y Horarios',
       descripcion:
-        'La elige ella desde su enlace, sobre los espacios libres reales del profesional. Coordinación ya no cuadra horarios por WhatsApp: solo interviene si hace falta. La hora que escoge ella queda CONFIRMADA de una vez —es ella quien lo dijo, no hay a quién preguntarle—; PROGRAMADA queda solo para las horas que propone coordinación y aún esperan su sí. Y en esa misma pantalla, recién elegida la hora, firma el consentimiento: era otro enlace y otro mensaje por WhatsApp.',
+        'La elige ella desde su enlace, sobre los espacios libres reales del profesional, y en esa misma pantalla acepta el consentimiento. Son un solo acto: sin la firma no se crea nada. La cita nace CONFIRMADA porque ya no le falta nada. PROGRAMADA queda solo para las horas que pone coordinación a mano, que sí llegan sin firma.',
       estados: [
-        { estado: 'PROGRAMADA', texto: 'Agendada, falta su sí' },
-        { estado: 'CONFIRMADA', texto: 'Confirmada' },
+        { estado: 'CONFIRMADA', texto: 'Elegida y firmada por ella' },
+        { estado: 'PROGRAMADA', texto: 'Puesta a mano, falta la firma' },
       ],
       pasos: [
         {
@@ -283,12 +283,25 @@ export function ProcesosClient() {
           titulo: 'Escoge de los huecos libres, agrupados por día',
           detalle:
             'El sistema resta lo que ya está ocupado, respeta los bloqueos que el profesional marcó —descanso, vacaciones— y esconde las horas que chocan con otra cita suya. Lo que ve son huecos reales, no propuestas.',
+        },
+        {
+          quien: 'La persona acompañada',
+          rolTag: 'persona',
+          titulo: 'Lee el consentimiento y lo acepta, ahí mismo',
+          detalle:
+            'La lista de horas se sustituye por la confirmación: la hora que escogió, el consentimiento debajo, y un solo botón que hace las dos cosas. El texto completo vive además en su propia página, /consentimiento-informado, para leerlo con calma o enseñárselo a alguien.',
           desvios: [
             {
-              tono: 'logro',
-              titulo: 'Al elegir:',
+              tono: 'alerta',
+              titulo: 'Por qué no se aparta la hora mientras lee:',
               texto:
-                'la cita queda agendada, al profesional le llega la confirmación con el día, la hora y el enlace de videollamada, y la asignación pasa a ACTIVA.',
+                'se apartaba, y quien cerraba sin firmar dejaba ocupado un espacio que no servía para nada —sin consentimiento no se empieza la sesión—. La hora bloqueada era real; la sesión, no. Ahora, si falta la firma, no se crea nada.',
+            },
+            {
+              tono: 'logro',
+              titulo: 'Al confirmar:',
+              texto:
+                'la cita nace CONFIRMADA, la asignación pasa a ACTIVA, y a los dos les sale solo un correo con el día, la hora y su propio enlace de sala. Quien ya firmó en una sesión anterior no lo vuelve a ver: la firma es de la persona, no de la cita.',
             },
           ],
         },
@@ -297,7 +310,7 @@ export function ProcesosClient() {
           rolTag: 'coordinacion',
           titulo: 'Solo si hace falta: agendar a mano',
           detalle:
-            'Si la persona prefiere escribir a entrar a una pantalla —hay quien lo prefiere, y a quien está mal no se le pone una barrera— coordinación puede agendarle desde su ficha. El enlace se conserva para las siguientes.',
+            'Si la persona prefiere escribir a entrar a una pantalla —hay quien lo prefiere, y a quien está mal no se le pone una barrera— coordinación puede agendarle desde su ficha. El enlace se conserva para las siguientes. Estas son las citas que sí nacen PROGRAMADA: la firma se pide después, por su enlace.',
           desvios: [
             {
               tono: 'reloj',
@@ -316,7 +329,7 @@ export function ProcesosClient() {
       titulo: 'La sesión: lo que sale solo y lo que no',
       tag: 'Sesión y Consentimiento',
       descripcion:
-        'La sesión dura 45 minutos. Al agendarse, al profesional le sale solo un correo con la fecha y el enlace de su sala: no depende de que nadie se acuerde de despacharlo. Los recordatorios por correo también salen solos; los de WhatsApp siguen siendo manuales.',
+        'La sesión dura 45 minutos. Preparar no es un instante: tiene momentos, y la ficha de la cita enseña uno a la vez, el que toca. Los correos salen solos a los dos; los WhatsApp siguen siendo manuales, y por eso la ficha dice cuál escribir ahora.',
       diagrama: <DiagramaCita />,
       estados: [
         { estado: 'CONFIRMADA', texto: 'Confirmada' },
@@ -324,19 +337,31 @@ export function ProcesosClient() {
       ],
       pasos: [
         {
-          quien: 'La persona',
-          rolTag: 'persona',
-          titulo: 'Ya firmó el consentimiento al elegir su hora',
-          detalle: 'Se firma en la misma pantalla donde escoge la hora, con la sesión recién acordada. Si vuelve a agendar, la cita hereda la firma y no se le pide otra vez. Solo hay que pedírsela aparte si la cita la puso coordinación.',
+          quien: 'El sistema',
+          rolTag: 'sistema',
+          titulo: 'Al agendarse, los dos correos salen solos',
+          detalle: 'Al profesional, con la fecha y el enlace de su sala. A la persona, con la hora, la modalidad y su propio enlace de entrada —dos llaves firmadas distintas, no la misma—. Ninguno depende de que alguien se acuerde de despacharlo.',
           desvios: [
-            { tono: 'logro', titulo: 'Firma inmutable:', texto: 'queda registrado con marca de tiempo e IP en la ficha del caso.' },
+            { tono: 'alerta', titulo: 'Si no dejó correo:', texto: 'dar correo es opcional al pedir ayuda, y quien no lo dio no recibe nada. La ficha de la cita lo dice y pide el WhatsApp, en vez de dar por hecho que le llegó.' },
           ],
         },
         {
-          quien: 'El sistema y Coordinación',
-          rolTag: 'sistema',
-          titulo: 'El correo sale solo; el WhatsApp, a mano',
-          detalle: 'Horas antes de la sesión el sistema encola los recordatorios por correo, a la persona y al profesional. El WhatsApp sigue siendo manual: cuando faltan 60 minutos o menos, aparece el botón «Recordar cita» en Personas y en el detalle de la cita.',
+          quien: 'Coordinación',
+          rolTag: 'coordinacion',
+          titulo: 'Primero confirmar, después recordar',
+          detalle: 'Recién agendada, la ficha ofrece confirmársela a los dos por WhatsApp. Cuando se acerca la hora, ofrece los recordatorios. Son dos actos con dos textos distintos —«quedó agendada, aquí tienes tu enlace» contra «es hoy, nos vemos»— y entre uno y otro pueden pasar dos semanas.',
+          desvios: [
+            { tono: 'alerta', titulo: 'Por qué importa el orden:', texto: 'la ficha solo sabía preguntar «¿es hoy?», así que a una cita recién agendada para esa noche le pedía recordar. Recordarle a alguien algo que todavía no se le ha contado no es un recordatorio.' },
+          ],
+        },
+        {
+          quien: 'La persona',
+          rolTag: 'persona',
+          titulo: 'El consentimiento ya está firmado',
+          detalle: 'Lo firmó al elegir su hora: sin eso la cita no existiría. Si vuelve a agendar, la hereda y no se le pide otra vez. Solo hay que pedírselo aparte cuando la cita la puso coordinación a mano — y ahí la ficha lo pone de primero, porque sin firma no se empieza la sesión.',
+          desvios: [
+            { tono: 'logro', titulo: 'Firma inmutable:', texto: 'el nombre tecleado es la firma; queda en auditoría con la versión exacta del texto que aceptó y la marca de tiempo.' },
+          ],
         },
         {
           quien: 'El día de la sesión',
@@ -375,6 +400,15 @@ export function ProcesosClient() {
           rolTag: 'coordinacion',
           titulo: 'Lee el reporte y cierra el caso con motivo',
           detalle: 'El cierre libera el cupo del profesional y traslada el caso a «Cerrados recientes» en métricas. No se puede cerrar sin haber leído el reporte.',
+        },
+        {
+          quien: 'El sistema',
+          rolTag: 'sistema',
+          titulo: 'Si la sesión se cae, el caso retrocede a «elige su hora»',
+          detalle: 'Una cita cancelada no es una sesión que ocurrió: el caso vuelve al paso 4 y la ficha pide agendar otra, con la hora que se cayó a la vista. No asistir sí cuenta como sesión —la hora llegó y se gastó—, así que eso sí avanza a seguimiento.',
+          desvios: [
+            { tono: 'alerta', titulo: 'Lo que hacía antes:', texto: 'se quedaba en «Preparar la sesión» sin ninguna sesión que preparar, con «nada pendiente» y el tablero pidiendo un reporte de algo que no pasó.' },
+          ],
         },
       ],
     },
@@ -496,10 +530,18 @@ export function ProcesosClient() {
           detalle: 'Si la persona acompañada no confirma el horario en 72 horas, se libera el horario del profesional para que pueda recibir otro caso.',
         },
         {
-          quien: 'Recordatorio < 60 min',
+          quien: 'Momentos de la cita',
           rolTag: 'sistema',
-          titulo: 'Habilitación de botón de recordatorio previo',
-          detalle: 'Calcula el tiempo restante de las citas activas y activa el botón de WhatsApp cuando faltan 60 minutos o menos para la sesión.',
+          titulo: 'La ficha decide qué WhatsApp toca ahora',
+          detalle:
+            'No es un reloj de fondo: es la ficha de la cita mirando en qué momento está. Falta la firma → pedirla. Recién agendada (12 h) → confirmársela a los dos. Se acerca la hora (24 h) → recordársela. Sin correo → confirmársela a mano. Uno a la vez, y los demás mensajes quedan plegados debajo.',
+        },
+        {
+          quien: 'Correos de la cita',
+          rolTag: 'sistema',
+          titulo: 'Confirmación al agendar y recordatorio antes de la sesión',
+          detalle:
+            'Al agendarse salen dos correos, uno a cada uno, con su propio enlace de sala. Horas antes de la sesión salen los recordatorios. Los cuatro textos se editan en Parametrización.',
         },
         {
           quien: 'Auditoría Granular',

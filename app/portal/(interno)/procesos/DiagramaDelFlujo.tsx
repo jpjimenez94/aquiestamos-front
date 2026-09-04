@@ -160,7 +160,7 @@ export function DiagramaDelFlujo() {
           ref={contenedor}
           viewBox="0 0 900 640"
           role="img"
-          aria-label="El flujo completo de un caso: solicitud, tamizaje, propuesta al profesional, horario con la persona, cita con consentimiento, sesión, reporte y cierre. Las líneas punteadas muestran las vueltas a la cola por rechazo o silencio."
+          aria-label="El flujo completo de un caso: solicitud, tamizaje, asignación al profesional, la persona elige su hora y firma en el mismo acto, sesión, reporte y cierre. Las líneas punteadas muestran las vueltas a la cola cuando el profesional no puede o cuando pasan tres días sin que ella elija hora."
           style={{ minWidth: 720, maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto', background: PAPEL, borderRadius: 12 }}
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -180,30 +180,30 @@ export function DiagramaDelFlujo() {
           <Flecha d="M 472 57 H 522" />
           <Caja x={524} y={30} w={210} titulo="Cola: Por Asignar" detalle="admite sola · 2 días si calla" tono="logro" />
 
-          {/* ---------- fila 2: la propuesta ---------- */}
+          {/* ---------- fila 2: se asigna, no se pide permiso ---------- */}
           <Flecha d="M 629 84 V 130" />
-          <Caja x={524} y={132} w={210} titulo="Propuesta al profesional" detalle="WhatsApp con su enlace" tono="espera" />
-          <Nota x={853} y={162} texto="2 días o" tono="alerta" />
-          <Nota x={853} y={175} texto="se libera" tono="alerta" />
+          <Caja x={524} y={132} w={210} titulo="Se le asigna y se le avisa" detalle="WhatsApp con su enlace" tono="espera" />
+          <Nota x={853} y={162} texto="«ahora no" tono="alerta" />
+          <Nota x={853} y={175} texto="puedo»" tono="alerta" />
 
-          {/* rechazo / silencio: vuelve a la cola */}
+          {/* declina: vuelve a la cola el mismo día */}
           <Flecha d="M 745 159 H 800 V 57 H 740" tono="alerta" />
 
-          {/* ---------- fila 3: acepta y se cuadra ---------- */}
+          {/* ---------- fila 3: ella escoge de la agenda real ---------- */}
           <Flecha d="M 629 186 V 232" />
-          <Nota x={655} y={212} texto="acepta con sus días y franjas" />
-          <Caja x={524} y={234} w={210} titulo="Cuadrar horario" detalle="coordinación ↔ la persona" tono="espera" />
+          <Nota x={655} y={212} texto="confirma o corrige su agenda" />
+          <Caja x={524} y={234} w={210} titulo="Ella elige su hora" detalle="de la agenda real de él" tono="espera" />
           <Nota x={853} y={264} texto="3 días o" tono="alerta" />
           <Nota x={853} y={277} texto="se libera" tono="alerta" />
           <Flecha d="M 745 261 H 810 V 57 H 740" tono="alerta" />
 
-          {/* ---------- fila 4: la cita ---------- */}
+          {/* ---------- fila 4: la hora y la firma, un solo acto ---------- */}
           <Flecha d="M 629 288 V 334" />
-          <Nota x={657} y={314} texto="la persona confirma" />
-          <Caja x={524} y={336} w={210} titulo="Cita agendada" detalle="45 min + 30 de descanso" tono="logro" />
+          <Nota x={657} y={314} texto="elige la hora Y firma" />
+          <Caja x={524} y={336} w={210} titulo="Cita CONFIRMADA" detalle="45 min + 30 de descanso" tono="logro" />
 
-          {/* consentimiento, al lado */}
-          <Caja x={250} y={336} w={220} titulo="Consentimiento firmado" detalle="enlace propio · su nombre es la firma" />
+          {/* el consentimiento no es un paso aparte: va en la misma pantalla */}
+          <Caja x={250} y={336} w={220} titulo="Consentimiento firmado" detalle="misma pantalla · sin firma no hay cita" />
           <Flecha d="M 472 363 H 522" />
 
           {/* ---------- fila 5: sesión y reporte ---------- */}
