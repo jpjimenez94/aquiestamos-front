@@ -199,6 +199,19 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               estadoAsignacion: persona.asignacion?.estado,
               citas: citas.map((c) => ({ startsAt: c.inicio, status: c.estado })),
             })}
+            /**
+             * Las sesiones que de verdad ocurrieron: las que ya pasaron y no se
+             * cancelaron ni se movieron. Es lo que distingue un acompañamiento
+             * de seis sesiones de uno que aún no ha empezado, y la tira sola no
+             * lo puede decir porque solo sabe oscilar entre el 5 y el 6.
+             */
+            sesiones={
+              citas.filter(
+                (c: { inicio: string; estado: string }) =>
+                  new Date(c.inicio).getTime() <= Date.now() &&
+                  !['CANCELADA', 'REPROGRAMADA'].includes(c.estado),
+              ).length
+            }
             hechos={armarHechos({
               recibida: enBogota(persona.createdAt),
               prioridad: persona.prioridadLegible,

@@ -15,6 +15,17 @@
  * La frontera entre pantallas sale de la propia lista: los pasos 5 y 6 se
  * repiten POR CADA SESIÓN y son del detalle de la cita; el resto son del caso
  * y viven en la ficha de la persona.
+ *
+ * OJO: la lista es recta y el acompañamiento no. La forma real es
+ *
+ *     1 → 2 → 3 → 4 → (5 → 6 → 4)* → 7
+ *
+ * porque ella vuelve a elegir hora con el mismo enlace para cada sesión. Como
+ * `pasoDelCaso()` devuelve un solo número, en un caso en curso oscila entre el
+ * 5 y el 6 y no vuelve a marcar el 4: es una limitación aceptada, no un fallo
+ * que arreglar aquí. Quien la dibuja —`IndicadorDePasos`— lo dice con una línea
+ * debajo y un contador de sesiones, porque si no, ver el paso actual pasar del
+ * 6 al 4 parece un error y un caso de seis sesiones se ve igual que uno de una.
  */
 
 export type PasoDelCaso = {

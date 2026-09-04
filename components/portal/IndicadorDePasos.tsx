@@ -21,10 +21,20 @@ export function IndicadorDePasos({
   actual,
   hechos,
   enlaces,
+  sesiones,
 }: {
   actual: PasoDelCaso
   hechos?: string[][]
   enlaces?: Partial<Record<number, { href: string; texto: string }>>
+  /**
+   * Cuántas sesiones lleva el acompañamiento. Enciende el aviso del ciclo.
+   *
+   * La tira es una línea recta y el acompañamiento no lo es: los pasos 1 a 3
+   * pasan una vez, el 7 pasa una vez al final, y el 4-5-6 se repite por cada
+   * sesión. Sin decirlo, un caso con seis sesiones y uno con una se ven
+   * idénticos, y quien mira no entiende por qué el paso «actual» retrocede.
+   */
+  sesiones?: number
 }) {
   const [abierto, setAbierto] = useState<number | null>(null)
 
@@ -47,7 +57,15 @@ export function IndicadorDePasos({
             </>
           )
           return (
-            <li key={p.n} className="pasos__paso" data-estado={estado} data-abierto={abierto === p.n}>
+            <li
+              key={p.n}
+              className="pasos__paso"
+              data-estado={estado}
+              data-abierto={abierto === p.n}
+              // Los tres que se repiten. Queda marcado para poder dibujarlo,
+              // aunque hoy quien lo cuenta sea la línea de abajo.
+              data-ciclo={p.n >= 4 && p.n <= 6 ? 'true' : undefined}
+            >
               {navegable ? (
                 <button
                   type="button"
@@ -64,6 +82,27 @@ export function IndicadorDePasos({
           )
         })}
       </ol>
+
+      {/*
+        El bucle, dicho. Es la parte que la tira no puede dibujar sola.
+
+        Un acompañamiento no va del 1 al 7 y se acaba: del 4 al 6 se repite una
+        vez por sesión, y el 7 solo llega cuando se cierra. Sin esta línea, ver
+        el paso «actual» pasar del 6 al 4 parece un retroceso o un error, y dos
+        casos muy distintos —uno de una sesión y otro de seis— se ven iguales.
+      */}
+      <p
+        style={{
+          margin: '10px 0 0',
+          fontSize: '0.8rem',
+          color: 'var(--color-text-light, #64748b)',
+        }}
+      >
+        Los pasos <strong>4 a 6 se repiten en cada sesión</strong>
+        {typeof sesiones === 'number' && sesiones > 0
+          ? `: este acompañamiento lleva ${sesiones === 1 ? '1 sesión' : `${sesiones} sesiones`}.`
+          : '.'}
+      </p>
 
       {paso ? (
         <div className="pasos__detalle" role="region" aria-label={`Qué pasó en: ${paso.titulo}`}>
