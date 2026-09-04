@@ -16,6 +16,7 @@ import {
   mensajeDeCitaCanceladaAlProfesional,
   enlaceWhatsapp,
 } from '@/lib/mensajes'
+import { momentoDeLaCita, CITAS_RESUELTAS } from '@/lib/momentoDeLaCita'
 
 /**
  * Los mensajes que salen desde el detalle de la cita.
@@ -35,6 +36,7 @@ export function MensajesFlujoCita({
   profesionalTelefono,
   fechaHoraBogota,
   inicioIso,
+  creadaEnIso,
   estado,
   modalidad,
   enlaceConsentimiento,
@@ -52,6 +54,14 @@ export function MensajesFlujoCita({
   fechaHoraBogota: string
   /** La misma hora, en ISO: para decidir si la sesión es hoy. */
   inicioIso?: string
+  /**
+   * Cuándo se agendó, que no es lo mismo que cuándo es.
+   *
+   * Sin esto la tarjeta solo sabía «¿es hoy?», y con eso no distingue una cita
+   * recién agendada para esta noche de una agendada hace dos semanas cuyo día
+   * llegó. A la primera no se le ha confirmado nada a nadie todavía.
+   */
+  creadaEnIso?: string | null
   /**
    * En qué estado está la cita.
    *
@@ -156,20 +166,11 @@ export function MensajesFlujoCita({
    * Qué toca con ESTA cita, en una tarjeta.
    *
    * Había cuatro paneles con diez mensajes y ningún orden: quien coordina
-   * tenía que saber cuál iba primero. La regla es corta —si falta la firma,
-   * pedirla; si la sesión es hoy, recordarla; si no, no toca nada— y cabe en
-   * una tarjeta. Los diez mensajes siguen ahí, plegados.
+   * tenía que saber cuál iba primero. Ahora hay un momento a la vez, y cuál es
+   * lo decide `momentoDeLaCita` —fuera de esta pantalla, para poder probarlo—.
+   * Los diez mensajes siguen ahí, plegados.
    */
-  /**
-   * Una cita resuelta no tiene nada que preparar.
-   *
-   * Son los mismos estados finales que la máquina del backend
-   * (`appointmentState.service.js`): desde ellos no sale ninguna transición, y
-   * la sesión o ya pasó, o se movió, o no va a ocurrir. Sin esta comprobación
-   * la tarjeta seguía pidiendo firmas y recordatorios por la hora original.
-   */
-  const RESUELTAS = ['REALIZADA', 'NO_ASISTIO', 'CANCELADA', 'REPROGRAMADA']
-  const resuelta = RESUELTAS.includes(String(estado ?? ''))
+  const resuelta = (CITAS_RESUELTAS as readonly string[]).includes(String(estado ?? ''))
 
   const mensajeCancelacionPersona = mensajeDeCitaCanceladaALaPersona({
     plantilla: plantillasDelPortal?.WHATSAPP_CITA_CANCELADA_PERSONA,
@@ -185,12 +186,19 @@ export function MensajesFlujoCita({
     cuando: fechaHoraBogota,
   })
 
-  const faltaFirma = !resuelta && !consentimientoFirmado && Boolean(mensajeFirma)
-  const esHoy = (() => {
-    if (resuelta) return false
-    const t = inicioIso ? new Date(inicioIso).getTime() : NaN
-    return Number.isFinite(t) && t > Date.now() && t - Date.now() <= 24 * 3600 * 1000
-  })()
+  const momento = momentoDeLaCita({
+    estado,
+    inicio: inicioIso,
+    creadaEn: creadaEnIso,
+    consentimientoFirmado,
+    // Sin enlace de firma, pedirla no lleva a ninguna parte.
+    puedePedirFirma: Boolean(mensajeFirma),
+    personaTieneCorreo,
+  })
+
+  const faltaFirma = momento === 'falta-firma'
+  const recienAgendada = momento === 'recien-agendada'
+  const esHoy = momento === 'recordar'
 
   const ETIQUETA_RESUELTA: Record<string, string> = {
     REALIZADA: 'Esta sesión ya se hizo',
@@ -201,7 +209,24 @@ export function MensajesFlujoCita({
 
   return (
     <>
-      <div className="panel" style={{ borderLeft: `4px solid ${resuelta ? '#94a3b8' : faltaFirma ? '#b45309' : esHoy ? '#059669' : '#94a3b8'}` }}>
+      <div
+        className="panel"
+        style={{
+          borderLeft: `4px solid ${
+            resuelta
+              ? '#94a3b8'
+              : faltaFirma
+                ? '#b45309'
+                : recienAgendada
+                  ? '#0284c7'
+                  : esHoy
+                    ? '#059669'
+                    : momento === 'sin-correo'
+                      ? '#b45309'
+                      : '#94a3b8'
+          }`,
+        }}
+      >
         <div className="tabla__secundario" style={{ fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>
           Qué toca con esta cita
         </div>
@@ -242,6 +267,25 @@ export function MensajesFlujoCita({
             </p>
             <Mensaje titulo="Pedirle la firma del consentimiento" telefono={pacienteTelefono} texto={mensajeFirma!} />
           </>
+        ) : recienAgendada ? (
+          <>
+            <h2 style={{ marginTop: 4 }}>Recién agendada: confírmasela a los dos</h2>
+            <p className="panel__nota">
+              {personaTieneCorreo === false
+                ? 'Al profesional le llegó su correo. A ella no: no dejó correo al pedir ayuda, así que este WhatsApp es el único registro que va a tener de su cita.'
+                : 'Los dos correos ya salieron solos. El WhatsApp es lo que de verdad leen, y por ahora se manda desde aquí.'}
+            </p>
+            <Mensaje
+              titulo="Confirmarle la cita a la persona"
+              telefono={pacienteTelefono}
+              texto={mensajeConfirmacion}
+            />
+            <Mensaje
+              titulo="Confirmarle la cita al profesional"
+              telefono={profesionalTelefono}
+              texto={mensajeProfesional}
+            />
+          </>
         ) : esHoy ? (
           <>
             <h2 style={{ marginTop: 4 }}>La sesión es hoy: recuérdasela a los dos</h2>
@@ -249,7 +293,7 @@ export function MensajesFlujoCita({
             <Mensaje titulo="Recordatorio a la persona" telefono={pacienteTelefono} texto={mensajeRecordatorioPersona} />
             <Mensaje titulo="Recordatorio al profesional" telefono={profesionalTelefono} texto={mensajeRecordatorioProf} />
           </>
-        ) : personaTieneCorreo === false ? (
+        ) : momento === 'sin-correo' ? (
           <>
             <h2 style={{ marginTop: 4 }}>Ella no tiene correo: confírmasela tú</h2>
             <p className="panel__nota">

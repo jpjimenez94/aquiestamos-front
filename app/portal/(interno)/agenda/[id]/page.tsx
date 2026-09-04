@@ -27,6 +27,8 @@ type Cita = {
   id: string
   inicio: string
   fin: string
+  /** Cuándo se agendó. No es lo mismo que cuándo es: ver MensajesFlujoCita. */
+  creadaEn?: string | null
   inicioLocal: string
   finLocal: string
   duracionMinutos: number
@@ -545,6 +547,7 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
         profesionalTelefono={cita.profesional.telefono ?? ''}
         fechaHoraBogota={enBogota(cita.inicio)}
         inicioIso={cita.inicio}
+        creadaEnIso={cita.creadaEn}
         estado={cita.estado}
         modalidad={cita.modalidad}
         enlaceConsentimiento={cita.consentimiento?.enlace ?? null}
