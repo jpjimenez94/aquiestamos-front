@@ -207,12 +207,31 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
             <h2>¿Puedes tomarlo?</h2>
             <p className="panel__nota">
               Este caso ya es tuyo y {nombrePropio(paciente.fullName).split(' ')[0]} va a
-              elegir la hora directamente de tu agenda. No tienes que confirmar nada.
+              elegir la hora directamente de tu agenda.
             </p>
+
+            {/*
+              Su agenda, delante de la pregunta.
+
+              Se le pedía confirmar que sus espacios «siguen vigentes» sin
+              enseñárselos: la mantiene coordinación desde la ficha y aquí
+              entra con un enlace, no con una cuenta. Confirmar a ciegas no es
+              confirmar, y de ahí salen las cancelaciones tardías — las que
+              dejan a alguien esperando el día de la sesión.
+            */}
+            {paciente.agenda ? (
+              <div className="caso-horarios">
+                <strong>Estos son los espacios que vamos a ofrecerle:</strong>
+                <em>{paciente.agenda}</em>
+              </div>
+            ) : null}
+
             <p className="panel__nota">
-              Si en este momento no puedes, dilo aquí y se lo pasamos hoy a otra persona
-              de la red. Es voluntario: no poder es normal, y avisar pronto ayuda mucho
-              más que un silencio.
+              {paciente.agenda
+                ? 'Si siguen vigentes, confírmanoslo. Si cambiaron o ahora mismo no puedes, dilo aquí y se lo pasamos hoy a otra persona de la red.'
+                : 'Si en este momento no puedes, dilo aquí y se lo pasamos hoy a otra persona de la red.'}{' '}
+              Es voluntario: no poder es normal, y avisar pronto ayuda mucho más que un
+              silencio.
             </p>
             <BotonDeclinar patientId={id} />
           </div>
