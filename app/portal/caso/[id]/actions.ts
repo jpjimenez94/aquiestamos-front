@@ -181,3 +181,66 @@ export async function actualizarDisponibilidadAction(
     return { success: false, message: 'Error de conexión con el servidor.' }
   }
 }
+
+/**
+ * «¿Cómo estás tú?»: el profesional pide el espacio desde su enlace.
+ * El token del caso decide de quién es el check-in; nunca viaja un id de
+ * profesional desde el navegador.
+ */
+export async function enviarCheckInAction(
+  patientId: string,
+  datos: {
+    need: 'APOYO_PARA_MI' | 'AYUDA_CON_UN_CASO' | 'DESCARGARME'
+    notes: string | null
+    questionForGroup: string | null
+  },
+) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(`case_token_${patientId}`)?.value
+  if (!token) {
+    return { success: false as const, message: 'El acceso venció. Vuelve a ingresar tu correo.' }
+  }
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/shared-cases/${patientId}/cuidado/check-in`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-shared-case-token': token },
+      body: JSON.stringify(datos),
+      cache: 'no-store',
+    })
+    const payload = await response.json()
+    if (!response.ok || !payload.success) {
+      return { success: false as const, message: (payload.message as string) ?? 'No pudimos guardar tu respuesta.' }
+    }
+    return { success: true as const, message: payload.message as string }
+  } catch {
+    return { success: false as const, message: 'Error de conexión con el servidor.' }
+  }
+}
+
+/** Ofrecerse —o dejar de ofrecerse— a facilitar sesiones grupales. */
+export async function ofrecerseComoSupervisorAction(patientId: string, disponible: boolean) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(`case_token_${patientId}`)?.value
+  if (!token) {
+    return { success: false as const, message: 'El acceso venció. Vuelve a ingresar tu correo.' }
+  }
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/shared-cases/${patientId}/cuidado/supervisor`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-shared-case-token': token },
+      body: JSON.stringify({ disponible }),
+      cache: 'no-store',
+    })
+    const payload = await response.json()
+    if (!response.ok || !payload.success) {
+      return { success: false as const, message: (payload.message as string) ?? 'No pudimos guardarlo.' }
+    }
+    return {
+      success: true as const,
+      message: payload.message as string,
+      esSupervisor: Boolean(payload.data?.esSupervisor),
+    }
+  } catch {
+    return { success: false as const, message: 'Error de conexión con el servidor.' }
+  }
+}

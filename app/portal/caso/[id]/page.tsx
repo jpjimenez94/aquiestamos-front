@@ -8,6 +8,7 @@ import { DecidirPropuestaForm } from './DecidirPropuestaForm'
 import { momentoDelCaso } from '@/lib/momentoDelCaso'
 import { BotonDeclinar } from './BotonDeclinar'
 import { EditorDeMiAgenda } from './EditorDeMiAgenda'
+import { CuidadoDelProfesional, type EstadoDeCuidado } from './CuidadoDelProfesional'
 import { porDia, enPalabras } from './franjas'
 
 // Reutilizamos componentes internos aunque la ruta esté por fuera del layout autenticado.
@@ -93,6 +94,25 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
   })
 
   const { success, data: paciente, message } = await response.json()
+
+  /**
+   * «¿Cómo estás tú?»: cuántas sesiones lleva y si se le abre el espacio. Va
+   * con el mismo token, y si falla no tumba la página: el bloque simplemente
+   * no se pinta y el caso se sigue viendo.
+   */
+  let cuidado: EstadoDeCuidado | null = null
+  if (success) {
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/shared-cases/${id}/cuidado`, {
+        headers: { 'x-shared-case-token': token },
+        cache: 'no-store',
+      })
+      const c = await r.json()
+      if (r.ok && c.success) cuidado = c.data as EstadoDeCuidado
+    } catch {
+      cuidado = null
+    }
+  }
 
   if (!success) {
     // Si el token es inválido o expiró, lo borramos (esto debería hacerse en un server action o middleware, pero aquí mostramos error)
@@ -336,6 +356,12 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
             <ReporteCasoForm patientId={id} />
           </div>
         ) : null}
+
+        {/*
+          Al final, después de reportar: es el momento en que tiene sentido
+          preguntarle cómo está él.
+        */}
+        {cuidado ? <CuidadoDelProfesional patientId={id} estado={cuidado} /> : null}
 
         {paciente.reportes?.length > 0 ? (
           <div className="panel">

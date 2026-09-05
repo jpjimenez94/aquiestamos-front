@@ -47,6 +47,8 @@ export type ContadoresBadges = {
    * en dos días nadie volvería a mirarlo.
    */
   personas?: number;
+  /** Cuidado del equipo: quiénes pidieron el espacio y nadie ha convocado. */
+  cuidado?: number;
 };
 
 type Enlace = {
@@ -103,6 +105,13 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
         icono: <BadgeCheck size={17} />,
         permiso: "profesional:verificar-tarjeta",
         badgeKey: "verificaciones",
+      },
+      {
+        href: "/portal/cuidado",
+        texto: "Cuidado del equipo",
+        icono: <HeartHandshake size={17} />,
+        permiso: "cuidado:leer",
+        badgeKey: "cuidado",
       },
     ],
   },
@@ -255,6 +264,39 @@ export function LateralPortal({
   const [modalClaveAbierto, setModalClaveAbierto] = useState(false);
   const [contadores, setContadores] =
     useState<ContadoresBadges>(contadoresIniciales);
+
+  /**
+   * Los grupos del menú se pliegan desde su título y se quedan como los
+   * dejaste: seis grupos con veinte enlaces desplegados eran una columna que
+   * había que recorrer con los ojos cada vez. Se recuerda en el navegador,
+   * no en la cuenta: es una comodidad de esta pantalla, no un dato.
+   *
+   * El grupo donde estás nunca se pliega solo: si te lo escondieras, no
+   * sabrías dónde estás.
+   */
+  const CLAVE_PLEGADOS = "portal:grupos-plegados";
+  const [plegados, setPlegados] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    try {
+      const guardado = window.localStorage.getItem(CLAVE_PLEGADOS);
+      if (guardado) setPlegados(new Set(JSON.parse(guardado) as string[]));
+    } catch {
+      /* sin almacenamiento, el menú arranca desplegado y ya */
+    }
+  }, []);
+  function alternarGrupo(titulo: string) {
+    setPlegados((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(titulo)) siguiente.delete(titulo);
+      else siguiente.add(titulo);
+      try {
+        window.localStorage.setItem(CLAVE_PLEGADOS, JSON.stringify([...siguiente]));
+      } catch {
+        /* igual funciona, solo no se recuerda */
+      }
+      return siguiente;
+    });
+  }
   const ultimoSonidoRef = useRef<number>(0);
   const contadoresAnterioresRef =
     useRef<ContadoresBadges>(contadoresIniciales);
@@ -385,10 +427,51 @@ export function LateralPortal({
             });
             if (visibles.length === 0) return null;
 
+            const contieneLaActiva = visibles.some((e) =>
+              e.href === "/portal" ? ruta === "/portal" : ruta.startsWith(e.href),
+            );
+            const plegado = plegados.has(grupo.titulo) && !contieneLaActiva;
+
             return (
               <div key={grupo.titulo}>
-                <p className="portal__grupo">{grupo.titulo}</p>
-                {visibles.map((enlace) => {
+                <button
+                  type="button"
+                  className="portal__grupo"
+                  onClick={() => alternarGrupo(grupo.titulo)}
+                  aria-expanded={!plegado}
+                  title={plegado ? "Desplegar" : "Plegar"}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    font: "inherit",
+                    color: "inherit",
+                    letterSpacing: "inherit",
+                    textTransform: "inherit",
+                    padding: 0,
+                  }}
+                >
+                  <span>{grupo.titulo}</span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      display: "inline-block",
+                      width: 7,
+                      height: 7,
+                      borderRight: "1.5px solid currentColor",
+                      borderBottom: "1.5px solid currentColor",
+                      transform: plegado ? "rotate(-45deg)" : "rotate(45deg)",
+                      transition: "transform 0.15s ease",
+                      opacity: 0.7,
+                      marginRight: 6,
+                    }}
+                  />
+                </button>
+                {plegado ? null : visibles.map((enlace) => {
                   const cuenta = enlace.badgeKey
                     ? (contadores[enlace.badgeKey] ?? 0)
                     : 0;
