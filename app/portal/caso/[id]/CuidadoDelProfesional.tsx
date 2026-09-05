@@ -18,6 +18,11 @@ import { enviarCheckInAction, ofrecerseComoSupervisorAction } from './actions'
  *
  * Y abajo, aparte, ofrecerse a facilitar las sesiones grupales. Ofrecerse no
  * lo compromete a nada: coordinación le propone cada sesión, y él dice.
+ *
+ * El diseño es el de los demás formularios de esta pantalla —las clases
+ * `tamizaje__*` y `field__*`—: la opción es un botón que se marca, el envío es
+ * el botón grande, y lo secundario va en `boton-mini`. Salía con clases del
+ * portal interno, que aquí no existen, y los botones se veían pelados.
  */
 
 export type EstadoDeCuidado = {
@@ -34,7 +39,9 @@ export type EstadoDeCuidado = {
   }[]
 }
 
-const NECESIDADES: { valor: 'APOYO_PARA_MI' | 'AYUDA_CON_UN_CASO' | 'DESCARGARME'; titulo: string; detalle: string }[] = [
+type Necesidad = 'APOYO_PARA_MI' | 'AYUDA_CON_UN_CASO' | 'DESCARGARME'
+
+const NECESIDADES: { valor: Necesidad; titulo: string; detalle: string }[] = [
   {
     valor: 'APOYO_PARA_MI',
     titulo: 'Quiero apoyo para mí',
@@ -52,6 +59,9 @@ const NECESIDADES: { valor: 'APOYO_PARA_MI' | 'AYUDA_CON_UN_CASO' | 'DESCARGARME
   },
 ]
 
+const fecha = (iso: string) =>
+  new Date(iso).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long' })
+
 export function CuidadoDelProfesional({
   patientId,
   estado,
@@ -60,12 +70,12 @@ export function CuidadoDelProfesional({
   estado: EstadoDeCuidado
 }) {
   const [abierto, setAbierto] = useState(false)
-  const [necesidad, setNecesidad] = useState<(typeof NECESIDADES)[number]['valor'] | null>(null)
+  const [necesidad, setNecesidad] = useState<Necesidad | null>(null)
   const [notas, setNotas] = useState('')
   const [pregunta, setPregunta] = useState('')
   const [enviando, setEnviando] = useState(false)
-  const [mensaje, setMensaje] = useState<{ tono: 'ok' | 'error'; texto: string } | null>(null)
-  const [enviado, setEnviado] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [enviado, setEnviado] = useState<string | null>(null)
 
   const [esSupervisor, setEsSupervisor] = useState(estado.esSupervisor)
   const [cambiandoSupervisor, setCambiandoSupervisor] = useState(false)
@@ -73,9 +83,9 @@ export function CuidadoDelProfesional({
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault()
-    setMensaje(null)
+    setError(null)
     if (!necesidad) {
-      setMensaje({ tono: 'error', texto: 'Dinos qué necesitas: apoyo para ti, ayuda con un caso, o descargarte.' })
+      setError('Dinos qué necesitas: apoyo para ti, ayuda con un caso, o descargarte.')
       return
     }
     setEnviando(true)
@@ -86,11 +96,10 @@ export function CuidadoDelProfesional({
         questionForGroup: pregunta.trim() || null,
       })
       if (!r.success) {
-        setMensaje({ tono: 'error', texto: r.message })
+        setError(r.message)
         return
       }
-      setEnviado(true)
-      setMensaje({ tono: 'ok', texto: r.message })
+      setEnviado(r.message)
     } finally {
       setEnviando(false)
     }
@@ -122,8 +131,7 @@ export function CuidadoDelProfesional({
         con otros psicólogos, o simplemente descargarte. Lo lee coordinación y lo cuadra con una
         sesión grupal de seguimiento.
       </p>
-
-      <p className="panel__nota" style={{ marginTop: 6 }}>
+      <p className="panel__nota">
         Llevas <strong>{estado.sesiones}</strong> {estado.sesiones === 1 ? 'sesión' : 'sesiones'} en
         la red.
         {estado.habilitado
@@ -132,147 +140,139 @@ export function CuidadoDelProfesional({
       </p>
 
       {estado.checkIns.length > 0 ? (
-        <ul style={{ margin: '10px 0 0', paddingLeft: 18, fontSize: '0.88rem', color: '#475569' }}>
+        <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
           {estado.checkIns.map((c) => (
-            <li key={c.id}>
-              Pediste el espacio el {new Date(c.fecha).toLocaleDateString('es-CO')} ({c.necesidadLegible})
+            <li key={c.id} className="panel__nota" style={{ margin: 0 }}>
+              Pediste el espacio el {fecha(c.fecha)} ({c.necesidadLegible})
               {c.sesionGrupal
-                ? ` · sesión grupal ${c.sesionGrupal.estado.toLowerCase()} para el ${new Date(c.sesionGrupal.cuando).toLocaleDateString('es-CO')}`
+                ? ` · sesión grupal ${c.sesionGrupal.estado.toLowerCase()} para el ${fecha(c.sesionGrupal.cuando)}`
                 : ' · todavía sin sesión convocada'}
             </li>
           ))}
         </ul>
       ) : null}
 
-      {estado.habilitado && !enviado ? (
-        !abierto ? (
-          <button
-            type="button"
-            className="boton"
-            style={{ marginTop: 14 }}
-            onClick={() => setAbierto(true)}
-          >
-            Pedir el espacio
-          </button>
-        ) : (
-          <form onSubmit={enviar} style={{ marginTop: 14, display: 'grid', gap: 12 }}>
-            <fieldset style={{ border: 'none', padding: 0, margin: 0, display: 'grid', gap: 8 }}>
-              <legend style={{ fontWeight: 700, marginBottom: 4 }}>¿Qué necesitas?</legend>
+      {/* ── el check-in ─────────────────────────────────────────────────── */}
+      {enviado ? (
+        <div className="tamizaje__gracias" role="status" style={{ marginTop: 14 }}>
+          <svg className="tamizaje__gracias-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <h2>Gracias por decirlo</h2>
+          <p>{enviado}</p>
+        </div>
+      ) : estado.habilitado && !abierto ? (
+        <button className="tamizaje__enviar" type="button" onClick={() => setAbierto(true)} style={{ marginTop: 14 }}>
+          Pedir el espacio
+        </button>
+      ) : estado.habilitado ? (
+        <form className="tamizaje__form" onSubmit={enviar} noValidate style={{ marginTop: 14 }}>
+          <fieldset className="tamizaje__pregunta" data-falta={error !== null && necesidad === null}>
+            <legend>¿Qué necesitas?</legend>
+            <div className="tamizaje__opciones" style={{ gridTemplateColumns: '1fr' }}>
               {NECESIDADES.map((n) => (
-                <label
+                <button
                   key={n.valor}
-                  style={{
-                    display: 'flex',
-                    gap: 10,
-                    alignItems: 'flex-start',
-                    padding: '10px 12px',
-                    border: `1px solid ${necesidad === n.valor ? '#2e7d5b' : '#e4dfd3'}`,
-                    borderRadius: 10,
-                    background: necesidad === n.valor ? '#e4efe8' : '#ffffff',
-                    cursor: 'pointer',
+                  className="tamizaje__opcion"
+                  type="button"
+                  data-elegida={necesidad === n.valor}
+                  aria-pressed={necesidad === n.valor}
+                  onClick={() => {
+                    setNecesidad(n.valor)
+                    setError(null)
                   }}
+                  style={{ textAlign: 'left' }}
                 >
-                  <input
-                    type="radio"
-                    name="necesidad"
-                    value={n.valor}
-                    checked={necesidad === n.valor}
-                    onChange={() => setNecesidad(n.valor)}
-                    style={{ marginTop: 3 }}
-                  />
-                  <span>
-                    <strong style={{ display: 'block' }}>{n.titulo}</strong>
-                    <span style={{ fontSize: '0.86rem', color: '#475569' }}>{n.detalle}</span>
-                  </span>
-                </label>
+                  <strong style={{ display: 'block' }}>{n.titulo}</strong>
+                  <span style={{ fontSize: '0.86rem', fontWeight: 400, opacity: 0.85 }}>{n.detalle}</span>
+                </button>
               ))}
-            </fieldset>
-
-            <label style={{ display: 'grid', gap: 4 }}>
-              <span style={{ fontWeight: 700 }}>
-                En qué andas <span style={{ fontWeight: 400, color: '#64748b' }}>(opcional)</span>
-              </span>
-              <textarea
-                className="input"
-                rows={3}
-                maxLength={1000}
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                placeholder="Lo que quieras contar. No es contenido clínico de nadie: es sobre ti."
-              />
-            </label>
-
-            <label style={{ display: 'grid', gap: 4 }}>
-              <span style={{ fontWeight: 700 }}>
-                ¿Qué te gustaría que se hablara en la sesión grupal?{' '}
-                <span style={{ fontWeight: 400, color: '#64748b' }}>(opcional)</span>
-              </span>
-              <textarea
-                className="input"
-                rows={2}
-                maxLength={600}
-                value={pregunta}
-                onChange={(e) => setPregunta(e.target.value)}
-                placeholder="Una pregunta o un tema. Con esto se arma la agenda de la sesión."
-              />
-            </label>
-
-            {mensaje ? (
-              <p className={mensaje.tono === 'error' ? 'tamizaje__error' : 'panel__nota'} role="alert">
-                {mensaje.texto}
-              </p>
-            ) : null}
-
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button type="submit" className="boton" disabled={enviando}>
-                {enviando ? 'Enviando…' : 'Enviar'}
-              </button>
-              <button type="button" className="boton-mini" onClick={() => setAbierto(false)} disabled={enviando}>
-                Ahora no
-              </button>
             </div>
-          </form>
-        )
+          </fieldset>
+
+          <div>
+            <label className="field__label" htmlFor="cuidado-notas">
+              En qué andas <span style={{ fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <p className="tamizaje__ayuda" style={{ marginLeft: 0 }}>
+              Lo que quieras contar. No es contenido clínico de nadie: es sobre ti.
+            </p>
+            <textarea
+              id="cuidado-notas"
+              className="input"
+              rows={3}
+              maxLength={1000}
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="field__label" htmlFor="cuidado-pregunta">
+              ¿Qué te gustaría que se hablara en la sesión grupal?{' '}
+              <span style={{ fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <p className="tamizaje__ayuda" style={{ marginLeft: 0 }}>
+              Una pregunta o un tema. Con esto se arma la agenda de la sesión.
+            </p>
+            <textarea
+              id="cuidado-pregunta"
+              className="input"
+              rows={2}
+              maxLength={600}
+              value={pregunta}
+              onChange={(e) => setPregunta(e.target.value)}
+            />
+          </div>
+
+          {error ? (
+            <p className="tamizaje__error" role="alert">
+              {error}
+            </p>
+          ) : null}
+
+          <button className="tamizaje__enviar" type="submit" disabled={enviando}>
+            {enviando ? 'Enviando…' : 'Enviar'}
+          </button>
+          <button className="boton-mini" type="button" onClick={() => setAbierto(false)} disabled={enviando}>
+            Ahora no
+          </button>
+        </form>
       ) : null}
 
-      {enviado && mensaje ? (
-        <p className="panel__nota" role="status" style={{ marginTop: 12, color: '#2e7d5b', fontWeight: 600 }}>
-          {mensaje.texto}
-        </p>
-      ) : null}
-
-      {/*
-        Ofrecerse a facilitar. Aparte del check-in a propósito: una cosa es
-        pedir apoyo y otra darlo, y las dos caben en la misma persona en
-        momentos distintos.
-      */}
-      <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid #e4dfd3' }}>
-        <h3 style={{ fontSize: '1rem', margin: '0 0 4px' }}>Acompañar a otros profesionales</h3>
+      {/* ── ofrecerse a facilitar ───────────────────────────────────────────
+          Aparte del check-in a propósito: una cosa es pedir apoyo y otra
+          darlo, y las dos caben en la misma persona en momentos distintos. */}
+      <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+        <h2 style={{ fontSize: '1rem' }}>Acompañar a otros profesionales</h2>
         <p className="panel__nota">
           Las sesiones grupales de seguimiento las facilita un psicólogo de la red. Si te ofreces,
           coordinación te puede proponer facilitar una; cada vez decides tú.
         </p>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
-          <button
-            type="button"
-            className={esSupervisor ? 'boton-mini' : 'boton'}
-            onClick={alternarSupervisor}
-            disabled={cambiandoSupervisor}
-          >
-            {cambiandoSupervisor
-              ? 'Guardando…'
-              : esSupervisor
-                ? 'Ya no quiero facilitar sesiones'
-                : 'Me ofrezco a facilitar sesiones grupales'}
-          </button>
-          {esSupervisor ? (
-            <span style={{ fontSize: '0.86rem', color: '#2e7d5b', fontWeight: 600 }}>
+
+        {esSupervisor ? (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+            <span className="tamizaje__ayuda" style={{ margin: 0, color: '#059669', fontWeight: 600 }}>
               ✓ Estás ofrecido como supervisor
             </span>
-          ) : null}
-        </div>
+            <button className="boton-mini" type="button" onClick={alternarSupervisor} disabled={cambiandoSupervisor}>
+              {cambiandoSupervisor ? 'Guardando…' : 'Ya no quiero facilitar sesiones'}
+            </button>
+          </div>
+        ) : (
+          <button
+            className="tamizaje__enviar"
+            type="button"
+            onClick={alternarSupervisor}
+            disabled={cambiandoSupervisor}
+            style={{ marginTop: 10 }}
+          >
+            {cambiandoSupervisor ? 'Guardando…' : 'Me ofrezco a facilitar sesiones grupales'}
+          </button>
+        )}
+
         {mensajeSupervisor ? (
-          <p className="panel__nota" role="status" style={{ marginTop: 8 }}>
+          <p className="tamizaje__ayuda" role="status" style={{ marginLeft: 0, marginTop: 8 }}>
             {mensajeSupervisor}
           </p>
         ) : null}
