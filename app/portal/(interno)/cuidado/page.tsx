@@ -60,7 +60,7 @@ type ParaOfrecer = {
   nombre: string
   telefono: string
   sesiones: number
-  pacienteId: string
+  enlace: string
   ultimaVez: string | null
 }
 

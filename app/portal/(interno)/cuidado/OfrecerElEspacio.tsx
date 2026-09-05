@@ -11,14 +11,12 @@ import { Vacio } from '../componentes'
 /**
  * A quién ofrecerle el espacio «¿Cómo estás tú?».
  *
- * El bloque vive al final del enlace del caso, y el profesional solo lo ve si
- * entra. Sin esta lista el módulo esperaba a que alguien cargado se acordara
- * solo de pedir ayuda —que es justo lo que no hace—, y coordinación no tenía
- * ni aviso ni botón.
+ * El profesional solo ve su espacio si abre su enlace. Sin esta lista el
+ * módulo esperaba a que alguien cargado se acordara solo de pedir ayuda —que
+ * es justo lo que no hace—, y coordinación no tenía ni aviso ni botón.
  *
  * Son los que ya cruzaron el umbral y no tienen una petición sin atender. El
- * enlace lleva al ancla del bloque, para que no tenga que buscarlo al final de
- * su caso.
+ * enlace lo firma el backend en cada carga: siempre va uno fresco.
  */
 
 type Profesional = {
@@ -26,7 +24,8 @@ type Profesional = {
   nombre: string
   telefono: string
   sesiones: number
-  pacienteId: string
+  /** Firmado por el backend, recién hecho: nunca se manda uno vencido. */
+  enlace: string
   ultimaVez: string | null
 }
 
@@ -52,15 +51,14 @@ export function OfrecerElEspacio({
         </span>
       </h2>
       <p className="panel__nota">
-        Ya llevan {umbral} sesiones o más y no han pedido nada. El bloque está al final de su
-        enlace del caso, así que solo lo ven si entran: este WhatsApp es lo que se lo dice. Salen
-        de la lista en cuanto lo pidan.
+        Ya llevan {umbral} sesiones o más y no han pedido nada. El espacio es un enlace suyo, y
+        solo lo ven si se lo mandas: este WhatsApp es lo que se lo dice. Salen de la lista en
+        cuanto lo pidan.
       </p>
 
       {profesionales.length === 0 ? (
         <Vacio>
-          Nadie por ahora. Aparecen aquí solos cuando cruzan las {umbral} sesiones, siempre que
-          tengan un caso abierto — el enlace que se les manda es el de uno de sus casos.
+          Nadie por ahora. Aparecen aquí solos en cuanto cruzan las {umbral} sesiones.
         </Vacio>
       ) : (
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
@@ -77,17 +75,11 @@ function Fila({ profesional, plantilla }: { profesional: Profesional; plantilla?
   const [copiado, setCopiado] = useState(false)
   const [verTexto, setVerTexto] = useState(false)
 
-  // El ancla lleva directo al bloque, al final de la página del caso.
-  const enlace =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/portal/caso/${profesional.pacienteId}#cuidado`
-      : `/portal/caso/${profesional.pacienteId}#cuidado`
-
   const texto = mensajeDeOfrecerCuidado({
     plantilla,
     profesional: profesional.nombre,
     sesiones: profesional.sesiones,
-    enlace,
+    enlace: profesional.enlace,
   })
   const whatsapp = enlaceWhatsapp(profesional.telefono, texto)
 

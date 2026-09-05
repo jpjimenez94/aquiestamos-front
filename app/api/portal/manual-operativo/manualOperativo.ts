@@ -1355,7 +1355,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     <div class="marco">
       <div class="barra">
         <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
-        <span class="url">redaquiestamos.org/portal/caso/&lt;id del caso&gt;</span>
+        <span class="url">redaquiestamos.org/cuidado/&lt;su enlace&gt;</span>
       </div>
       <div class="lienzo">
         <div class="tarjeta">
