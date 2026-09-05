@@ -21,10 +21,11 @@ function enBogota(iso: string, _conHora = false): string {
 /**
  * Marcar —o desmarcar— a un profesional como supervisor desde su ficha.
  *
- * Él puede ofrecerse desde su enlace del caso. Esto es para cuando lo dijo por
- * WhatsApp o en una llamada y coordinación lo apunta por él: la misma puerta
- * del backend (`PATCH /cuidado/supervisores/:id`), con su permiso y su
- * auditoría. Sin permiso de gestionar, solo se ve el estado.
+ * Es la única puerta: quién puede facilitar se sabe por el formulario de
+ * voluntarios, se le pregunta por WhatsApp y coordinación lo apunta aquí
+ * (`PATCH /cuidado/supervisores/:id`, con su permiso y su auditoría). Al
+ * profesional no se le pregunta desde su enlace del caso. Sin permiso de
+ * gestionar, solo se ve el estado.
  *
  * Ofrecerse no lo hace facilitar: para eso tiene que estar activo y con la
  * tarjeta verificada, y aquí se le avisa a quien marca si le falta eso.
@@ -71,10 +72,10 @@ export function BotonSupervisor({
   const estado = esSupervisor ? (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#2e7d5b', fontWeight: 600 }}>
       <HeartHandshake size={14} />
-      Se ofreció{desde ? ` · desde el ${enBogota(desde, false)}` : ''}
+      Marcado{desde ? ` · desde el ${enBogota(desde, false)}` : ''}
     </span>
   ) : (
-    <span className="tabla__secundario">No se ha ofrecido</span>
+    <span className="tabla__secundario">No está marcado</span>
   )
 
   return (

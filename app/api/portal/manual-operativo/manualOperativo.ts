@@ -1331,8 +1331,8 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     Quien acompaña también se carga. Después de varias sesiones, un profesional puede necesitar
     apoyo para sí, pensar un caso con otros psicólogos, o simplemente descargarse — y la red
     no tenía dónde decirlo. Este módulo es eso, en tres piezas: <b>él pide el espacio</b>,
-    <b>un psicólogo de la red se ofrece a facilitar</b>, y <b>coordinación convoca la sesión
-    grupal</b> con las preguntas ya listas.
+    <b>coordinación marca a un psicólogo de la red como facilitador</b>, y <b>convoca la
+    sesión grupal</b> con las preguntas ya listas.
   </p>
   <div class="aviso dato">
     <b>No toca el acompañamiento.</b>
@@ -1348,6 +1348,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     le dice cuántas sesiones lleva <b>en toda la red, con cualquier persona</b>, y desde cuántas
     se abre el espacio. El umbral se cambia en Parametrización
     (<span class="mono">SESIONES_PARA_CHECKIN</span>, hoy 3): es la carga acumulada la que quema.
+    <b>Antes de ese número no se le pregunta nada</b>: el bloque no aparece.
   </p>
 
   <figure class="pantalla">
@@ -1372,19 +1373,13 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
           <div style="font-size:0.82rem;font-weight:700">¿Qué te gustaría que se hablara en la sesión grupal? <span class="apagado">(opcional)</span></div>
           <div class="campo" style="width:100%;margin:4px 0 12px">Una pregunta o un tema. Con esto se arma la agenda de la sesión.</div>
           <div class="fila"><span class="btn principal">Enviar</span><span class="btn">Ahora no</span></div>
-          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--borde)">
-            <div class="fuerte" style="font-size:0.9rem">Acompañar a otros profesionales</div>
-            <div class="apagado" style="margin-bottom:6px">Si te ofreces, coordinación te puede proponer facilitar una sesión grupal; cada vez decides tú.</div>
-            <span class="btn">Me ofrezco a facilitar sesiones grupales</span>
-          </div>
         </div>
       </div>
     </div>
     <figcaption>
-      Lo que ve él al final de su enlace. Tres opciones en su idioma, dos campos opcionales —el
-      segundo es <b>lo que arma la agenda</b> de la sesión— y, aparte, el botón para ofrecerse a
-      facilitar. Antes del umbral el bloque igual aparece, diciendo cuánto falta: que sepa que
-      existe.
+      Lo que ve él al final de su enlace, ya con las sesiones que hacen falta. Tres opciones
+      en su idioma y dos campos opcionales — el segundo es <b>lo que arma la agenda</b> de la
+      sesión. Antes del umbral no ve nada de esto: no se le pregunta.
     </figcaption>
   </figure>
 
@@ -1394,17 +1389,18 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     «Pidieron el espacio», en Cuidado del equipo, hasta que se le convoque.
   </div>
 
-  <h3>2 · Alguien se ofrece a facilitar</h3>
+  <h3>2 · Quién facilita lo marcas tú</h3>
   <p>
-    Un psicólogo de la red marca «Me ofrezco a facilitar sesiones grupales» desde ese mismo
-    bloque. Si lo dijo por WhatsApp, tú lo apuntas por él desde su ficha en
-    <span class="mono">Profesionales</span>, en la fila «Supervisor de sesiones grupales».
-    Ofrecerse <b>no lo compromete a nada</b>: cada sesión se le propone y él decide.
+    Al profesional <b>no se le pregunta</b> si quiere facilitar: quién puede hacerlo ya se
+    sabe por el formulario de voluntarios. Se le pregunta por WhatsApp y, si dice que sí, lo
+    marcas desde su ficha en <span class="mono">Profesionales</span>, en la fila «Supervisor de
+    sesiones grupales». Estar marcado <b>no lo compromete a nada</b>: cada sesión se le
+    propone y él decide.
   </p>
   <div class="aviso ojo">
     <b>Para facilitar tiene que tener la tarjeta verificada.</b>
     Es el mismo requisito que para acompañar a una persona — y aquí acompaña a varios colegas a
-    la vez. Si se ofreció sin tarjeta, la ficha te lo avisa y no aparece como facilitador hasta
+    la vez. Si lo marcas sin tarjeta, la ficha te lo avisa y no aparece como facilitador hasta
     que la verifiques.
   </div>
 
@@ -1440,7 +1436,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
           </div>
         </div>
         <div class="tarjeta">
-          <div class="fuerte" style="margin-bottom:4px">Se ofrecieron a facilitar <span class="apagado">· 1</span></div>
+          <div class="fuerte" style="margin-bottom:4px">Pueden facilitar <span class="apagado">· 1</span></div>
           <div class="apagado">Beatriz Elena López · Pereira · virtual · desde el 2 de septiembre</div>
         </div>
         <div class="tarjeta" style="border-left:4px solid var(--azul)">
@@ -1458,7 +1454,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
 
   <div class="paso">
     <div class="paso__n">1</div>
-    <div class="paso__c"><p>Toca <b>«Convocar sesión grupal»</b>. El botón está apagado mientras nadie se haya ofrecido a facilitar: sin facilitador no hay sesión.</p></div>
+    <div class="paso__c"><p>Toca <b>«Convocar sesión grupal»</b>. El botón está apagado mientras no haya nadie marcado para facilitar: sin facilitador no hay sesión.</p></div>
   </div>
   <div class="paso">
     <div class="paso__n">2</div>

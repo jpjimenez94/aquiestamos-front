@@ -13,7 +13,8 @@ export const metadata = { title: 'Cuidado del equipo' }
  *
  * Quien acompaña también se carga, y la red no tenía dónde verlo. Aquí están
  * las tres cosas: quién pidió el espacio «¿Cómo estás tú?» y qué necesita,
- * quién se ofreció a facilitar sesiones grupales, y las sesiones convocadas.
+ * quién está marcado para facilitar sesiones grupales, y las sesiones
+ * convocadas.
  *
  * Convocar es una sola acción: facilitador, hora, enlace, invitados. La
  * agenda se arma sola con las preguntas que dejaron los invitados al pedir el
@@ -168,20 +169,22 @@ export default async function CuidadoPage() {
       <div className="panel">
         <h2>
           <Users size={18} style={{ verticalAlign: -3, marginRight: 6, color: '#2b5f97' }} />
-          Se ofrecieron a facilitar{' '}
+          Pueden facilitar{' '}
           <span className="tabla__secundario" style={{ fontWeight: 400 }}>
             · {supervisores.length}
           </span>
         </h2>
         <p className="panel__nota">
-          Aparecen aquí de dos maneras: él marca «me ofrezco a facilitar sesiones grupales» al
-          final de su enlace del caso, o tú lo marcas desde su ficha en Profesionales («Supervisor
-          de sesiones grupales»). Ofrecerse no los compromete: cada sesión se les propone.
+          Quién puede facilitar ya se sabe por el formulario de voluntarios: se le pregunta por
+          WhatsApp y se marca desde su ficha en Profesionales («Supervisor de sesiones grupales»).
+          Al profesional no se le pregunta desde su enlace. Estar marcado no lo compromete: cada
+          sesión se le propone.
         </p>
         {supervisores.length === 0 ? (
           <Vacio>
-            Nadie aparece todavía. Ojo: solo salen los que están activos y con la tarjeta
-            verificada — si marcaste a alguien y no está, revisa su tarjeta en Verificaciones.
+            Nadie está marcado todavía. Se marca desde la ficha del profesional, y solo salen los
+            que están activos y con la tarjeta verificada — si marcaste a alguien y no está,
+            revisa su tarjeta en Verificaciones.
           </Vacio>
         ) : (
           <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>

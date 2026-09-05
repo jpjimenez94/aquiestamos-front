@@ -217,30 +217,6 @@ export async function enviarCheckInAction(
   }
 }
 
-/** Ofrecerse —o dejar de ofrecerse— a facilitar sesiones grupales. */
-export async function ofrecerseComoSupervisorAction(patientId: string, disponible: boolean) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(`case_token_${patientId}`)?.value
-  if (!token) {
-    return { success: false as const, message: 'El acceso venció. Vuelve a ingresar tu correo.' }
-  }
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/shared-cases/${patientId}/cuidado/supervisor`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'x-shared-case-token': token },
-      body: JSON.stringify({ disponible }),
-      cache: 'no-store',
-    })
-    const payload = await response.json()
-    if (!response.ok || !payload.success) {
-      return { success: false as const, message: (payload.message as string) ?? 'No pudimos guardarlo.' }
-    }
-    return {
-      success: true as const,
-      message: payload.message as string,
-      esSupervisor: Boolean(payload.data?.esSupervisor),
-    }
-  } catch {
-    return { success: false as const, message: 'Error de conexión con el servidor.' }
-  }
-}
+// Aquí no hay acción para ofrecerse como supervisor, a propósito: quién puede
+// facilitar se sabe por el formulario de voluntarios, se cuadra por WhatsApp
+// y lo marca coordinación desde la ficha. Al profesional no se le pregunta.
