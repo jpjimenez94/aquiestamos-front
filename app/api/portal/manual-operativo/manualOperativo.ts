@@ -271,6 +271,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     <li><a href="#verificaciones">Verificaciones: aprobar a un profesional</a></li>
     <li><a href="#agendamiento">Agendamiento: los 7 pasos de un acompañamiento</a></li>
     <li><a href="#cuando-falla">Cuando algo se sale del carril</a></li>
+    <li><a href="#cuidado">Cuidado del equipo: quien acompaña también se carga</a></li>
   </ol>
 </nav>
 
@@ -1318,6 +1319,207 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
       alguien lo haya comprobado.
     </figcaption>
   </figure>
+</details>
+
+<!-- ==================================================================== -->
+<details class="capitulo" id="cuidado">
+  <summary>
+    <h2>Cuidado del equipo</h2>
+    <p class="quien">Lo pide: el profesional · Lo facilita: un supervisor voluntario · Lo convoca: coordinación</p>
+  </summary>
+  <p>
+    Quien acompaña también se carga. Después de varias sesiones, un profesional puede necesitar
+    apoyo para sí, pensar un caso con otros psicólogos, o simplemente descargarse — y la red
+    no tenía dónde decirlo. Este módulo es eso, en tres piezas: <b>él pide el espacio</b>,
+    <b>un psicólogo de la red se ofrece a facilitar</b>, y <b>coordinación convoca la sesión
+    grupal</b> con las preguntas ya listas.
+  </p>
+  <div class="aviso dato">
+    <b>No toca el acompañamiento.</b>
+    No cambia citas, asignaciones ni reportes: solo los lee para contar cuántas sesiones lleva
+    cada quien. Todo lo de aquí vive en <span class="mono">Operación → Cuidado del equipo</span>.
+  </div>
+
+  <h3>1 · Él pide el espacio: «¿Cómo estás tú?»</h3>
+  <h4>Dónde · Al final de su enlace del caso, después de reportar</h4>
+  <p>
+    Es la única puerta que tiene —no hay cuenta de portal, a propósito— y el momento en que
+    tiene sentido preguntarle cómo está es cuando acaba de contar cómo fue la sesión. El bloque
+    le dice cuántas sesiones lleva <b>en toda la red, con cualquier persona</b>, y desde cuántas
+    se abre el espacio. El umbral se cambia en Parametrización
+    (<span class="mono">SESIONES_PARA_CHECKIN</span>, hoy 3): es la carga acumulada la que quema.
+  </p>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/caso/&lt;id del caso&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta">
+          <div class="fuerte" style="font-size:1rem">¿Cómo estás tú?</div>
+          <div class="apagado" style="margin-bottom:8px">Quien acompaña también se carga. Este espacio es para ti: para pedir apoyo, pensar un caso con otros psicólogos, o simplemente descargarte.</div>
+          <div class="apagado" style="margin-bottom:12px">Llevas <b style="color:var(--tinta)">4 sesiones</b> en la red. El espacio está abierto para ti.</div>
+          <div class="fuerte" style="font-size:0.9rem;margin-bottom:6px">¿Qué necesitas?</div>
+          <div style="display:grid;gap:6px;margin-bottom:12px">
+            <div style="border:1px solid var(--borde);border-radius:10px;padding:8px 12px"><b>Quiero apoyo para mí</b><br><span class="apagado">Esto me está pesando y quisiera hablarlo con alguien de la red.</span></div>
+            <div style="border:1px solid var(--verde);background:var(--verde-suave);border-radius:10px;padding:8px 12px"><b>Necesito ayuda con un caso</b><br><span class="apagado">Quiero pensar con otros psicólogos cómo manejar algo concreto.</span></div>
+            <div style="border:1px solid var(--borde);border-radius:10px;padding:8px 12px"><b>Solo quiero descargarme</b><br><span class="apagado">No necesito que me resuelvan nada. Quiero contarlo y que alguien escuche.</span></div>
+          </div>
+          <div style="font-size:0.82rem;font-weight:700">En qué andas <span class="apagado">(opcional)</span></div>
+          <div class="campo" style="width:100%;margin:4px 0 10px;min-height:40px">&nbsp;</div>
+          <div style="font-size:0.82rem;font-weight:700">¿Qué te gustaría que se hablara en la sesión grupal? <span class="apagado">(opcional)</span></div>
+          <div class="campo" style="width:100%;margin:4px 0 12px">Una pregunta o un tema. Con esto se arma la agenda de la sesión.</div>
+          <div class="fila"><span class="btn principal">Enviar</span><span class="btn">Ahora no</span></div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--borde)">
+            <div class="fuerte" style="font-size:0.9rem">Acompañar a otros profesionales</div>
+            <div class="apagado" style="margin-bottom:6px">Si te ofreces, coordinación te puede proponer facilitar una sesión grupal; cada vez decides tú.</div>
+            <span class="btn">Me ofrezco a facilitar sesiones grupales</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      Lo que ve él al final de su enlace. Tres opciones en su idioma, dos campos opcionales —el
+      segundo es <b>lo que arma la agenda</b> de la sesión— y, aparte, el botón para ofrecerse a
+      facilitar. Antes del umbral el bloque igual aparece, diciendo cuánto falta: que sepa que
+      existe.
+    </figcaption>
+  </figure>
+
+  <div class="aviso bien">
+    <b>Al enviar, pasan dos cosas solas</b>
+    A coordinación le sale un correo con quién es, qué necesita y su pregunta. Y él aparece en
+    «Pidieron el espacio», en Cuidado del equipo, hasta que se le convoque.
+  </div>
+
+  <h3>2 · Alguien se ofrece a facilitar</h3>
+  <p>
+    Un psicólogo de la red marca «Me ofrezco a facilitar sesiones grupales» desde ese mismo
+    bloque. Si lo dijo por WhatsApp, tú lo apuntas por él desde su ficha en
+    <span class="mono">Profesionales</span>, en la fila «Supervisor de sesiones grupales».
+    Ofrecerse <b>no lo compromete a nada</b>: cada sesión se le propone y él decide.
+  </p>
+  <div class="aviso ojo">
+    <b>Para facilitar tiene que tener la tarjeta verificada.</b>
+    Es el mismo requisito que para acompañar a una persona — y aquí acompaña a varios colegas a
+    la vez. Si se ofreció sin tarjeta, la ficha te lo avisa y no aparece como facilitador hasta
+    que la verifiques.
+  </div>
+
+  <h3>3 · Coordinación convoca la sesión grupal</h3>
+  <h4>Dónde · Operación → Cuidado del equipo</h4>
+  <p>
+    La pantalla tiene tres bloques: quién pidió el espacio y qué necesita, quién se ofreció, y
+    las sesiones. Convocar es <b>una sola acción</b>.
+  </p>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/cuidado</span>
+      </div>
+      <div class="lienzo">
+        <div class="fila entre" style="margin-bottom:10px">
+          <span class="fuerte" style="font-size:1rem">Cuidado del equipo</span>
+          <span class="btn principal">Convocar sesión grupal</span>
+        </div>
+        <div class="tarjeta">
+          <div class="fuerte" style="margin-bottom:6px">Pidieron el espacio <span class="apagado">· 2</span></div>
+          <div class="fila entre" style="padding:8px 0;border-top:1px solid var(--borde)">
+            <span><span class="fuerte">Mariana Restrepo Ortiz</span><br><span class="apagado" style="font-size:0.78rem">Pereira · 4 sesiones al pedirlo</span></span>
+            <span class="chip ambar">necesita ayuda con un caso</span>
+            <span class="apagado" style="flex:1;min-width:180px;font-size:0.8rem">Cómo poner límites cuando la persona escribe fuera de la sesión</span>
+          </div>
+          <div class="fila entre" style="padding:8px 0;border-top:1px solid var(--borde)">
+            <span><span class="fuerte">Camilo Betancur</span><br><span class="apagado" style="font-size:0.78rem">Pereira · 6 sesiones al pedirlo</span></span>
+            <span class="chip gris">quiere descargarse</span>
+            <span class="apagado" style="flex:1;min-width:180px;font-size:0.8rem">—</span>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <div class="fuerte" style="margin-bottom:4px">Se ofrecieron a facilitar <span class="apagado">· 1</span></div>
+          <div class="apagado">Beatriz Elena López · Pereira · virtual · desde el 2 de septiembre</div>
+        </div>
+        <div class="tarjeta" style="border-left:4px solid var(--azul)">
+          <div class="fila entre"><span><span class="fuerte">jueves, 18 de septiembre, 7:00 p. m.</span><br><span class="apagado" style="font-size:0.8rem">Facilita Beatriz Elena López · enlace de la reunión</span></span><span class="chip azul">Programada</span></div>
+          <div class="apagado" style="font-size:0.8rem;margin-top:6px">Invitados: Mariana Restrepo Ortiz, Camilo Betancur</div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      Los tres bloques. Los de arriba <b>salen de la lista cuando se les convoca</b>: la lista
+      es lo pendiente, no un archivo. El punto del menú cuenta exactamente eso — quiénes
+      pidieron y nadie ha convocado.
+    </figcaption>
+  </figure>
+
+  <div class="paso">
+    <div class="paso__n">1</div>
+    <div class="paso__c"><p>Toca <b>«Convocar sesión grupal»</b>. El botón está apagado mientras nadie se haya ofrecido a facilitar: sin facilitador no hay sesión.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso__n">2</div>
+    <div class="paso__c"><p>Elige <b>quién facilita</b>, la <b>fecha y hora</b>, y pega el <b>enlace de la reunión</b> — Meet, Zoom, el que usen. La sesión grupal no usa la sala de la red a propósito: esa es por cita y de dos personas.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso__n">3</div>
+    <div class="paso__c"><p>Los <b>invitados vienen marcados</b>: son quienes pidieron el espacio. Quita o deja. Y la <b>agenda ya viene escrita</b> con sus preguntas — una línea por persona, con lo que necesita y lo que preguntó — para que el facilitador no llegue de cero. Edítala si quieres.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso__n">4</div>
+    <div class="paso__c"><p><b>«Convocar y avisar»</b>. A cada invitado y al facilitador les sale el correo con la hora, el enlace y la agenda. Avisar es parte de convocar, no un paso aparte que alguien tenga que recordar.</p></div>
+  </div>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/cuidado</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="max-width:560px;margin:0 auto">
+          <div class="fuerte" style="font-size:1rem">Convocar sesión grupal</div>
+          <div class="apagado" style="margin-bottom:12px">Un facilitador, una hora, un enlace, y a quiénes invitar.</div>
+          <div style="font-size:0.78rem;font-weight:700">Facilita</div>
+          <div class="campo" style="width:100%;margin:4px 0 10px;color:var(--tinta)">Beatriz Elena López · Pereira · virtual ▾</div>
+          <div class="fila" style="gap:10px;margin-bottom:10px">
+            <div style="flex:1"><div style="font-size:0.78rem;font-weight:700">Cuándo</div><div class="campo" style="width:100%;margin-top:4px;color:var(--tinta)">18/09/2026 · 7:00 p. m.</div></div>
+            <div style="width:110px"><div style="font-size:0.78rem;font-weight:700">Dura (min)</div><div class="campo" style="width:100%;margin-top:4px;min-width:0;color:var(--tinta)">60</div></div>
+          </div>
+          <div style="font-size:0.78rem;font-weight:700">Enlace de la reunión</div>
+          <div class="campo" style="width:100%;margin:4px 0 10px;color:var(--tinta)">https://meet.google.com/abc-defg-hij</div>
+          <div style="font-size:0.78rem;font-weight:700;margin-bottom:4px">Invitados <span class="apagado">· vienen marcados quienes pidieron el espacio</span></div>
+          <div style="font-size:0.85rem;line-height:1.8;margin-bottom:10px">☑ <b>Mariana Restrepo Ortiz</b> <span class="apagado">· necesita ayuda con un caso</span><br>☑ <b>Camilo Betancur</b> <span class="apagado">· quiere descargarse</span></div>
+          <div style="font-size:0.78rem;font-weight:700">Agenda <span class="apagado">· se arma con las preguntas de los invitados; edítala si quieres</span></div>
+          <div class="campo" style="width:100%;margin:4px 0 14px;color:var(--tinta);white-space:pre-wrap;line-height:1.6">— Mariana Restrepo Ortiz (necesita ayuda con un caso): Cómo poner límites cuando la persona escribe fuera de la sesión
+— Camilo Betancur: quiere descargarse.</div>
+          <div class="fila" style="justify-content:flex-end"><span class="btn">Cancelar</span><span class="btn principal">Convocar y avisar</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      El cuadro de convocar, ya lleno. Fíjate en la agenda: <b>no la escribió nadie</b>. Salió
+      de lo que dejaron Mariana y Camilo al pedir el espacio, y mientras no la toques sigue a
+      los invitados que marques.
+    </figcaption>
+  </figure>
+
+  <h3>4 · Después de la sesión</h3>
+  <p>
+    En la tarjeta de la sesión, <b>«Se hizo: marcar realizada»</b> te pregunta quién estuvo y la
+    cierra. Es lo único que permite saber, con el tiempo, si el espacio le sirve a quien lo
+    pide. <b>«Cancelar sesión»</b> la cierra sin más — y ojo: <b>cancelar no le avisa a nadie
+    solo</b>; escríbeles. Una sesión cerrada ya no se cambia.
+  </p>
+  <div class="aviso dato">
+    <b>Lo que él ve después.</b>
+    En su enlace, debajo del bloque, le queda el rastro: «Pediste el espacio el 4/09 (necesita
+    ayuda con un caso) · sesión grupal programada para el 18/09». Puede volver a pedirlo
+    cuantas veces necesite.
+  </div>
 </details>
 
 <footer>

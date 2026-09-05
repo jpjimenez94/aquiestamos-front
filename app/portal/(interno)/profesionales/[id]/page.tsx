@@ -6,6 +6,7 @@ import { EditorDisponibilidad } from './EditorDisponibilidad'
 import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
 import { BotonCambiarEstadoProfesional } from './BotonCambiarEstadoProfesional'
 import { BotonEditarProfesional } from './BotonEditarProfesional'
+import { BotonSupervisor } from './BotonSupervisor'
 import { nombrePropio } from '@/lib/nombre'
 
 type Profesional = {
@@ -31,6 +32,9 @@ type Profesional = {
   estadoLegible: string
   maxActiveCases: number
   carga: number
+  /** Cuidado del equipo: si se ofreció a facilitar sesiones grupales. */
+  supervisorVolunteer?: boolean
+  supervisorVolunteerAt?: string | null
   notes?: string | null
   casos: { id: string; paciente: { id: string; nombre: string }; desde: string }[]
 }
@@ -128,6 +132,21 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
           </Dato>
           <Dato etiqueta="Carga">
             {p.carga} de {p.maxActiveCases} acompañamientos
+          </Dato>
+          {/*
+            Cuidado del equipo: si se ofreció a facilitar sesiones grupales.
+            Él lo marca desde su enlace; esto es para cuando lo dijo por
+            WhatsApp y coordinación lo apunta por él. Sin permiso de gestionar,
+            solo se ve.
+          */}
+          <Dato etiqueta="Supervisor de sesiones grupales">
+            <BotonSupervisor
+              profesionalId={p.id}
+              esSupervisor={p.supervisorVolunteer === true}
+              desde={p.supervisorVolunteerAt ?? null}
+              puedeGestionar={puede(usuario, 'cuidado:gestionar')}
+              tarjetaVerificada={p.professionalCardVerified === true}
+            />
           </Dato>
           <Dato etiqueta="Modalidad">{p.modality.toLowerCase()}</Dato>
           <Dato etiqueta="Teléfono">{p.phone}</Dato>
