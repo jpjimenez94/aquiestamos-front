@@ -4,6 +4,7 @@ import { portalFetch, usuarioActual, puede, enBogota } from '@/lib/portal'
 import { Cabecera, Vacio, Etiqueta } from '../componentes'
 import { nombrePropio } from '@/lib/nombre'
 import { ConvocarSesion } from './ConvocarSesion'
+import { OfrecerElEspacio } from './OfrecerElEspacio'
 import { AccionesSesion } from './AccionesSesion'
 
 export const metadata = { title: 'Cuidado del equipo' }
@@ -54,9 +55,19 @@ type Sesion = {
   creadaEl: string
 }
 
+type ParaOfrecer = {
+  id: string
+  nombre: string
+  telefono: string
+  sesiones: number
+  pacienteId: string
+  ultimaVez: string | null
+}
+
 type Resumen = {
   umbral: number
   checkInsPendientes: CheckIn[]
+  paraOfrecer: ParaOfrecer[]
   supervisores: Supervisor[]
   sesiones: Sesion[]
 }
@@ -89,7 +100,7 @@ export default async function CuidadoPage() {
       </>
     )
   }
-  const { umbral, checkInsPendientes, supervisores, sesiones } = respuesta.data
+  const { umbral, checkInsPendientes, paraOfrecer, supervisores, sesiones } = respuesta.data
   const programadas = sesiones.filter((s) => s.estado === 'PROGRAMADA')
   const pasadas = sesiones.filter((s) => s.estado !== 'PROGRAMADA')
 
@@ -164,6 +175,11 @@ export default async function CuidadoPage() {
           </div>
         )}
       </div>
+
+      {/* ── A quién ofrecérselo ────────────────────────────────────────── */}
+      {gestiona ? (
+        <OfrecerElEspacio profesionales={paraOfrecer ?? []} umbral={umbral} />
+      ) : null}
 
       {/* ── Quién puede facilitar ──────────────────────────────────────── */}
       <div className="panel">

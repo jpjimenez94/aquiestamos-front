@@ -1758,3 +1758,40 @@ export function mensajeContactoColaborador(d: { nombre: string; disciplina?: str
     '¿Tienes un momento estos días para hablarlo?',
   ].join('\n')
 }
+
+/**
+ * Ofrecerle a quien acompaña el espacio «¿Cómo estás tú?».
+ *
+ * Lo manda coordinación a quien ya lleva varias sesiones y no lo ha pedido. El
+ * bloque vive al final de su enlace del caso y solo lo ve si entra; sin este
+ * mensaje, el módulo esperaba a que alguien cargado se acordara solo de pedir
+ * ayuda, que es justo lo que no hace.
+ *
+ * El enlace lleva al ancla del bloque, para que no tenga que buscarlo.
+ */
+export function mensajeDeOfrecerCuidado(d: {
+  profesional: string
+  sesiones: number
+  enlace: string
+  plantilla?: string
+}): string {
+  const nombre = nombreDePila(d.profesional) || 'hola'
+  const variables = {
+    profesional: nombre,
+    sesiones: String(d.sesiones),
+    enlace: d.enlace,
+  }
+  if (d.plantilla?.trim()) return renderPlantilla(d.plantilla, variables)
+
+  return [
+    `Hola ${nombre} 👋`,
+    '',
+    `Llevas ${d.sesiones} sesiones acompañando en la red, y queríamos preguntarte cómo estás *tú*.`,
+    '',
+    'Si te sirve, hay un espacio para eso: pedir apoyo, pensar un caso difícil con otros psicólogos, o simplemente descargarte. Lo cuadramos en una sesión grupal con alguien de la red.',
+    '',
+    `Entra aquí y lo encuentras al final: ${d.enlace}`,
+    '',
+    'Si ahora no lo necesitas, no pasa nada. Queda ahí para cuando quieras.',
+  ].join('\n')
+}

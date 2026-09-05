@@ -27,6 +27,9 @@ const CASOS: [string, (plantilla: string) => string][] = [
   ['enlace de agenda a la persona', (plantilla) =>
     M.mensajeParaCuadrarHorario({ persona: 'Ana Ruiz', profesional: 'Sofía Vélez', dias: [], franjas: [], plantilla })],
 
+  ['ofrecerle el espacio «¿cómo estás tú?» al profesional', (plantilla) =>
+    M.mensajeDeOfrecerCuidado({ profesional: 'Ana Ruiz', sesiones: 4, enlace: 'https://x/y', plantilla })],
+
   ['cita confirmada a la persona', (plantilla) =>
     M.mensajeDeCitaConfirmada({ persona: 'Ana Ruiz', profesional: 'Sofía Vélez', cuando: 'el lunes', plantilla })],
 
@@ -100,7 +103,7 @@ describe('el texto del portal manda sobre el del código', () => {
    * cancelar cambiaban el estado y no le decían nada a nadie. La persona podía
    * presentarse a una sesión que ya no existía, y el profesional también.
    */
-  it('están las dieciocho', () => {
-    expect(CASOS).toHaveLength(18)
+  it('están las diecinueve', () => {
+    expect(CASOS).toHaveLength(19)
   })
 })
