@@ -97,7 +97,7 @@ export default async function CuidadoPage() {
     <>
       <Cabecera
         titulo="Cuidado del equipo"
-        descripcion={`Quién pidió el espacio «¿Cómo estás tú?», quién se ofreció a facilitar, y las sesiones grupales de seguimiento. El espacio se abre al profesional a partir de ${umbral} ${umbral === 1 ? 'sesión' : 'sesiones'} en la red (se cambia en Parametrización).`}
+        descripcion={`Quién pidió el espacio «¿Cómo estás tú?», quién está marcado para facilitar, y las sesiones grupales de seguimiento. El espacio se abre al profesional a partir de ${umbral} ${umbral === 1 ? 'sesión' : 'sesiones'} en la red (se cambia en Parametrización).`}
         acciones={
           gestiona ? (
             <ConvocarSesion

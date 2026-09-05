@@ -21,6 +21,12 @@ import {
   BookOpen,
   BarChart3,
   BadgeCheck,
+  Activity,
+  UserRound,
+  Calendar,
+  Settings,
+  Globe,
+  Compass,
   MapPin,
   ListTodo,
   Key,
@@ -60,9 +66,12 @@ type Enlace = {
   badgeKey?: keyof ContadoresBadges;
 };
 
-const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
+// Cada grupo lleva su icono, de la misma familia y tamaño que los enlaces:
+// plegado, el título es lo único que se ve, y sin icono era solo una palabra.
+const GRUPOS: { titulo: string; icono: React.ReactNode; enlaces: Enlace[] }[] = [
   {
     titulo: "Operación",
+    icono: <Activity size={15} />,
     enlaces: [
       {
         href: "/portal",
@@ -117,6 +126,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
   },
   {
     titulo: "Personas",
+    icono: <UserRound size={15} />,
     enlaces: [
       {
         href: "/portal/personas",
@@ -136,6 +146,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
   },
   {
     titulo: "Agenda",
+    icono: <Calendar size={15} />,
     enlaces: [
       {
         href: "/portal/agenda",
@@ -156,6 +167,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
   },
   {
     titulo: "Administración",
+    icono: <Settings size={15} />,
     enlaces: [
       {
         href: "/portal/usuarios",
@@ -186,6 +198,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
   },
   {
     titulo: "Comunidad",
+    icono: <Globe size={15} />,
     enlaces: [
       {
         href: "/portal/lideres",
@@ -198,6 +211,7 @@ const GRUPOS: { titulo: string; enlaces: Enlace[] }[] = [
   },
   {
     titulo: "Guía",
+    icono: <Compass size={15} />,
     enlaces: [
       {
         href: "/portal/procesos",
@@ -443,7 +457,10 @@ export function LateralPortal({
                     padding: 0,
                   }}
                 >
-                  <span>{grupo.titulo}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ display: "inline-flex", opacity: 0.85 }}>{grupo.icono}</span>
+                    {grupo.titulo}
+                  </span>
                   <span
                     aria-hidden="true"
                     style={{
