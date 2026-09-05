@@ -6,6 +6,7 @@ import { nombrePropio } from '@/lib/nombre'
 import { ConvocarSesion } from './ConvocarSesion'
 import { OfrecerElEspacio } from './OfrecerElEspacio'
 import { AccionesSesion } from './AccionesSesion'
+import { EscribirAlSupervisor } from './EscribirAlSupervisor'
 
 export const metadata = { title: 'Cuidado del equipo' }
 
@@ -39,6 +40,8 @@ type Supervisor = {
   fullName: string
   city: string
   modality: string
+  /** Para avisarle: marcarlo y decírselo son el mismo momento. */
+  phone: string | null
   supervisorVolunteerAt: string | null
 }
 
@@ -191,10 +194,11 @@ export default async function CuidadoPage() {
           </span>
         </h2>
         <p className="panel__nota">
-          Quién puede facilitar ya se sabe por el formulario de voluntarios: se le pregunta por
-          WhatsApp y se marca desde su ficha en Profesionales («Supervisor de sesiones grupales»).
-          Al profesional no se le pregunta desde su enlace. Estar marcado no lo compromete: cada
-          sesión se le propone.
+          Solo los que están marcados. Se marca desde su ficha —Personas · Profesionales, fila
+          «Supervisor de sesiones grupales»— y salen aquí si están activos y con la tarjeta
+          verificada. El portal no le pregunta nada a nadie por su cuenta: quién puede facilitar
+          se sabe fuera, y el aviso se lo mandas tú desde aquí. Estar marcado no lo compromete:
+          cada sesión se le propone.
         </p>
         {supervisores.length === 0 ? (
           <Vacio>
@@ -205,12 +209,15 @@ export default async function CuidadoPage() {
         ) : (
           <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
             {supervisores.map((s) => (
-              <li key={s.id} style={{ marginBottom: 4 }}>
+              <li key={s.id} style={{ marginBottom: 14 }}>
                 <a href={`/portal/profesionales/${s.id}`}>{nombrePropio(s.fullName)}</a>{' '}
                 <span className="tabla__secundario">
                   {s.city} · {s.modality.toLowerCase()}
                   {s.supervisorVolunteerAt ? ` · desde el ${enBogota(s.supervisorVolunteerAt, false)}` : ''}
                 </span>
+                {gestiona ? (
+                  <EscribirAlSupervisor nombre={s.fullName} telefono={s.phone ?? null} />
+                ) : null}
               </li>
             ))}
           </ul>

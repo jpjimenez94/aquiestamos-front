@@ -74,6 +74,9 @@ const CASOS: [string, (plantilla: string) => string][] = [
 
   ['cita cancelada · al profesional', (plantilla) =>
     M.mensajeDeCitaCanceladaAlProfesional({ profesional: 'Sofía Vélez', persona: 'Ana Ruiz', cuando: 'jueves 11 a las 3:00 p. m.', plantilla })],
+
+  ['avisarle a quien queda marcado como supervisor', (plantilla) =>
+    M.mensajeDeSupervisorMarcado({ profesional: 'Sofía Vélez', plantilla })],
 ]
 
 describe('el texto del portal manda sobre el del código', () => {
@@ -103,7 +106,7 @@ describe('el texto del portal manda sobre el del código', () => {
    * cancelar cambiaban el estado y no le decían nada a nadie. La persona podía
    * presentarse a una sesión que ya no existía, y el profesional también.
    */
-  it('están las diecinueve', () => {
-    expect(CASOS).toHaveLength(19)
+  it('están las veinte', () => {
+    expect(CASOS).toHaveLength(20)
   })
 })

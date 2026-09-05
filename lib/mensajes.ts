@@ -1762,12 +1762,11 @@ export function mensajeContactoColaborador(d: { nombre: string; disciplina?: str
 /**
  * Ofrecerle a quien acompaña el espacio «¿Cómo estás tú?».
  *
- * Lo manda coordinación a quien ya lleva varias sesiones y no lo ha pedido. El
- * bloque vive al final de su enlace del caso y solo lo ve si entra; sin este
- * mensaje, el módulo esperaba a que alguien cargado se acordara solo de pedir
- * ayuda, que es justo lo que no hace.
+ * Lo manda coordinación a quien ya lleva varias sesiones y no lo ha pedido.
+ * Solo lo ve si abre su enlace; sin este mensaje, el módulo esperaba a que
+ * alguien cargado se acordara solo de pedir ayuda, que es justo lo que no hace.
  *
- * El enlace lleva al ancla del bloque, para que no tenga que buscarlo.
+ * El enlace es suyo y no de un caso: le sirve mientras siga en la red.
  */
 export function mensajeDeOfrecerCuidado(d: {
   profesional: string
@@ -1800,5 +1799,37 @@ export function mensajeDeOfrecerCuidado(d: {
     `Aquí lo tienes: ${d.enlace}`,
     '',
     'Es tuyo y te sirve siempre, así que guárdalo. Y si ahora no lo necesitas, no pasa nada: queda ahí para cuando quieras.',
+  ].join('\n')
+}
+
+/**
+ * Avisarle a quien queda marcado como supervisor de sesiones grupales.
+ *
+ * Es el momento en que se le pregunta, y no lo hace el portal por su cuenta:
+ * quién puede facilitar se sabe fuera —del formulario de voluntarios y de lo
+ * que ya se habló con él—, coordinación lo marca en su ficha y le escribe.
+ *
+ * Por eso el mensaje no es un formulario ni pide nada por enlace: le dice qué
+ * significa estar apuntado, que no lo compromete con ninguna sesión, y le deja
+ * la puerta abierta a decir que no.
+ */
+export function mensajeDeSupervisorMarcado(d: {
+  profesional: string
+  plantilla?: string
+}): string {
+  const nombre = nombreDePila(d.profesional) || 'hola'
+  const variables = { profesional: nombre }
+  if (d.plantilla?.trim()) return renderPlantilla(d.plantilla, variables)
+
+  return [
+    `Hola ${nombre} 👋`,
+    '',
+    'Te apuntamos como *supervisor de sesiones grupales* de la red: eres de quienes pueden acompañar a otros psicólogos cuando piden apoyo, quieren pensar un caso difícil con alguien, o solo necesitan descargarse.',
+    '',
+    'Estar apuntado no te compromete a nada. Cada sesión te la proponemos con su fecha y su hora, y nos dices si puedes o no.',
+    '',
+    'Llegarías con la agenda ya armada: lo que quieren hablar lo dejan escrito quienes piden el espacio.',
+    '',
+    '¿Te parece? Y si prefieres que te quitemos de la lista, dínoslo sin problema.',
   ].join('\n')
 }

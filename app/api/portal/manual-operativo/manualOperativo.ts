@@ -1341,14 +1341,15 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   </div>
 
   <h3>1 · Él pide el espacio: «¿Cómo estás tú?»</h3>
-  <h4>Dónde · Al final de su enlace del caso, después de reportar</h4>
+  <h4>Dónde · En su propio enlace, el que le manda coordinación</h4>
   <p>
-    Es la única puerta que tiene —no hay cuenta de portal, a propósito— y el momento en que
-    tiene sentido preguntarle cómo está es cuando acaba de contar cómo fue la sesión. El bloque
-    le dice cuántas sesiones lleva <b>en toda la red, con cualquier persona</b>, y desde cuántas
-    se abre el espacio. El umbral se cambia en Parametrización
-    (<span class="mono">SESIONES_PARA_CHECKIN</span>, hoy 3): es la carga acumulada la que quema.
-    <b>Antes de ese número no se le pregunta nada</b>: el bloque no aparece.
+    Es la única puerta que tiene —no hay cuenta de portal, a propósito—. El enlace es
+    <b>suyo, no de un caso</b>: no caduca cuando termina un acompañamiento y le sirve mientras
+    siga en la red, así que se lo mandas una vez y lo guarda. La página le dice cuántas sesiones
+    lleva <b>en toda la red, con cualquier persona</b>, y desde cuántas se abre el espacio. El
+    umbral se cambia en Parametrización (<span class="mono">SESIONES_PARA_CHECKIN</span>): es la
+    carga acumulada la que quema. <b>Antes de ese número no se le pregunta nada</b>: la página
+    se lo dice y no le enseña el formulario.
   </p>
 
   <figure class="pantalla">
@@ -1377,7 +1378,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
       </div>
     </div>
     <figcaption>
-      Lo que ve él al final de su enlace, ya con las sesiones que hacen falta. Tres opciones
+      Lo que ve al abrir su enlace, ya con las sesiones que hacen falta. Tres opciones
       en su idioma y dos campos opcionales — el segundo es <b>lo que arma la agenda</b> de la
       sesión. Antes del umbral no ve nada de esto: no se le pregunta.
     </figcaption>
@@ -1391,11 +1392,18 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
 
   <h3>2 · Quién facilita lo marcas tú</h3>
   <p>
-    Al profesional <b>no se le pregunta</b> si quiere facilitar: quién puede hacerlo ya se
-    sabe por el formulario de voluntarios. Se le pregunta por WhatsApp y, si dice que sí, lo
-    marcas desde su ficha en <span class="mono">Profesionales</span>, en la fila «Supervisor de
-    sesiones grupales». Estar marcado <b>no lo compromete a nada</b>: cada sesión se le
-    propone y él decide.
+    Ninguna pantalla le pregunta al profesional si quiere facilitar, y es a propósito: eso se
+    decide fuera, con lo que ya sabes de él. Cuando lo decides, lo marcas desde su ficha en
+    <span class="mono">Personas → Profesionales</span>, en la fila «Supervisor de sesiones
+    grupales».
+  </p>
+  <p>
+    Marcarlo y <b>avisarle son el mismo momento</b>. En Cuidado del equipo, el bloque «Pueden
+    facilitar» enseña solo a los marcados, y cada uno trae su botón para escribirle: le dice
+    que quedó apuntado, qué significa y que puede decir que no. El texto se edita en
+    Parametrización (<span class="mono">WHATSAPP_CUIDADO_SUPERVISOR</span>) y con «Ver el
+    mensaje» lo lees antes de mandarlo. Estar marcado <b>no lo compromete a nada</b>: cada
+    sesión se le propone y él decide.
   </p>
   <div class="aviso ojo">
     <b>Para facilitar tiene que tener la tarjeta verificada.</b>
@@ -1407,8 +1415,9 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   <h3>3 · Coordinación convoca la sesión grupal</h3>
   <h4>Dónde · Operación → Cuidado del equipo</h4>
   <p>
-    La pantalla tiene tres bloques: quién pidió el espacio y qué necesita, quién se ofreció, y
-    las sesiones. Convocar es <b>una sola acción</b>.
+    La pantalla tiene cuatro bloques: quién pidió el espacio y qué necesita, a quién le falta
+    que se lo ofrezcas, quién está marcado para facilitar, y las sesiones. Convocar es <b>una
+    sola acción</b>.
   </p>
 
   <figure class="pantalla">
