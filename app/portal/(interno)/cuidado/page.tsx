@@ -174,11 +174,15 @@ export default async function CuidadoPage() {
           </span>
         </h2>
         <p className="panel__nota">
-          Psicólogos activos, con tarjeta verificada, que marcaron «me ofrezco a facilitar sesiones
-          grupales» desde su enlace. Ofrecerse no los compromete: cada sesión se les propone.
+          Aparecen aquí de dos maneras: él marca «me ofrezco a facilitar sesiones grupales» al
+          final de su enlace del caso, o tú lo marcas desde su ficha en Profesionales («Supervisor
+          de sesiones grupales»). Ofrecerse no los compromete: cada sesión se les propone.
         </p>
         {supervisores.length === 0 ? (
-          <Vacio>Nadie se ha ofrecido todavía. El botón está al final del enlace del caso de cada profesional.</Vacio>
+          <Vacio>
+            Nadie aparece todavía. Ojo: solo salen los que están activos y con la tarjeta
+            verificada — si marcaste a alguien y no está, revisa su tarjeta en Verificaciones.
+          </Vacio>
         ) : (
           <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
             {supervisores.map((s) => (
