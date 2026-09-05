@@ -275,7 +275,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
 </nav>
 
 <!-- ==================================================================== -->
-<details class="capitulo" id="leeme" open>
+<details class="capitulo" id="leeme">
   <summary>
     <h2>Antes de empezar</h2>
     <p class="quien">Léelo una vez · dos minutos</p>
@@ -314,7 +314,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
 </details>
 
 <!-- ==================================================================== -->
-<details class="capitulo" id="verificaciones" open>
+<details class="capitulo" id="verificaciones">
   <summary>
     <h2>Verificaciones</h2>
     <p class="quien">Lo hace: coordinación · Lo espera: quien se postuló</p>
@@ -568,10 +568,40 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     Pasa a <span class="mono">Voluntariado de apoyo</span> y desde ahí se le pueden asignar
     tareas internas. No se pierde a nadie que quiso ayudar.
   </p>
+
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/verificaciones</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="max-width:520px;margin:0 auto;border-left:4px solid var(--azul)">
+          <div class="titulillo">Voluntariado de Apoyo</div>
+          <div class="fuerte" style="font-size:1rem">Mover a Voluntariado</div>
+          <div class="apagado" style="margin-bottom:10px">Andrés Felipe Gómez · Trabajo Social</div>
+          <div class="apagado" style="margin-bottom:12px">No puede acompañar psicológicamente, pero la red lo necesita. Elige el área en la que puede aportar y pasa al directorio de voluntariado.</div>
+          <div style="font-size:0.78rem;font-weight:700">Área de apoyo:</div>
+          <div class="campo" style="width:100%;margin:4px 0 6px;color:var(--tinta)">📘 Social, legal y educativo (Trabajo Social, Derecho, Pedagogía) ▾</div>
+          <div class="apagado" style="font-size:0.76rem;line-height:1.7;margin-bottom:14px">
+            🩺 Salud y primeros auxilios · 📦 Operación y logística · 💻 Comunicación y tecnología · 📊 Gestión y proyectos · ✨ Otra área
+          </div>
+          <div class="fila">
+            <span class="btn principal">Confirmar y Mover a Colaboradores</span>
+            <span class="btn">Cancelar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      El cuadro de mover. Una sola decisión —el área— y confirmar. Sale de Verificaciones y
+      aparece en <span class="mono">Voluntariado de apoyo</span> listo para recibir tareas.
+    </figcaption>
+  </figure>
 </details>
 
 <!-- ==================================================================== -->
-<details class="capitulo" id="agendamiento" open>
+<details class="capitulo" id="agendamiento">
   <summary>
     <h2>Agendamiento: los 7 pasos</h2>
     <p class="quien">Lo hacen: la persona · coordinación · el profesional · el sistema</p>
@@ -1039,65 +1069,169 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
 </details>
 
 <!-- ==================================================================== -->
-<details class="capitulo" id="cuando-falla" open>
+<details class="capitulo" id="cuando-falla">
   <summary>
     <h2>Cuando algo se sale del carril</h2>
     <p class="quien">Los casos que de verdad pasan</p>
   </summary>
 
-  <table>
-    <tr><th>Pasa esto</th><th>Haces esto</th></tr>
-    <tr>
-      <td><b>La sesión se canceló</b></td>
-      <td>
-        El caso vuelve solo al paso 4 y la ficha te pide «Agendar otra sesión». Ojo: cancelar
-        <b>no le avisa a nadie</b>. Los dos mensajes están en la ficha de la cita cancelada.
-      </td>
-    </tr>
-    <tr>
-      <td><b>No se presentó</b></td>
-      <td>
-        Eso sí cuenta como sesión — la hora llegó y se gastó —, así que el caso avanza a
-        seguimiento y desde ahí se agenda otra.
-      </td>
-    </tr>
-    <tr>
-      <td><b>Hay que cambiar de profesional</b></td>
-      <td>
-        Botón <b>«Reasignar»</b> en la ficha. El enlace de agenda de la persona
-        <b>no cambia</b>: el mismo enlace pasa a mostrar la agenda del nuevo. No hay que
-        mandarle nada nuevo.
-      </td>
-    </tr>
-    <tr>
-      <td><b>Hay que mover la hora</b></td>
-      <td>
-        <b>«Reprogramar Cita»</b> en la ficha de la cita. El consentimiento firmado se
-        conserva: no se le pide de nuevo.
-      </td>
-    </tr>
-    <tr>
-      <td><b>Ella no dejó correo</b></td>
-      <td>
-        No recibe nada automático — ni la confirmación ni el recordatorio. La ficha de la cita
-        te lo dice y te pide el WhatsApp. Es su único aviso.
-      </td>
-    </tr>
-    <tr>
-      <td><b>El profesional no responde nada</b></td>
-      <td>
-        No pasa nada: el caso avanza igual, porque no se le está pidiendo permiso. Lo que sí
-        conviene revisar es que su agenda esté al día — de ahí escoge la persona.
-      </td>
-    </tr>
-    <tr>
-      <td><b>Alguien lleva días sin que nadie lo mire</b></td>
-      <td>
-        La lista de <span class="mono">Acompañadas</span> tiene la columna «Qué toca ahora»
-        con lo más urgente de cada caso, y se puede ordenar por eso.
-      </td>
-    </tr>
-  </table>
+  <h3>La sesión se canceló</h3>
+  <p>El caso vuelve solo al paso 4 y la ficha te pide <b>«Agendar otra sesión»</b>. Ojo: cancelar <b>no le avisa a nadie</b>. Los dos mensajes están en la ficha de la cita cancelada.</p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/personas/&lt;id de la persona&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tira" style="margin-bottom:10px"><span class="p hecho"><b>1</b></span><span class="p hecho"><b>2</b></span><span class="p hecho"><b>3</b></span><span class="p ahora"><b>4</b> Elige su hora</span><span class="p"><b>5</b></span><span class="p"><b>6</b></span><span class="p"><b>7</b></span></div>
+        <div class="tarjeta" style="border-left:4px solid var(--ambar);background:var(--ambar-suave)">
+          <div class="fila entre">
+            <span><div class="titulillo">Qué toca ahora</div><span class="fuerte" style="font-size:1rem">Agendar otra sesión</span><br><span class="apagado">la última se canceló</span></span>
+            <span class="fila"><span class="btn principal">Agendar otra sesión</span><span class="btn">Reasignar</span></span>
+          </div>
+        </div>
+        <div class="tarjeta" style="padding:10px 14px">
+          <div class="apagado" style="font-size:0.8rem">Citas · 4/09/2026, 6:30 p. m. · Virtual · <span class="chip rojo">Cancelada</span> · <span style="color:var(--verde)">Ver la última cita →</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>La ficha después de cancelar: la tira vuelve al 4 y «Qué toca ahora» pide agendar otra. La fila de la cita cancelada sigue ahí; al abrirla, su tarjeta dice «Esta cita está cancelada» y ofrece <b>Avisarle a la persona</b> y <b>Avisarle al profesional</b>. Mándalos: nadie más lo hace.</figcaption>
+  </figure>
+  <h3>No se presentó</h3>
+  <p>Eso sí cuenta como sesión — la hora llegó y se gastó —, así que el caso avanza a seguimiento y desde ahí se agenda otra. Se marca desde la ficha de la cita.</p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/agenda/&lt;id de la cita&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta">
+          <div class="fuerte">Acciones y Gestión de la Cita</div>
+          <div class="apagado" style="margin-bottom:10px">Gestiona el estado de la cita, registra requisitos legales o reprograma la sesión.</div>
+          <div class="fila" style="margin-bottom:10px"><span class="btn">Ver Consentimiento</span><span class="btn">Ver Tarjeta Profesional</span><span class="btn">Reprogramar Cita</span></div>
+          <div class="fila" style="padding-top:10px;border-top:1px solid var(--borde)"><span class="btn">Marcar como Realizada</span><span class="btn principal">Marcar que No Asistió</span><span class="btn peligro">Cancelar Cita</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption><b>«Marcar que No Asistió»</b> cierra la cita. Si el profesional ya lo reportó desde su enlace, la cita se marcó sola y este botón ya no hace falta. Después, en la ficha de la persona, «Qué toca ahora» pasa a pedir agendar otra sesión.</figcaption>
+  </figure>
+  <h3>Hay que cambiar de profesional</h3>
+  <p>Botón <b>«Reasignar»</b> en la ficha. El enlace de agenda de la persona <b>no cambia</b>: el mismo enlace pasa a mostrar la agenda del nuevo. No hay que mandarle nada nuevo.</p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/personas/&lt;id de la persona&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="max-width:520px;margin:0 auto;border-left:4px solid var(--ambar)">
+          <div class="fuerte" style="font-size:1rem">Reasignar a otro profesional</div>
+          <div class="apagado" style="margin-bottom:12px">Sara Múnera · hoy con Mariana Restrepo Ortiz</div>
+          <div style="font-size:0.78rem;font-weight:700">Elige el motivo de la reasignación.</div>
+          <div class="campo" style="width:100%;margin:4px 0 6px;color:var(--tinta)">La persona solicitó cambio de profesional ▾</div>
+          <div class="apagado" style="font-size:0.76rem;line-height:1.7;margin-bottom:10px">El profesional no respondió · El profesional tuvo un imprevisto / no puede continuar · Incompatibilidad de horarios / fechas · Otro motivo</div>
+          <div style="font-size:0.78rem;font-weight:700">Detalle o nota adicional (opcional)</div>
+          <div class="campo" style="width:100%;margin:4px 0 14px;min-height:40px">&nbsp;</div>
+          <div class="fila"><span class="btn principal">Reasignar</span><span class="btn">Cancelar</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>El cuadro de reasignar, con motivo de lista y nota opcional. Al confirmar, el caso vuelve a «Por Asignar» con el cupo del anterior liberado, eliges del Top 10 otra vez, y la persona abre <b>el mismo enlace de siempre</b> y ve la agenda del nuevo.</figcaption>
+  </figure>
+  <h3>Hay que mover la hora</h3>
+  <p><b>«Reprogramar Cita»</b> en la ficha de la cita. El consentimiento firmado se conserva: no se le pide de nuevo.</p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/agenda/&lt;id de la cita&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta">
+          <div class="fuerte">Acciones y Gestión de la Cita</div>
+          <div class="apagado" style="margin-bottom:10px">Gestiona el estado de la cita, registra requisitos legales o reprograma la sesión.</div>
+          <div class="fila" style="margin-bottom:10px"><span class="btn">Ver Consentimiento</span><span class="btn">Ver Tarjeta Profesional</span><span class="btn principal">Reprogramar Cita</span></div>
+          <div class="fila" style="padding-top:10px;border-top:1px solid var(--borde)"><span class="btn">Marcar como Realizada</span><span class="btn">Marcar que No Asistió</span><span class="btn peligro">Cancelar Cita</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption><b>«Reprogramar Cita»</b> abre el cuadro de la nueva fecha. La cita vieja no se borra: queda en el historial como <span class="chip gris">Reprogramada</span> apuntando a la nueva, y la nueva hereda la firma. A los dos les sale el correo de la cita nueva.</figcaption>
+  </figure>
+  <h3>Ella no dejó correo</h3>
+  <p>No recibe nada automático — ni la confirmación ni el recordatorio. La ficha de la cita te lo dice y te pide el WhatsApp. Es su único aviso.</p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/agenda/&lt;id de la cita&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="border-left:4px solid var(--ambar)">
+          <div class="titulillo">Qué toca con esta cita</div>
+          <div class="fuerte" style="font-size:1rem">Ella no tiene correo: confírmasela tú</div>
+          <div class="apagado" style="margin-bottom:10px">Al profesional le llegó su correo con la sala, y a ella no le llegó nada: no dejó correo al pedir ayuda, y darlo es opcional. Este WhatsApp es el único registro que va a tener de su cita hasta el día de la sesión.</div>
+          <div style="font-size:0.82rem;font-weight:700;margin-bottom:4px">Confirmarle la sesión</div>
+          <div class="fila"><span class="btn principal">Abrir WhatsApp</span><span class="btn">Copiar mensaje</span><span class="apagado" style="font-size:0.78rem">Ver el mensaje</span></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>La tarjeta lo dice sin rodeos y con el borde ámbar. Dar correo es opcional al pedir ayuda, así que esto pasa seguido: no es un error, es una persona a la que hay que escribirle.</figcaption>
+  </figure>
+  <h3>El profesional no responde nada</h3>
+  <p>No pasa nada: el caso avanza igual, porque no se le está pidiendo permiso. Lo que sí conviene revisar es que <b>su agenda esté al día</b> — de ahí escoge la persona. Se mira en su ficha.</p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/profesionales/&lt;id del profesional&gt;</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta">
+          <div class="fuerte">Mariana Restrepo Ortiz</div>
+          <div class="apagado" style="margin-bottom:12px">Psicología · Pereira · Virtual · cupo 2/4 · <span class="chip verde">Tarjeta verificada</span></div>
+          <div class="titulillo">Disponibilidad</div>
+          <div class="apagado" style="line-height:1.8">Lunes · 2:00 a 6:00 p. m.<br>Miércoles · 8:00 a. m. a 12:00 m.<br>Viernes · 2:00 a 6:00 p. m.</div>
+        </div>
+        <div class="tarjeta" style="border-left:4px solid var(--rojo)">
+          <div class="titulillo">Disponibilidad</div>
+          <div style="color:var(--rojo);font-weight:700;font-size:0.9rem">Sin franjas cargadas. Sin ellas no se le puede agendar nada.</div>
+        </div>
+      </div>
+    </div>
+    <figcaption>Arriba, una ficha sana: la persona va a escoger entre esas franjas. Abajo, la que hay que atender: <b>sin franjas, su enlace no le enseña ninguna hora</b> y el caso se libera a los tres días sin que ella haya podido elegir. Él puede corregirlas desde su enlace; tú, desde aquí.</figcaption>
+  </figure>
+  <h3>Alguien lleva días sin que nadie lo mire</h3>
+  <p>La lista de <span class="mono">Acompañadas</span> tiene la columna <b>«Qué toca ahora»</b> con lo más urgente de cada caso, y se puede ordenar por eso.</p>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/personas</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta" style="padding:0;overflow:hidden">
+          <div class="fila entre" style="padding:8px 14px;background:#f4f1ea;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;font-weight:800;color:var(--tinta-suave)">
+            <span style="flex:1.6">Persona</span><span style="flex:1.2">Profesional</span><span style="flex:2">Qué toca ahora ▾</span>
+          </div>
+          <div class="fila entre" style="padding:10px 14px;border-top:1px solid var(--borde)">
+            <span style="flex:1.6" class="fuerte">Julián Ospina</span><span style="flex:1.2" class="apagado">Camilo Betancur</span>
+            <span style="flex:2"><span class="chip rojo">Preguntar cómo le fue</span> <span class="apagado" style="font-size:0.76rem">la sesión fue hace 3 días</span></span>
+          </div>
+          <div class="fila entre" style="padding:10px 14px;border-top:1px solid var(--borde)">
+            <span style="flex:1.6" class="fuerte">Sara Múnera</span><span style="flex:1.2" class="apagado">Mariana Restrepo</span>
+            <span style="flex:2"><span class="chip ambar">No ha elegido hora</span> <span class="apagado" style="font-size:0.76rem">el caso se libera mañana</span></span>
+          </div>
+          <div class="fila entre" style="padding:10px 14px;border-top:1px solid var(--borde)">
+            <span style="flex:1.6" class="fuerte">Elena Cardona</span><span style="flex:1.2" class="apagado">—</span>
+            <span style="flex:2"><span class="chip gris">Asignarle profesional</span> <span class="apagado" style="font-size:0.76rem">lleva 3 días</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>La lista ordenada por «Qué toca ahora»: lo rojo es para hoy, lo ámbar para pronto, lo gris cuando se pueda. Es la misma regla que enciende la tarjeta de cada ficha, así que la lista y la ficha nunca dicen cosas distintas. Empezar el día por aquí es la forma de que nadie se quede sin mirar.</figcaption>
+  </figure>
 </details>
 
 <footer>
@@ -1113,6 +1247,20 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   // abren todos. Sin esto, el índice llevaría a una caja cerrada y la
   // impresión saldría con los títulos y nada más.
   (function () {
+    var capitulos = Array.prototype.slice.call(document.querySelectorAll('details.capitulo'));
+    var imprimiendo = false;
+    var abiertosAntesDeImprimir = [];
+
+    // Acordeón: cargan todos plegados y solo uno está abierto a la vez. Un
+    // manual con cuatro capítulos largos desplegados es una pared; con uno
+    // solo abierto, el índice y los títulos hacen de mapa.
+    capitulos.forEach(function (d) {
+      d.addEventListener('toggle', function () {
+        if (!d.open || imprimiendo) return;
+        capitulos.forEach(function (o) { if (o !== d) o.open = false; });
+      });
+    });
+
     function abrirDestino() {
       var id = location.hash.replace('#', '');
       if (!id) return;
@@ -1124,8 +1272,16 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     }
     window.addEventListener('hashchange', abrirDestino);
     window.addEventListener('load', abrirDestino);
+
+    // Impreso, todo abierto —y al volver, como estaba—.
     window.addEventListener('beforeprint', function () {
-      document.querySelectorAll('details.capitulo').forEach(function (d) { d.open = true; });
+      imprimiendo = true;
+      abiertosAntesDeImprimir = capitulos.filter(function (d) { return d.open; });
+      capitulos.forEach(function (d) { d.open = true; });
+    });
+    window.addEventListener('afterprint', function () {
+      capitulos.forEach(function (d) { d.open = abiertosAntesDeImprimir.indexOf(d) >= 0; });
+      imprimiendo = false;
     });
   })();
 </script>
