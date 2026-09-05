@@ -482,6 +482,10 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     Busca con el número de cédula que aparece en el documento de identidad que subió, y
     compara: <b>el nombre del registro tiene que ser el mismo</b> que el del documento.
   </p>
+  <p class="apagado">
+    ¿Los documentos no son de Colombia ni de Perú? Ninguno de los cuatro sitios sirve. Está
+    resuelto en <a href="#cuando-falla">«Cuando algo se sale del carril»</a>.
+  </p>
 
   <h3>5 · Aprobar</h3>
   <div class="paso">
@@ -662,14 +666,25 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   <h3>Paso 1 · Llega la solicitud</h3>
   <h4>Quién · La persona, sola, desde el sitio</h4>
   <p>
-    Llena «Necesito ayuda» en <span class="mono">redaquiestamos.org</span>. Queda registrada
-    en <span class="mono">Solicitudes</span> y a coordinación le llega un correo.
+    Llena «Necesito ayuda» en <span class="mono">redaquiestamos.org</span>. Ese formulario
+    <b>ya trae el tamizaje</b> —son obligatorias— : cómo se siente hoy del 1 al 5, si ha
+    pensado en hacerse daño, qué tan pronto necesita hablar con alguien y si está en un lugar
+    seguro. Con eso llega todo lo que hace falta para decidir la prioridad.
   </p>
   <h4>Qué haces tú</h4>
   <p>
-    Entrar a <span class="mono">Solicitudes</span> y mandarle el <b>enlace de tamizaje</b> por
-    WhatsApp: son 7 preguntas cortas que se responden en un minuto desde el celular.
+    <b>Nada obligatorio.</b> No hay que mandarle ningún enlace: con las respuestas del
+    formulario el sistema calcula la prioridad y la admite en el mismo instante. Lo que sí
+    conviene es entrar a <span class="mono">Solicitudes</span> y mirar con qué prioridad
+    llegó — y si llegó con riesgo, atenderla hoy.
   </p>
+  <div class="aviso ojo">
+    <b>«Preguntar» es la excepción, no el paso.</b>
+    Ese botón solo aparece en las filas que llegaron <b>sin</b> las respuestas del tamizaje
+    —registros viejos, o cargados por otra vía— y salen como <span class="chip ambar">Pendiente</span>.
+    Solo a esas se les manda el enlace. Si tampoco responden, a los 2 días el sistema las
+    admite igual con prioridad preventiva.
+  </div>
 
   <figure class="pantalla">
     <div class="marco">
@@ -698,25 +713,28 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
       </div>
     </div>
     <figcaption>
-      Cada solicitud es una fila. <b>«Preguntar»</b> arma el WhatsApp con el enlace del
-      tamizaje; si ya se mandó, el botón pasa a decir «Reenviar». La segunda fila ya
-      respondió: el sistema la admitió solo y le puso prioridad — de ahí en adelante vive en
-      <span class="mono">Acompañadas</span>, no aquí.
+      Cada solicitud es una fila. La de abajo es <b>el caso normal</b>: llegó por el
+      formulario con el tamizaje respondido, el sistema le puso prioridad y la admitió solo —
+      de ahí en adelante vive en <span class="mono">Acompañadas</span>. La de arriba es la
+      excepción: llegó sin respuestas y sale «Pendiente» con el botón <b>«Preguntar»</b>, que
+      arma el WhatsApp con el enlace (y pasa a decir «Reenviar» si ya se mandó).
     </figcaption>
   </figure>
 
   <h3>Paso 2 · Admisión</h3>
-  <h4>Quién · El sistema</h4>
+  <h4>Quién · El sistema, en el mismo instante en que ella envía el formulario</h4>
   <p>
     Con las respuestas calcula la prioridad —<span class="chip rojo">Alta</span>
     <span class="chip ambar">Media</span> <span class="chip gris">Baja</span>— y la admite
     sola. Pasa a la columna <b>«Por Asignar»</b> del tablero y ya existe como persona
-    acompañada.
+    acompañada. Para quien llega por el sitio, los pasos 1 y 2 ocurren juntos y sin que
+    nadie toque nada: lo primero que ve coordinación es una persona admitida con su
+    prioridad puesta.
   </p>
   <div class="aviso ojo">
-    <b>Si no responde el tamizaje, no se queda esperando.</b>
-    A los 2 días el sistema la admite igual, con prioridad preventiva. Nadie se queda fuera
-    por no contestar un formulario.
+    <b>Y si llegó sin tamizaje, tampoco se queda esperando.</b>
+    A los 2 días de mandarle el enlace sin respuesta, el sistema la admite igual con
+    prioridad preventiva. Nadie se queda fuera por no contestar un formulario.
   </div>
   <div class="aviso stop">
     <b>Si el tamizaje detecta riesgo</b>
@@ -1231,6 +1249,74 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
       </div>
     </div>
     <figcaption>La lista ordenada por «Qué toca ahora»: lo rojo es para hoy, lo ámbar para pronto, lo gris cuando se pueda. Es la misma regla que enciende la tarjeta de cada ficha, así que la lista y la ficha nunca dicen cosas distintas. Empezar el día por aquí es la forma de que nadie se quede sin mirar.</figcaption>
+  </figure>
+
+  <h3>El profesional no tiene documentos de Colombia ni de Perú</h3>
+  <p>
+    Los cuatro sitios de Verificaciones cubren dos países. Cuando se postula alguien de otro
+    —Ecuador, Venezuela, Argentina, España…— <b>ninguno sirve</b>, y la tarjeta no se puede
+    aprobar por descarte. En ese orden:
+  </p>
+  <div class="paso">
+    <div class="paso__n">1</div>
+    <div class="paso__c"><p><b>Busca en la web el registro oficial de ese país.</b> Casi todos tienen uno: el colegio de psicólogos, el ministerio de salud o el registro de títulos. Busca «verificar tarjeta profesional psicólogo» o «registro de profesionales de la salud» con el nombre del país.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso__n">2</div>
+    <div class="paso__c"><p><b>Si lo encuentras</b>, verifica ahí igual que con Colpsic —cédula o número de registro, y el nombre tiene que coincidir— y <b>pásalo por el grupo de WhatsApp de Aquí Estamos</b> con el enlace, para que se agregue a la lista de sitios del portal. Así la próxima persona de ese país ya lo tiene a un clic. Hoy esa lista vive en el portal y la agrega el equipo; no se puede añadir desde la pantalla.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso__n">3</div>
+    <div class="paso__c"><p><b>Si no lo encuentras</b>, escríbelo en el mismo grupo: nombre, país, qué documentos subió y qué sitios probaste. Que lo resuelva el equipo, no uno solo.</p></div>
+  </div>
+  <div class="aviso stop">
+    <b>Mientras tanto, no se aprueba.</b>
+    La tarjeta se queda en «Pendientes de aprobación» y él no recibe casos. Es preferible una
+    semana de espera a un acompañamiento con alguien que no sabemos si puede ejercer.
+  </div>
+  <figure class="pantalla">
+    <div class="marco">
+      <div class="barra">
+        <span class="semaforo"><i style="background:#e0685f"></i><i style="background:#e5b04b"></i><i style="background:#68b96a"></i></span>
+        <span class="url">redaquiestamos.org/portal/verificaciones</span>
+      </div>
+      <div class="lienzo">
+        <div class="tarjeta">
+          <div class="fuerte" style="margin-bottom:6px">Sitios Oficiales para Verificación</div>
+          <div class="fila">
+            <span class="chip verde">🇨🇴 Colpsic</span>
+            <span class="chip azul">🇨🇴 ReTHUS</span>
+            <span class="chip rojo">🇵🇪 CPSP</span>
+            <span class="chip gris">🇵🇪 SUNEDU</span>
+          </div>
+        </div>
+        <div class="tarjeta" style="border-left:4px solid var(--ambar)">
+          <div class="fila" style="align-items:flex-start;gap:14px">
+            <div class="fila" style="gap:6px">
+              <span class="doc">Título / registro (Ecuador)</span>
+              <span class="doc">Cédula (Ecuador)</span>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <div class="fuerte">Valentina Rojas Peña</div>
+              <div class="apagado">Psicología · Cuenca, Ecuador · +593 99 000 0000</div>
+              <div class="apagado">Experiencia: 4 años · Subió sus documentos el 3 de septiembre</div>
+              <div class="fila" style="margin-top:8px">
+                <span class="campo">Nº de tarjeta profesional</span>
+                <span class="btn apagado">Aprobar verificación</span>
+                <span class="btn">Mover a Voluntariado</span>
+                <span class="btn">Rechazar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption>
+      Una tarjeta pendiente con documentos de Ecuador: <b>ninguno de los cuatro sitios de
+      arriba aplica</b>. No se aprueba por descarte ni se rechaza por no saber: se busca el
+      registro de ese país, y si no aparece, se lleva al grupo. Aprobar queda para cuando
+      alguien lo haya comprobado.
+    </figcaption>
   </figure>
 </details>
 

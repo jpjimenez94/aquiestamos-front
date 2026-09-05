@@ -139,19 +139,23 @@ export function ProcesosClient() {
           detalle: 'Queda una solicitud registrada y coordinación recibe la notificación con sus datos de contacto y motivo.',
         },
         {
-          quien: 'Coordinación',
-          rolTag: 'coordinacion',
-          titulo: 'Le envía el enlace de tamizaje por WhatsApp',
-          detalle: 'Un enlace personal y seguro con 7 preguntas breves de escala y bienestar, diseñado para responderse en 1 minuto desde el celular.',
+          quien: 'El formulario',
+          rolTag: 'sistema',
+          titulo: 'Ya trae el tamizaje: no hay que mandarle nada',
+          // Decía «Coordinación le envía el enlace de tamizaje por WhatsApp» como
+          // paso normal. No lo es: las cuatro preguntas del tamizaje son
+          // obligatorias en «Necesito ayuda», y el back las lee y admite en el
+          // mismo envío. El enlace queda solo para lo que llegó sin ellas.
+          detalle: 'Cómo se siente hoy del 1 al 5, si ha pensado en hacerse daño, qué tan pronto necesita hablar y si está en un lugar seguro: van en el mismo formulario y son obligatorias. Con eso el sistema tiene todo para decidir la prioridad.',
           desvios: [
-            { tono: 'reloj', titulo: '2 días sin responder:', texto: 'el barrido automático del sistema la admite igual con prioridad preventiva y la marca para llamada.' },
+            { tono: 'reloj', titulo: 'Si llegó sin tamizaje (registros viejos u otra vía):', texto: 'en Solicitudes sale «Pendiente» y ahí sí se le manda el enlace con «Preguntar». A los 2 días sin respuesta el barrido la admite igual, con prioridad preventiva.' },
           ],
         },
         {
           quien: 'El sistema',
           rolTag: 'sistema',
-          titulo: 'Calcula la prioridad y admite de forma automática',
-          detalle: 'Con las respuestas se determina la prioridad (ALTA, MEDIA, BAJA) y la persona pasa a la columna «Por Asignar» del tablero.',
+          titulo: 'Calcula la prioridad y admite en el mismo instante',
+          detalle: 'Con las respuestas se determina la prioridad (ALTA, MEDIA, BAJA) y la persona pasa a la columna «Por Asignar» del tablero en el mismo envío del formulario. Lo primero que ve coordinación es una persona ya admitida con su prioridad puesta.',
           desvios: [
             { tono: 'alerta', titulo: 'Riesgo detectado:', texto: 'la pantalla ofrece de inmediato las líneas de emergencia (106 / 123) y coordinación recibe un aviso prioritario.' },
             { tono: 'logro', titulo: 'Resultado:', texto: 'Persona admitida y disponible en la lista de Personas Acompañadas.' },
