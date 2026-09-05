@@ -1776,22 +1776,29 @@ export function mensajeDeOfrecerCuidado(d: {
   plantilla?: string
 }): string {
   const nombre = nombreDePila(d.profesional) || 'hola'
-  const variables = {
-    profesional: nombre,
-    sesiones: String(d.sesiones),
-    enlace: d.enlace,
-  }
+
+  /**
+   * La palabra va DENTRO de la variable: «1 sesión», «4 sesiones».
+   *
+   * La plantilla decía «{sesiones} sesiones» y a quien llevaba una le llegaba
+   * «Llevas 1 sesiones acompañando». El plural no se puede resolver desde una
+   * plantilla de texto —quien la edita no escribe código—, así que se resuelve
+   * aquí, como ya se hace con la fecha y la modalidad.
+   */
+  const sesiones = `${d.sesiones} ${d.sesiones === 1 ? 'sesión' : 'sesiones'}`
+
+  const variables = { profesional: nombre, sesiones, enlace: d.enlace }
   if (d.plantilla?.trim()) return renderPlantilla(d.plantilla, variables)
 
   return [
     `Hola ${nombre} 👋`,
     '',
-    `Llevas ${d.sesiones} sesiones acompañando en la red, y queríamos preguntarte cómo estás *tú*.`,
+    `Llevas ${sesiones} acompañando en la red, y queríamos preguntarte cómo estás *tú*.`,
     '',
     'Si te sirve, hay un espacio para eso: pedir apoyo, pensar un caso difícil con otros psicólogos, o simplemente descargarte. Lo cuadramos en una sesión grupal con alguien de la red.',
     '',
-    `Entra aquí y lo encuentras al final: ${d.enlace}`,
+    `Aquí lo tienes: ${d.enlace}`,
     '',
-    'Si ahora no lo necesitas, no pasa nada. Queda ahí para cuando quieras.',
+    'Es tuyo y te sirve siempre, así que guárdalo. Y si ahora no lo necesitas, no pasa nada: queda ahí para cuando quieras.',
   ].join('\n')
 }

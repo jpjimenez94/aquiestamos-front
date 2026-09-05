@@ -20,6 +20,7 @@ import {
   mensajeRecordatorioPrevioCitaProfesional,
   mensajeRecordatorioPrevioCitaPersona,
   mensajeContactoColaborador,
+  mensajeDeOfrecerCuidado,
 } from '../lib/mensajes'
 import { LINEAS_EMERGENCIA } from '../lib/consentimiento'
 
@@ -842,5 +843,56 @@ describe('mensaje de contacto al voluntariado de apoyo', () => {
   it('pide apoyo con la operación detrás del proyecto, no solo un saludo', () => {
     const texto = mensajeContactoColaborador({ nombre: 'Karen' })
     expect(texto.toLowerCase()).toContain('operación')
+  })
+})
+
+/**
+ * Ofrecerle a quien acompaña el espacio «¿Cómo estás tú?».
+ *
+ * A Jean, que llevaba una sesión, le llegó «Llevas 1 sesiones acompañando».
+ * El número salía de la base y la palabra estaba escrita a mano en la
+ * plantilla, así que el plural no cuadraba nunca para quien llevaba una — que
+ * hoy son casi todos. La palabra viaja dentro de la variable: quien edita el
+ * texto en Parametrización escribe «Llevas {sesiones} acompañando» y no tiene
+ * que resolver ninguna concordancia.
+ */
+describe('mensaje de ofrecer el espacio de cuidado', () => {
+  const enlace = 'https://redaquiestamos.org/cuidado/abc'
+
+  it('con una sesión dice «1 sesión», no «1 sesiones»', () => {
+    const texto = mensajeDeOfrecerCuidado({ profesional: 'Jean Carlos Ruiz', sesiones: 1, enlace })
+    expect(texto).toContain('Llevas 1 sesión acompañando')
+    expect(texto).not.toContain('1 sesiones')
+  })
+
+  it('con varias mantiene el plural', () => {
+    const texto = mensajeDeOfrecerCuidado({ profesional: 'Jean', sesiones: 4, enlace })
+    expect(texto).toContain('Llevas 4 sesiones acompañando')
+  })
+
+  it('la palabra viaja dentro de la variable, para que la plantilla no la escriba', () => {
+    const plantilla = 'Llevas {sesiones} en la red. {enlace}'
+    expect(mensajeDeOfrecerCuidado({ profesional: 'Jean', sesiones: 1, enlace, plantilla })).toContain(
+      'Llevas 1 sesión en la red',
+    )
+    expect(mensajeDeOfrecerCuidado({ profesional: 'Jean', sesiones: 3, enlace, plantilla })).toContain(
+      'Llevas 3 sesiones en la red',
+    )
+  })
+
+  it('saluda por el nombre de pila y le deja su enlace', () => {
+    const texto = mensajeDeOfrecerCuidado({ profesional: 'Jean Carlos Ruiz', sesiones: 2, enlace })
+    expect(texto).toContain('Hola Jean')
+    expect(texto).not.toContain('Ruiz')
+    expect(texto).toContain(enlace)
+  })
+
+  /**
+   * El enlace es de él, no de un caso: no caduca con el acompañamiento y le
+   * sirve mientras siga en la red. Si el mensaje no se lo dice, lo borra.
+   */
+  it('le dice que el enlace es suyo y que lo guarde', () => {
+    const texto = mensajeDeOfrecerCuidado({ profesional: 'Jean', sesiones: 2, enlace }).toLowerCase()
+    expect(texto).toContain('guárdalo')
   })
 })
