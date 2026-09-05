@@ -266,36 +266,27 @@ export function LateralPortal({
     useState<ContadoresBadges>(contadoresIniciales);
 
   /**
-   * Los grupos del menú se pliegan desde su título y se quedan como los
-   * dejaste: seis grupos con veinte enlaces desplegados eran una columna que
-   * había que recorrer con los ojos cada vez. Se recuerda en el navegador,
-   * no en la cuenta: es una comodidad de esta pantalla, no un dato.
+   * El menú es un acordeón: carga plegado y solo un grupo está abierto a la
+   * vez. Seis grupos con veinte enlaces desplegados eran una columna que
+   * había que recorrer con los ojos cada vez; con uno solo abierto, los
+   * títulos hacen de mapa —igual que los capítulos del manual—.
    *
-   * El grupo donde estás nunca se pliega solo: si te lo escondieras, no
-   * sabrías dónde estás.
+   * Al cargar y al cambiar de ruta se abre el grupo donde estás: si no, no
+   * sabrías dónde estás. Abrir otro cierra ese; tocar el abierto lo pliega.
+   * No se guarda nada: el grupo abierto sale de la ruta, y recordarlo entre
+   * visitas pelearía con eso.
    */
-  const CLAVE_PLEGADOS = "portal:grupos-plegados";
-  const [plegados, setPlegados] = useState<Set<string>>(() => new Set());
+  const [grupoAbierto, setGrupoAbierto] = useState<string | null>(null);
   useEffect(() => {
-    try {
-      const guardado = window.localStorage.getItem(CLAVE_PLEGADOS);
-      if (guardado) setPlegados(new Set(JSON.parse(guardado) as string[]));
-    } catch {
-      /* sin almacenamiento, el menú arranca desplegado y ya */
-    }
-  }, []);
+    const activo = GRUPOS.find((g) =>
+      g.enlaces.some((e) =>
+        e.href === "/portal" ? ruta === "/portal" : ruta.startsWith(e.href),
+      ),
+    );
+    setGrupoAbierto(activo?.titulo ?? null);
+  }, [ruta]);
   function alternarGrupo(titulo: string) {
-    setPlegados((prev) => {
-      const siguiente = new Set(prev);
-      if (siguiente.has(titulo)) siguiente.delete(titulo);
-      else siguiente.add(titulo);
-      try {
-        window.localStorage.setItem(CLAVE_PLEGADOS, JSON.stringify([...siguiente]));
-      } catch {
-        /* igual funciona, solo no se recuerda */
-      }
-      return siguiente;
-    });
+    setGrupoAbierto((prev) => (prev === titulo ? null : titulo));
   }
   const ultimoSonidoRef = useRef<number>(0);
   const contadoresAnterioresRef =
@@ -427,10 +418,7 @@ export function LateralPortal({
             });
             if (visibles.length === 0) return null;
 
-            const contieneLaActiva = visibles.some((e) =>
-              e.href === "/portal" ? ruta === "/portal" : ruta.startsWith(e.href),
-            );
-            const plegado = plegados.has(grupo.titulo) && !contieneLaActiva;
+            const plegado = grupoAbierto !== grupo.titulo;
 
             return (
               <div key={grupo.titulo}>
