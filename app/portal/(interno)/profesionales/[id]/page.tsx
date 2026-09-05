@@ -32,6 +32,9 @@ type Profesional = {
   estadoLegible: string
   maxActiveCases: number
   carga: number
+  /** Sesiones hechas en la red y desde cuántas se le abre «¿Cómo estás tú?». */
+  sesionesHechas?: number
+  umbralCheckIn?: number
   /** Cuidado del equipo: si se ofreció a facilitar sesiones grupales. */
   supervisorVolunteer?: boolean
   supervisorVolunteerAt?: string | null
@@ -134,10 +137,24 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
             {p.carga} de {p.maxActiveCases} acompañamientos
           </Dato>
           {/*
-            Cuidado del equipo: si se ofreció a facilitar sesiones grupales.
-            Él lo marca desde su enlace; esto es para cuando lo dijo por
-            WhatsApp y coordinación lo apunta por él. Sin permiso de gestionar,
-            solo se ve.
+            Con la regla de Cuidado del equipo (reporte, casilla o los dos en
+            la sala). Es lo que responde «¿ya se le abre el espacio?» sin tener
+            que preguntarlo.
+          */}
+          <Dato etiqueta="Sesiones hechas en la red">
+            {p.sesionesHechas ?? 0}
+            {typeof p.umbralCheckIn === 'number' ? (
+              <span className="tabla__secundario" style={{ display: 'block' }}>
+                {(p.sesionesHechas ?? 0) >= p.umbralCheckIn
+                  ? 'Ya se le abre el espacio «¿Cómo estás tú?» en su enlace'
+                  : `El espacio «¿Cómo estás tú?» se le abre a partir de ${p.umbralCheckIn}`}
+              </span>
+            ) : null}
+          </Dato>
+          {/*
+            Cuidado del equipo: si está marcado para facilitar sesiones
+            grupales. Es la única puerta —al profesional no se le pregunta
+            desde su enlace—. Sin permiso de gestionar, solo se ve.
           */}
           <Dato etiqueta="Supervisor de sesiones grupales">
             <BotonSupervisor

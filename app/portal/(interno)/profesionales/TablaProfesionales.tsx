@@ -30,9 +30,11 @@ export type Profesional = {
   estadoLegible: string
   maxActiveCases: number
   carga: number
+  /** Sesiones hechas en la red, con la regla de Cuidado del equipo. */
+  sesionesHechas?: number
 }
 
-type ColumnaOrden = 'profesional' | 'poblaciones' | 'modalidad' | 'carga' | 'tarjeta' | 'estado'
+type ColumnaOrden = 'profesional' | 'poblaciones' | 'modalidad' | 'carga' | 'sesiones' | 'tarjeta' | 'estado'
 
 const estiloInputFiltro: React.CSSProperties = {
   width: '100%',
@@ -143,6 +145,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
       // La carga se mira como fracción del cupo: 3 de 4 está más lleno que 3
       // de 10, y ordenar por el número suelto los pondría juntos.
       carga: (p) => (p.maxActiveCases > 0 ? p.carga / p.maxActiveCases : p.carga),
+      sesiones: (p) => p.sesionesHechas ?? 0,
       tarjeta: (p) =>
         `${p.professionalCardVerified ? '1' : '0'}|${p.professionalCardVerifiedAt || ''}|${p.professionalCardNumber || ''}`,
       estado: (p) => p.status,
@@ -230,6 +233,16 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                   Carga
                   <IconoOrden col="carga" />
+                </span>
+              </th>
+              <th
+                onClick={() => alternarOrden('sesiones')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '9%' }}
+                title="Sesiones hechas en la red. A partir del umbral de Parametrización se le abre «¿Cómo estás tú?»"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Sesiones
+                  <IconoOrden col="sesiones" />
                 </span>
               </th>
               <th
@@ -404,6 +417,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                       </span>
                     ) : null}
                   </td>
+                  <td className="tabla__numero">{p.sesionesHechas ?? 0}</td>
                   <td>
                     <BotonVerificarTarjeta
                       profesionalId={p.id}
