@@ -17,6 +17,7 @@ import {
   enlaceWhatsapp,
 } from '@/lib/mensajes'
 import { momentoDeLaCita, CITAS_RESUELTAS } from '@/lib/momentoDeLaCita'
+import { BurbujaWhatsApp } from '@/components/portal/BurbujaWhatsApp'
 
 /**
  * Los mensajes que salen desde el detalle de la cita.
@@ -491,7 +492,16 @@ function Mensaje({
         </button>
       </div>
 
-      {verTexto ? <pre className="mensaje__texto">{texto}</pre> : null}
+      {/*
+        Se ve como se va a ver: el simulador, no un bloque de texto plano. Los
+        asteriscos de WhatsApp salen en negrita aquí igual que le van a salir a
+        quien lo reciba, así que se nota si un *énfasis* quedó abierto.
+      */}
+      {verTexto ? (
+        <div style={{ marginTop: 10 }}>
+          <BurbujaWhatsApp texto={texto} />
+        </div>
+      ) : null}
     </div>
   )
 }

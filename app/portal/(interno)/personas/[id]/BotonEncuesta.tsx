@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Check, Copy, MessageCircle } from 'lucide-react'
 import { mensajeDeEncuesta, enlaceWhatsapp } from '@/lib/mensajes'
+import { BurbujaWhatsApp } from '@/components/portal/BurbujaWhatsApp'
 
 /**
  * El mensaje de la encuesta del cierre, listo para mandar. El mismo trío de
@@ -65,7 +66,11 @@ export function BotonEncuesta({
           {verTexto ? 'Ocultar' : 'Ver el mensaje'}
         </button>
       </div>
-      {verTexto ? <pre className="mensaje__texto">{texto}</pre> : null}
+      {verTexto ? (
+        <div style={{ marginTop: 10 }}>
+          <BurbujaWhatsApp texto={texto} />
+        </div>
+      ) : null}
     </div>
   )
 }

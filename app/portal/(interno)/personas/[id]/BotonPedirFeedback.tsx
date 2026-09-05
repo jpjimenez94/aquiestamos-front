@@ -4,6 +4,7 @@ import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
 import { Check, Copy, MessageCircle, Eye, EyeOff } from 'lucide-react'
 import { mensajeDePedirFeedbackALaPersona, enlaceWhatsapp } from '@/lib/mensajes'
+import { BurbujaWhatsApp } from '@/components/portal/BurbujaWhatsApp'
 
 export function BotonPedirFeedback({
   persona,
@@ -78,22 +79,9 @@ export function BotonPedirFeedback({
       </div>
 
       {verTexto && (
-        <pre
-          className="mensaje__cuerpo"
-          style={{
-            marginTop: 10,
-            marginBottom: 0,
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'inherit',
-            fontSize: '0.78rem',
-            background: '#ffffff',
-            padding: 10,
-            borderRadius: 6,
-            border: '1px solid #86efac',
-          }}
-        >
-          {texto}
-        </pre>
+        <div style={{ marginTop: 10 }}>
+          <BurbujaWhatsApp texto={texto} />
+        </div>
       )}
     </div>
   )

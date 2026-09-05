@@ -5,6 +5,7 @@ import { Copy, Check, MessageSquare, Send } from 'lucide-react'
 import { usePlantillas } from '@/components/portal/Plantillas'
 import { mensajeDeOfrecerCuidado, enlaceWhatsapp } from '@/lib/mensajes'
 import { nombrePropio } from '@/lib/nombre'
+import { BurbujaWhatsApp } from '@/components/portal/BurbujaWhatsApp'
 import { Vacio } from '../componentes'
 
 /**
@@ -139,17 +140,9 @@ function Fila({ profesional, plantilla }: { profesional: Profesional; plantilla?
       </div>
 
       {verTexto ? (
-        <pre
-          style={{
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'inherit',
-            fontSize: '0.86rem',
-            color: '#475569',
-            margin: '10px 0 0',
-          }}
-        >
-          {texto}
-        </pre>
+        <div style={{ marginTop: 10 }}>
+          <BurbujaWhatsApp texto={texto} />
+        </div>
       ) : null}
     </div>
   )
