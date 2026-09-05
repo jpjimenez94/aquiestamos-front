@@ -222,6 +222,37 @@ const GRUPOS: { titulo: string; icono: React.ReactNode; enlaces: Enlace[] }[] = 
   },
 ];
 
+/**
+ * El grupo que arranca abierto. «Operación» es donde está el trabajo del día
+ * —solicitudes, postulaciones, verificaciones, cuidado del equipo—, y es la
+ * primera pregunta al abrir el portal: qué hay pendiente.
+ *
+ * Si un rol no lo ve —Líderes Comunitarios solo abre su módulo—, no se fuerza
+ * nada: se abre el primer grupo que ese rol sí ve. Un menú que arranca con
+ * todo plegado porque el único abierto está oculto no ayuda a nadie.
+ */
+const GRUPO_POR_DEFECTO = "Operación";
+
+/** Qué enlaces de un grupo ve este usuario. Una sola regla para todo el menú. */
+function enlacesVisibles(grupo: (typeof GRUPOS)[number], usuario: Usuario) {
+  const listaRoles =
+    Array.isArray((usuario as any).roles) && (usuario as any).roles.length > 0
+      ? (usuario as any).roles
+      : [usuario.role];
+  return grupo.enlaces.filter((e) => {
+    const tienePermiso = !e.permiso || puede(usuario, e.permiso);
+    const rolPermitido = !e.soloRoles || e.soloRoles.some((r: any) => listaRoles.includes(r));
+    return tienePermiso && rolPermitido;
+  });
+}
+
+/** El que abre al cargar: «Operación» si lo ve, y si no el primero que sí vea. */
+function grupoInicial(usuario: Usuario): string | null {
+  const conEnlaces = GRUPOS.filter((g) => enlacesVisibles(g, usuario).length > 0);
+  const porDefecto = conEnlaces.find((g) => g.titulo === GRUPO_POR_DEFECTO);
+  return (porDefecto ?? conEnlaces[0])?.titulo ?? null;
+}
+
 function puede(usuario: Usuario, permiso: string) {
   return usuario.permisos.includes("*") || usuario.permisos.includes(permiso);
 }
@@ -280,25 +311,21 @@ export function LateralPortal({
     useState<ContadoresBadges>(contadoresIniciales);
 
   /**
-   * El menú es un acordeón: carga plegado y solo un grupo está abierto a la
-   * vez. Seis grupos con veinte enlaces desplegados eran una columna que
-   * había que recorrer con los ojos cada vez; con uno solo abierto, los
-   * títulos hacen de mapa —igual que los capítulos del manual—.
+   * El menú es un acordeón: solo un grupo abierto a la vez. Seis grupos con
+   * veinte enlaces desplegados eran una columna que había que recorrer con los
+   * ojos cada vez; con uno solo abierto, los títulos hacen de mapa —igual que
+   * los capítulos del manual—.
    *
-   * Al cargar y al cambiar de ruta se abre el grupo donde estás: si no, no
-   * sabrías dónde estás. Abrir otro cierra ese; tocar el abierto lo pliega.
-   * No se guarda nada: el grupo abierto sale de la ruta, y recordarlo entre
-   * visitas pelearía con eso.
+   * Al cargar abre «Operación» y solo ese: es donde está el trabajo del día.
+   * Abría el grupo de la ruta, y entrar a la ficha de una persona dejaba
+   * abierto «Personas» —lo que se estaba mirando, no lo que toca hacer—.
+   *
+   * Después manda quien lo usa: abrir otro cierra ese, y tocar el abierto lo
+   * pliega. Navegar NO lo mueve, a propósito: si al entrar a una ficha desde
+   * el tablero el menú saltara solo, escondería el grupo que el propio usuario
+   * acababa de abrir.
    */
-  const [grupoAbierto, setGrupoAbierto] = useState<string | null>(null);
-  useEffect(() => {
-    const activo = GRUPOS.find((g) =>
-      g.enlaces.some((e) =>
-        e.href === "/portal" ? ruta === "/portal" : ruta.startsWith(e.href),
-      ),
-    );
-    setGrupoAbierto(activo?.titulo ?? null);
-  }, [ruta]);
+  const [grupoAbierto, setGrupoAbierto] = useState<string | null>(() => grupoInicial(usuario));
   function alternarGrupo(titulo: string) {
     setGrupoAbierto((prev) => (prev === titulo ? null : titulo));
   }
@@ -419,17 +446,7 @@ export function LateralPortal({
 
         <nav className="portal__nav">
           {GRUPOS.map((grupo) => {
-            const visibles = grupo.enlaces.filter((e) => {
-              const tienePermiso = !e.permiso || puede(usuario, e.permiso);
-              const listaRoles =
-                Array.isArray((usuario as any).roles) &&
-                (usuario as any).roles.length > 0
-                  ? (usuario as any).roles
-                  : [usuario.role];
-              const rolPermitido =
-                !e.soloRoles || e.soloRoles.some((r: any) => listaRoles.includes(r));
-              return tienePermiso && rolPermitido;
-            });
+            const visibles = enlacesVisibles(grupo, usuario);
             if (visibles.length === 0) return null;
 
             const plegado = grupoAbierto !== grupo.titulo;
