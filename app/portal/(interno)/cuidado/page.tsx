@@ -7,6 +7,7 @@ import { ConvocarSesion } from './ConvocarSesion'
 import { OfrecerElEspacio } from './OfrecerElEspacio'
 import { AccionesSesion } from './AccionesSesion'
 import { EscribirAlSupervisor } from './EscribirAlSupervisor'
+import { AvisarDeLaSesion } from './AvisarDeLaSesion'
 
 export const metadata = { title: 'Cuidado del equipo' }
 
@@ -47,13 +48,13 @@ type Supervisor = {
 
 type Sesion = {
   id: string
-  facilitador: { id: string; fullName: string }
+  facilitador: { id: string; fullName: string; phone?: string | null }
   inicio: string
   fin: string
   enlace: string
   agenda: string | null
   estado: 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA'
-  invitados: { id: string; nombre: string; asistio: boolean | null }[]
+  invitados: { id: string; nombre: string; telefono?: string | null; asistio: boolean | null }[]
   creadaPor: string | null
   creadaEl: string
 }
@@ -232,7 +233,9 @@ export default async function CuidadoPage() {
         </h2>
         <p className="panel__nota">
           Las convoca coordinación con un facilitador, una hora y el enlace de la reunión. Llegan
-          con la agenda que dejaron los invitados.
+          con la agenda que dejaron los invitados. Al convocar sale un correo a cada uno con la
+          hora y el enlace; desde la tarjeta puedes mandarles lo mismo por WhatsApp, que es
+          donde de verdad lo leen.
         </p>
 
         {programadas.length === 0 && pasadas.length === 0 ? (
@@ -308,6 +311,32 @@ function TarjetaSesion({ sesion, gestiona }: { sesion: Sesion; gestiona: boolean
             {sesion.agenda}
           </pre>
         </details>
+      ) : null}
+
+      {/*
+        Mandarles la convocatoria por donde la leen. Solo en las programadas:
+        avisar de una sesión que ya pasó o se canceló no le sirve a nadie.
+      */}
+      {gestiona && sesion.estado === 'PROGRAMADA' ? (
+        <AvisarDeLaSesion
+          cuando={enBogota(sesion.inicio)}
+          facilitador={sesion.facilitador.fullName}
+          enlace={sesion.enlace}
+          destinatarios={[
+            ...sesion.invitados.map((i) => ({
+              id: i.id,
+              nombre: i.nombre,
+              telefono: i.telefono ?? null,
+              papel: 'invitado',
+            })),
+            {
+              id: sesion.facilitador.id,
+              nombre: sesion.facilitador.fullName,
+              telefono: sesion.facilitador.phone ?? null,
+              papel: 'facilita',
+            },
+          ]}
+        />
       ) : null}
 
       {gestiona && sesion.estado === 'PROGRAMADA' ? (

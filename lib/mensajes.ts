@@ -1833,3 +1833,40 @@ export function mensajeDeSupervisorMarcado(d: {
     '¿Te parece? Y si prefieres que te quitemos de la lista, dínoslo sin problema.',
   ].join('\n')
 }
+
+/**
+ * Convocar a la sesión grupal: la hora, quién facilita y el enlace.
+ *
+ * Al convocar sale un correo automático a cada invitado y al facilitador. Este
+ * es el mismo aviso por donde de verdad se lee: quien acompaña vive en
+ * WhatsApp, y la convocatoria era lo único de la red que viajaba solo por
+ * correo — con el enlace de la reunión dentro.
+ */
+export function mensajeDeSesionGrupal(d: {
+  profesional: string
+  cuando: string
+  facilitador: string
+  enlace: string
+  plantilla?: string
+}): string {
+  const nombre = nombreDePila(d.profesional) || 'hola'
+  const variables = {
+    profesional: nombre,
+    cuando: d.cuando,
+    facilitador: nombreDePila(d.facilitador) || d.facilitador,
+    enlace: d.enlace,
+  }
+  if (d.plantilla?.trim()) return renderPlantilla(d.plantilla, variables)
+
+  return [
+    `Hola ${nombre} 👋`,
+    '',
+    `Ya quedó la sesión grupal de seguimiento: *${d.cuando}*, hora de Colombia. La facilita ${variables.facilitador}.`,
+    '',
+    'Es el espacio del equipo: descargarse, pensar juntos los casos que pesan y cuidarnos entre quienes acompañamos. *No es una evaluación del trabajo de nadie.*',
+    '',
+    `Para entrar: ${d.enlace}`,
+    '',
+    'Llegamos con las preguntas que dejaron ustedes mismos. Y si ese día no puedes, dínoslo y te contamos de la siguiente.',
+  ].join('\n')
+}

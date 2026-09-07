@@ -77,6 +77,9 @@ const CASOS: [string, (plantilla: string) => string][] = [
 
   ['avisarle a quien queda marcado como supervisor', (plantilla) =>
     M.mensajeDeSupervisorMarcado({ profesional: 'Sofía Vélez', plantilla })],
+
+  ['convocatoria a la sesión grupal', (plantilla) =>
+    M.mensajeDeSesionGrupal({ profesional: 'Ana Ruiz', cuando: '9 sept 2026, 10:00 a. m.', facilitador: 'Sofía Vélez', enlace: 'https://meet/x', plantilla })],
 ]
 
 describe('el texto del portal manda sobre el del código', () => {
@@ -106,7 +109,7 @@ describe('el texto del portal manda sobre el del código', () => {
    * cancelar cambiaban el estado y no le decían nada a nadie. La persona podía
    * presentarse a una sesión que ya no existía, y el profesional también.
    */
-  it('están las veinte', () => {
-    expect(CASOS).toHaveLength(20)
+  it('están las veintiuna', () => {
+    expect(CASOS).toHaveLength(21)
   })
 })

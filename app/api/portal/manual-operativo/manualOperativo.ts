@@ -1475,7 +1475,8 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   </div>
   <div class="paso">
     <div class="paso__n">4</div>
-    <div class="paso__c"><p><b>«Convocar y avisar»</b>. A cada invitado y al facilitador les sale el correo con la hora, el enlace y la agenda. Avisar es parte de convocar, no un paso aparte que alguien tenga que recordar.</p></div>
+    <div class="paso__c"><p><b>«Convocar y avisar»</b>. A cada invitado y al facilitador les sale el correo con la hora, el enlace y la agenda. Avisar es parte de convocar, no un paso aparte que alguien tenga que recordar.</p>
+    <p>Y en la tarjeta de la sesión te queda <b>«Abrir WhatsApp»</b>, uno por persona —invitados y facilitador—, con el mismo aviso: la hora, quién facilita y el enlace de la reunión. Mándalo: quien acompaña vive en WhatsApp, y el correo puede quedarse sin abrir. Con «Ver el mensaje» lo lees antes, y el texto se edita en Parametrización (<span class="mono">WHATSAPP_SESION_GRUPAL</span>).</p></div>
   </div>
 
   <figure class="pantalla">

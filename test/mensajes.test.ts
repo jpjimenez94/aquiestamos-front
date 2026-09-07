@@ -21,6 +21,7 @@ import {
   mensajeRecordatorioPrevioCitaPersona,
   mensajeContactoColaborador,
   mensajeDeOfrecerCuidado,
+  mensajeDeSesionGrupal,
 } from '../lib/mensajes'
 import { LINEAS_EMERGENCIA } from '../lib/consentimiento'
 
@@ -894,5 +895,45 @@ describe('mensaje de ofrecer el espacio de cuidado', () => {
   it('le dice que el enlace es suyo y que lo guarde', () => {
     const texto = mensajeDeOfrecerCuidado({ profesional: 'Jean', sesiones: 2, enlace }).toLowerCase()
     expect(texto).toContain('guárdalo')
+  })
+})
+
+/**
+ * La convocatoria a la sesión grupal.
+ *
+ * Salía solo por correo, y era lo único de la red que viajaba solo por ahí
+ * —con el enlace de la reunión dentro—. Quien acompaña vive en WhatsApp: podía
+ * no enterarse de una sesión que él mismo había pedido.
+ */
+describe('convocatoria a la sesión grupal', () => {
+  const base = {
+    profesional: 'Jean Franco Forero',
+    cuando: '9 sept 2026, 10:00 a. m.',
+    facilitador: 'Juan Pablo Jiménez',
+    enlace: 'https://meet.google.com/abc-defg-hij',
+  }
+
+  it('lleva la hora y el enlace, que es lo único que no puede faltar', () => {
+    const texto = mensajeDeSesionGrupal(base)
+    expect(texto).toContain('9 sept 2026, 10:00 a. m.')
+    expect(texto).toContain('https://meet.google.com/abc-defg-hij')
+  })
+
+  it('dice quién facilita, por su nombre de pila', () => {
+    const texto = mensajeDeSesionGrupal(base)
+    expect(texto).toContain('Juan')
+    expect(texto).not.toContain('Jiménez')
+  })
+
+  /**
+   * Es lo primero que teme quien recibe la invitación, y por eso va escrito.
+   */
+  it('deja claro que no es una evaluación de su trabajo', () => {
+    expect(mensajeDeSesionGrupal(base).toLowerCase()).toContain('no es una evaluación')
+  })
+
+  it('con plantilla del portal, manda la plantilla', () => {
+    const texto = mensajeDeSesionGrupal({ ...base, plantilla: 'Nos vemos {cuando}: {enlace}' })
+    expect(texto).toBe('Nos vemos 9 sept 2026, 10:00 a. m.: https://meet.google.com/abc-defg-hij')
   })
 })
