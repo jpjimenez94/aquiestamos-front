@@ -334,7 +334,7 @@ export function TablaPersonas({
             <tr>
               <th
                 onClick={() => alternarOrden('persona')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '21%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '19%' }}
                 title="Ordenar por Persona"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -344,7 +344,7 @@ export function TablaPersonas({
               </th>
               <th
                 onClick={() => alternarOrden('profesional')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '12%' }}
                 title="Ordenar por Profesional"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -354,7 +354,7 @@ export function TablaPersonas({
               </th>
               <th
                 onClick={() => alternarOrden('cita')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '11%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}
                 title="Ordenar por Cita en Agenda"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -369,7 +369,7 @@ export function TablaPersonas({
                 alguien con cita mañana y alguien cuya sesión fue ayer se veían
                 igual, cuando lo que se necesita de cada uno es lo contrario.
               */}
-              <th style={{ userSelect: 'none', width: '13%' }}>
+              <th style={{ userSelect: 'none', width: '14%' }}>
                 <span
                   onClick={() => alternarOrden('queSigue')}
                   style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
@@ -405,7 +405,7 @@ export function TablaPersonas({
               </th>
               <th
                 onClick={() => alternarOrden('prioridad')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '9%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '11%' }}
                 title="Ordenar por Prioridad"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -415,7 +415,7 @@ export function TablaPersonas({
               </th>
               <th
                 onClick={() => alternarOrden('estado')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '12%' }}
                 title="Ordenar por Estado"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -423,7 +423,7 @@ export function TablaPersonas({
                   <IconoOrden col="estado" />
                 </span>
               </th>
-              <th style={{ width: '8%', textAlign: 'right' }}>Acciones</th>
+              <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
             </tr>
 
             {/* Fila de filtros por columna */}
@@ -764,8 +764,11 @@ function AvisoDeSeguimiento({ seguimiento }: { seguimiento: Seguimiento | null }
    *
    * Con el punto, el color sigue diciendo la urgencia de un vistazo —que es
    * para lo que estaba— y el texto se comporta como el de las demás columnas.
-   * El verbo no se parte nunca; el detalle sí puede, y no pasa nada porque va
-   * en gris y en pequeño.
+   *
+   * El verbo llevaba `nowrap` para que «Agendar la siguiente o cerrar» no se
+   * partiera. Con la columna estrecha eso dejó de ser una preferencia y pasó a
+   * ser un desbordamiento: la frase se salía por encima de la columna de al
+   * lado y se leían las dos superpuestas. Se parte, como todo lo demás.
    */
   const color =
     seguimiento.urgencia === 'ahora'
@@ -788,7 +791,7 @@ function AvisoDeSeguimiento({ seguimiento }: { seguimiento: Seguimiento | null }
         }}
       />
       <span>
-        <strong style={{ fontSize: '0.83rem', color, whiteSpace: 'nowrap' }}>
+        <strong style={{ fontSize: '0.83rem', color }}>
           {seguimiento.accion}
         </strong>
         {seguimiento.detalle ? (

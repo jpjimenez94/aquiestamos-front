@@ -105,6 +105,12 @@ export function ModalNotasSeguimiento({
 
   return (
     <>
+      {/*
+        `minWidth: 0` y `maxWidth: 100%`: dentro de un flex, una caja se niega
+        a encogerse por debajo de su contenido salvo que se le diga. En la
+        lista de personas eso sacaba la nota fuera de su columna, encima de la
+        de al lado, y las dos se leían superpuestas.
+      */}
       <div
         style={{
           display: 'flex',
@@ -112,12 +118,14 @@ export function ModalNotasSeguimiento({
           alignItems: 'flex-start',
           gap: 4,
           cursor: 'pointer',
+          minWidth: 0,
+          maxWidth: '100%',
         }}
         onClick={abrirModal}
         title="Ver y agregar notas de seguimiento"
       >
         {ultimaNota || (notas.length > 0 && notas[0]) ? (
-          <div>
+          <div style={{ minWidth: 0, maxWidth: '100%' }}>
             <span
               style={{
                 fontSize: '0.78rem',
@@ -132,7 +140,10 @@ export function ModalNotasSeguimiento({
             >
               {ultimaNota?.nota || notas[0]?.nota}
             </span>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2 }}>
+            {/* En columna estrecha bajan una debajo de otra, pero ninguna se
+                parte por la mitad: «2 notas» en vertical, letra por letra, es
+                lo que salía antes. */}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
               <span
                 style={{
                   fontSize: '0.7rem',
@@ -153,6 +164,8 @@ export function ModalNotasSeguimiento({
                   padding: '1px 6px',
                   borderRadius: 10,
                   fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
                 {cantidad} {cantidad === 1 ? 'nota' : 'notas'}
