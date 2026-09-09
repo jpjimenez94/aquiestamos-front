@@ -76,7 +76,7 @@ export function ConvocarSesion({
     const startsAt = aIso(cuando)
     if (!facilitatorId) return setError('Elige quién facilita.')
     if (!startsAt) return setError('Pon la fecha y la hora.')
-    if (!enlace.trim()) return setError('Pega el enlace de la reunión (Meet, Zoom, el que usen).')
+
     if (elegidos.size === 0) return setError('Invita al menos a una persona.')
 
     setEnviando(true)
@@ -88,7 +88,9 @@ export function ConvocarSesion({
           facilitatorId,
           startsAt,
           duracionMinutos: duracion,
-          meetingUrl: enlace.trim(),
+          // Vacío = la red crea su sala. El backend la deriva del id de la
+          // sesión, igual que la de una cita.
+          meetingUrl: enlace.trim() || null,
           invitados: [...elegidos],
           agenda: agendaMostrada.trim() || null,
         }),
@@ -174,15 +176,31 @@ export function ConvocarSesion({
                 </label>
               </div>
 
+              {/*
+                Vacío es la opción normal.
+
+                Antes era obligatorio y salía de la cuenta personal de quien
+                convocaba: la reunión dejaba de abrirse el día que esa persona
+                faltaba, y en la auditoría quedaba una URL de la que la red no
+                sabía nada. La sala propia se deriva del id de la sesión, como
+                la de una cita, y no depende de la cuenta de nadie.
+              */}
               <label style={{ display: 'grid', gap: 4 }}>
-                <span style={{ fontWeight: 700, fontSize: '0.84rem' }}>Enlace de la reunión</span>
+                <span style={{ fontWeight: 700, fontSize: '0.84rem' }}>
+                  Enlace de la reunión{' '}
+                  <span style={{ fontWeight: 400, color: '#64748b' }}>· opcional</span>
+                </span>
                 <input
                   className="input"
                   type="url"
-                  placeholder="https://meet.google.com/…"
+                  placeholder="Déjalo vacío y creamos la sala de la red"
                   value={enlace}
                   onChange={(e) => setEnlace(e.target.value)}
                 />
+                <span className="tabla__secundario">
+                  Si lo dejas vacío, la sesión se abre en la videollamada de la red — la misma que
+                  usan las citas. Pega un Meet o un Zoom solo si lo necesitas por algo concreto.
+                </span>
               </label>
 
               <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
