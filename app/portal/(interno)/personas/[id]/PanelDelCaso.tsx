@@ -496,7 +496,19 @@ export function PanelDelCaso({
             onError={setError}
           />
 
-          <details style={{ marginTop: 12 }}>
+          {/*
+            Abierto al cargar.
+
+            Plegado era una caja ciega: «Reasignar a otro profesional» vive
+            aquí dentro, y reasignar es lo que se busca cuando algo va mal —
+            justo cuando nadie tiene ganas de ir a buscarlo—. Con un caso en
+            marcha la tarjeta de arriba solo ofrece la acción del momento, así
+            que quien miraba la ficha de una persona con su cita ya confirmada
+            no veía por ningún lado cómo cambiarle el profesional.
+
+            Sigue siendo plegable: quien no lo quiera lo cierra.
+          */}
+          <details open style={{ marginTop: 12 }}>
             <summary className="tabla__secundario" style={{ cursor: 'pointer', fontSize: '0.84rem' }}>
               Más acciones
             </summary>
