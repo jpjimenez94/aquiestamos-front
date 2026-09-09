@@ -1467,8 +1467,8 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   </div>
   <div class="paso">
     <div class="paso__n">2</div>
-    <div class="paso__c"><p>Elige <b>quién facilita</b> y la <b>fecha y hora</b>. El <b>enlace de la reunión</b> puedes dejarlo <b>vacío</b>: la red crea su propia sala, la misma videollamada que usan las citas. Pega un Meet o un Zoom solo si lo necesitas por algo concreto — la grabación, por ejemplo.</p>
-    <p>La sala propia se prefiere porque no depende de la cuenta de nadie: un Meet personal deja de abrirse el día que esa persona falta o se va de la red. En la auditoría queda el enlace y de dónde salió, si de la red o pegado a mano.</p></div>
+    <div class="paso__c"><p>Elige <b>quién facilita</b> y la <b>fecha y hora</b>. La reunión <b>es en la videollamada de la red</b> —la misma que usan las citas—: la sala se crea sola al convocar y va en el correo y en el WhatsApp de todos. No hay que pegar ningún enlace.</p>
+    <p>Si una sesión concreta necesita Meet o Zoom —por la grabación, por ejemplo— toca <b>«Se necesita Meet o Zoom para esta»</b> y pega el enlace ahí. Se usa solo para esa. La sala de la red es la opción por defecto porque no depende de la cuenta de nadie: un Meet personal deja de abrirse el día que esa persona falta o se va. En la auditoría queda el enlace y de dónde salió.</p></div>
   </div>
   <div class="paso">
     <div class="paso__n">3</div>

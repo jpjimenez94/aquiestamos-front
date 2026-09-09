@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarPlus, X } from 'lucide-react'
+import { CalendarPlus, X, Video } from 'lucide-react'
 
 /**
  * Convocar una sesión grupal: facilitador, hora, enlace, invitados.
@@ -51,6 +51,14 @@ export function ConvocarSesion({
   const [cuando, setCuando] = useState('')
   const [duracion, setDuracion] = useState(60)
   const [enlace, setEnlace] = useState('')
+  /**
+   * La reunión es nuestra salvo que alguien diga lo contrario.
+   *
+   * Antes el campo estaba siempre a la vista y vacío quería decir «pon tú la
+   * sala»: había que saberlo. La sala de la red es lo normal —no depende de la
+   * cuenta de nadie— así que se dice, y quien necesite Meet o Zoom lo abre.
+   */
+  const [usarOtro, setUsarOtro] = useState(false)
   const [elegidos, setElegidos] = useState<Set<string>>(() => new Set(candidatos.map((c) => c.id)))
   const [agenda, setAgenda] = useState(() => agendaDe(candidatos, new Set(candidatos.map((c) => c.id))))
   const [agendaTocada, setAgendaTocada] = useState(false)
@@ -88,9 +96,9 @@ export function ConvocarSesion({
           facilitatorId,
           startsAt,
           duracionMinutos: duracion,
-          // Vacío = la red crea su sala. El backend la deriva del id de la
-          // sesión, igual que la de una cita.
-          meetingUrl: enlace.trim() || null,
+          // Null = la red pone la sala, que es lo normal. Solo viaja un
+          // enlace si alguien abrió lo de Meet o Zoom y lo escribió.
+          meetingUrl: usarOtro && enlace.trim() ? enlace.trim() : null,
           invitados: [...elegidos],
           agenda: agendaMostrada.trim() || null,
         }),
@@ -177,31 +185,89 @@ export function ConvocarSesion({
               </div>
 
               {/*
-                Vacío es la opción normal.
+                Lo que pasa por defecto, escrito.
 
-                Antes era obligatorio y salía de la cuenta personal de quien
+                El enlace era obligatorio y salía de la cuenta personal de quien
                 convocaba: la reunión dejaba de abrirse el día que esa persona
                 faltaba, y en la auditoría quedaba una URL de la que la red no
-                sabía nada. La sala propia se deriva del id de la sesión, como
-                la de una cita, y no depende de la cuenta de nadie.
+                sabía nada. La sala propia se deriva del id de la sesión, igual
+                que la de una cita, y no es de nadie en particular.
               */}
-              <label style={{ display: 'grid', gap: 4 }}>
-                <span style={{ fontWeight: 700, fontSize: '0.84rem' }}>
-                  Enlace de la reunión{' '}
-                  <span style={{ fontWeight: 400, color: '#64748b' }}>· opcional</span>
-                </span>
-                <input
-                  className="input"
-                  type="url"
-                  placeholder="Déjalo vacío y creamos la sala de la red"
-                  value={enlace}
-                  onChange={(e) => setEnlace(e.target.value)}
-                />
-                <span className="tabla__secundario">
-                  Si lo dejas vacío, la sesión se abre en la videollamada de la red — la misma que
-                  usan las citas. Pega un Meet o un Zoom solo si lo necesitas por algo concreto.
-                </span>
-              </label>
+              <div style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontWeight: 700, fontSize: '0.84rem' }}>Dónde se hace</span>
+                <div
+                  style={{
+                    border: '1px solid var(--color-border-default, #e2e8f0)',
+                    background: '#f7f9f8',
+                    borderRadius: 10,
+                    padding: '10px 12px',
+                    display: 'grid',
+                    gap: 4,
+                  }}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: '0.86rem' }}>
+                    <Video size={15} style={{ color: '#2e7d5b' }} />
+                    En la videollamada de la red
+                  </span>
+                  <span className="tabla__secundario" style={{ margin: 0 }}>
+                    La sala se crea sola al convocar y va en el correo y en el WhatsApp de todos.
+                    Es la misma videollamada que usan las citas, y no depende de la cuenta de
+                    nadie.
+                  </span>
+
+                  {usarOtro ? (
+                    <label style={{ display: 'grid', gap: 4, marginTop: 6 }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>
+                        Enlace de Meet o Zoom
+                      </span>
+                      <input
+                        className="input"
+                        type="url"
+                        placeholder="https://meet.google.com/…"
+                        value={enlace}
+                        onChange={(e) => setEnlace(e.target.value)}
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUsarOtro(false)
+                          setEnlace('')
+                        }}
+                        style={{
+                          justifySelf: 'start',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          color: '#2b5f97',
+                          fontSize: '0.8rem',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Mejor usar la sala de la red
+                      </button>
+                    </label>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setUsarOtro(true)}
+                      style={{
+                        justifySelf: 'start',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        color: '#2b5f97',
+                        fontSize: '0.8rem',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Se necesita Meet o Zoom para esta
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
                 <legend style={{ fontWeight: 700, fontSize: '0.84rem', marginBottom: 6 }}>
