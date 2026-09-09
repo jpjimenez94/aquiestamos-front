@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MessageSquarePlus, X, Send, Loader2, Clock, User, MessageCircle } from 'lucide-react'
+import { MessageSquarePlus, X, Send, Loader2, Clock, User, MessageCircle, Pencil } from 'lucide-react'
 import { enBogota } from '@/lib/fechas'
 import { nombrePropio } from '@/lib/nombre'
 
@@ -13,6 +13,9 @@ export type NotaSeguimiento = {
   email?: string
   fecha: string
   fechaLocal?: string
+  /** Quién la corrigió y cuándo, si alguien lo hizo. El autor no cambia. */
+  corregidaPor?: string | null
+  corregidaEl?: string | null
 }
 
 type Props = {
@@ -26,6 +29,14 @@ type Props = {
     fecha: string
   } | null
   onNotaAgregada?: (nuevaNota: NotaSeguimiento) => void
+  /**
+   * Si esta cuenta puede corregir notas ya escritas (`paciente:nota-editar`).
+   *
+   * Escribir la suya puede cualquiera del equipo; tocar la de otro es otra
+   * cosa. Lo decide el backend —el botón sin permiso solo daría un 403—, pero
+   * si no lo puede hacer tampoco se le enseña.
+   */
+  puedeCorregir?: boolean
 }
 
 export function ModalNotasSeguimiento({
@@ -35,6 +46,7 @@ export function ModalNotasSeguimiento({
   totalNotas = 0,
   ultimaNota,
   onNotaAgregada,
+  puedeCorregir = false,
 }: Props) {
   const router = useRouter()
   const [abierto, setAbierto] = useState(false)
@@ -43,6 +55,41 @@ export function ModalNotasSeguimiento({
   const [textoNota, setTextoNota] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Qué nota se está corrigiendo y con qué texto. Solo una a la vez.
+  const [corrigiendo, setCorrigiendo] = useState<string | null>(null)
+  const [textoCorregido, setTextoCorregido] = useState('')
+  const [guardandoCorreccion, setGuardandoCorreccion] = useState(false)
+
+  async function guardarCorreccion(notaId: string) {
+    const texto = textoCorregido.trim()
+    if (!texto) {
+      setError('La nota no puede quedar vacía.')
+      return
+    }
+    setGuardandoCorreccion(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/portal/patients/${personaId}/notes/${notaId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: texto }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setError(data.message ?? 'No pudimos guardar la corrección.')
+        return
+      }
+      if (Array.isArray(data.data?.notas)) setNotas(data.data.notas)
+      setCorrigiendo(null)
+      setTextoCorregido('')
+      router.refresh()
+    } catch {
+      setError('No pudimos conectarnos. Inténtalo de nuevo.')
+    } finally {
+      setGuardandoCorreccion(false)
+    }
+  }
 
   async function abrirModal() {
     setAbierto(true)
@@ -380,16 +427,104 @@ export function ModalNotasSeguimiento({
                           color: '#64748b',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: 3,
+                          gap: 8,
                         }}
                       >
-                        <Clock size={11} />
-                        {n.fechaLocal ?? enBogota(n.fecha)}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <Clock size={11} />
+                          {n.fechaLocal ?? enBogota(n.fecha)}
+                        </span>
+                        {/*
+                          Corregir, no reescribir la historia: el autor y la
+                          fecha de arriba siguen siendo los suyos, y debajo
+                          queda dicho quién la arregló. El texto anterior se
+                          guarda en la auditoría.
+                        */}
+                        {puedeCorregir && corrigiendo !== n.id ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCorrigiendo(n.id)
+                              setTextoCorregido(n.nota)
+                              setError(null)
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              cursor: 'pointer',
+                              color: '#059669',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 3,
+                            }}
+                          >
+                            <Pencil size={11} />
+                            Corregir
+                          </button>
+                        ) : null}
                       </span>
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.84rem', color: '#334155', lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>
-                      {n.nota}
-                    </p>
+
+                    {corrigiendo === n.id ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <textarea
+                          value={textoCorregido}
+                          onChange={(e) => setTextoCorregido(e.target.value)}
+                          rows={4}
+                          maxLength={2000}
+                          autoFocus
+                          style={{
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            fontSize: '0.84rem',
+                            lineHeight: 1.45,
+                            padding: '8px 10px',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: 8,
+                            fontFamily: 'inherit',
+                            resize: 'vertical',
+                          }}
+                        />
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                          <button
+                            type="button"
+                            className="boton-mini"
+                            onClick={() => {
+                              setCorrigiendo(null)
+                              setTextoCorregido('')
+                              setError(null)
+                            }}
+                            disabled={guardandoCorreccion}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            className="boton-mini"
+                            data-tono="principal"
+                            onClick={() => guardarCorreccion(n.id)}
+                            disabled={guardandoCorreccion || !textoCorregido.trim()}
+                          >
+                            {guardandoCorreccion ? 'Guardando…' : 'Guardar corrección'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#334155', lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>
+                          {n.nota}
+                        </p>
+                        {n.corregidaPor ? (
+                          <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic' }}>
+                            Corregida por {nombrePropio(n.corregidaPor)}
+                            {n.corregidaEl ? ` · ${enBogota(n.corregidaEl)}` : ''}
+                          </p>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                 ))
               )}

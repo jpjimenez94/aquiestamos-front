@@ -292,6 +292,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               notasIniciales={persona.notasSeguimiento}
               totalNotas={persona.totalNotas}
               ultimaNota={persona.ultimaNota}
+              puedeCorregir={puede(usuario, 'paciente:nota-editar')}
             />
           </Dato>
         </div>

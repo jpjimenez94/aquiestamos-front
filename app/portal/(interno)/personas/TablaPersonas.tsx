@@ -131,10 +131,13 @@ export function TablaPersonas({
   personas,
   enlaceDelSitio,
   puedeBorrar = false,
+  puedeCorregirNotas = false,
 }: {
   personas: Persona[]
   enlaceDelSitio: string
   puedeBorrar?: boolean
+  /** Corregir una nota ya escrita: `paciente:nota-editar`. */
+  puedeCorregirNotas?: boolean
 }) {
   const [filtroPersona, setFiltroPersona] = useState('')
   const [filtroProfesional, setFiltroProfesional] = useState('')
@@ -666,6 +669,7 @@ export function TablaPersonas({
                         notasIniciales={p.notasSeguimiento}
                         totalNotas={p.totalNotas}
                         ultimaNota={p.ultimaNota}
+                        puedeCorregir={puedeCorregirNotas}
                       />
                     </td>
 

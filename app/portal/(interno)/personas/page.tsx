@@ -13,6 +13,7 @@ export default async function PersonasPage({
 }) {
   const usuario = await usuarioActual()
   const puedeBorrar = puede(usuario, 'paciente:borrar')
+  const puedeCorregirNotas = puede(usuario, 'paciente:nota-editar')
 
   // El enlace del caso sale de la configuración del sitio, no del navegador
   const enlaceDelSitio = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
@@ -75,6 +76,7 @@ export default async function PersonasPage({
           personas={personas}
           enlaceDelSitio={enlaceDelSitio}
           puedeBorrar={puedeBorrar}
+          puedeCorregirNotas={puedeCorregirNotas}
         />
       )}
     </>
