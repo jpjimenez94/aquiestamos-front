@@ -311,23 +311,27 @@ export function LateralPortal({
     useState<ContadoresBadges>(contadoresIniciales);
 
   /**
-   * El menú es un acordeón: solo un grupo abierto a la vez. Seis grupos con
-   * veinte enlaces desplegados eran una columna que había que recorrer con los
-   * ojos cada vez; con uno solo abierto, los títulos hacen de mapa —igual que
-   * los capítulos del manual—.
+   * Cada grupo se abre y se cierra por su cuenta.
+   *
+   * Era un acordeón —abrir uno cerraba el otro— y eso le quitaba de delante al
+   * usuario algo que él mismo había abierto: quien trabaja mirando «Operación»
+   * y entra un momento a «Personas» perdía «Operación» sin haberlo pedido.
+   * Ahora abrir no cierra nada; lo que se cierra se cierra tocando su propia
+   * flechita.
    *
    * Al cargar abre «Operación» y solo ese: es donde está el trabajo del día.
-   * Abría el grupo de la ruta, y entrar a la ficha de una persona dejaba
-   * abierto «Personas» —lo que se estaba mirando, no lo que toca hacer—.
-   *
-   * Después manda quien lo usa: abrir otro cierra ese, y tocar el abierto lo
-   * pliega. Navegar NO lo mueve, a propósito: si al entrar a una ficha desde
-   * el tablero el menú saltara solo, escondería el grupo que el propio usuario
-   * acababa de abrir.
+   * Navegar NO lo mueve, a propósito: si al entrar a una ficha desde el
+   * tablero el menú saltara solo, escondería lo que el usuario acababa de
+   * abrir.
    */
-  const [grupoAbierto, setGrupoAbierto] = useState<string | null>(() => grupoInicial(usuario));
+  const [gruposAbiertos, setGruposAbiertos] = useState<string[]>(() => {
+    const inicial = grupoInicial(usuario);
+    return inicial ? [inicial] : [];
+  });
   function alternarGrupo(titulo: string) {
-    setGrupoAbierto((prev) => (prev === titulo ? null : titulo));
+    setGruposAbiertos((prev) =>
+      prev.includes(titulo) ? prev.filter((t) => t !== titulo) : [...prev, titulo],
+    );
   }
   const ultimoSonidoRef = useRef<number>(0);
   const contadoresAnterioresRef =
@@ -449,7 +453,7 @@ export function LateralPortal({
             const visibles = enlacesVisibles(grupo, usuario);
             if (visibles.length === 0) return null;
 
-            const plegado = grupoAbierto !== grupo.titulo;
+            const plegado = !gruposAbiertos.includes(grupo.titulo);
 
             return (
               <div key={grupo.titulo}>
