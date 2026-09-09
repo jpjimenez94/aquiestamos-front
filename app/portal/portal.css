@@ -283,6 +283,57 @@ body.sin-desplazamiento {
   font-size: 0.87rem;
 }
 
+/*
+   Una tabla que cabe en la pantalla, sin barra horizontal.
+
+   Por defecto el navegador reparte el ancho según el contenido, y en la lista
+   de personas eso pedía 1505 px donde había 974: los buscadores de la fila de
+   filtros imponían su tamaño natural aunque tuvieran width:100%, los
+   desplegables medían su opción más larga, y once cabeceras que no se pueden
+   partir hacían el resto. La tabla se salía por la derecha y había que
+   arrastrarla para leer las últimas columnas — que es donde está el estado.
+
+   Con `table-layout: fixed` mandan los porcentajes de cada columna y el
+   contenido se acomoda dentro. Es una clase aparte a propósito: las demás
+   tablas del portal siguen exactamente como estaban.
+   ========================================================================== */
+
+.tabla.tabla--ajustada {
+  table-layout: fixed;
+}
+
+/* Las cabeceras se parten en varias líneas en vez de empujar la columna. */
+.tabla.tabla--ajustada thead th {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Un poco menos de aire a los lados: con ocho columnas son ~100 px de ancho
+   recuperados, que es una columna entera. */
+.tabla.tabla--ajustada thead th,
+.tabla.tabla--ajustada tbody td {
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+/* Un teléfono o un correo largo se parte en vez de desbordar su celda. */
+.tabla.tabla--ajustada tbody td {
+  overflow-wrap: anywhere;
+}
+
+/* «Acompañamiento» no cabía en su columna y se salía de la píldora. */
+.tabla.tabla--ajustada .etiqueta {
+  font-size: 0.63rem;
+  padding: 3px 6px;
+}
+
+/* Un input trae de fábrica el ancho de veinte caracteres y lo impone aunque
+   se le pida el 100 %: sin esto, la fila de filtros manda sobre la tabla. */
+.tabla.tabla--ajustada input,
+.tabla.tabla--ajustada select {
+  min-width: 0;
+}
+
 .tabla thead th {
   text-align: left;
   font-family: var(--font-montserrat), sans-serif;

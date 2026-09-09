@@ -85,7 +85,6 @@ type ColumnaOrden =
   | 'profesional'
   | 'cita'
   | 'notas'
-  | 'ciudad'
   | 'esperando'
   | 'prioridad'
   | 'estado'
@@ -141,7 +140,6 @@ export function TablaPersonas({
   const [filtroProfesional, setFiltroProfesional] = useState('')
   const [filtroCita, setFiltroCita] = useState('')
   const [filtroNotas, setFiltroNotas] = useState('')
-  const [filtroCiudad, setFiltroCiudad] = useState('')
   const [filtroPrioridad, setFiltroPrioridad] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
 
@@ -174,7 +172,6 @@ export function TablaPersonas({
       filtroProfesional.trim() ||
       filtroCita ||
       filtroNotas.trim() ||
-      filtroCiudad.trim() ||
       filtroPrioridad ||
       filtroEstado,
   )
@@ -184,7 +181,6 @@ export function TablaPersonas({
     setFiltroProfesional('')
     setFiltroCita('')
     setFiltroNotas('')
-    setFiltroCiudad('')
     setFiltroPrioridad('')
     setFiltroEstado('')
     setPagina(1)
@@ -196,7 +192,8 @@ export function TablaPersonas({
         const q = filtroPersona.toLowerCase().trim()
         const matchNombre = p.fullName.toLowerCase().includes(q)
         const matchTelefono = p.phone?.includes(q)
-        if (!matchNombre && !matchTelefono) return false
+        const matchCiudad = p.city?.toLowerCase().includes(q)
+        if (!matchNombre && !matchTelefono && !matchCiudad) return false
       }
 
       if (filtroProfesional.trim()) {
@@ -224,11 +221,6 @@ export function TablaPersonas({
         if (!matchUltima && !matchAutor && !matchHistorial && !matchComentarios) return false
       }
 
-      if (filtroCiudad.trim()) {
-        const q = filtroCiudad.toLowerCase().trim()
-        if (!p.city?.toLowerCase().includes(q)) return false
-      }
-
       if (filtroPrioridad && p.priority !== filtroPrioridad) {
         return false
       }
@@ -245,7 +237,6 @@ export function TablaPersonas({
     filtroProfesional,
     filtroCita,
     filtroNotas,
-    filtroCiudad,
     filtroPrioridad,
     filtroEstado,
   ])
@@ -281,9 +272,6 @@ export function TablaPersonas({
           cmp = pesoDeUrgencia(segDe(a)) - pesoDeUrgencia(segDe(b)) || a.diasEsperando - b.diasEsperando
           break
         }
-        case 'ciudad':
-          cmp = a.city.localeCompare(b.city, 'es', { sensitivity: 'base' })
-          break
         case 'esperando':
           cmp = a.diasEsperando - b.diasEsperando
           break
@@ -341,36 +329,36 @@ export function TablaPersonas({
       </div>
 
       <div className="tabla-envoltorio">
-        <table className="tabla">
+        <table className="tabla tabla--ajustada">
           <thead>
             <tr>
               <th
                 onClick={() => alternarOrden('persona')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '18%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '21%' }}
                 title="Ordenar por Persona"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Persona Acompañada
+                  Persona
                   <IconoOrden col="persona" />
                 </span>
               </th>
               <th
                 onClick={() => alternarOrden('profesional')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
                 title="Ordenar por Profesional"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Profesional Asignado
+                  Profesional
                   <IconoOrden col="profesional" />
                 </span>
               </th>
               <th
                 onClick={() => alternarOrden('cita')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '11%' }}
                 title="Ordenar por Cita en Agenda"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Cita en Agenda
+                  Cita
                   <IconoOrden col="cita" />
                 </span>
               </th>
@@ -381,50 +369,43 @@ export function TablaPersonas({
                 alguien con cita mañana y alguien cuya sesión fue ayer se veían
                 igual, cuando lo que se necesita de cada uno es lo contrario.
               */}
-              <th
-                onClick={() => alternarOrden('queSigue')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '13%', minWidth: 170 }}
-                title="Ordenar por lo que toca hacer"
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <th style={{ userSelect: 'none', width: '13%' }}>
+                <span
+                  onClick={() => alternarOrden('queSigue')}
+                  style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                  title="Ordenar por lo que toca hacer"
+                >
                   Qué sigue
                   <IconoOrden col="queSigue" />
                 </span>
-              </th>
-              <th
-                onClick={() => alternarOrden('notas')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '15%' }}
-                title="Ordenar por Notas de seguimiento"
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Notas de seguimiento
-                  <IconoOrden col="notas" />
-                </span>
-              </th>
-              <th
-                onClick={() => alternarOrden('ciudad')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '9%' }}
-                title="Ordenar por Ciudad"
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Ciudad
-                  <IconoOrden col="ciudad" />
-                </span>
-              </th>
-              <th style={{ width: '7%' }}>Disponibilidad</th>
-              <th
-                onClick={() => alternarOrden('esperando')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '7%' }}
-                title="Ordenar por Tiempo de espera"
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Esperando
+                {/*
+                  La espera tenía columna propia; el dato bajó a esta celda y
+                  su orden se queda aquí: «quién lleva más tiempo esperando»
+                  es media pantalla de trabajo y no se podía perder al quitar
+                  la columna.
+                */}
+                <span
+                  onClick={() => alternarOrden('esperando')}
+                  style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', opacity: 0.7, marginLeft: 6 }}
+                  title="Ordenar por cuánto lleva esperando"
+                >
+                  espera
                   <IconoOrden col="esperando" />
                 </span>
               </th>
               <th
+                onClick={() => alternarOrden('notas')}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '12%' }}
+                title="Ordenar por Notas de seguimiento"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Notas
+                  <IconoOrden col="notas" />
+                </span>
+              </th>
+              <th
                 onClick={() => alternarOrden('prioridad')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '7%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '9%' }}
                 title="Ordenar por Prioridad"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -434,7 +415,7 @@ export function TablaPersonas({
               </th>
               <th
                 onClick={() => alternarOrden('estado')}
-                style={{ cursor: 'pointer', userSelect: 'none', width: '8%' }}
+                style={{ cursor: 'pointer', userSelect: 'none', width: '13%' }}
                 title="Ordenar por Estado"
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -442,7 +423,7 @@ export function TablaPersonas({
                   <IconoOrden col="estado" />
                 </span>
               </th>
-              <th style={{ width: puedeBorrar ? '10%' : '7%', textAlign: 'right' }}>Acciones</th>
+              <th style={{ width: '8%', textAlign: 'right' }}>Acciones</th>
             </tr>
 
             {/* Fila de filtros por columna */}
@@ -450,7 +431,7 @@ export function TablaPersonas({
               <th style={{ padding: '6px 6px' }}>
                 <input
                   type="text"
-                  placeholder="Nombre/teléfono..."
+                  placeholder="Nombre/teléfono/ciudad..."
                   value={filtroPersona}
                   onChange={(e) => {
                     setFiltroPersona(e.target.value)
@@ -511,20 +492,6 @@ export function TablaPersonas({
                 />
               </th>
               <th style={{ padding: '6px 6px' }}>
-                <input
-                  type="text"
-                  placeholder="Ciudad..."
-                  value={filtroCiudad}
-                  onChange={(e) => {
-                    setFiltroCiudad(e.target.value)
-                    setPagina(1)
-                  }}
-                  style={estiloInputFiltro}
-                />
-              </th>
-              <th style={{ padding: '6px 6px' }} />
-              <th style={{ padding: '6px 6px' }} />
-              <th style={{ padding: '6px 6px' }}>
                 <select
                   value={filtroPrioridad}
                   onChange={(e) => {
@@ -574,7 +541,7 @@ export function TablaPersonas({
           <tbody>
             {listaPaginada.length === 0 ? (
               <tr>
-                <td colSpan={10} style={{ textAlign: 'center', padding: 24 }}>
+                <td colSpan={8} style={{ textAlign: 'center', padding: 24 }}>
                   <Vacio>
                     {hayFiltros
                       ? 'Ninguna persona coincide con los filtros de columna aplicados.'
@@ -597,6 +564,18 @@ export function TablaPersonas({
                         {p.phone}
                         {p.isMinor ? ' · menor de edad' : ''}
                         {p.preferredModality ? ` · ${p.preferredModality.toLowerCase()}` : ''}
+                      </span>
+                      {/*
+                        Ciudad y disponibilidad tenían columna propia. Con once
+                        columnas la tabla pedía 1505 px y en pantalla había
+                        974: se salía por la derecha y había que arrastrarla
+                        para leerla. Aquí abajo caben, y siguen a la vista.
+                      */}
+                      <span className="tabla__secundario">
+                        {p.city ?? '—'}
+                        {p.availableDays?.length
+                          ? ` · ${p.availableDays.map((d) => DIA_CORTO[d] ?? d).join(' ')}`
+                          : ''}
                       </span>
                     </td>
 
@@ -667,9 +646,16 @@ export function TablaPersonas({
                       )}
                     </td>
 
-                    {/* Qué sigue: la tarea, no el estado. */}
+                    {/* Qué sigue: la tarea, no el estado. Con la espera, que
+                        antes era columna: cuánto lleva sin moverse es parte de
+                        lo que toca hacer, no un dato suelto. */}
                     <td>
                       <AvisoDeSeguimiento seguimiento={seg} />
+                      <span className="tabla__secundario">
+                        esperando {p.diasEsperando} {p.diasEsperando === 1 ? 'día' : 'días'}
+                        {' · desde el '}
+                        {enBogota(p.createdAt, false)}
+                      </span>
                     </td>
 
                     {/* Columna Notas de seguimiento (con modal interactivo) */}
@@ -681,25 +667,6 @@ export function TablaPersonas({
                         totalNotas={p.totalNotas}
                         ultimaNota={p.ultimaNota}
                       />
-                    </td>
-
-                    <td>{p.city}</td>
-
-                    {/*
-                      El color y el tamaño de "tabla__secundario", pero sin su
-                      "display: block" — que en un td le quita su condición de
-                      celda y hace que no crezca con la fila. Esta medía 45
-                      píxeles mientras las demás medían 92.
-                    */}
-                    <td style={{ color: 'var(--color-text-light)', fontSize: '0.8rem' }}>
-                      {p.availableDays?.length
-                        ? p.availableDays.map((d) => DIA_CORTO[d] ?? d).join(' ')
-                        : '—'}
-                    </td>
-
-                    <td className="tabla__numero">
-                      {p.diasEsperando} {p.diasEsperando === 1 ? 'día' : 'días'}
-                      <span className="tabla__secundario">{enBogota(p.createdAt, false)}</span>
                     </td>
 
                     <td>
