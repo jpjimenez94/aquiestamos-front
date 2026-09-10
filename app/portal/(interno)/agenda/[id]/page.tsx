@@ -61,6 +61,9 @@ type Cita = {
   estado: string
   estadoLegible: string
   siguientesEstados: string[]
+  /** A quién se le avisó ya de esta cita, con quién lo hizo y cuándo. */
+  avisoALaPersona?: { cuando: string; quien: string | null } | null
+  avisoAlProfesional?: { cuando: string; quien: string | null } | null
   consentSigned?: boolean
   consentSignedDocumentUrl?: string | null
   consentSignedAt?: string | null
@@ -541,6 +544,9 @@ export default async function CitaPage({ params }: { params: Promise<{ id: strin
 
       {/* Los mensajes para preparar la sesión: paso 5 del acompañamiento. */}
       <MensajesFlujoCita
+        citaId={cita.id}
+        avisoALaPersona={cita.avisoALaPersona ?? null}
+        avisoAlProfesional={cita.avisoAlProfesional ?? null}
         pacienteNombre={cita.paciente.nombre ?? 'Persona'}
         pacienteTelefono={cita.paciente.telefono ?? ''}
         profesionalNombre={cita.profesional.nombre ?? 'Psicólogo'}

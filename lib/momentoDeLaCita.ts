@@ -28,18 +28,31 @@
 const HORA = 3600 * 1000
 
 /**
- * Cuánto dura el momento de confirmar.
+ * Cuánto dura el momento de confirmar en las citas VIEJAS.
  *
- * Es un momento, no un estado: nadie apunta si el WhatsApp se mandó, así que
- * pasado ese rato la tarjeta deja de pedirlo en vez de insistir para siempre
- * sobre algo que no puede comprobar. No se afirma en ningún sitio que se haya
- * confirmado —solo se dice qué hacer ahora—, y los dos mensajes siguen
- * disponibles debajo para cuando haga falta.
+ * Era la regla única: nadie apuntaba si el WhatsApp se había mandado, así que
+ * pasadas doce horas la tarjeta dejaba de pedirlo. El precio se veía a simple
+ * vista — dos citas iguales decían cosas distintas según la hora a la que se
+ * miraran, y si nadie abría el portal esa noche el aviso desaparecía sin que
+ * nadie hubiera escrito a nadie.
  *
- * Doce horas cubre el caso normal: se agenda de noche y quien coordina lo ve
- * a la mañana siguiente.
+ * Ahora se apunta al mandarlo, así que esto solo gobierna las citas agendadas
+ * antes de que empezara el registro.
  */
 export const VENTANA_PARA_CONFIRMAR_HORAS = 12
+
+/**
+ * Desde cuándo se apunta a quién se le avisó.
+ *
+ * Las citas de antes no tienen marcas y nunca las van a tener: exigirlas
+ * llenaría la agenda de «confírmasela a los dos» sobre sesiones ya confirmadas
+ * hace semanas. Para esas sigue mandando el reloj.
+ *
+ * Es deuda con fecha de caducidad, como la de los enlaces de sala: cuando
+ * pasen las citas anteriores a esta fecha, esta constante y la ventana de
+ * arriba se van juntas.
+ */
+export const DESDE_QUE_SE_REGISTRA_EL_AVISO = Date.UTC(2026, 8, 9)
 
 /** A partir de cuándo recordar. Un recordatorio para dentro de una semana no lo es. */
 export const VENTANA_PARA_RECORDAR_HORAS = 24
@@ -71,6 +84,8 @@ export function momentoDeLaCita({
   consentimientoFirmado = false,
   puedePedirFirma = true,
   personaTieneCorreo,
+  avisadaLaPersona = false,
+  avisadoElProfesional = false,
   ahora = Date.now(),
 }: {
   estado?: string | null
@@ -81,6 +96,9 @@ export function momentoDeLaCita({
   puedePedirFirma?: boolean
   /** Si el sistema pudo avisarle solo. Dar correo es opcional al pedir ayuda. */
   personaTieneCorreo?: boolean
+  /** Si ya se apuntó que se le contó a cada uno. El hecho, no el reloj. */
+  avisadaLaPersona?: boolean
+  avisadoElProfesional?: boolean
   ahora?: number
 }): MomentoDeLaCita {
   if ((CITAS_RESUELTAS as readonly string[]).includes(String(estado ?? ''))) return 'resuelta'
@@ -94,12 +112,20 @@ export function momentoDeLaCita({
   /**
    * Confirmar va ANTES que recordar aunque la sesión sea esta misma noche.
    * Es el orden en que ocurren las cosas: primero se cuenta que existe, y solo
-   * después tiene sentido recordarla. Y si la sesión llega antes de que se
-   * acabe la ventana, el recordatorio sencillamente no hace falta: nadie
-   * confirma y recuerda con dos horas de diferencia.
+   * después tiene sentido recordarla. Nadie confirma y recuerda con dos horas
+   * de diferencia.
+   *
+   * En las citas nuevas manda el hecho: mientras falte por avisar a alguno, la
+   * tarjeta lo sigue pidiendo, sin importar cuánto haya pasado. En las de
+   * antes del registro no hay marcas que mirar, así que sigue mandando el
+   * reloj — si no, la agenda entera pediría confirmar sesiones ya confirmadas.
    */
   const seAgendo = creadaEn ? new Date(creadaEn).getTime() : NaN
-  if (Number.isFinite(seAgendo) && ahora - seAgendo <= VENTANA_PARA_CONFIRMAR_HORAS * HORA) {
+  const seRegistra = Number.isFinite(seAgendo) && seAgendo >= DESDE_QUE_SE_REGISTRA_EL_AVISO
+
+  if (seRegistra) {
+    if (!avisadaLaPersona || !avisadoElProfesional) return 'recien-agendada'
+  } else if (Number.isFinite(seAgendo) && ahora - seAgendo <= VENTANA_PARA_CONFIRMAR_HORAS * HORA) {
     return 'recien-agendada'
   }
 

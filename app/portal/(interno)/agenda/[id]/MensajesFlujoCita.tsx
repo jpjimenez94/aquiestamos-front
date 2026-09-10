@@ -2,6 +2,8 @@
 
 import { usePlantillas } from '@/components/portal/Plantillas'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { enBogota } from '@/lib/fechas'
 import { Copy, Check, MessageSquare } from 'lucide-react'
 import {
   mensajeDeCitaConfirmada,
@@ -31,6 +33,9 @@ import { BurbujaWhatsApp } from '@/components/portal/BurbujaWhatsApp'
  * únicos que salen en pantalla.
  */
 export function MensajesFlujoCita({
+  citaId,
+  avisoALaPersona,
+  avisoAlProfesional,
   pacienteNombre,
   pacienteTelefono,
   profesionalNombre,
@@ -48,6 +53,17 @@ export function MensajesFlujoCita({
   enlaceReunion,
   enlaceReunionProfesional,
 }: {
+  /** Para apuntar a quién se le avisó. */
+  citaId: string
+  /**
+   * Lo ya apuntado: cuándo se le contó a cada uno y quién lo hizo.
+   *
+   * Antes esto se deducía del reloj —«si pasaron doce horas, alguien lo habrá
+   * hecho»— y por eso dos citas iguales decían cosas distintas según la hora
+   * a la que se miraran.
+   */
+  avisoALaPersona?: { cuando: string; quien: string | null } | null
+  avisoAlProfesional?: { cuando: string; quien: string | null } | null
   pacienteNombre: string
   pacienteTelefono: string
   profesionalNombre: string
@@ -195,7 +211,36 @@ export function MensajesFlujoCita({
     // Sin enlace de firma, pedirla no lleva a ninguna parte.
     puedePedirFirma: Boolean(mensajeFirma),
     personaTieneCorreo,
+    avisadaLaPersona: Boolean(avisoALaPersona),
+    avisadoElProfesional: Boolean(avisoAlProfesional),
   })
+
+  /**
+   * Apuntar que se le contó, al usar el mensaje.
+   *
+   * Se marca al abrir WhatsApp o al copiar: es lo más cerca del hecho a lo que
+   * se puede llegar sin preguntarle a quien coordina una cosa que ya sabe. No
+   * dice que la persona lo leyera —eso no lo sabe nadie desde aquí— pero sí
+   * que el mensaje salió de esta pantalla, con nombre y hora.
+   */
+  const router = useRouter()
+
+  async function apuntarAviso(a: 'PERSONA' | 'PROFESIONAL') {
+    try {
+      await fetch(`/api/portal/appointments/${citaId}/aviso`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ a }),
+      })
+      router.refresh()
+    } catch {
+      // Que falle apuntarlo no puede estorbar al mensaje: el WhatsApp ya se
+      // abrió, y lo que importaba era escribirle.
+    }
+  }
+
+  const quienYCuando = (aviso?: { cuando: string; quien: string | null } | null) =>
+    aviso ? `avisado el ${enBogota(aviso.cuando)}${aviso.quien ? ` por ${aviso.quien}` : ''}` : null
 
   const faltaFirma = momento === 'falta-firma'
   const recienAgendada = momento === 'recien-agendada'
@@ -276,15 +321,31 @@ export function MensajesFlujoCita({
                 ? 'Al profesional le llegó su correo. A ella no: no dejó correo al pedir ayuda, así que este WhatsApp es el único registro que va a tener de su cita.'
                 : 'Los dos correos ya salieron solos. El WhatsApp es lo que de verdad leen, y por ahora se manda desde aquí.'}
             </p>
+            {/*
+              Lo que ya está hecho, dicho: el aviso se queda hasta que estén
+              los dos, y mientras tanto se ve cuál falta.
+            */}
+            {avisoALaPersona || avisoAlProfesional ? (
+              <p className="panel__nota" style={{ color: '#2e7d5b', fontWeight: 600 }}>
+                {avisoALaPersona ? `A ella, ${quienYCuando(avisoALaPersona)}.` : 'A ella todavía no.'}{' '}
+                {avisoAlProfesional
+                  ? `Al profesional, ${quienYCuando(avisoAlProfesional)}.`
+                  : 'Al profesional todavía no.'}
+              </p>
+            ) : null}
             <Mensaje
               titulo="Confirmarle la cita a la persona"
+              nota={quienYCuando(avisoALaPersona) ?? undefined}
               telefono={pacienteTelefono}
               texto={mensajeConfirmacion}
+              alUsar={() => apuntarAviso('PERSONA')}
             />
             <Mensaje
               titulo="Confirmarle la cita al profesional"
+              nota={quienYCuando(avisoAlProfesional) ?? undefined}
               telefono={profesionalTelefono}
               texto={mensajeProfesional}
+              alUsar={() => apuntarAviso('PROFESIONAL')}
             />
           </>
         ) : esHoy ? (
@@ -435,12 +496,15 @@ function Mensaje({
   nota,
   telefono,
   texto,
+  alUsar,
 }: {
   titulo: string
   /** Una línea en gris bajo el título: cuándo usarlo, o cuándo no. */
   nota?: string
   telefono: string
   texto: string
+  /** Se llama al abrir WhatsApp o al copiar: es cuando el mensaje sale de aquí. */
+  alUsar?: () => void
 }) {
   const [copiado, setCopiado] = useState(false)
   const [verTexto, setVerTexto] = useState(false)
@@ -450,6 +514,7 @@ function Mensaje({
     navigator.clipboard.writeText(texto)
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
+    alUsar?.()
   }
 
   return (
@@ -469,6 +534,7 @@ function Mensaje({
             href={whatsapp}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => alUsar?.()}
           >
             <MessageSquare size={14} />
             Abrir WhatsApp

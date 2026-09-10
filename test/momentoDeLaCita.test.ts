@@ -117,3 +117,82 @@ describe('en qué momento está una cita', () => {
     expect(momentoDeLaCita({ ...BASE, inicio: en(4), creadaEn: null })).toBe('recordar')
   })
 })
+
+/**
+ * Desde que se apunta a quién se le avisó, manda el hecho y no el reloj.
+ *
+ * Byron abrió tres citas iguales —confirmadas, firmadas, con correo— y la
+ * ficha decía cosas distintas en cada una: la diferencia era cuántas horas
+ * llevaban agendadas. Con doce horas de ventana, quien mandaba el WhatsApp a
+ * los cinco minutos seguía viendo «confírmasela» media jornada, y la cita que
+ * nadie miró esa noche dejaba de pedirlo sin que nadie hubiera escrito a
+ * nadie.
+ *
+ * Las citas de antes del registro se quedan con el reloj: no tienen marcas ni
+ * las van a tener, y exigirlas llenaría la agenda de avisos sobre sesiones
+ * confirmadas hace semanas.
+ */
+describe('con el aviso ya registrado', () => {
+  // Después del corte: estas citas sí llevan marcas.
+  const AHORA_NUEVO = new Date('2026-09-20T15:00:00Z').getTime()
+  const enN = (h: number) => new Date(AHORA_NUEVO + h * HORA).toISOString()
+  const haceN = (h: number) => new Date(AHORA_NUEVO - h * HORA).toISOString()
+  const NUEVA = { ...BASE, ahora: AHORA_NUEVO }
+
+  it('sin avisar a ninguno, lo sigue pidiendo por vieja que sea', () => {
+    expect(
+      momentoDeLaCita({ ...NUEVA, inicio: enN(7 * 24), creadaEn: haceN(3 * 24) }),
+    ).toBe('recien-agendada')
+  })
+
+  it('avisada solo a la persona, sigue faltando el profesional', () => {
+    expect(
+      momentoDeLaCita({
+        ...NUEVA,
+        inicio: enN(7 * 24),
+        creadaEn: haceN(3 * 24),
+        avisadaLaPersona: true,
+      }),
+    ).toBe('recien-agendada')
+  })
+
+  it('avisados los dos, la tarjeta se calla', () => {
+    expect(
+      momentoDeLaCita({
+        ...NUEVA,
+        inicio: enN(7 * 24),
+        creadaEn: haceN(3 * 24),
+        avisadaLaPersona: true,
+        avisadoElProfesional: true,
+      }),
+    ).toBe('nada')
+  })
+
+  /** Y cuando llega el día, lo que toca ya es recordar. */
+  it('avisados los dos y la sesión es hoy: recordar', () => {
+    expect(
+      momentoDeLaCita({
+        ...NUEVA,
+        inicio: enN(5),
+        creadaEn: haceN(3 * 24),
+        avisadaLaPersona: true,
+        avisadoElProfesional: true,
+      }),
+    ).toBe('recordar')
+  })
+
+  /**
+   * Confirmar sigue yendo antes que recordar: si no se le ha contado que
+   * existe, recordársela no es recordar nada.
+   */
+  it('sin avisar y la sesión es hoy: primero confirmar', () => {
+    expect(momentoDeLaCita({ ...NUEVA, inicio: enN(5), creadaEn: haceN(3 * 24) })).toBe(
+      'recien-agendada',
+    )
+  })
+
+  /** Las de antes del corte no cambian: siguen con el reloj de doce horas. */
+  it('una cita anterior al registro sigue callándose a las doce horas', () => {
+    expect(momentoDeLaCita({ ...BASE, inicio: en(7 * 24), creadaEn: hace(20) })).toBe('nada')
+  })
+})
