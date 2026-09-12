@@ -66,7 +66,12 @@ export function videosPara(...ids: string[]): VideoCapacitacion[] {
   return VIDEOS_CAPACITACION.filter((v) => ids.includes(v.id))
 }
 
-/** La página del vídeo dentro del portal, no el enlace de Drive. */
+/**
+ * Dónde se ve el vídeo dentro del portal, no el enlace de Drive.
+ *
+ * Vive en «Cómo funciona la red», encima del mapa de procesos: el ancla lleva
+ * directo a la ficha del vídeo que toca.
+ */
 export function enlaceCapacitacion(id: string): string {
-  return `/portal/capacitacion#${id}`
+  return `/portal/procesos#${id}`
 }

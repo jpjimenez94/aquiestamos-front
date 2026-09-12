@@ -5,6 +5,23 @@
 .capacitacion {
   display: grid;
   gap: 20px;
+  margin-bottom: 28px;
+  /* Con el ancla desde otra pantalla, que el titular no quede pegado arriba. */
+  scroll-margin-top: 16px;
+}
+
+.capacitacion__intro {
+  max-width: 62ch;
+}
+
+.capacitacion__encabezado {
+  font-size: 1.45rem;
+  margin: 0 0 4px;
+}
+
+.capacitacion__bajada {
+  color: var(--color-text-light);
+  margin: 0;
 }
 
 .capacitacion__ficha {

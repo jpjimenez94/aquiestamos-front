@@ -27,7 +27,6 @@ import {
   Settings,
   Globe,
   Compass,
-  PlayCircle,
   MapPin,
   ListTodo,
   Key,
@@ -214,13 +213,8 @@ const GRUPOS: { titulo: string; icono: React.ReactNode; enlaces: Enlace[] }[] = 
     titulo: "Guía",
     icono: <Compass size={15} />,
     enlaces: [
-      // Antes que el manual: quien entra nuevo mira el vídeo, y el que ya
-      // lleva tiempo baja al manual a buscar el detalle.
-      {
-        href: "/portal/capacitacion",
-        texto: "Capacitación",
-        icono: <PlayCircle size={17} />,
-      },
+      // Una sola puerta: la capacitación en vídeo vive dentro de esta misma
+      // página, arriba del mapa de procesos.
       {
         href: "/portal/procesos",
         texto: "Cómo funciona la red",

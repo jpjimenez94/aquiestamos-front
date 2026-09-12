@@ -322,7 +322,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   </summary>
   <div class="aviso dato">
     <b>También está en vídeo</b>
-    La sesión de capacitación del equipo recorre esto mismo en pantalla, con casos de verdad. Se ve en <a href="/portal/capacitacion">Guía → Capacitación</a>, dentro del portal.
+    La sesión de capacitación del equipo recorre esto mismo en pantalla, con casos de verdad. Se ve en <a href="/portal/procesos#capacitacion">Guía → Cómo funciona la red</a>, arriba del todo.
   </div>
 
   <p>
@@ -618,7 +618,7 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
   </summary>
   <div class="aviso dato">
     <b>También está en vídeo</b>
-    En la capacitación grabada se recorre el camino completo: recibir la solicitud, asignar y agendar. Se ve en <a href="/portal/capacitacion">Guía → Capacitación</a>, dentro del portal.
+    En la capacitación grabada se recorre el camino completo: recibir la solicitud, asignar y agendar. Se ve en <a href="/portal/procesos#capacitacion">Guía → Cómo funciona la red</a>, arriba del todo.
   </div>
 
   <p>

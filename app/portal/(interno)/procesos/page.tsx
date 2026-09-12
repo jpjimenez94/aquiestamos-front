@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { Cabecera } from '../componentes'
 import { ProcesosClient } from './ProcesosClient'
+import { SeccionCapacitacion } from './SeccionCapacitacion'
 import './procesos.css'
+import './capacitacion.css'
 
 export const metadata = { title: 'Cómo funciona la red' }
 
@@ -23,6 +25,13 @@ export default function ProcesosPage() {
               quien entra a coordinación el lunes—. Va primero porque es el que
               más gente necesita.
             */}
+            {/*
+              Lo primero de la fila: el título de la página no dice «vídeo», y
+              a quien entra el lunes se le manda a ver la capacitación.
+            */}
+            <a className="boton-mini" href="#capacitacion" title="Las sesiones grabadas del equipo">
+              ▶ Vídeos
+            </a>
             <a
               className="boton-mini"
               data-tono="principal"
@@ -60,6 +69,14 @@ export default function ProcesosPage() {
           </span>
         }
       />
+
+      {/*
+        Primero se ve contado y después se lee. Es el orden en que alguien
+        aprende algo nuevo: la sesión grabada da el recorrido completo, y el
+        mapa de etapas de abajo es a donde se vuelve cuando hay una duda
+        concreta con un caso delante.
+      */}
+      <SeccionCapacitacion />
 
       <ProcesosClient />
     </>
