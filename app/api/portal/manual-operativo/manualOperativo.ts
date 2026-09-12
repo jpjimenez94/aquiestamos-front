@@ -320,6 +320,11 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     <h2>Verificaciones</h2>
     <p class="quien">Lo hace: coordinación · Lo espera: quien se postuló</p>
   </summary>
+  <div class="aviso dato">
+    <b>También está en vídeo</b>
+    La sesión de capacitación del equipo recorre esto mismo en pantalla, con casos de verdad. Se ve en <a href="/portal/capacitacion">Guía → Capacitación</a>, dentro del portal.
+  </div>
+
   <p>
     Verificar es comprobar que quien va a acompañar a alguien es de verdad psicólogo y puede
     ejercer. Es el único trámite de la red que <b>no se puede saltar</b>: sin tarjeta
@@ -611,6 +616,11 @@ export const MANUAL_OPERATIVO_HTML = `<!doctype html>
     <h2>Agendamiento: los 7 pasos</h2>
     <p class="quien">Lo hacen: la persona · coordinación · el profesional · el sistema</p>
   </summary>
+  <div class="aviso dato">
+    <b>También está en vídeo</b>
+    En la capacitación grabada se recorre el camino completo: recibir la solicitud, asignar y agendar. Se ve en <a href="/portal/capacitacion">Guía → Capacitación</a>, dentro del portal.
+  </div>
+
   <p>
     Todo acompañamiento recorre los mismos siete pasos, y el portal los enseña siempre con
     los mismos números. La tira aparece arriba de la ficha de cada persona, con el paso

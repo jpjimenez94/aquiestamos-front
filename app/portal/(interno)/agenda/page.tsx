@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { portalFetch, soloHora, enBogota } from '@/lib/portal'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
 import { BotonExportarCSV } from '@/components/portal/BotonExportarCSV'
+import { EnlaceCapacitacion } from '@/components/portal/EnlaceCapacitacion'
 import {
   LayoutGrid,
   CalendarDays,
@@ -272,6 +273,7 @@ export default async function AgendaPage({
         <Cabecera
           titulo="Agenda y Gestión de Casos"
           descripcion="Cada columna es un estado del caso: dónde está y qué respuesta se espera."
+          acciones={<EnlaceCapacitacion video="operaciones-y-atencion" />}
         />
 
         {/* Banner de Supervisión en Tiempo Real */}

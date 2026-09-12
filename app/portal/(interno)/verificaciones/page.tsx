@@ -4,6 +4,7 @@ import { Cabecera, Vacio } from '../componentes'
 import { nombrePropio } from '@/lib/nombre'
 import { TarjetaPendiente } from './TarjetaPendiente'
 import { BotonPedirDocumentos } from './BotonPedirDocumentos'
+import { EnlaceCapacitacion } from '@/components/portal/EnlaceCapacitacion'
 
 export const metadata = { title: 'Verificaciones' }
 
@@ -89,9 +90,15 @@ export default async function VerificacionesPage() {
 
   return (
     <>
+      {/*
+        El vídeo va aquí, no solo en la Guía: la duda aparece mirando una
+        tarjeta profesional borrosa, y nadie deja lo que está haciendo para ir
+        a buscar un manual.
+      */}
       <Cabecera
         titulo="Verificaciones"
         descripcion="Quién ya subió sus documentos y espera aprobación, y a quién falta pedírselos."
+        acciones={<EnlaceCapacitacion video="operaciones-y-atencion" />}
       />
 
       {/* Sitios Oficiales para Verificación de Psicólogos y Profesionales */}

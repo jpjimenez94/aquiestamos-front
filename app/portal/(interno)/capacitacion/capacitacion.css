@@ -1,0 +1,138 @@
+/* ==========================================================================
+   Capacitación: las sesiones grabadas
+   ========================================================================== */
+
+.capacitacion {
+  display: grid;
+  gap: 20px;
+}
+
+.capacitacion__ficha {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 26px;
+  align-items: start;
+  padding: 22px 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radii-layout);
+  background-color: var(--color-card-bg);
+  box-shadow: var(--shadow-card);
+  /* Para que el enlace con ancla no deje el título debajo de la cabecera. */
+  scroll-margin-top: 24px;
+}
+
+.capacitacion__para {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+
+.capacitacion__titulo {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin: 8px 0 6px;
+}
+
+.capacitacion__resumen {
+  color: var(--color-text-light);
+  margin: 0 0 14px;
+}
+
+.capacitacion__momentos {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 0.86rem;
+  color: var(--color-text-light);
+}
+
+.capacitacion__momentos strong {
+  display: inline-block;
+  min-width: 44px;
+  color: var(--color-text-default);
+  font-variant-numeric: tabular-nums;
+}
+
+.capacitacion__aviso {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-default);
+  border-left: 3px solid var(--color-yellow);
+  border-radius: 10px;
+  background-color: #fdf8ef;
+  font-size: 0.86rem;
+  color: var(--color-text-default);
+}
+
+/* ---------- El reproductor ---------- */
+
+.video {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.video__marco,
+.video__portada {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background-color: #15162e;
+}
+
+.video__marco {
+  display: block;
+}
+
+.video__portada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #fff6eb;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: filter 0.15s ease;
+}
+
+.video__portada:hover {
+  filter: brightness(1.18);
+}
+
+.video__play {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  background-color: rgba(255, 246, 235, 0.14);
+  border: 1px solid rgba(255, 246, 235, 0.3);
+}
+
+.video__externo {
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-light);
+}
+
+@media (max-width: 900px) {
+  .capacitacion__ficha {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 18px;
+  }
+}
