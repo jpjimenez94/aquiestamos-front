@@ -29,15 +29,17 @@ export function SeccionCapacitacion() {
         </p>
       </div>
 
-      {VIDEOS_CAPACITACION.map((v) => (
-        <article className="capacitacion__ficha" id={v.id} key={v.id}>
-          <div className="capacitacion__texto">
-            <span className="capacitacion__para">
-              <Users size={13} aria-hidden />
-              {v.para}
-            </span>
-            <h3 className="capacitacion__titulo">{v.titulo}</h3>
-            <p className="capacitacion__resumen">{v.resumen}</p>
+      <div className="capacitacion__lista">
+        {VIDEOS_CAPACITACION.map((v) => (
+          <article className="capacitacion__ficha" id={v.id} key={v.id}>
+            <Reproductor drive={v.drive} titulo={v.titulo} />
+            <div className="capacitacion__texto">
+              <span className="capacitacion__para">
+                <Users size={13} aria-hidden />
+                {v.para}
+              </span>
+              <h3 className="capacitacion__titulo">{v.titulo}</h3>
+              <p className="capacitacion__resumen">{v.resumen}</p>
 
             {v.momentos?.length ? (
               <ul className="capacitacion__momentos">
@@ -60,11 +62,10 @@ export function SeccionCapacitacion() {
                 Lo mismo por escrito · {v.capitulo.texto}
               </a>
             ) : null}
-          </div>
-
-          <Reproductor drive={v.drive} titulo={v.titulo} />
-        </article>
-      ))}
+            </div>
+          </article>
+        ))}
+      </div>
 
       <p className="capacitacion__aviso">
         Estas grabaciones son internas: se ven las caras y los nombres de quienes estaban en la

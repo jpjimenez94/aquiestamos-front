@@ -24,12 +24,22 @@
   margin: 0;
 }
 
+/*
+   Dos por fila y más pequeñas. A ancho completo, cada vídeo ocupaba media
+   pantalla y la sección se comía la página entera antes de llegar al mapa de
+   procesos, que es el resto del contenido.
+*/
+.capacitacion__lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .capacitacion__ficha {
   display: grid;
-  grid-template-columns: 1fr 1.15fr;
-  gap: 26px;
-  align-items: start;
-  padding: 22px 24px;
+  gap: 12px;
+  align-content: start;
+  padding: 14px;
   border: 1px solid var(--color-border-default);
   border-radius: var(--border-radii-layout);
   background-color: var(--color-card-bg);
@@ -43,37 +53,38 @@
   align-items: center;
   gap: 6px;
   font-family: var(--font-montserrat), sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--color-text-light);
 }
 
 .capacitacion__titulo {
-  font-size: 1.35rem;
+  font-size: 1.12rem;
   line-height: 1.2;
-  margin: 8px 0 6px;
+  margin: 6px 0 4px;
 }
 
 .capacitacion__resumen {
   color: var(--color-text-light);
-  margin: 0 0 14px;
+  font-size: 0.88rem;
+  margin: 0 0 10px;
 }
 
 .capacitacion__momentos {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 4px;
-  font-size: 0.86rem;
+  gap: 3px;
+  font-size: 0.82rem;
   color: var(--color-text-light);
 }
 
 .capacitacion__momentos strong {
   display: inline-block;
-  min-width: 44px;
+  min-width: 42px;
   color: var(--color-text-default);
   font-variant-numeric: tabular-nums;
 }
@@ -93,7 +104,7 @@
 
 .video {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   justify-items: start;
 }
 
@@ -102,8 +113,9 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: 10px;
   background-color: #15162e;
+  overflow: hidden;
 }
 
 .video__marco {
@@ -111,35 +123,49 @@
 }
 
 .video__portada {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
   cursor: pointer;
   color: #fff6eb;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
+}
+
+/* El primer fotograma, que Drive sirve como miniatura. */
+.video__miniatura {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Apagada: encima va el botón, y el fotograma es solo para reconocerlo. */
+  filter: brightness(0.62);
   transition: filter 0.15s ease;
 }
 
-.video__portada:hover {
-  filter: brightness(1.18);
+.video__portada:hover .video__miniatura {
+  filter: brightness(0.78);
 }
 
 .video__play {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 62px;
-  height: 62px;
+  width: 46px;
+  height: 46px;
   border-radius: 999px;
-  background-color: rgba(255, 246, 235, 0.14);
-  border: 1px solid rgba(255, 246, 235, 0.3);
+  background-color: rgba(21, 22, 46, 0.72);
+  border: 1px solid rgba(255, 246, 235, 0.45);
+  backdrop-filter: blur(2px);
+  transition: transform 0.15s ease;
+}
+
+.video__portada:hover .video__play {
+  transform: scale(1.08);
 }
 
 .video__externo {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -147,9 +173,7 @@
 }
 
 @media (max-width: 900px) {
-  .capacitacion__ficha {
+  .capacitacion__lista {
     grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 18px;
   }
 }

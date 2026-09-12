@@ -11,8 +11,13 @@ import { Play, ExternalLink } from 'lucide-react'
  * haya tocado nada. Aquí no hay nada hasta que se pulsa: entonces se monta el
  * reproductor de ese vídeo y solo de ese.
  *
- * El enlace de «abrir en Drive» se queda siempre a mano, que es lo que sirve
- * cuando el portal se ve desde un teléfono con poca pantalla.
+ * Mientras tanto se ve el primer fotograma, que Drive sirve como miniatura. Un
+ * rectángulo negro no dice si el vídeo es el que buscas; el fotograma sí.
+ *
+ * La miniatura va en un `<img>` normal y no en `next/image` a propósito: la
+ * sirve Google, cambiaría con cada despliegue y no gana nada pasando por el
+ * optimizador. Si Drive no la devuelve —permisos, red—, el bloque se queda
+ * oscuro y el botón sigue funcionando igual.
  */
 export function Reproductor({ drive, titulo }: { drive: string; titulo: string }) {
   const [viendo, setViendo] = useState(false)
@@ -28,11 +33,21 @@ export function Reproductor({ drive, titulo }: { drive: string; titulo: string }
           allowFullScreen
         />
       ) : (
-        <button className="video__portada" type="button" onClick={() => setViendo(true)}>
+        <button
+          className="video__portada"
+          type="button"
+          onClick={() => setViendo(true)}
+          aria-label={`Ver el vídeo: ${titulo}`}
+        >
+          <img
+            className="video__miniatura"
+            src={`https://drive.google.com/thumbnail?id=${drive}&sz=w640`}
+            alt=""
+            loading="lazy"
+          />
           <span className="video__play" aria-hidden>
-            <Play size={26} fill="currentColor" />
+            <Play size={20} fill="currentColor" />
           </span>
-          <span className="video__etiqueta">Ver el vídeo</span>
         </button>
       )}
 
@@ -42,7 +57,7 @@ export function Reproductor({ drive, titulo }: { drive: string; titulo: string }
         target="_blank"
         rel="noopener noreferrer"
       >
-        <ExternalLink size={13} />
+        <ExternalLink size={12} />
         Abrirlo en Drive
       </a>
     </div>
