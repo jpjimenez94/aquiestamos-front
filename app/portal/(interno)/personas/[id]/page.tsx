@@ -19,6 +19,7 @@ import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
 import { pasoDelCaso, armarHechos, proximaYUltima, citaAcordadaVigente } from '@/lib/pasosDelCaso'
 import { seguimientoPendiente } from '@/lib/seguimiento'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
+import { BotonSinContacto, type SinContacto } from './BotonSinContacto'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { BotonEncuesta } from './BotonEncuesta'
@@ -54,6 +55,8 @@ type FeedbackDeLaPersona = {
 
 type Persona = {
   id: string
+  /** Si no se ha logrado hablar con ella para agendar, y desde cuándo. */
+  sinContacto?: SinContacto
   /** Por quién pasó antes. Vacío si es su primer profesional. */
   historialAsignaciones?: HistorialAsignacion[]
   fullName: string
@@ -384,7 +387,17 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           ) : null}
         </div>
       ) : (
-        <PanelEmparejamiento personaId={persona.id} />
+        <>
+          {/*
+            Aquí y no en otro sitio: es la pantalla de «a esta persona todavía
+            no se le ha asignado nadie», y la razón por la que no se le ha
+            asignado muchas veces es que no se logra hablar con ella.
+          */}
+          <PanelEmparejamiento personaId={persona.id} />
+          {puede(usuario, 'paciente:contacto') ? (
+            <BotonSinContacto personaId={persona.id} sinContacto={persona.sinContacto ?? null} />
+          ) : null}
+        </>
       )}
 
       {/*

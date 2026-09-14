@@ -1228,6 +1228,52 @@ body.sin-desplazamiento {
   color: var(--color-text-secondary, #64748b);
 }
 
+/* ---------- «No se pudo contactar» ----------
+   Se llama, se escribe y no contesta — o el número quedó mal escrito. La
+   persona sigue esperando y el caso sigue abierto: esto apunta el intento, no
+   cierra nada. */
+
+.sin-contacto {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-default);
+  border-left: 3px solid var(--color-orange);
+  border-radius: var(--border-radii-layout);
+  background-color: #fdf6ee;
+}
+
+.sin-contacto__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--color-orange);
+}
+
+.sin-contacto__detalle {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  color: var(--color-text-light);
+}
+
+.sin-contacto__opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  background-color: var(--color-card-bg);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.sin-contacto__opcion[data-elegida='true'] {
+  border-color: var(--color-orange);
+  box-shadow: inset 0 0 0 1px var(--color-orange);
+}
+
 /* ---------- Pipeline / Tablero de Casos ---------- */
 
 .pipeline-grid {
