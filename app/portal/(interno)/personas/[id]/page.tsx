@@ -168,7 +168,15 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
         titulo={nombrePropio(persona.fullName)}
         descripcion={`${persona.city} · lleva ${persona.diasEsperando} ${persona.diasEsperando === 1 ? 'día' : 'días'} en la red · todo su acompañamiento, aquí`}
         acciones={
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/*
+              Junto a «Volver» y «Eliminar registro»: es una acción sobre la
+              persona, como esas dos, y quien llama la busca arriba — no a
+              media pantalla, debajo de los candidatos.
+            */}
+            {puede(usuario, 'paciente:contacto') ? (
+              <BotonSinContacto personaId={persona.id} sinContacto={persona.sinContacto ?? null} />
+            ) : null}
             {puede(usuario, 'paciente:borrar') ? (
               <BotonEliminarPersona
                 personaId={persona.id}
@@ -387,17 +395,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           ) : null}
         </div>
       ) : (
-        <>
-          {/*
-            Aquí y no en otro sitio: es la pantalla de «a esta persona todavía
-            no se le ha asignado nadie», y la razón por la que no se le ha
-            asignado muchas veces es que no se logra hablar con ella.
-          */}
-          <PanelEmparejamiento personaId={persona.id} />
-          {puede(usuario, 'paciente:contacto') ? (
-            <BotonSinContacto personaId={persona.id} sinContacto={persona.sinContacto ?? null} />
-          ) : null}
-        </>
+        <PanelEmparejamiento personaId={persona.id} />
       )}
 
       {/*
