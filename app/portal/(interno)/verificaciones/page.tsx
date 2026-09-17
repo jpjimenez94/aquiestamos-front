@@ -53,6 +53,20 @@ const SITIOS_VERIFICACION = [
     bg: '#f5f3ff',
     border: '#ddd6fe',
   },
+  {
+    // Valida el certificado que emite la Superintendencia: hay que pedirle al
+    // profesional el código de su certificado de inscripción en el Registro
+    // Nacional de Prestadores Individuales, no basta con el nombre.
+    nombre: 'Superintendencia de Salud',
+    entidad: 'Gobierno de Chile',
+    pais: 'Chile',
+    bandera: '🇨🇱',
+    url: 'https://emisorcertificados.superdesalud.gob.cl/ValidacionCertificados/',
+    desc: 'Validación de certificados · Registro de Prestadores Individuales',
+    color: '#1e40af',
+    bg: '#eef2ff',
+    border: '#c7d2fe',
+  },
 ]
 
 type Profesional = {
