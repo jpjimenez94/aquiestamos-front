@@ -1,0 +1,88 @@
+/* ==========================================================================
+   Informe semanal: las cifras de la semana, en el orden del documento
+   ========================================================================== */
+
+.informe__cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.cifra {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background-color: var(--color-bg-default);
+}
+
+/* Las que se pueden comprobar llevan a su pantalla: una cifra que no se puede
+   mirar por dentro no sirve para un informe que alguien va a firmar. */
+.cifra--enlace {
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.cifra--enlace:hover {
+  border-color: var(--color-blue);
+  transform: translateY(-1px);
+}
+
+.cifra__numero {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cifra__que {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.cifra__nota {
+  font-size: 0.76rem;
+  color: var(--color-text-light);
+}
+
+.informe__lista {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.informe__lista li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.informe__lista li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.informe__lista--simple li {
+  border-bottom: none;
+  padding-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.informe__pie {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--color-orange);
+  border-radius: 10px;
+  background-color: #fdf6ef;
+  font-size: 0.88rem;
+  color: var(--color-text-default);
+}

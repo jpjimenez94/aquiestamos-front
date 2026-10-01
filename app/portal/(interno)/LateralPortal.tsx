@@ -27,6 +27,7 @@ import {
   Settings,
   Globe,
   Compass,
+  FileSpreadsheet,
   MapPin,
   ListTodo,
   Key,
@@ -121,6 +122,13 @@ const GRUPOS: { titulo: string; icono: React.ReactNode; enlaces: Enlace[] }[] = 
         icono: <HeartHandshake size={17} />,
         permiso: "cuidado:leer",
         badgeKey: "cuidado",
+      },
+      // Lo que hay que entregar cada semana, con las cifras ya contadas.
+      {
+        href: "/portal/informe-semanal",
+        texto: "Informe semanal",
+        icono: <FileSpreadsheet size={17} />,
+        permiso: "informe:leer",
       },
     ],
   },
