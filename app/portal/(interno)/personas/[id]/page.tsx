@@ -20,6 +20,7 @@ import { pasoDelCaso, armarHechos, proximaYUltima, citaAcordadaVigente } from '@
 import { seguimientoPendiente } from '@/lib/seguimiento'
 import { PanelEmparejamiento } from './PanelEmparejamiento'
 import { BotonSinContacto, type SinContacto } from './BotonSinContacto'
+import { BotonDesistimiento, type Desistimiento } from './BotonDesistimiento'
 import { PanelDelCaso, type Asignacion } from './PanelDelCaso'
 import { BotonCerrarCaso } from './BotonCerrarCaso'
 import { BotonEncuesta } from './BotonEncuesta'
@@ -83,6 +84,10 @@ type Persona = {
   enlaceFeedback?: string | null
   /** Enlace con el que la persona agenda sus propias sesiones. */
   enlaceAgenda?: string | null
+  /** Enlace donde ella misma deja constancia de que no quiere continuar. */
+  enlaceDesistimiento?: string | null
+  /** Si ya la dejó: quién firmó, cuándo y qué versión del texto leyó. */
+  desistimiento?: Desistimiento
   citas: CitaDeLaPersona[]
   notasSeguimiento?: NotaSeguimiento[]
   totalNotas?: number
@@ -176,6 +181,20 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             */}
             {puede(usuario, 'paciente:contacto') ? (
               <BotonSinContacto personaId={persona.id} sinContacto={persona.sinContacto ?? null} />
+            ) : null}
+            {/*
+              Y al lado, porque es la otra cara de lo mismo: una es «no hemos
+              podido hablarle», la otra es «habló, y dijo que no». Las dos son
+              acciones sobre la persona y las dos se buscan arriba.
+            */}
+            {puede(usuario, 'asignacion:cerrar') && persona.enlaceDesistimiento ? (
+              <BotonDesistimiento
+                nombre={persona.fullName}
+                telefono={persona.phone}
+                enlace={persona.enlaceDesistimiento}
+                desistimiento={persona.desistimiento ?? null}
+                plantillas={plantillas}
+              />
             ) : null}
             {puede(usuario, 'paciente:borrar') ? (
               <BotonEliminarPersona

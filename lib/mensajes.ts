@@ -1870,3 +1870,37 @@ export function mensajeDeSesionGrupal(d: {
     'Llegamos con las preguntas que dejaron ustedes mismos. Y si ese día no puedes, dínoslo y te contamos de la siguiente.',
   ].join('\n')
 }
+
+/**
+ * Mandarle la constancia a quien decidió no tomar el acompañamiento.
+ *
+ * El tono es todo aquí. Lo que este mensaje NO debe hacer:
+ *   - reprochar ni insistir («¿estás segura?», «lo pensaste bien?»);
+ *   - pedirle que explique por qué: desistir es su derecho, no una falta;
+ *   - dar por hecho que está bien. Quien desiste puede estar peor, no mejor,
+ *     y por eso los teléfonos van en el mismo mensaje y no detrás del enlace.
+ *
+ * Y cierra diciéndole que puede volver, porque es verdad y porque alguien que
+ * cree que ya quemó su oportunidad no vuelve a pedir ayuda.
+ */
+export function mensajeDeDesistimiento(d: {
+  persona: string
+  enlace: string
+  plantilla?: string
+}): string {
+  const nombre = nombreDePila(d.persona) || 'hola'
+  const variables = { persona: nombre, enlace: d.enlace }
+  if (d.plantilla?.trim()) return renderPlantilla(d.plantilla, variables)
+
+  return [
+    `Hola ${nombre} 👋`,
+    '',
+    'Entendemos que por ahora no quieres continuar con el acompañamiento, y está bien: es tu decisión y no hay que dar explicaciones.',
+    '',
+    `Para cerrar tu caso necesitamos que lo confirmes tú misma desde aquí: ${d.enlace}`,
+    '',
+    'Ahí mismo quedan los teléfonos de emergencia, por si algún día los necesitas. Y si más adelante quieres retomar, solo tienes que escribirnos: te atendemos igual.',
+    '',
+    LINEA_DE_CRISIS,
+  ].join('\n')
+}
