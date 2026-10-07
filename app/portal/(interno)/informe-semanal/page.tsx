@@ -8,6 +8,7 @@ import {
   AREA_LEGIBLE,
   PRIORIDAD_LEGIBLE,
   resumenPorPrioridad,
+  GRUPOS_DE_CITAS,
   type InformeSemanal,
   type ListaPendiente,
 } from '@/lib/informeSemanal'
@@ -281,6 +282,65 @@ export default async function InformeSemanalPage({
         lista={d.pendientes.sinProfesional}
         linea={(x) => `lleva ${x.diasEsperando} días en la red`}
       />
+
+      {/*
+        Las cifras, abiertas.
+
+        «Me salen las cifras, pero quiero ver las citas puntuales que cuenta el
+        informe» —Sofi—. Un número que no se puede abrir no se puede defender:
+        quien firma tiene que poder contestar «¿cuáles seis?», y sobre todo
+        saber a qué profesional preguntarle por cada una de las que faltan.
+        «10 pendientes» sin nombres es un reproche sin destinatario.
+
+        Las pendientes van primero y abiertas; las demás, cerradas, porque son
+        para comprobar y no para trabajar.
+      */}
+      <div className="panel">
+        <h2>Las citas de la semana, una por una</h2>
+        <p className="panel__nota" style={{ marginTop: 0 }}>
+          De aquí salen las cifras de arriba. Cada cita dice de quién es y quién la atendía.
+        </p>
+        {d.citasDeLaSemana.length === 0 ? (
+          <Vacio>No hubo citas esta semana.</Vacio>
+        ) : (
+          GRUPOS_DE_CITAS.map((grupo) => {
+            const suyas = d.citasDeLaSemana.filter((c) => c.que === grupo.que)
+            if (suyas.length === 0) return null
+            return (
+              <details
+                className="informe__grupo"
+                key={grupo.que}
+                open={grupo.que === 'PENDIENTE'}
+              >
+                <summary>
+                  <strong>{grupo.titulo}</strong>
+                  <span className="tabla__secundario"> · {suyas.length}</span>
+                </summary>
+                <p className="panel__nota" style={{ margin: '6px 0 0' }}>
+                  {grupo.explica}
+                </p>
+                <ul className="informe__lista">
+                  {suyas.map((c) => (
+                    <li key={c.id}>
+                      <span className="informe__cuando">{enBogota(c.cuando)}</span>
+                      {c.personaId ? (
+                        <Link href={`/portal/personas/${c.personaId}`}>
+                          {nombrePropio(c.persona ?? 'Sin nombre')}
+                        </Link>
+                      ) : (
+                        <span>{nombrePropio(c.persona ?? 'Sin nombre')}</span>
+                      )}
+                      <span className="tabla__secundario">
+                        con {nombrePropio(c.profesional ?? 'sin profesional')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )
+          })
+        )}
+      </div>
 
       <p className="informe__pie">
         Lo que no sale de aquí —logros, obstáculos, estado del área y prioridades de la semana

@@ -22,6 +22,52 @@ export type ListaPendiente = {
   profesional?: string | null
 }
 
+/**
+ * Una cita de la semana, detrás de la cifra que la cuenta.
+ *
+ * `que` viene decidido por el backend y no se deduce aquí del estado: la
+ * clasificación mira los reportes del profesional y la telemetría de la sala,
+ * cosas que esta pantalla no tiene. Deducirla otra vez sería tener dos reglas
+ * para lo mismo, y es así como se llega a una cifra que dice seis encima de
+ * una lista con cinco filas.
+ */
+export type CitaDelInforme = {
+  id: string
+  cuando: string
+  personaId: string | null
+  persona: string | null
+  profesional: string | null
+  estado: string
+  que: 'SESION' | 'PENDIENTE' | 'NO_ASISTIO' | 'CANCELADA' | 'REPROGRAMADA' | 'POR_DELANTE'
+}
+
+/** Cómo se llama cada grupo, y en qué orden se enseña. */
+export const GRUPOS_DE_CITAS: {
+  que: CitaDelInforme['que']
+  titulo: string
+  explica: string
+}[] = [
+  {
+    que: 'PENDIENTE',
+    titulo: 'Pendientes de cerrar',
+    explica:
+      'Ya pasaron y nadie dijo qué pasó. No cuentan como sesión ni como ausencia: hay que preguntarle al profesional.',
+  },
+  {
+    que: 'SESION',
+    titulo: 'Sesiones que se dieron',
+    explica: 'Lo dice el reporte del profesional, la casilla del portal o la sala.',
+  },
+  { que: 'NO_ASISTIO', titulo: 'No asistió', explica: 'Había sesión y no se presentó.' },
+  { que: 'CANCELADA', titulo: 'Canceladas', explica: 'Se cancelaron antes de la hora.' },
+  { que: 'REPROGRAMADA', titulo: 'Reprogramadas', explica: 'Se movieron a otro día.' },
+  {
+    que: 'POR_DELANTE',
+    titulo: 'Todavía por delante',
+    explica: 'Programadas o confirmadas, aún sin ocurrir.',
+  },
+]
+
 export type InformeSemanal = {
   periodo: { desde: string; hasta: string }
   voluntariado: {
@@ -70,6 +116,8 @@ export type InformeSemanal = {
     sinElegirHora: ListaPendiente[]
     sinProfesional: ListaPendiente[]
   }
+  /** Las citas de la semana, una por una, detrás de las cifras. */
+  citasDeLaSemana: CitaDelInforme[]
 }
 
 /** Los nombres de área como se escriben en el informe, no como los guarda la base. */
@@ -108,6 +156,17 @@ export function resumenPorPrioridad(lista: ListaPendiente[]): string {
     .map((p) => `${cuenta[p]} de prioridad ${PRIORIDAD_LEGIBLE[p] ?? p.toLowerCase()}`)
   return `${lista.length} ${lista.length === 1 ? 'caso' : 'casos'} — ${partes.join(' y ')}`
 }
+
+/** Día, mes y hora en Bogotá: el documento se lee fuera del portal. */
+const cuandoLargo = (iso: string) =>
+  new Date(iso).toLocaleString('es-CO', {
+    timeZone: 'America/Bogota',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 
 const escapar = (t: string) =>
   t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -152,6 +211,7 @@ export function documentoDelInforme(d: InformeSemanal): string {
   .cabecera { color: #5b6070; margin: 0 0 22px; }
   h2 { font-size: 1.1rem; margin: 26px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #15162e; }
   h3 { font-size: 0.98rem; margin: 16px 0 6px; }
+  h4 { font-size: 0.92rem; margin: 12px 0 2px; }
   table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
   th, td { border: 1px solid #d8d8e0; padding: 7px 10px; text-align: left; vertical-align: top; }
   th { width: 48%; background: #f4f4f7; font-weight: 600; }
@@ -221,6 +281,24 @@ export function documentoDelInforme(d: InformeSemanal): string {
   ${fila('Canceladas en el histórico', a.citasCanceladasHistorico)}
 </table>
 <p class="escribir"><strong>Para escribir:</strong> actividades desarrolladas y zonas territoriales beneficiadas.</p>
+
+<h3>Las citas de la semana, una por una</h3>
+<p>De aquí salen las cifras de arriba. Se incluyen para poder comprobarlas y para saber a quién preguntarle por las que faltan.</p>
+${GRUPOS_DE_CITAS.map((grupo) => {
+  const suyas = d.citasDeLaSemana.filter((c) => c.que === grupo.que)
+  if (suyas.length === 0) return ''
+  return `
+  <h4>${escapar(grupo.titulo)} · ${suyas.length}</h4>
+  <p class="nota">${escapar(grupo.explica)}</p>
+  <ul>${suyas
+    .map(
+      (c) =>
+        `<li>${escapar(cuandoLargo(c.cuando))} — ${escapar(c.persona ?? 'sin nombre')} con ${escapar(
+          c.profesional ?? 'sin profesional',
+        )}.</li>`,
+    )
+    .join('')}</ul>`
+}).join('')}
 
 <h2>4 · Seguimiento de casos y profesionales</h2>
 <table>
