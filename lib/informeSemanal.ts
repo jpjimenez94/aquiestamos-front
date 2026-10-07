@@ -117,7 +117,7 @@ export type InformeSemanal = {
     sinProfesional: ListaPendiente[]
   }
   /** Las citas de la semana, una por una, detrás de las cifras. */
-  citasDeLaSemana: CitaDelInforme[]
+  citasDeLaSemana?: CitaDelInforme[]
 }
 
 /** Los nombres de área como se escriben en el informe, no como los guarda la base. */
@@ -285,7 +285,7 @@ export function documentoDelInforme(d: InformeSemanal): string {
 <h3>Las citas de la semana, una por una</h3>
 <p>De aquí salen las cifras de arriba. Se incluyen para poder comprobarlas y para saber a quién preguntarle por las que faltan.</p>
 ${GRUPOS_DE_CITAS.map((grupo) => {
-  const suyas = d.citasDeLaSemana.filter((c) => c.que === grupo.que)
+  const suyas = (d.citasDeLaSemana ?? []).filter((c) => c.que === grupo.que)
   if (suyas.length === 0) return ''
   return `
   <h4>${escapar(grupo.titulo)} · ${suyas.length}</h4>

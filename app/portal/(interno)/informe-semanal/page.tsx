@@ -300,11 +300,21 @@ export default async function InformeSemanalPage({
         <p className="panel__nota" style={{ marginTop: 0 }}>
           De aquí salen las cifras de arriba. Cada cita dice de quién es y quién la atendía.
         </p>
-        {d.citasDeLaSemana.length === 0 ? (
+        {/*
+          El `?? []` no sobra.
+
+          El front y el backend se despliegan por separado: entre que Vercel
+          publica esto y Railway publica el campo que lo alimenta pasan unos
+          minutos, y en esa ventana `citasDeLaSemana` llega sin definir. Sin la
+          red, el informe entero —cifras incluidas— revienta con un error de
+          servidor por una sección que es un añadido. Se vio en local, con esta
+          misma pantalla y un backend viejo todavía escuchando.
+        */}
+        {(d.citasDeLaSemana ?? []).length === 0 ? (
           <Vacio>No hubo citas esta semana.</Vacio>
         ) : (
           GRUPOS_DE_CITAS.map((grupo) => {
-            const suyas = d.citasDeLaSemana.filter((c) => c.que === grupo.que)
+            const suyas = (d.citasDeLaSemana ?? []).filter((c) => c.que === grupo.que)
             if (suyas.length === 0) return null
             return (
               <details
