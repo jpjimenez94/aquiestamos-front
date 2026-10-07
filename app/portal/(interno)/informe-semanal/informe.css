@@ -142,3 +142,13 @@
   color: var(--color-text-light, #64748b);
   min-width: 170px;
 }
+
+/*
+  Al llegar desde la cifra, que el título no quede pegado al borde.
+
+  El portal tiene cabecera fija: sin esto, el salto deja el «Las citas de la
+  semana» justo debajo de ella y parece que la página se cortó.
+*/
+#citas {
+  scroll-margin-top: 80px;
+}

@@ -206,6 +206,16 @@ export default async function InformeSemanalPage({
                 ? `${d.atenciones.citasMarcadasRealizadas} marcadas a mano, el resto por el reporte o la sala`
                 : 'En la semana'
             }
+            /*
+              La cifra lleva a su propia lista.
+
+              La sección que la detalla está al final de una página larga, por
+              debajo de tres listas: quien mira el número no la encuentra, y un
+              número que no se puede abrir vuelve a ser un número que no se
+              puede defender. Tocar la cifra es el gesto natural para
+              preguntar «¿cuáles?».
+            */
+            enlace="#citas"
           />
           {/*
             Las que nadie cerró, a la vista y no escondidas.
@@ -218,8 +228,8 @@ export default async function InformeSemanalPage({
           <Cifra
             que="Pendientes de cerrar"
             cuanto={d.atenciones.citasPendientesDeCerrar}
-            nota="Ya pasaron y nadie dijo qué pasó"
-            enlace="/portal/agenda"
+            nota="Ya pasaron y nadie dijo qué pasó · toca para ver cuáles"
+            enlace="#citas"
           />
           <Cifra que="Canceladas" cuanto={d.atenciones.citasCanceladasEnLaSemana} nota="En la semana" />
           <Cifra que="Sin asistir" cuanto={d.atenciones.citasSinAsistirEnLaSemana} nota="En la semana" />
@@ -295,7 +305,7 @@ export default async function InformeSemanalPage({
         Las pendientes van primero y abiertas; las demás, cerradas, porque son
         para comprobar y no para trabajar.
       */}
-      <div className="panel">
+      <div className="panel" id="citas">
         <h2>Las citas de la semana, una por una</h2>
         <p className="panel__nota" style={{ marginTop: 0 }}>
           De aquí salen las cifras de arriba. Cada cita dice de quién es y quién la atendía.
