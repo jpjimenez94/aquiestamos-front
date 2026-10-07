@@ -50,8 +50,21 @@ const MODALIDAD = [
 /** Los resultados en los que sí tiene sentido preguntar cómo y cuándo. */
 const CON_ENCUENTRO = ['CITA_ACORDADA', 'YA_ATENDIDA']
 
+/**
+ * Las dos únicas respuestas, dichas como se vive.
+ *
+ * «Sí, la acompañé» antes, porque es lo que más pasa: casi todas las veces que
+ * alguien escribe «quedamos en una cita» viene de haber acompañado y haber
+ * cuadrado la siguiente de una vez.
+ */
+const HUBO_SESION = [
+  { value: 'true', label: 'Sí, la acompañé y además quedamos en la siguiente' },
+  { value: 'false', label: 'No, solo hablamos para cuadrar la cita' },
+] as const
+
 const VACIO = {
   outcome: '',
+  sessionHeld: '',
   modality: '',
   meetsAt: '',
   followUp: '',
@@ -81,6 +94,8 @@ export function ReporteCasoForm({ patientId }: { patientId: string }) {
   function validate() {
     const found: Record<string, string> = {}
     if (!form.outcome) found.outcome = 'Cuéntanos qué pasó'
+    if (esCitaFutura && !form.sessionHeld)
+      found.sessionHeld = 'Dinos si hoy tuviste sesión con ella o solo hablaron para cuadrar'
     if (huboEncuentro && !form.modality) found.modality = 'Dinos si fue presencial o virtual'
     if (esCitaFutura && !form.meetsAt) found.meetsAt = 'Dinos para cuándo quedaron'
     /**
@@ -152,6 +167,34 @@ export function ReporteCasoForm({ patientId }: { patientId: string }) {
         error={errors.outcome}
         onChange={(v) => update('outcome', v)}
       />
+
+      {/*
+        LA pregunta que faltaba.
+
+        «¿Qué pasó?» admitía una sola respuesta, y quien acompañaba y de paso
+        cuadraba la siguiente tenía que elegir. Elegía «quedamos en una cita»
+        —es lo que hay que hacer a continuación, y es lo que la cabeza tiene
+        delante al escribir— y la sesión que acababa de dar no la contaba
+        nadie: ni el informe, ni el cierre automático que deja la cita en
+        «realizada», ni el tablero.
+
+        La semana del 29 de septiembre: 21 citas, el informe dijo 6 sesiones,
+        y 9 de los 14 reportes dijeron «quedamos en una cita» sin dejar dicho
+        si venían de una sesión. Diez citas se quedaron sin cerrar.
+
+        Solo se pregunta aquí porque en los demás resultados la respuesta ya
+        está dicha: «ya la acompañé» es que sí, «no se presentó» es que no.
+      */}
+      {esCitaFutura ? (
+        <RadioField
+          label="¿Y hoy tuviste sesión con ella?"
+          required
+          options={HUBO_SESION}
+          value={form.sessionHeld}
+          error={errors.sessionHeld}
+          onChange={(v) => update('sessionHeld', v)}
+        />
+      ) : null}
 
       {huboEncuentro ? (
         <RadioField

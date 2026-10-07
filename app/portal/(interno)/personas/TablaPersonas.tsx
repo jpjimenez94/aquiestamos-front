@@ -28,6 +28,8 @@ export type Persona = {
   prioridadLegible: string
   createdAt: string
   diasEsperando: number
+  /** Cuántas sesiones lleva en total. No es el estado de su última cita. */
+  sesionesRealizadas?: number
   cita?: {
     id: string
     inicio: string
@@ -210,7 +212,18 @@ export function TablaPersonas({
         if (filtroCita === 'SIN_CITA' && p.cita) return false
         if (filtroCita === 'PROGRAMADA' && p.cita?.estado !== 'PROGRAMADA') return false
         if (filtroCita === 'CONFIRMADA' && p.cita?.estado !== 'CONFIRMADA') return false
-        if (filtroCita === 'REALIZADA' && p.cita?.estado !== 'REALIZADA') return false
+        /*
+          «Ya tuvo sesiones» mira TODAS sus citas, no la última.
+
+          Miraba `cita.estado`, que es solo la más reciente: enseñaba a quien
+          tenía su última cita marcada como realizada y no había vuelto a
+          agendar —cuatro personas de hace semanas— y escondía a todas las que
+          llevan sesiones y ya tienen puesta la siguiente, que son justo las
+          que están en acompañamiento activo. Quien usa este filtro pregunta a
+          quiénes hemos acompañado, no cómo quedó su última cita.
+        */
+        if (filtroCita === 'CON_SESIONES' && !(p.sesionesRealizadas ?? 0)) return false
+        if (filtroCita === 'SIN_SESIONES' && (p.sesionesRealizadas ?? 0) > 0) return false
       }
 
       if (filtroNotas.trim()) {
@@ -467,9 +480,10 @@ export function TablaPersonas({
                   <option value="">Todas</option>
                   <option value="CON_CITA">Con cita</option>
                   <option value="SIN_CITA">Sin cita</option>
-                  <option value="PROGRAMADA">Programada</option>
-                  <option value="CONFIRMADA">Confirmada</option>
-                  <option value="REALIZADA">Realizada</option>
+                  <option value="PROGRAMADA">Su cita: programada</option>
+                  <option value="CONFIRMADA">Su cita: confirmada</option>
+                  <option value="CON_SESIONES">Ya tuvo sesiones</option>
+                  <option value="SIN_SESIONES">Todavía sin sesiones</option>
                 </select>
               </th>
               {/*

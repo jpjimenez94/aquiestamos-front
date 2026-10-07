@@ -197,7 +197,29 @@ export default async function InformeSemanalPage({
           />
           <Cifra que="En admisión" cuanto={d.atenciones.enAdmision} nota="Hoy" />
           <Cifra que="Citas de la semana" cuanto={d.atenciones.citasDeLaSemana} enlace="/portal/agenda" />
-          <Cifra que="Realizadas" cuanto={d.atenciones.citasRealizadasEnLaSemana} nota="En la semana" />
+          <Cifra
+            que="Sesiones que se dieron"
+            cuanto={d.atenciones.citasRealizadasEnLaSemana}
+            nota={
+              d.atenciones.citasRealizadasEnLaSemana !== d.atenciones.citasMarcadasRealizadas
+                ? `${d.atenciones.citasMarcadasRealizadas} marcadas a mano, el resto por el reporte o la sala`
+                : 'En la semana'
+            }
+          />
+          {/*
+            Las que nadie cerró, a la vista y no escondidas.
+
+            Meterlas en «realizadas» infla la cifra; meterlas en «no asistió»
+            la hunde. Decir cuántas son es lo único que no miente, y además le
+            dice a quien firma el informe cuántas llamadas le faltan para que
+            el número sea cierto.
+          */}
+          <Cifra
+            que="Pendientes de cerrar"
+            cuanto={d.atenciones.citasPendientesDeCerrar}
+            nota="Ya pasaron y nadie dijo qué pasó"
+            enlace="/portal/agenda"
+          />
           <Cifra que="Canceladas" cuanto={d.atenciones.citasCanceladasEnLaSemana} nota="En la semana" />
           <Cifra que="Sin asistir" cuanto={d.atenciones.citasSinAsistirEnLaSemana} nota="En la semana" />
           <Cifra que="Citas en el histórico" cuanto={d.atenciones.citasHistorico} nota="Desde el inicio" />

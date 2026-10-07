@@ -41,7 +41,12 @@ export type InformeSemanal = {
     citasHistorico: number
     citasCanceladasHistorico: number
     citasDeLaSemana: number
+    /** Las que ocurrieron de verdad: reporte del profesional, casilla o sala. */
     citasRealizadasEnLaSemana: number
+    /** Solo las que alguien marcó a mano, por si hay que comparar. */
+    citasMarcadasRealizadas: number
+    /** Ya pasaron y nadie dijo qué pasó. Ni ausencias ni sesiones. */
+    citasPendientesDeCerrar: number
     citasCanceladasEnLaSemana: number
     citasSinAsistirEnLaSemana: number
     citasPorDelante: number
@@ -197,7 +202,18 @@ export function documentoDelInforme(d: InformeSemanal): string {
   ${fila('Atenciones en acompañamiento', a.enAcompanamiento, 'Foto de hoy, no de la semana.')}
   ${fila('Personas en admisión', a.enAdmision, 'Foto de hoy.')}
   ${fila('Citas de la semana', a.citasDeLaSemana)}
-  ${fila('— de ellas, realizadas', a.citasRealizadasEnLaSemana)}
+  ${fila(
+    '— de ellas, sesiones que se dieron',
+    a.citasRealizadasEnLaSemana,
+    a.citasRealizadasEnLaSemana !== a.citasMarcadasRealizadas
+      ? `${a.citasMarcadasRealizadas} se marcaron a mano en el portal; el resto se cuenta por el reporte del profesional o por la sala.`
+      : undefined,
+  )}
+  ${fila(
+    '— pendientes de cerrar',
+    a.citasPendientesDeCerrar,
+    'Ya pasaron y nadie dijo qué pasó. No se cuentan como sesión ni como ausencia.',
+  )}
   ${fila('— canceladas', a.citasCanceladasEnLaSemana)}
   ${fila('— sin asistir', a.citasSinAsistirEnLaSemana)}
   ${fila('— por delante (programadas o confirmadas)', a.citasPorDelante)}

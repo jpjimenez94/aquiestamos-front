@@ -48,6 +48,8 @@ export async function reportarCasoAction(
   patientId: string,
   datos: {
     outcome: string
+    /** «¿Se dio la sesión?», aparte de «¿qué sigue?». Viaja como 'true'/'false'. */
+    sessionHeld: string
     modality: string
     meetsAt: string
     followUp: string
