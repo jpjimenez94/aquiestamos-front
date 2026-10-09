@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { enBogota } from '@/lib/fechas'
 import { momentoDeLaSesion } from '@/lib/momentoDeLaSesion'
+import { whatsappHref } from '@/lib/site'
 
 type InfoCita = {
   id: string
@@ -355,7 +356,7 @@ export default function SalaEsperaPage({ params }: { params: Promise<{ id: strin
           <p style={{ color: '#64748b', fontSize: '0.92rem', lineHeight: 1.5, marginBottom: 20 }}>
             {error || 'No pudimos encontrar la información de esta cita virtual.'}
           </p>
-          <a href="https://wa.me/573009121234" style={BOTON_SALA}>
+          <a href={whatsappHref} style={BOTON_SALA}>
             <PhoneCall size={16} /> Contactar a Coordinación
           </a>
         </div>
