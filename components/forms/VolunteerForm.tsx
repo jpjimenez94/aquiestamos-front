@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   Send,
   ChevronRight,
@@ -11,17 +11,34 @@ import {
   ChevronUp,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { TextoRico } from '@/components/sitio/TextoRico'
 import { ConsentField, RadioField, TextField } from './fields'
 import { MunicipioSelector } from './MunicipioSelector'
 import { FormStatus, type Status } from './FormStatus'
-import { ERROR_TELEFONO, PISTA_TELEFONO, telefonoValido } from '@/lib/telefono'
-import {
-  AVISO_TRATAMIENTO,
-  CASILLAS,
-  RESPONSABLE,
-  VERSION_CONSENTIMIENTO,
-} from '@/lib/consentimiento'
+import { pasoConError, rechazoDelServidor } from './rechazo'
+import { HUECO_PARA_LA_BARRA, usePasoALaVista } from './pasoALaVista'
+import { telefonoValido } from '@/lib/telefono'
+import { nombreValido } from '@/lib/nombre'
+import { whatsappHref } from '@/lib/site'
+import { VERSION_CONSENTIMIENTO } from '@/lib/consentimiento'
+import { rellenar, ruta, type Idioma } from '@/lib/i18n/idiomas'
+import type { Diccionario } from '@/lib/i18n/diccionarios/es'
 
+/**
+ * Los textos llegan por props, del diccionario del idioma de la página. Solo
+ * se importa su tipo: este es un componente de cliente, y con el diccionario
+ * los tres idiomas enteros viajarían al navegador.
+ */
+type Textos = Diccionario['formularios']['profesional']
+type Comun = Diccionario['formularios']['comun']
+
+/**
+ * Las opciones de cada pregunta. Aquí queda solo lo que NO cambia con el
+ * idioma: el valor —que es lo que valida y guarda el backend, también cuando
+ * es una frase en español como «Niños y niñas»— y, donde los hay, el icono y
+ * los colores. La etiqueta sale del diccionario, indexado por ese valor: una
+ * opción a la que le falte su texto no compila.
+ */
 const POBLACIONES = [
   'Niños y niñas',
   'Adolescentes',
@@ -35,21 +52,11 @@ const POBLACIONES = [
   'Otra',
 ] as const
 
-const DIAS = [
-  { value: 'LUNES', label: 'Lun', nombre: 'Lunes' },
-  { value: 'MARTES', label: 'Mar', nombre: 'Martes' },
-  { value: 'MIERCOLES', label: 'Mié', nombre: 'Miércoles' },
-  { value: 'JUEVES', label: 'Jue', nombre: 'Jueves' },
-  { value: 'VIERNES', label: 'Vie', nombre: 'Viernes' },
-  { value: 'SABADO', label: 'Sáb', nombre: 'Sábado' },
-  { value: 'DOMINGO', label: 'Dom', nombre: 'Domingo' },
-] as const
+const DIAS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const
 
 const FRANJAS = [
   {
     value: 'MANANA',
-    label: 'Mañana',
-    horario: '8 a. m. – 12 m.',
     bg: '#fffdf0',
     bgActive: '#fef3c7',
     border: '#fde68a',
@@ -58,8 +65,6 @@ const FRANJAS = [
   },
   {
     value: 'TARDE',
-    label: 'Tarde',
-    horario: '12 m. – 6 p. m.',
     bg: '#fff7ed',
     bgActive: '#ffedd5',
     border: '#fed7aa',
@@ -68,8 +73,6 @@ const FRANJAS = [
   },
   {
     value: 'NOCHE',
-    label: 'Noche',
-    horario: '6 – 9 p. m.',
     bg: '#f8faff',
     bgActive: '#e0e7ff',
     border: '#c7d2fe',
@@ -78,51 +81,55 @@ const FRANJAS = [
   },
 ] as const
 
-const ANOS_EXPERIENCIA = [
-  { value: 'MENOS_DE_1', label: 'Menos de 1 año' },
-  { value: 'ENTRE_1_Y_3', label: '1 a 3 años' },
-  { value: 'ENTRE_3_Y_5', label: '3 a 5 años' },
-  { value: 'MAS_DE_5', label: 'Más de 5 años' },
-] as const
+const ANOS_EXPERIENCIA = ['MENOS_DE_1', 'ENTRE_1_Y_3', 'ENTRE_3_Y_5', 'MAS_DE_5'] as const
 
-const HORAS_SEMANA = [
-  { value: 'ENTRE_1_Y_3', label: '1 a 3 horas / semana', ayuda: '1 o 2 sesiones' },
-  { value: 'ENTRE_4_Y_6', label: '4 a 6 horas / semana', ayuda: '3 o 4 sesiones' },
-  { value: 'MAS_DE_6', label: 'Más de 6 horas / semana', ayuda: '5 o más sesiones' },
-  { value: 'VARIABLE', label: 'Variable', ayuda: 'Depende de la semana' },
-] as const
+const HORAS_SEMANA = ['ENTRE_1_Y_3', 'ENTRE_4_Y_6', 'MAS_DE_6', 'VARIABLE'] as const
 
 const EXPERIENCIA_CRISIS = [
-  { value: 'SI', label: 'Sí, tengo formación y experiencia práctica' },
-  { value: 'FORMACION_POCA_PRACTICA', label: 'Tengo formación teórica, con poca práctica' },
-  { value: 'SIN_FORMACION_DISPONIBLE_APRENDER', label: 'No tengo formación previa, pero quiero aprender' },
-  { value: 'NO', label: 'No cuento con experiencia en crisis' },
+  'SI',
+  'FORMACION_POCA_PRACTICA',
+  'SIN_FORMACION_DISPONIBLE_APRENDER',
+  'NO',
 ] as const
 
 const MODALIDAD = [
-  { value: 'VIRTUAL', label: 'Virtual', icon: '🌐', desc: 'Atención 100% online por videollamada' },
-  { value: 'PRESENCIAL', label: 'Presencial', icon: '📍', desc: 'En territorio o centros comunitarios' },
-  { value: 'AMBAS', label: 'Ambas', icon: '🔄', desc: 'Disponible presencial y virtual' },
+  { value: 'VIRTUAL', icon: '🌐' },
+  { value: 'PRESENCIAL', icon: '📍' },
+  { value: 'AMBAS', icon: '🔄' },
 ] as const
 
-const FIEBRE_AMARILLA = [
-  { value: 'SI', label: 'Sí, ya tengo el carné de vacunación' },
-  { value: 'CITA_AGENDADA', label: 'Todavía no, pero tengo cita agendada' },
-  { value: 'NO', label: 'No estoy vacunado o vacunada' },
-] as const
+const FIEBRE_AMARILLA = ['SI', 'CITA_AGENDADA', 'NO'] as const
 
-const TARJETA = [
-  { value: 'SI', label: 'Sí, la tengo' },
-  { value: 'EN_TRAMITE', label: 'En trámite' },
-  { value: 'ESTUDIANTE', label: 'Soy estudiante' },
-] as const
+const TARJETA = ['SI', 'EN_TRAMITE', 'ESTUDIANTE'] as const
 
-const PROFESIONES = [
-  { value: 'Psicología', label: 'Psicología' },
-  { value: 'Psiquiatría', label: 'Psiquiatría' },
-  { value: 'Trabajo Social', label: 'Trabajo Social' },
-  { value: 'Otra', label: 'Otra profesión' },
-] as const
+const PROFESIONES = ['Psicología', 'Psiquiatría', 'Trabajo Social', 'Otra'] as const
+
+/**
+ * En qué paso se pregunta cada cosa de los dos primeros. El formulario se
+ * envía desde el tercero: si el servidor rechaza algo de antes, hay que volver
+ * allí para que la persona vea qué campo es (ver `pasoConError`).
+ */
+const PASO_DE_CADA_CAMPO: Record<string, 1 | 2> = {
+  fullName: 1,
+  phone: 1,
+  email: 1,
+  city: 1,
+  profession: 2,
+  professionOther: 2,
+  additionalTraining: 2,
+  additionalTrainingOther: 2,
+  yearsExperience: 2,
+  professionalCard: 2,
+  populations: 2,
+  populationOther: 2,
+  crisisExperience: 2,
+}
+
+/** Los tres documentos que se pueden adjuntar: el campo del formulario donde va la clave de cada uno. */
+type CampoDeDocumento =
+  | 'professionalCardDocumentUrl'
+  | 'identityDocumentUrl'
+  | 'identityDocumentBackUrl'
 
 const VACIO = {
   fullName: '',
@@ -157,19 +164,30 @@ function CampoArchivoVoluntario({
   etiqueta,
   ayuda,
   clave,
-  onClave,
+  nombre,
+  onArchivo,
   onError,
   opcional = false,
+  t,
+  comun,
 }: {
   etiqueta: string
   ayuda: string
   clave: string | null
-  onClave: (clave: string | null) => void
+  /**
+   * El nombre del archivo subido. Lo guarda quien usa el campo, junto a la
+   * clave, y no el campo: este se desmonta al cerrar el acordeón o al cambiar
+   * de paso, y al volver decía «✓ Listo: null».
+   */
+  nombre: string | null
+  /** La clave y el nombre van juntos: o hay archivo, con los dos, o no hay ninguno. */
+  onArchivo: (clave: string | null, nombre: string | null) => void
   onError: (m: string | null) => void
   opcional?: boolean
+  t: Textos['paso3']['documentos']['archivo']
+  comun: Comun
 }) {
   const [subiendo, setSubiendo] = useState(false)
-  const [nombre, setNombre] = useState<string | null>(null)
 
   async function alElegir(e: React.ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0]
@@ -185,17 +203,18 @@ function CampoArchivoVoluntario({
       })
       const r = await res.json()
       if (!res.ok || !r.success) {
-        onClave(null)
-        setNombre(null)
-        onError(r.message || 'No se pudo subir el archivo.')
+        onArchivo(null, null)
+        // El motivo del servidor llega en español. En las traducciones no se
+        // enseña, con el mismo criterio que `rechazoDelServidor`: `errorCampo`
+        // solo trae texto cuando el diccionario es una traducción.
+        const esTraduccion = Boolean(comun.errorCampo)
+        onError(esTraduccion ? t.errorSubida : r.message || t.errorSubida)
         return
       }
-      onClave(r.data.clave)
-      setNombre(archivo.name)
+      onArchivo(r.data.clave, archivo.name)
     } catch {
-      onClave(null)
-      setNombre(null)
-      onError('No se pudo subir. Si el archivo es muy pesado, prueba con una foto más liviana; si no, revisa tu conexión.')
+      onArchivo(null, null)
+      onError(t.errorRed)
     } finally {
       setSubiendo(false)
       e.target.value = ''
@@ -205,7 +224,7 @@ function CampoArchivoVoluntario({
   return (
     <div style={{ marginBottom: 14 }}>
       <label className="field__label" style={{ fontWeight: 600 }}>
-        {etiqueta} {opcional ? <span style={{ color: '#64748b', fontWeight: 400 }}>(Opcional)</span> : null}
+        {etiqueta} {opcional ? <span style={{ color: '#64748b', fontWeight: 400 }}>{comun.opcional}</span> : null}
       </label>
       <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 8px' }}>
         {ayuda}
@@ -235,15 +254,12 @@ function CampoArchivoVoluntario({
             onChange={alElegir}
             disabled={subiendo}
           />
-          {subiendo ? 'Subiendo archivo…' : clave ? `✓ Listo: ${nombre}` : '📎 Elegir foto o PDF (máx. 10 MB)'}
+          {subiendo ? t.subiendo : clave ? rellenar(t.listo, { nombre: nombre ?? '' }) : t.elegir}
         </label>
         {clave && (
           <button
             type="button"
-            onClick={() => {
-              onClave(null)
-              setNombre(null)
-            }}
+            onClick={() => onArchivo(null, null)}
             style={{
               border: 'none',
               background: 'none',
@@ -253,7 +269,7 @@ function CampoArchivoVoluntario({
               textDecoration: 'underline',
             }}
           >
-            Quitar archivo
+            {t.quitar}
           </button>
         )}
       </div>
@@ -261,11 +277,29 @@ function CampoArchivoVoluntario({
   )
 }
 
-export function VolunteerForm() {
+export function VolunteerForm({
+  idioma,
+  t,
+  comun,
+  whatsapp,
+  anosDeRetencion,
+}: {
+  idioma: Idioma
+  t: Textos
+  comun: Comun
+  /** El número de la red tal como se enseña, no el del enlace. */
+  whatsapp: string
+  anosDeRetencion: number
+}) {
   const [paso, setPaso] = useState<1 | 2 | 3>(1)
   const [form, setForm] = useState(VACIO)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [docError, setDocError] = useState<string | null>(null)
+  // El nombre de cada archivo subido, para poder decir «✓ Listo: cedula.pdf».
+  // La clave va en `form`, que es lo que se envía; el nombre solo se enseña.
+  const [nombresDeArchivo, setNombresDeArchivo] = useState<
+    Partial<Record<CampoDeDocumento, string | null>>
+  >({})
   const [acordeonDocsAbierto, setAcordeonDocsAbierto] = useState(false)
   const [uploadDisponible, setUploadDisponible] = useState<'pendiente' | 'disponible' | 'no_disponible'>('pendiente')
   const [status, setStatus] = useState<Status>(null)
@@ -273,15 +307,14 @@ export function VolunteerForm() {
   const [enviado, setEnviado] = useState(false)
   const [nombreEnviado, setNombreEnviado] = useState('')
 
-  const formRef = useRef<HTMLFormElement>(null)
+  // A dónde llevar la vista al cambiar de paso, al enviar o al marcar un
+  // campo. Antes se iba al principio de la PÁGINA (`scrollTo({ top: 0 })`),
+  // que queda muy por encima del formulario; ver `usePasoALaVista`.
+  const { ancla, alInicio, alError } = usePasoALaVista()
 
   const vaPresencial = form.modality === 'PRESENCIAL' || form.modality === 'AMBAS'
   const marcoOtra = form.populations.includes('Otra')
   const marcoOtraProfesion = form.profession === 'Otra'
-
-  function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
 
   async function abrirAcordeonDocs() {
     const abierto = !acordeonDocsAbierto
@@ -314,6 +347,14 @@ export function VolunteerForm() {
     clearError(key as string)
   }
 
+  /** Lo que hace un campo de documento al subir o quitar su archivo. */
+  function alAdjuntar(campo: CampoDeDocumento) {
+    return (clave: string | null, nombre: string | null) => {
+      update(campo, clave || '')
+      setNombresDeArchivo((actual) => ({ ...actual, [campo]: nombre }))
+    }
+  }
+
   function alternarPoblacion(poblacion: string) {
     setForm((current) => ({
       ...current,
@@ -335,7 +376,7 @@ export function VolunteerForm() {
   }
 
   function seleccionarTodosLosDias() {
-    const todos = DIAS.map((d) => d.value)
+    const todos = [...DIAS]
     setForm((current) => ({
       ...current,
       availableDays: current.availableDays.length === todos.length ? [] : todos,
@@ -355,12 +396,10 @@ export function VolunteerForm() {
 
   function validarPaso1(): boolean {
     const found: Record<string, string> = {}
-    if (!form.fullName.trim() || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(form.fullName)) {
-      found.fullName = 'Cuéntanos tu nombre completo (solo letras)'
-    }
-    if (!telefonoValido(form.phone)) found.phone = ERROR_TELEFONO
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = 'Escribe un correo válido'
-    if (!form.city.trim()) found.city = 'Dinos en qué ciudad o municipio vives'
+    if (!nombreValido(form.fullName)) found.fullName = comun.nombreSoloLetras
+    if (!telefonoValido(form.phone)) found.phone = comun.telefono.error
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = t.errores.email
+    if (!form.city.trim()) found.city = t.errores.city
 
     setErrors(found)
     return Object.keys(found).length === 0
@@ -368,13 +407,13 @@ export function VolunteerForm() {
 
   function validarPaso2(): boolean {
     const found: Record<string, string> = {}
-    if (!form.profession) found.profession = 'Selecciona una profesión'
-    if (marcoOtraProfesion && !form.professionOther.trim()) found.professionOther = 'Cuéntanos cuál es tu profesión'
-    if (!form.yearsExperience) found.yearsExperience = 'Selecciona tus años de experiencia'
-    if (!form.professionalCard) found.professionalCard = 'Selecciona el estado de tu tarjeta'
-    if (form.populations.length === 0) found.populations = 'Selecciona al menos una población'
-    if (marcoOtra && !form.populationOther.trim()) found.populationOther = 'Cuéntanos con qué otra población trabajas'
-    if (!form.crisisExperience) found.crisisExperience = 'Selecciona una opción sobre atención en crisis'
+    if (!form.profession) found.profession = t.errores.profession
+    if (marcoOtraProfesion && !form.professionOther.trim()) found.professionOther = t.errores.professionOther
+    if (!form.yearsExperience) found.yearsExperience = t.errores.yearsExperience
+    if (!form.professionalCard) found.professionalCard = t.errores.professionalCard
+    if (form.populations.length === 0) found.populations = t.errores.populations
+    if (marcoOtra && !form.populationOther.trim()) found.populationOther = t.errores.populationOther
+    if (!form.crisisExperience) found.crisisExperience = t.errores.crisisExperience
 
     setErrors(found)
     return Object.keys(found).length === 0
@@ -382,14 +421,14 @@ export function VolunteerForm() {
 
   function validarPaso3(): boolean {
     const found: Record<string, string> = {}
-    if (!form.modality) found.modality = 'Selecciona una modalidad'
-    if (form.availableDays.length === 0) found.availableDays = 'Selecciona al menos un día'
-    if (form.availableSlots.length === 0) found.availableSlots = 'Selecciona al menos una franja'
-    if (!form.weeklyHours) found.weeklyHours = 'Selecciona cuántas horas puedes dedicar'
-    if (vaPresencial && !form.yellowFeverVaccine) found.yellowFeverVaccine = 'Selecciona el estado de vacunación'
-    if (!form.dataConsent) found.dataConsent = 'Necesitamos tu autorización para poder contactarte'
+    if (!form.modality) found.modality = t.errores.modality
+    if (form.availableDays.length === 0) found.availableDays = t.errores.availableDays
+    if (form.availableSlots.length === 0) found.availableSlots = t.errores.availableSlots
+    if (!form.weeklyHours) found.weeklyHours = t.errores.weeklyHours
+    if (vaPresencial && !form.yellowFeverVaccine) found.yellowFeverVaccine = t.errores.yellowFeverVaccine
+    if (!form.dataConsent) found.dataConsent = t.errores.dataConsent
     if (vaPresencial && !form.sensitiveDataConsent) {
-      found.sensitiveDataConsent = 'Necesitamos tu autorización expresa para guardar el dato de vacunación'
+      found.sensitiveDataConsent = t.errores.sensitiveDataConsent
     }
 
     setErrors(found)
@@ -401,16 +440,17 @@ export function VolunteerForm() {
     if (siguiente === 3 && (!validarPaso1() || !validarPaso2())) return
 
     setPaso(siguiente)
-    scrollToTop()
+    alInicio()
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setStatus(null)
 
-    if (!validarPaso1()) { setPaso(1); scrollToTop(); return }
-    if (!validarPaso2()) { setPaso(2); scrollToTop(); return }
-    if (!validarPaso3()) { setPaso(3); scrollToTop(); return }
+    // Si algo no pasa la validación, al paso donde está y a su primer campo marcado.
+    if (!validarPaso1()) { setPaso(1); alError(); return }
+    if (!validarPaso2()) { setPaso(2); alError(); return }
+    if (!validarPaso3()) { setPaso(3); alError(); return }
 
     setSubmitting(true)
     try {
@@ -423,6 +463,7 @@ export function VolunteerForm() {
         identityDocumentUrl: form.identityDocumentUrl.trim() || undefined,
         identityDocumentBackUrl: form.identityDocumentBackUrl.trim() || undefined,
         consentVersion: VERSION_CONSENTIMIENTO,
+        locale: idioma,
       }
 
       const response = await fetch('/api/volunteers', {
@@ -433,11 +474,16 @@ export function VolunteerForm() {
       const payload = await response.json()
 
       if (!response.ok || !payload.success) {
-        if (payload.details) setErrors(payload.details)
-        setStatus({
-          type: 'error',
-          message: payload.message ?? 'No pudimos guardar tu registro. Intenta de nuevo.',
-        })
+        const { campos, mensaje } = rechazoDelServidor(comun, payload, t.errores.envio)
+        if (payload.details) setErrors(campos)
+        setStatus({ type: 'error', message: mensaje })
+
+        // Lo rechazado puede estar en un paso que ya no se ve: se vuelve a él.
+        const anterior = pasoConError(campos, PASO_DE_CADA_CAMPO)
+        if (anterior !== null) {
+          setPaso(anterior)
+          alError()
+        }
         return
       }
 
@@ -445,14 +491,12 @@ export function VolunteerForm() {
       const primerNombre = form.fullName.trim().split(' ')[0]
       setNombreEnviado(primerNombre)
       setForm(VACIO)
+      setNombresDeArchivo({})
       setPaso(1)
       setEnviado(true)
-      scrollToTop()
+      alInicio()
     } catch {
-      setStatus({
-        type: 'error',
-        message: 'No pudimos conectarnos con el servidor. Revisa tu conexión e intenta de nuevo.',
-      })
+      setStatus({ type: 'error', message: comun.errorConexion })
     } finally {
       setSubmitting(false)
     }
@@ -462,7 +506,9 @@ export function VolunteerForm() {
   if (enviado) {
     return (
       <div
+        ref={ancla}
         style={{
+          scrollMarginTop: HUECO_PARA_LA_BARRA,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -494,15 +540,13 @@ export function VolunteerForm() {
         {/* Mensaje principal */}
         <div>
           <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#065f46', margin: '0 0 10px' }}>
-            ¡Gracias por tu apoyo, {nombreEnviado}!
+            {rellenar(t.exito.titulo, { nombre: nombreEnviado })}
           </h2>
           <p style={{ fontSize: '1rem', color: '#047857', margin: '0 0 6px', lineHeight: 1.6 }}>
-            Recibimos tu registro exitosamente. Tu disposición para acompañar a quienes más lo
-            necesitan hace parte de algo muy grande.
+            {t.exito.recibido}
           </p>
           <p style={{ fontSize: '0.88rem', color: '#065f46', margin: 0, lineHeight: 1.5 }}>
-            En los próximos días, alguien de nuestro equipo se comunicará contigo por WhatsApp
-            para coordinar los siguientes pasos.
+            {t.exito.contacto}
           </p>
         </div>
 
@@ -519,19 +563,19 @@ export function VolunteerForm() {
           }}
         >
           <strong style={{ fontSize: '0.88rem', color: '#065f46', display: 'block', marginBottom: 10 }}>
-            ¿Qué pasa ahora?
+            {t.exito.queSigue}
           </strong>
           <ol style={{ margin: 0, paddingLeft: 20, fontSize: '0.84rem', color: '#374151', lineHeight: 1.7 }}>
-            <li>Revisamos tu perfil y te asignamos a comunidades afines.</li>
-            <li>Te contactamos por WhatsApp para coordinar tu vinculación.</li>
-            <li>¡Empezamos a acompañar juntos!</li>
+            {t.exito.pasos.map((texto) => (
+              <li key={texto}>{texto}</li>
+            ))}
           </ol>
         </div>
 
         {/* Botones */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 4 }}>
           <a
-            href="https://wa.me/573102186299"
+            href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -548,7 +592,7 @@ export function VolunteerForm() {
               boxShadow: '0 2px 8px rgba(5,150,105,0.3)',
             }}
           >
-            💬 Escribirnos por WhatsApp
+            {t.exito.whatsapp}
           </a>
           <button
             type="button"
@@ -571,7 +615,7 @@ export function VolunteerForm() {
               cursor: 'pointer',
             }}
           >
-            Registrar otra persona
+            {t.exito.otra}
           </button>
         </div>
       </div>
@@ -579,7 +623,13 @@ export function VolunteerForm() {
   }
 
   return (
-    <form ref={formRef} className="form" onSubmit={handleSubmit} noValidate>
+    <form
+      ref={ancla}
+      className="form"
+      onSubmit={handleSubmit}
+      noValidate
+      style={{ scrollMarginTop: HUECO_PARA_LA_BARRA }}
+    >
       <div
         style={{
           display: 'grid',
@@ -628,7 +678,7 @@ export function VolunteerForm() {
           >
             {paso > 1 ? '✓' : '1'}
           </div>
-          <span className="hide-mobile">Tus Datos</span>
+          <span className="hide-mobile">{t.pestanas[0]}</span>
         </button>
 
         <button
@@ -667,7 +717,7 @@ export function VolunteerForm() {
           >
             {paso > 2 ? '✓' : '2'}
           </div>
-          <span className="hide-mobile">Perfil</span>
+          <span className="hide-mobile">{t.pestanas[1]}</span>
         </button>
 
         <button
@@ -706,7 +756,7 @@ export function VolunteerForm() {
           >
             3
           </div>
-          <span className="hide-mobile">Disponibilidad</span>
+          <span className="hide-mobile">{t.pestanas[2]}</span>
         </button>
       </div>
 
@@ -714,33 +764,33 @@ export function VolunteerForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ marginBottom: 4 }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 6px', color: '#0f172a' }}>
-              Paso 1: ¿Quién eres y cómo te contactamos?
+              {t.paso1.titulo}
             </h2>
             <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b' }}>
-              Información básica para comunicarnos contigo y coordinar tu participación.
+              {t.paso1.bajada}
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
             <TextField
-              label="Nombre completo"
+              label={t.paso1.nombre.etiqueta}
               name="fullName"
               required
               autoComplete="name"
-              placeholder="Ej: Laura Sofía Morales"
+              placeholder={t.paso1.nombre.ejemplo}
               value={form.fullName}
               error={errors.fullName}
               onChange={(v) => update('fullName', v)}
             />
 
             <TextField
-              label="Celular / WhatsApp"
+              label={t.paso1.celular.etiqueta}
               name="phone"
               type="tel"
               required
               autoComplete="tel"
-              hint={PISTA_TELEFONO}
-              placeholder="Ej: 315 789 4561"
+              hint={comun.telefono.pista}
+              placeholder={t.paso1.celular.ejemplo}
               value={form.phone}
               error={errors.phone}
               onChange={(v) => update('phone', v)}
@@ -749,22 +799,23 @@ export function VolunteerForm() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
             <TextField
-              label="Correo electrónico"
+              label={t.paso1.correo.etiqueta}
               name="email"
               type="email"
               required
               autoComplete="email"
-              placeholder="correo@ejemplo.com"
+              placeholder={t.paso1.correo.ejemplo}
               value={form.email}
               error={errors.email}
               onChange={(v) => update('email', v)}
             />
 
             <MunicipioSelector
-              label="¿En qué ciudad o municipio vives?"
+              label={t.paso1.ciudad.etiqueta}
               name="city"
               required
-              placeholder="Busca tu municipio en Colombia o escribe tu ciudad..."
+              placeholder={t.paso1.ciudad.ejemplo}
+              textos={comun.municipio}
               value={form.city}
               error={errors.city}
               onChange={(v) => update('city', v)}
@@ -778,7 +829,7 @@ export function VolunteerForm() {
               onClick={() => irAlPaso(2)}
               icon={<ChevronRight size={16} />}
             >
-              Continuar al perfil profesional
+              {t.paso1.continuar}
             </Button>
           </div>
         </div>
@@ -788,26 +839,26 @@ export function VolunteerForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 6px', color: '#0f172a' }}>
-              Paso 2: Tu perfil profesional y experiencia
+              {t.paso2.titulo}
             </h2>
             <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b' }}>
-              Nos permite asignarte personas y comunidades afines a tu formación y enfoque.
+              {t.paso2.bajada}
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
             <div>
               <label className="field__label">
-                Profesión <span style={{ color: '#dc2626' }}>*</span>
+                {t.paso2.profesion.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                 {PROFESIONES.map((p) => {
-                  const activa = form.profession === p.value
+                  const activa = form.profession === p
                   return (
                     <button
-                      key={p.value}
+                      key={p}
                       type="button"
-                      onClick={() => update('profession', p.value)}
+                      onClick={() => update('profession', p)}
                       style={{
                         padding: '10px 12px',
                         borderRadius: 8,
@@ -821,7 +872,7 @@ export function VolunteerForm() {
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      {activa ? '✓ ' : ''}{p.label}
+                      {activa ? '✓ ' : ''}{t.paso2.profesion.opciones[p]}
                     </button>
                   )
                 })}
@@ -831,16 +882,16 @@ export function VolunteerForm() {
 
             <div>
               <label className="field__label">
-                Años de experiencia <span style={{ color: '#dc2626' }}>*</span>
+                {t.paso2.anos.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                 {ANOS_EXPERIENCIA.map((exp) => {
-                  const activa = form.yearsExperience === exp.value
+                  const activa = form.yearsExperience === exp
                   return (
                     <button
-                      key={exp.value}
+                      key={exp}
                       type="button"
-                      onClick={() => update('yearsExperience', exp.value)}
+                      onClick={() => update('yearsExperience', exp)}
                       style={{
                         padding: '10px 12px',
                         borderRadius: 8,
@@ -854,7 +905,7 @@ export function VolunteerForm() {
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      {activa ? '✓ ' : ''}{exp.label}
+                      {activa ? '✓ ' : ''}{t.paso2.anos.opciones[exp]}
                     </button>
                   )
                 })}
@@ -865,10 +916,10 @@ export function VolunteerForm() {
 
           {marcoOtraProfesion && (
             <TextField
-              label="¿Qué otra profesión?"
+              label={t.paso2.otraProfesion.etiqueta}
               name="professionOther"
               required
-              placeholder="Ej: Licenciatura en Pedagogía / Psicopedagogía"
+              placeholder={t.paso2.otraProfesion.ejemplo}
               value={form.professionOther}
               error={errors.professionOther}
               onChange={(v) => update('professionOther', v)}
@@ -877,16 +928,16 @@ export function VolunteerForm() {
 
           <div>
             <label className="field__label">
-              ¿Cuentas con tarjeta profesional? <span style={{ color: '#dc2626' }}>*</span>
+              {t.paso2.tarjeta.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
-              {TARJETA.map((t) => {
-                const activa = form.professionalCard === t.value
+              {TARJETA.map((tarjeta) => {
+                const activa = form.professionalCard === tarjeta
                 return (
                   <button
-                    key={t.value}
+                    key={tarjeta}
                     type="button"
-                    onClick={() => update('professionalCard', t.value)}
+                    onClick={() => update('professionalCard', tarjeta)}
                     style={{
                       padding: '10px 14px',
                       borderRadius: 8,
@@ -899,7 +950,7 @@ export function VolunteerForm() {
                       textAlign: 'center',
                     }}
                   >
-                    {activa ? '✓ ' : ''}{t.label}
+                    {activa ? '✓ ' : ''}{t.paso2.tarjeta.opciones[tarjeta]}
                   </button>
                 )
               })}
@@ -909,10 +960,10 @@ export function VolunteerForm() {
 
           <div>
             <label className="field__label">
-              ¿Con qué poblaciones tienes experiencia? <span style={{ color: '#dc2626' }}>*</span>
+              {t.paso2.poblaciones.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 8px' }}>
-              Toca para seleccionar todas las poblaciones que apliquen.
+              {t.paso2.poblaciones.pista}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {POBLACIONES.map((pob) => {
@@ -938,7 +989,7 @@ export function VolunteerForm() {
                     }}
                   >
                     {seleccionada ? '✓ ' : '+ '}
-                    {pob}
+                    {t.paso2.poblaciones.opciones[pob]}
                   </button>
                 )
               })}
@@ -948,7 +999,7 @@ export function VolunteerForm() {
 
           {marcoOtra && (
             <TextField
-              label="¿Con qué otra población trabajas?"
+              label={t.paso2.otraPoblacion}
               name="populationOther"
               required
               value={form.populationOther}
@@ -959,9 +1010,12 @@ export function VolunteerForm() {
 
           <div>
             <RadioField
-              label="¿Tienes experiencia o formación en atención en crisis / primeros auxilios psicológicos?"
+              label={t.paso2.crisis.etiqueta}
               required
-              options={EXPERIENCIA_CRISIS}
+              options={EXPERIENCIA_CRISIS.map((value) => ({
+                value,
+                label: t.paso2.crisis.opciones[value],
+              }))}
               value={form.crisisExperience}
               error={errors.crisisExperience}
               onChange={(v) => update('crisisExperience', v)}
@@ -975,7 +1029,7 @@ export function VolunteerForm() {
               onClick={() => irAlPaso(1)}
               icon={<ChevronLeft size={16} />}
             >
-              Volver
+              {t.paso2.volver}
             </Button>
             <Button
               type="button"
@@ -983,7 +1037,7 @@ export function VolunteerForm() {
               onClick={() => irAlPaso(3)}
               icon={<ChevronRight size={16} />}
             >
-              Continuar a disponibilidad
+              {t.paso2.continuar}
             </Button>
           </div>
         </div>
@@ -993,20 +1047,21 @@ export function VolunteerForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 6px', color: '#0f172a' }}>
-              Paso 3: Disponibilidad y Documentos
+              {t.paso3.titulo}
             </h2>
             <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b' }}>
-              Define cómo te gustaría participar y adjunta tus documentos de forma opcional.
+              {t.paso3.bajada}
             </p>
           </div>
 
           <div>
             <label className="field__label">
-              ¿En qué modalidad puedes acompañar? <span style={{ color: '#dc2626' }}>*</span>
+              {t.paso3.modalidad.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
               {MODALIDAD.map((m) => {
                 const activa = form.modality === m.value
+                const textos = t.paso3.modalidad.opciones[m.value]
                 return (
                   <button
                     key={m.value}
@@ -1027,10 +1082,10 @@ export function VolunteerForm() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <span style={{ fontSize: '1rem', fontWeight: 700 }}>{m.icon} {m.label}</span>
+                      <span style={{ fontSize: '1rem', fontWeight: 700 }}>{m.icon} {textos.nombre}</span>
                       {activa && <span style={{ color: '#059669', fontWeight: 700 }}>✓</span>}
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{m.desc}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{textos.detalle}</span>
                   </button>
                 )
               })}
@@ -1041,20 +1096,23 @@ export function VolunteerForm() {
           {vaPresencial && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
               <TextField
-                label="¿A qué municipios o zonas podrías desplazarte?"
+                label={t.paso3.desplazamiento.etiqueta}
                 name="availableToTravel"
-                hint="Opcional."
-                placeholder="Ej: Municipios aledaños / Zonas rurales cercanas"
+                hint={t.paso3.desplazamiento.pista}
+                placeholder={t.paso3.desplazamiento.ejemplo}
                 value={form.availableToTravel}
                 error={errors.availableToTravel}
                 onChange={(v) => update('availableToTravel', v)}
               />
 
               <RadioField
-                label="¿Estás vacunado o vacunada contra la fiebre amarilla?"
+                label={t.paso3.fiebre.etiqueta}
                 required
-                hint="Exigido para acceso a ciertas zonas de emergencia."
-                options={FIEBRE_AMARILLA}
+                hint={t.paso3.fiebre.pista}
+                options={FIEBRE_AMARILLA.map((value) => ({
+                  value,
+                  label: t.paso3.fiebre.opciones[value],
+                }))}
                 value={form.yellowFeverVaccine}
                 error={errors.yellowFeverVaccine}
                 onChange={(v) => update('yellowFeverVaccine', v)}
@@ -1065,7 +1123,7 @@ export function VolunteerForm() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <label className="field__label" style={{ margin: 0 }}>
-                ¿Qué días tienes disponibilidad? <span style={{ color: '#dc2626' }}>*</span>
+                {t.paso3.dias.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <button
                 type="button"
@@ -1079,17 +1137,18 @@ export function VolunteerForm() {
                   cursor: 'pointer',
                 }}
               >
-                {form.availableDays.length === DIAS.length ? 'Desmarcar todos' : 'Todos los días'}
+                {form.availableDays.length === DIAS.length ? t.paso3.dias.ninguno : t.paso3.dias.todos}
               </button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
               {DIAS.map((d) => {
-                const activo = form.availableDays.includes(d.value)
+                const activo = form.availableDays.includes(d)
+                const textos = t.paso3.dias.opciones[d]
                 return (
                   <button
-                    key={d.value}
+                    key={d}
                     type="button"
-                    onClick={() => alternarDia(d.value)}
+                    onClick={() => alternarDia(d)}
                     style={{
                       padding: '10px 4px',
                       borderRadius: 8,
@@ -1101,9 +1160,9 @@ export function VolunteerForm() {
                       textAlign: 'center',
                       cursor: 'pointer',
                     }}
-                    title={d.nombre}
+                    title={textos.nombre}
                   >
-                    {d.label}
+                    {textos.corto}
                   </button>
                 )
               })}
@@ -1113,11 +1172,12 @@ export function VolunteerForm() {
 
           <div>
             <label className="field__label">
-              ¿En qué franjas del día? <span style={{ color: '#dc2626' }}>*</span>
+              {t.paso3.franjas.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
               {FRANJAS.map((f) => {
                 const activa = form.availableSlots.includes(f.value)
+                const textos = t.paso3.franjas.opciones[f.value]
                 return (
                   <button
                     key={f.value}
@@ -1145,7 +1205,7 @@ export function VolunteerForm() {
                         color: activa ? f.text : '#1e293b',
                       }}
                     >
-                      <span>{f.label}</span>
+                      <span>{textos.nombre}</span>
                       {activa && <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>✓</span>}
                     </div>
                     <div
@@ -1156,7 +1216,7 @@ export function VolunteerForm() {
                         marginTop: 3,
                       }}
                     >
-                      {f.horario}
+                      {textos.horario}
                     </div>
                   </button>
                 )
@@ -1167,16 +1227,17 @@ export function VolunteerForm() {
 
           <div>
             <label className="field__label">
-              ¿Cuántas horas a la semana podrías dedicar? <span style={{ color: '#dc2626' }}>*</span>
+              {t.paso3.horas.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
               {HORAS_SEMANA.map((hs) => {
-                const activa = form.weeklyHours === hs.value
+                const activa = form.weeklyHours === hs
+                const textos = t.paso3.horas.opciones[hs]
                 return (
                   <button
-                    key={hs.value}
+                    key={hs}
                     type="button"
-                    onClick={() => update('weeklyHours', hs.value)}
+                    onClick={() => update('weeklyHours', hs)}
                     style={{
                       padding: '10px 12px',
                       borderRadius: 8,
@@ -1187,8 +1248,8 @@ export function VolunteerForm() {
                       cursor: 'pointer',
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>{hs.label}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{hs.ayuda}</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>{textos.nombre}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{textos.detalle}</div>
                   </button>
                 )
               })}
@@ -1223,12 +1284,12 @@ export function VolunteerForm() {
                 <Paperclip size={18} color="#059669" />
                 <div>
                   <strong style={{ fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>
-                    Adjuntar documentos de verificación (Opcional)
+                    {t.paso3.documentos.titulo}
                   </strong>
                   <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
                     {form.professionalCardDocumentUrl || form.identityDocumentUrl
-                      ? '✓ Documentos seleccionados'
-                      : 'Puedes adjuntarlos ahora o enviarlos después por WhatsApp'}
+                      ? t.paso3.documentos.elegidos
+                      : t.paso3.documentos.despues}
                   </span>
                 </div>
               </div>
@@ -1249,7 +1310,12 @@ export function VolunteerForm() {
                     lineHeight: 1.4,
                   }}
                 >
-                  🔒 <strong>Confidencialidad:</strong> Uso exclusivo del equipo de coordinación para validar tu identidad y tarjeta profesional conforme a la Ley 1581 de 2012.
+                  {/*
+                    Las frases con formato llevan `nuevaPestana` por ir dentro
+                    del formulario: si una traducción les pone un enlace del
+                    sitio, seguirlo no debe borrar lo que la persona ya escribió.
+                  */}
+                  <TextoRico texto={t.paso3.documentos.confidencialidad} idioma={idioma} nuevaPestana />
                 </div>
 
                 {/* Si el endpoint de subida no está disponible, mostramos el fallback de WhatsApp */}
@@ -1271,24 +1337,22 @@ export function VolunteerForm() {
                     <span style={{ fontSize: '1.1rem' }}>📲</span>
                     <div>
                       <strong style={{ display: 'block', marginBottom: 4 }}>
-                        Envía tus documentos por WhatsApp
+                        {t.paso3.documentos.porWhatsappTitulo}
                       </strong>
-                      Cuando completes tu registro, nuestro equipo te contactará para solicitarlos.
-                      También puedes enviarlos directamente al{' '}
-                      <a
-                        href="https://wa.me/573102186299"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#059669', fontWeight: 600, textDecoration: 'underline' }}
-                      >
-                        +57 310 218 6299
-                      </a>
-                      {' '}indicando tu nombre y número de tarjeta profesional.
+                      <TextoRico
+                        texto={rellenar(t.paso3.documentos.porWhatsappTexto, {
+                          numero: whatsapp,
+                          enlace: whatsappHref,
+                        })}
+                        idioma={idioma}
+                        claseEnlace="form__enlace form__enlace--fuerte"
+                        nuevaPestana
+                      />
                     </div>
                   </div>
                 ) : uploadDisponible === 'pendiente' ? (
                   <p style={{ fontSize: '0.82rem', color: '#64748b', textAlign: 'center', padding: '10px 0' }}>
-                    Verificando disponibilidad…
+                    {t.paso3.documentos.verificando}
                   </p>
                 ) : (
                   <>
@@ -1298,19 +1362,22 @@ export function VolunteerForm() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
                       <CampoArchivoVoluntario
-                        etiqueta="Tarjeta Profesional o Certificado"
-                        ayuda="Foto o PDF de tarjeta, acta de grado o certificado."
+                        etiqueta={t.paso3.documentos.tarjeta.etiqueta}
+                        ayuda={t.paso3.documentos.tarjeta.pista}
                         clave={form.professionalCardDocumentUrl || null}
-                        onClave={(c) => update('professionalCardDocumentUrl', c || '')}
+                        nombre={nombresDeArchivo.professionalCardDocumentUrl ?? null}
+                        onArchivo={alAdjuntar('professionalCardDocumentUrl')}
                         onError={setDocError}
                         opcional
+                        t={t.paso3.documentos.archivo}
+                        comun={comun}
                       />
 
                       <TextField
-                        label="Número de Tarjeta Profesional"
+                        label={t.paso3.documentos.numeroTarjeta.etiqueta}
                         name="professionalCardNumber"
-                        hint="Opcional."
-                        placeholder="Ej: 123456"
+                        hint={t.paso3.documentos.numeroTarjeta.pista}
+                        placeholder={t.paso3.documentos.numeroTarjeta.ejemplo}
                         value={form.professionalCardNumber}
                         onChange={(v) => update('professionalCardNumber', v)}
                       />
@@ -1318,21 +1385,27 @@ export function VolunteerForm() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, marginTop: 10 }}>
                       <CampoArchivoVoluntario
-                        etiqueta="Cédula de Ciudadanía (Frente)"
-                        ayuda="Foto o PDF de tu documento de identidad."
+                        etiqueta={t.paso3.documentos.cedulaFrente.etiqueta}
+                        ayuda={t.paso3.documentos.cedulaFrente.pista}
                         clave={form.identityDocumentUrl || null}
-                        onClave={(c) => update('identityDocumentUrl', c || '')}
+                        nombre={nombresDeArchivo.identityDocumentUrl ?? null}
+                        onArchivo={alAdjuntar('identityDocumentUrl')}
                         onError={setDocError}
                         opcional
+                        t={t.paso3.documentos.archivo}
+                        comun={comun}
                       />
 
                       <CampoArchivoVoluntario
-                        etiqueta="Cédula de Ciudadanía (Respaldo)"
-                        ayuda="Opcional si subiste ambas caras en el anterior."
+                        etiqueta={t.paso3.documentos.cedulaRespaldo.etiqueta}
+                        ayuda={t.paso3.documentos.cedulaRespaldo.pista}
                         clave={form.identityDocumentBackUrl || null}
-                        onClave={(c) => update('identityDocumentBackUrl', c || '')}
+                        nombre={nombresDeArchivo.identityDocumentBackUrl ?? null}
+                        onArchivo={alAdjuntar('identityDocumentBackUrl')}
                         onError={setDocError}
                         opcional
+                        t={t.paso3.documentos.archivo}
+                        comun={comun}
                       />
                     </div>
                   </>
@@ -1351,32 +1424,38 @@ export function VolunteerForm() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <ShieldCheck size={16} color="#059669" />
-              <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>Autorizaciones y Tratamiento de Datos</strong>
+              <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{t.paso3.autorizaciones.titulo}</strong>
             </div>
             <p style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.45, margin: '0 0 12px' }}>
-              {AVISO_TRATAMIENTO.profesionales} Conservamos tus datos durante {RESPONSABLE.retencionMeses / 12} años.{' '}
-              <a href="/politica-de-datos" target="_blank" style={{ color: '#059669', textDecoration: 'underline' }}>
-                Ver Política de Tratamiento de Datos
+              {comun.avisoTratamiento.profesionales}{' '}
+              {rellenar(t.paso3.autorizaciones.retencion, { anos: anosDeRetencion })}{' '}
+              <a
+                className="form__enlace"
+                href={ruta(idioma, '/politica-de-datos')}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t.paso3.autorizaciones.politica}
               </a>.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <ConsentField
-                label={CASILLAS.datos}
+                label={comun.casillas.datos}
                 checked={form.dataConsent}
                 error={errors.dataConsent}
                 onChange={(c) => update('dataConsent', c)}
               />
               {vaPresencial ? (
                 <ConsentField
-                  label={CASILLAS.sensiblesProfesional}
+                  label={comun.casillas.sensiblesProfesional}
                   checked={form.sensitiveDataConsent}
                   error={errors.sensitiveDataConsent}
                   onChange={(c) => update('sensitiveDataConsent', c)}
                 />
               ) : null}
               <ConsentField
-                label={CASILLAS.comunicaciones}
+                label={comun.casillas.comunicaciones}
                 checked={form.communicationsConsent}
                 onChange={(c) => update('communicationsConsent', c)}
               />
@@ -1392,7 +1471,7 @@ export function VolunteerForm() {
                 onClick={() => irAlPaso(2)}
                 icon={<ChevronLeft size={16} />}
               >
-                Volver al perfil
+                {t.paso3.volver}
               </Button>
               <Button
                 type="submit"
@@ -1401,7 +1480,7 @@ export function VolunteerForm() {
                 icon={<Send size={16} />}
                 style={{ backgroundColor: '#059669', color: '#ffffff' }}
               >
-                {submitting ? 'Enviando registro…' : 'Enviar mi registro'}
+                {submitting ? t.paso3.enviando : t.paso3.enviar}
               </Button>
             </div>
           </div>

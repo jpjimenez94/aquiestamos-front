@@ -1,17 +1,13 @@
-import { Navbar } from '@/components/layout/Navbar'
-import { Footer } from '@/components/layout/Footer'
-import { BotonFlotanteAcciones } from '@/components/sitio/BotonFlotanteAcciones'
+import { SitioShell } from '@/components/sitio/SitioShell'
 
 /**
- * Envoltura del sitio público: la barra de navegación, el pie y botones flotantes.
+ * Envoltura del sitio público EN ESPAÑOL: la barra de navegación, el pie y los
+ * botones flotantes.
+ *
+ * Las páginas en español viven aquí, sin prefijo en la URL —`/recursos`, no
+ * `/es/recursos`—, que es donde han estado siempre. Las de los demás idiomas
+ * cuelgan de `app/[lang]` y usan esta misma envoltura con su idioma.
  */
 export default function SitioLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="page">
-      <Navbar />
-      <main className="page__main">{children}</main>
-      <BotonFlotanteAcciones />
-      <Footer />
-    </div>
-  )
+  return <SitioShell idioma="es">{children}</SitioShell>
 }

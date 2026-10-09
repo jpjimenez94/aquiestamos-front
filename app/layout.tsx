@@ -54,7 +54,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${cormorant.variable} ${montserrat.variable}`}>
+    // `lang="es"` es el de casi todo: el sitio en español, el portal y los
+    // enlaces con token. Las páginas en inglés y portugués lo corrigen con un
+    // script antes de que el navegador pinte (ver `IdiomaDelDocumento`), así
+    // que al hidratar React encuentra un `lang` distinto del que él escribió.
+    // `suppressHydrationWarning` le dice que esa diferencia es a propósito;
+    // solo afecta a los atributos de esta etiqueta, no a lo de dentro.
+    <html
+      lang="es"
+      className={`${cormorant.variable} ${montserrat.variable}`}
+      suppressHydrationWarning
+    >
       <body>{children}</body>
     </html>
   );

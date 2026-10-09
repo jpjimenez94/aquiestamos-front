@@ -1,0 +1,289 @@
+/* ==========================================================================
+   Idiomas
+   Lo que el sitio público ganó al existir en español, inglés y portugués: la
+   franja con el selector, el aviso que ofrece el idioma del navegador, los
+   enlaces dentro de una frase y los avisos que solo llevan las traducciones.
+
+   Va aparte de `globals.css` y lo importa `SitioShell`: solo lo carga el sitio
+   público, no el portal. Las dos infografías tienen el suyo: `infografias.css`.
+   ========================================================================== */
+
+/* ---------- La franja de idioma ---------- */
+
+/* Un renglón encima de la barra. No es pegajosa: al bajar se va y la barra de
+   siempre se queda de su alto. */
+.franja-idioma {
+  background-color: var(--navbar-background-color);
+  color: var(--navbar-text-color);
+  border-bottom: 1px solid rgba(255, 246, 235, 0.12);
+}
+
+.franja-idioma__dentro {
+  max-width: var(--content-width-wide);
+  margin: 0 auto;
+  padding: 4px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.idiomas {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.idiomas__icono {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.idiomas__lista {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.idiomas__opcion {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-weight: 500;
+  line-height: 1.3;
+  /* Atenuado con color y no con `opacity`: la opacidad también apagaría el
+     subrayado del idioma activo y el foco del teclado. */
+  color: rgba(255, 246, 235, 0.8);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.idiomas__opcion:hover {
+  color: var(--navbar-text-color);
+  background-color: var(--navbar-list-item-hover);
+}
+
+/* El idioma en el que se está: no basta con el color para decirlo. */
+.idiomas__opcion[data-activo] {
+  color: var(--navbar-text-color);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+/* La sigla solo aparece donde el nombre entero ya no cabe. */
+.idiomas__sigla {
+  display: none;
+}
+
+@media (max-width: 340px) {
+  .idiomas__nombre {
+    display: none;
+  }
+
+  .idiomas__sigla {
+    display: inline;
+  }
+}
+
+/* El mismo selector al pie del menú del teléfono. */
+.navbar__sheet-idioma {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 246, 235, 0.14);
+}
+
+.navbar__sheet-idioma .idiomas {
+  font-size: 0.92rem;
+}
+
+.navbar__sheet-idioma .idiomas__opcion {
+  padding: 9px 10px;
+}
+
+/* ---------- «Este sitio también está en inglés» ---------- */
+
+/* Flota para no empujar la página al aparecer: se decide después de cargar,
+   cuando ya se sabe qué navegador hay al otro lado. */
+.sugerencia-idioma {
+  position: fixed;
+  z-index: 45;
+  left: 24px;
+  bottom: 24px;
+  max-width: min(400px, calc(100vw - 48px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 10px 12px 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  background-color: var(--color-card-bg);
+  color: var(--color-text-default);
+  box-shadow: 0 10px 30px rgba(21, 22, 46, 0.22);
+  font-size: 0.88rem;
+  animation: sugerencia-entra 0.25s ease;
+}
+
+.sugerencia-idioma__texto {
+  margin: 0;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.sugerencia-idioma__ver {
+  flex-shrink: 0;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background-color: var(--navbar-background-color);
+  color: #fff6eb;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sugerencia-idioma__ver:hover {
+  background-color: #1f2143;
+}
+
+.sugerencia-idioma__cerrar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-light);
+  cursor: pointer;
+}
+
+.sugerencia-idioma__cerrar:hover {
+  background-color: var(--color-ui-hover-bg);
+}
+
+@keyframes sugerencia-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* En el teléfono va arriba: abajo están los botones de WhatsApp y de
+   preguntas, y tres cosas flotando en la misma esquina no se pueden tocar. */
+@media (max-width: 620px) {
+  .sugerencia-idioma {
+    left: 12px;
+    right: 12px;
+    bottom: auto;
+    top: 122px;
+    max-width: none;
+  }
+}
+
+/* ---------- Enlaces y avisos dentro del texto ---------- */
+
+/* Un enlace en mitad de una frase. Sin subrayado no se distingue del texto:
+   heredaba el color y no llevaba nada que dijera «esto se puede tocar». */
+.enlace-texto {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.enlace-texto:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* El enlace a la política de datos dentro de un formulario. Es el verde con el
+   que ya salía cuando iba escrito a mano en cada uno, un punto más oscuro: el
+   de antes (#059669) daba 3,6:1 sobre el gris claro del recuadro y este 5,2:1. */
+.form__enlace {
+  color: #047857;
+  text-decoration: underline;
+}
+
+/* El número de WhatsApp al que mandar los documentos: es lo que hay que
+   encontrar de un vistazo en ese párrafo. */
+.form__enlace--fuerte {
+  font-weight: 600;
+}
+
+.faq__enlace {
+  color: #15162e;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.codigo-texto {
+  background: #f5f0eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.86rem;
+  color: #15162e;
+}
+
+/* «Esta es una traducción de cortesía»: arriba de las páginas legales. */
+.aviso-traduccion {
+  margin: 0 0 28px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--color-orange);
+  border-radius: 0 10px 10px 0;
+  background-color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.aviso-traduccion p {
+  margin: 0;
+}
+
+/* Lo mismo, encima de un formulario: en qué idioma se atiende. */
+.aviso-idioma {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.7);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.aviso-idioma svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-blue);
+}
+
+.aviso-idioma p {
+  margin: 0;
+}
+
+/* «Los libros están en español»: en la biblioteca y en la ficha de cada uno.
+   Solo sale en las traducciones. */
+.recursos__nota-idioma {
+  margin: 0 0 24px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--color-blue);
+  border-radius: 0 10px 10px 0;
+  background-color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* La etiqueta «In Spanish» junto a la de la categoría. Con borde y sin
+   relleno, para que no parezca otra categoría más. */
+.pill--idioma {
+  margin-left: 6px;
+  border: 1px solid rgba(55, 53, 47, 0.3);
+  background-color: transparent;
+}

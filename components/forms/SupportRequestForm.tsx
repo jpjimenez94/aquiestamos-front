@@ -8,46 +8,68 @@ import {
   CheckCircle2,
   AlertTriangle,
   HeartHandshake,
-  MessageCircle,
   ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { TextoRico } from '@/components/sitio/TextoRico'
+import { ConHueco } from '@/components/sitio/ConHueco'
 import { ConsentField, RadioField, TextField } from './fields'
 import { MunicipioSelector } from './MunicipioSelector'
 import { FormStatus, type Status } from './FormStatus'
-import { CASILLAS, VERSION_CONSENTIMIENTO } from '@/lib/consentimiento'
-import { site, whatsappHref } from '@/lib/site'
+import { pasoConError, rechazoDelServidor } from './rechazo'
+import { HUECO_PARA_LA_BARRA, usePasoALaVista } from './pasoALaVista'
+import { VERSION_CONSENTIMIENTO } from '@/lib/consentimiento'
 import { nombreDePila } from '@/lib/nombre'
+import type { Diccionario } from '@/lib/i18n/diccionarios/es'
+import { rellenar, type Idioma } from '@/lib/i18n/idiomas'
 
-const PARA_QUIEN = [
-  { value: 'PARA_MI', label: 'Para mí' },
-  { value: 'PARA_OTRA_PERSONA', label: 'Para otra persona' },
-] as const
+type Textos = Diccionario['formularios']['atencion']
+type Comun = Diccionario['formularios']['comun']
 
-const ES_MENOR = [
-  { value: 'NO', label: 'No, es mayor de edad' },
-  { value: 'SI', label: 'Sí, es menor de 18 años' },
-] as const
+/**
+ * Los valores de cada pregunta, en el orden en que se ofrecen. Son los que
+ * valida el backend y no se traducen. La etiqueta de cada uno sale del
+ * diccionario, que tiene una clave por valor: uno que se añada aquí sin su
+ * etiqueta no compila.
+ */
+const PARA_QUIEN = ['PARA_MI', 'PARA_OTRA_PERSONA'] as const
+const ES_MENOR = ['NO', 'SI'] as const
+const CANAL = ['WHATSAPP', 'LLAMADA', 'CORREO'] as const
+const MODALIDAD_PREFERIDA = ['VIRTUAL', 'PRESENCIAL', 'INDIFERENTE'] as const
+const URGENCIA = ['HOY', 'ESTA_SEMANA', 'PUEDO_ESPERAR'] as const
 
-const CANAL = [
-  { value: 'WHATSAPP', label: 'WhatsApp' },
-  { value: 'LLAMADA', label: 'Llamada telefónica' },
-  { value: 'CORREO', label: 'Correo electrónico' },
-] as const
-
-const MODALIDAD_PREFERIDA = [
-  { value: 'VIRTUAL', label: 'Virtual (por videollamada o llamada telefónica)' },
-  { value: 'PRESENCIAL', label: 'Presencial (en consultorio o espacio acordado en tu municipio)' },
-  { value: 'INDIFERENTE', label: 'Me es indiferente (puedo virtual o presencial)' },
-] as const
-
+/**
+ * Los cinco niveles de malestar y sus colores. La etiqueta y el detalle salen
+ * de `malestar.niveles`, que los trae en este mismo orden.
+ */
 const NIVELES_MALESTAR = [
-  { valor: 1, etiqueta: '1 · Leve', desc: 'Lo estoy sobrellevando', color: '#10b981', bg: '#ecfdf5', border: '#a7f3d0' },
-  { valor: 2, etiqueta: '2 · Manejable', desc: 'Con algo de dificultad', color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
-  { valor: 3, etiqueta: '3 · Difícil', desc: 'Me cuesta bastante', color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-  { valor: 4, etiqueta: '4 · Muy difícil', desc: 'Casi no puedo con el día', color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
-  { valor: 5, etiqueta: '5 · Extremo', desc: 'Desbordado / En crisis', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+  { valor: 1, color: '#10b981', bg: '#ecfdf5', border: '#a7f3d0' },
+  { valor: 2, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
+  { valor: 3, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+  { valor: 4, color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
+  { valor: 5, color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 ]
+
+/**
+ * En qué paso se pregunta cada cosa de los dos primeros. El formulario se
+ * envía desde el tercero: si el servidor rechaza algo de antes, hay que volver
+ * allí para que la persona vea qué campo es (ver `pasoConError`).
+ */
+const PASO_DE_CADA_CAMPO: Record<string, 1 | 2> = {
+  forWhom: 1,
+  isMinor: 1,
+  relationship: 1,
+  contactName: 1,
+  name: 1,
+  phone: 1,
+  email: 1,
+  preferredContact: 1,
+  city: 1,
+  distress: 2,
+  selfHarmThoughts: 2,
+  howSoon: 2,
+  safePlace: 2,
+}
 
 const VACIO = {
   // Paso 1: Contacto
@@ -76,13 +98,26 @@ const VACIO = {
   communicationsConsent: false,
 }
 
-export function SupportRequestForm() {
+/**
+ * «Necesito ayuda»: la solicitud de acompañamiento, en tres pasos.
+ *
+ * Aquí no hay ni una frase escrita: todas llegan por props, en el idioma de la
+ * página (`t` es lo de este formulario; `comun`, lo que comparte con los otros
+ * dos). El diccionario no se importa —solo su tipo— porque este componente es
+ * de cliente y arrastraría los tres idiomas al navegador.
+ *
+ * Las frases con formato que van dentro del formulario llevan `nuevaPestana`,
+ * tengan hoy enlace o no: uno que se siguiera en la misma pestaña borraría lo
+ * que la persona lleva escrito.
+ */
+export function SupportRequestForm({ idioma, t, comun }: { idioma: Idioma; t: Textos; comun: Comun }) {
   const [paso, setPaso] = useState<1 | 2 | 3>(1)
   const [form, setForm] = useState(VACIO)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<Status>(null)
   const [submitting, setSubmitting] = useState(false)
   const [completado, setCompletado] = useState(false)
+  const { ancla, alInicio, alError } = usePasoALaVista()
 
   const paraOtra = form.forWhom === 'PARA_OTRA_PERSONA'
   const esMenor = paraOtra && form.isMinor === 'SI'
@@ -104,15 +139,15 @@ export function SupportRequestForm() {
 
   function validarPaso1(): boolean {
     const found: Record<string, string> = {}
-    if (!form.forWhom) found.forWhom = 'Selecciona para quién es el acompañamiento'
-    if (paraOtra && !form.isMinor) found.isMinor = 'Cuéntanos si esa persona es menor de 18 años'
-    if (paraOtra && !form.contactName.trim()) found.contactName = 'Dinos tu nombre para saber con quién hablamos'
-    if (!form.name.trim()) found.name = 'Necesitamos un nombre de contacto'
-    if (!form.phone.trim()) found.phone = 'Necesitamos un número de teléfono/WhatsApp'
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = 'Ese correo no parece válido'
-    if (porCorreo && !form.email.trim()) found.email = 'Si prefieres correo, necesitamos tu dirección'
-    if (!form.preferredContact) found.preferredContact = 'Selecciona por dónde prefieres que te contactemos'
-    if (!form.city.trim()) found.city = 'Selecciona o escribe desde qué ciudad o municipio nos escribes'
+    if (!form.forWhom) found.forWhom = t.errores.forWhom
+    if (paraOtra && !form.isMinor) found.isMinor = t.errores.isMinor
+    if (paraOtra && !form.contactName.trim()) found.contactName = t.errores.contactName
+    if (!form.name.trim()) found.name = t.errores.name
+    if (!form.phone.trim()) found.phone = t.errores.phone
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = t.errores.emailInvalido
+    if (porCorreo && !form.email.trim()) found.email = t.errores.emailFalta
+    if (!form.preferredContact) found.preferredContact = t.errores.preferredContact
+    if (!form.city.trim()) found.city = t.errores.city
 
     setErrors(found)
     return Object.keys(found).length === 0
@@ -120,10 +155,10 @@ export function SupportRequestForm() {
 
   function validarPaso2(): boolean {
     const found: Record<string, string> = {}
-    if (form.distress === null) found.distress = 'Selecciona del 1 al 5 cómo te sientes hoy'
-    if (form.selfHarmThoughts === null) found.selfHarmThoughts = 'Por favor responde esta pregunta'
-    if (!form.howSoon) found.howSoon = 'Indícanos qué tan pronto necesitas hablar con alguien'
-    if (form.safePlace === null) found.safePlace = 'Por favor indícanos si estás en un lugar seguro'
+    if (form.distress === null) found.distress = t.errores.distress
+    if (form.selfHarmThoughts === null) found.selfHarmThoughts = t.errores.selfHarmThoughts
+    if (!form.howSoon) found.howSoon = t.errores.howSoon
+    if (form.safePlace === null) found.safePlace = t.errores.safePlace
 
     setErrors(found)
     return Object.keys(found).length === 0
@@ -131,12 +166,12 @@ export function SupportRequestForm() {
 
   function validarPaso3(): boolean {
     const found: Record<string, string> = {}
-    if (!form.preferredModality) found.preferredModality = 'Selecciona la modalidad de acompañamiento'
-    if (!form.dataConsent) found.dataConsent = 'Necesitamos tu autorización para poder contactarte'
+    if (!form.preferredModality) found.preferredModality = t.errores.preferredModality
+    if (!form.dataConsent) found.dataConsent = t.errores.dataConsent
     // `sensitiveDataConsent` va pegado a `dataConsent` desde que son una sola
     // casilla: no puede faltar por su cuenta.
     if (esMenor && !form.guardianConsent) {
-      found.guardianConsent = 'Como es para un menor de edad, necesitamos la autorización del representante legal'
+      found.guardianConsent = t.errores.guardianConsent
     }
 
     setErrors(found)
@@ -146,14 +181,14 @@ export function SupportRequestForm() {
   function irAlPaso2() {
     if (validarPaso1()) {
       setPaso(2)
-      window.scrollTo({ top: 180, behavior: 'smooth' })
+      alInicio()
     }
   }
 
   function irAlPaso3() {
     if (validarPaso2()) {
       setPaso(3)
-      window.scrollTo({ top: 180, behavior: 'smooth' })
+      alInicio()
     }
   }
 
@@ -162,7 +197,7 @@ export function SupportRequestForm() {
     setStatus(null)
 
     if (!validarPaso3()) {
-      setStatus({ type: 'error', message: 'Por favor completa los campos requeridos antes de enviar.' })
+      setStatus({ type: 'error', message: t.errores.incompleto })
       return
     }
 
@@ -175,37 +210,41 @@ export function SupportRequestForm() {
           ...form,
           isMinor: paraOtra ? form.isMinor === 'SI' : null,
           consentVersion: VERSION_CONSENTIMIENTO,
+          locale: idioma,
         }),
       })
       const payload = await response.json()
 
       if (!response.ok || !payload.success) {
-        if (payload.details) setErrors(payload.details)
-        setStatus({
-          type: 'error',
-          message: payload.message ?? 'No pudimos enviar tus datos. Intenta de nuevo.',
-        })
+        const rechazo = rechazoDelServidor(comun, payload, t.errores.envio)
+        if (payload.details) setErrors(rechazo.campos)
+        setStatus({ type: 'error', message: rechazo.mensaje })
+
+        // Lo rechazado puede estar en un paso que ya no se ve: se vuelve a él.
+        const paso = pasoConError(rechazo.campos, PASO_DE_CADA_CAMPO)
+        if (paso !== null) {
+          setPaso(paso)
+          alError()
+        }
         return
       }
 
       setCompletado(true)
-      window.scrollTo({ top: 150, behavior: 'smooth' })
+      alInicio()
     } catch {
-      setStatus({
-        type: 'error',
-        message: 'No pudimos conectarnos con el servidor. Revisa tu conexión e intenta de nuevo.',
-      })
+      setStatus({ type: 'error', message: comun.errorConexion })
     } finally {
       setSubmitting(false)
     }
   }
 
   if (completado) {
-    const nombrePersona = nombreDePila(form.name) || form.name.trim() || 'Amigo/a'
+    const nombrePersona = nombreDePila(form.name) || form.name.trim() || t.exito.sinNombre
     const esPrioridadAlta = form.selfHarmThoughts === true || form.distress === 5 || form.howSoon === 'HOY'
 
     return (
       <div
+        ref={ancla}
         style={{
           background: '#ffffff',
           borderRadius: 16,
@@ -215,6 +254,7 @@ export function SupportRequestForm() {
           maxWidth: 640,
           margin: '0 auto',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
+          scrollMarginTop: HUECO_PARA_LA_BARRA,
         }}
       >
         <div
@@ -235,13 +275,13 @@ export function SupportRequestForm() {
         </div>
 
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>
-          ¡Recibimos tu solicitud, {nombrePersona}!
+          {rellenar(t.exito.titulo, { nombre: nombrePersona })}
         </h2>
 
         <p style={{ fontSize: '0.98rem', color: '#475569', lineHeight: 1.6, marginBottom: 24 }}>
-          Estamos aquí contigo. Tu información ya fue recibida por nuestro equipo de coordinación
-          y un profesional voluntario de la red se comunicará contigo vía WhatsApp o llamada
-          a tu número <strong>{form.phone}</strong> para acompañarte.
+          <ConHueco frase={t.exito.texto} hueco="telefono">
+            <strong>{form.phone}</strong>
+          </ConHueco>
         </p>
 
         {esPrioridadAlta && (
@@ -259,11 +299,10 @@ export function SupportRequestForm() {
               <AlertTriangle size={20} color="#d97706" style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
                 <strong style={{ display: 'block', color: '#92400e', fontSize: '0.92rem', marginBottom: 4 }}>
-                  Atención prioritaria y líneas de emergencia 24/7
+                  {t.exito.prioridadTitulo}
                 </strong>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#78350f', lineHeight: 1.5 }}>
-                  Si sientes que estás en peligro o necesitas hablar de inmediato con un especialista,
-                  puedes llamar gratis en Colombia a la <strong>Línea 106</strong> o <strong>Línea 192</strong> (24 horas).
+                  <TextoRico texto={t.exito.prioridadTexto} idioma={idioma} />
                 </p>
               </div>
             </div>
@@ -280,7 +319,7 @@ export function SupportRequestForm() {
               setCompletado(false)
             }}
           >
-            Volver al inicio
+            {t.exito.volver}
           </Button>
         </div>
       </div>
@@ -288,7 +327,7 @@ export function SupportRequestForm() {
   }
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto' }}>
+    <div ref={ancla} style={{ maxWidth: 680, margin: '0 auto', scrollMarginTop: HUECO_PARA_LA_BARRA }}>
       {/* Indicador de Pasos / Wizard */}
       <div
         style={{
@@ -321,12 +360,10 @@ export function SupportRequestForm() {
           </span>
           <div>
             <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
-              Paso {paso} de 3
+              {rellenar(comun.pasoDe, { paso })}
             </span>
             <strong style={{ display: 'block', fontSize: '0.92rem', color: '#1e293b' }}>
-              {paso === 1 && '¿A quién acompañamos y contacto?'}
-              {paso === 2 && '¿Cómo te sientes hoy? (Evaluación breve)'}
-              {paso === 3 && 'Modalidad y Confirmación'}
+              {t.pasos[paso - 1]}
             </strong>
           </div>
         </div>
@@ -354,9 +391,9 @@ export function SupportRequestForm() {
         {paso === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <RadioField
-              label="El acompañamiento es…"
+              label={t.paraQuien.etiqueta}
               required
-              options={PARA_QUIEN}
+              options={PARA_QUIEN.map((value) => ({ value, label: t.paraQuien.opciones[value] }))}
               value={form.forWhom}
               error={errors.forWhom}
               onChange={(v) => update('forWhom', v)}
@@ -375,26 +412,26 @@ export function SupportRequestForm() {
                 }}
               >
                 <RadioField
-                  label="¿Esa persona es menor de edad?"
+                  label={t.esMenor.etiqueta}
                   required
-                  options={ES_MENOR}
+                  options={ES_MENOR.map((value) => ({ value, label: t.esMenor.opciones[value] }))}
                   value={form.isMinor}
                   error={errors.isMinor}
                   onChange={(v) => update('isMinor', v)}
                 />
                 <TextField
-                  label="¿Cómo te llamas tú?"
+                  label={t.tuNombre.etiqueta}
                   name="contactName"
                   required
-                  hint="Para saber con quién hablamos cuando llamemos."
+                  hint={t.tuNombre.pista}
                   value={form.contactName}
                   error={errors.contactName}
                   onChange={(v) => update('contactName', v)}
                 />
                 <TextField
-                  label="¿Cuál es tu relación con esa persona?"
+                  label={t.relacion.etiqueta}
                   name="relationship"
-                  hint="Opcional. Por ejemplo: madre, hijo, pareja, amiga."
+                  hint={t.relacion.pista}
                   value={form.relationship}
                   error={errors.relationship}
                   onChange={(v) => update('relationship', v)}
@@ -403,7 +440,7 @@ export function SupportRequestForm() {
             )}
 
             <TextField
-              label={paraOtra ? '¿Cómo se llama esa persona?' : '¿Cómo te llamas?'}
+              label={paraOtra ? t.nombreOtra : t.nombre}
               name="name"
               required
               autoComplete={paraOtra ? 'off' : 'name'}
@@ -413,43 +450,44 @@ export function SupportRequestForm() {
             />
 
             <TextField
-              label="Celular / WhatsApp"
+              label={t.celular.etiqueta}
               name="phone"
               type="tel"
               required
               autoComplete="tel"
-              hint="Un número al que podamos escribirte o llamarte."
+              hint={t.celular.pista}
               value={form.phone}
               error={errors.phone}
               onChange={(v) => update('phone', v)}
             />
 
             <TextField
-              label="Correo electrónico"
+              label={t.correo.etiqueta}
               name="email"
               type="email"
               autoComplete="email"
-              hint="Opcional. El celular o WhatsApp es suficiente."
+              hint={t.correo.pista}
               value={form.email}
               error={errors.email}
               onChange={(v) => update('email', v)}
             />
 
             <RadioField
-              label="¿Por dónde prefieres que te contactemos?"
+              label={t.canal.etiqueta}
               required
-              options={CANAL}
+              options={CANAL.map((value) => ({ value, label: t.canal.opciones[value] }))}
               value={form.preferredContact}
               error={errors.preferredContact}
               onChange={(v) => update('preferredContact', v)}
             />
 
             <MunicipioSelector
-              label="¿Desde qué ciudad o municipio nos escribes?"
+              label={t.ciudad.etiqueta}
               name="city"
               required
-              placeholder="Busca o escribe tu ciudad o municipio..."
-              hint="Selecciona de la lista de Colombia o escríbelo si no aparece."
+              placeholder={t.ciudad.ejemplo}
+              hint={t.ciudad.pista}
+              textos={comun.municipio}
               value={form.city}
               error={errors.city}
               onChange={(v) => update('city', v)}
@@ -457,7 +495,7 @@ export function SupportRequestForm() {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
               <Button type="button" variant="primary" onClick={irAlPaso2} icon={<ArrowRight size={16} />}>
-                Siguiente: ¿Cómo te sientes hoy?
+                {t.siguiente1}
               </Button>
             </div>
           </div>
@@ -481,19 +519,19 @@ export function SupportRequestForm() {
             >
               <HeartHandshake size={22} color="#059669" style={{ flexShrink: 0 }} />
               <p style={{ margin: 0, fontSize: '0.86rem', color: '#065f46', lineHeight: 1.4 }}>
-                <strong>4 preguntas breves de 1 solo toque.</strong> Nos ayudan a entender tu situación
-                actual y conectarte con el profesional más adecuado con la prioridad que necesitas.
+                <TextoRico texto={t.intro2} idioma={idioma} nuevaPestana />
               </p>
             </div>
 
             {/* Pregunta 1: Malestar 1 al 5 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
-                1. Del 1 al 5, ¿qué tan difícil o abrumador sientes el día de hoy? *
+                {t.malestar.etiqueta}
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
-                {NIVELES_MALESTAR.map((item) => {
+                {NIVELES_MALESTAR.map((item, i) => {
                   const seleccionado = form.distress === item.valor
+                  const nivel = t.malestar.niveles[i]
                   return (
                     <button
                       key={item.valor}
@@ -510,10 +548,10 @@ export function SupportRequestForm() {
                       }}
                     >
                       <strong style={{ display: 'block', fontSize: '0.92rem', color: seleccionado ? item.color : '#1e293b' }}>
-                        {item.etiqueta}
+                        {nivel.etiqueta}
                       </strong>
                       <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>
-                        {item.desc}
+                        {nivel.detalle}
                       </span>
                     </button>
                   )
@@ -527,7 +565,7 @@ export function SupportRequestForm() {
             {/* Pregunta 2: Riesgo / Pensamientos de hacerse daño */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
-                2. En estos días, ¿has tenido pensamientos de hacerte daño o no querer seguir? *
+                {t.dano.etiqueta}
               </label>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button
@@ -546,7 +584,7 @@ export function SupportRequestForm() {
                     cursor: 'pointer',
                   }}
                 >
-                  No
+                  {t.dano.no}
                 </button>
                 <button
                   type="button"
@@ -564,7 +602,7 @@ export function SupportRequestForm() {
                     cursor: 'pointer',
                   }}
                 >
-                  Sí, he tenido esos pensamientos
+                  {t.dano.si}
                 </button>
               </div>
               {errors.selfHarmThoughts && (
@@ -585,10 +623,9 @@ export function SupportRequestForm() {
                   <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                     <AlertTriangle size={18} color="#e11d48" style={{ flexShrink: 0, marginTop: 2 }} />
                     <div style={{ fontSize: '0.84rem', color: '#9f1239', lineHeight: 1.5 }}>
-                      <strong>Tu vida es muy valiosa. No estás solo/a.</strong>
+                      <strong>{t.dano.contencionTitulo}</strong>
                       <p style={{ margin: '4px 0 0' }}>
-                        Si sientes que estás en peligro inmediato o no puedes contener la angustia,
-                        puedes marcar gratis al <strong>106</strong> o <strong>192</strong> en Colombia (24 horas).
+                        <TextoRico texto={t.dano.contencionTexto} idioma={idioma} nuevaPestana />
                       </p>
                     </div>
                   </div>
@@ -599,20 +636,16 @@ export function SupportRequestForm() {
             {/* Pregunta 3: Urgencia / Qué tan pronto */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
-                3. ¿Qué tan pronto sientes que necesitas hablar con un profesional? *
+                {t.urgencia.etiqueta}
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                {[
-                  { id: 'HOY', label: 'Hoy mismo / Muy urgente' },
-                  { id: 'ESTA_SEMANA', label: 'En los próximos días / Esta semana' },
-                  { id: 'PUEDO_ESPERAR', label: 'Puedo esperar un poco más' },
-                ].map((item) => {
-                  const seleccionado = form.howSoon === item.id
+                {URGENCIA.map((id) => {
+                  const seleccionado = form.howSoon === id
                   return (
                     <button
-                      key={item.id}
+                      key={id}
                       type="button"
-                      onClick={() => update('howSoon', item.id as any)}
+                      onClick={() => update('howSoon', id)}
                       style={{
                         padding: '12px 14px',
                         borderRadius: 10,
@@ -625,7 +658,7 @@ export function SupportRequestForm() {
                         textAlign: 'center',
                       }}
                     >
-                      {item.label}
+                      {t.urgencia.opciones[id]}
                     </button>
                   )
                 })}
@@ -638,7 +671,7 @@ export function SupportRequestForm() {
             {/* Pregunta 4: Lugar seguro */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
-                4. ¿Estás en un lugar seguro y cuentas con lo básico (dormir, alimentación)? *
+                {t.seguro.etiqueta}
               </label>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button
@@ -657,7 +690,7 @@ export function SupportRequestForm() {
                     cursor: 'pointer',
                   }}
                 >
-                  Sí, estoy seguro/a
+                  {t.seguro.si}
                 </button>
                 <button
                   type="button"
@@ -675,7 +708,7 @@ export function SupportRequestForm() {
                     cursor: 'pointer',
                   }}
                 >
-                  No me siento seguro/a o me falta lo básico
+                  {t.seguro.no}
                 </button>
               </div>
               {errors.safePlace && (
@@ -685,10 +718,10 @@ export function SupportRequestForm() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
               <Button type="button" variant="default" onClick={() => setPaso(1)} icon={<ArrowLeft size={16} />}>
-                Atrás
+                {comun.atras}
               </Button>
               <Button type="button" variant="primary" onClick={irAlPaso3} icon={<ArrowRight size={16} />}>
-                Siguiente: Modalidad y Confirmación
+                {t.siguiente2}
               </Button>
             </div>
           </div>
@@ -700,18 +733,18 @@ export function SupportRequestForm() {
         {paso === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <RadioField
-              label="¿Cómo prefieres recibir el acompañamiento?"
+              label={t.modalidad.etiqueta}
               required
-              options={MODALIDAD_PREFERIDA}
+              options={MODALIDAD_PREFERIDA.map((value) => ({ value, label: t.modalidad.opciones[value] }))}
               value={form.preferredModality}
               error={errors.preferredModality}
               onChange={(v) => update('preferredModality', v)}
             />
 
             <TextField
-              label="¿Quieres dejarnos algún mensaje o detalle adicional?"
+              label={t.mensaje.etiqueta}
               name="message"
-              hint="Opcional. Puedes contarnos brevemente lo que consideres importante."
+              hint={t.mensaje.pista}
               value={form.message}
               error={errors.message}
               onChange={(v) => update('message', v)}
@@ -732,22 +765,17 @@ export function SupportRequestForm() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShieldCheck size={18} color="#059669" />
                 <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>
-                  Tus datos y tu confidencialidad
+                  {t.datosTitulo}
                 </strong>
               </div>
 
               <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', lineHeight: 1.45 }}>
-                Solo los ve el profesional que te acompañe y el equipo que coordina. No los
-                vendemos ni los damos a nadie más.{' '}
-                <a
-                  href="/politica-de-datos"
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: '#059669', textDecoration: 'underline' }}
-                >
-                  Cómo tratamos tus datos y cómo puedes borrarlos
-                </a>
-                .
+                <TextoRico
+                  texto={t.datosTexto}
+                  idioma={idioma}
+                  claseEnlace="form__enlace"
+                  nuevaPestana
+                />
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
@@ -760,7 +788,7 @@ export function SupportRequestForm() {
                   decide una vez.
                 */}
                 <ConsentField
-                  label={CASILLAS.atencion}
+                  label={comun.casillas.atencion}
                   checked={form.dataConsent}
                   error={errors.dataConsent}
                   onChange={(c) => {
@@ -770,7 +798,7 @@ export function SupportRequestForm() {
                 />
                 {esMenor && (
                   <ConsentField
-                    label={CASILLAS.representante}
+                    label={comun.casillas.representante}
                     checked={form.guardianConsent}
                     error={errors.guardianConsent}
                     onChange={(c) => update('guardianConsent', c)}
@@ -781,11 +809,11 @@ export function SupportRequestForm() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 12 }}>
               <Button type="button" variant="default" onClick={() => setPaso(2)} icon={<ArrowLeft size={16} />}>
-                Atrás
+                {comun.atras}
               </Button>
 
               <Button type="submit" variant="primary" disabled={submitting} icon={<Send size={16} />}>
-                {submitting ? 'Enviando solicitud…' : 'Solicitar Acompañamiento Psicológico'}
+                {submitting ? t.enviando : t.enviar}
               </Button>
             </div>
 

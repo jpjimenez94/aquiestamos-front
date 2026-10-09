@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { MapPin, Check, ChevronDown, Search } from 'lucide-react'
 import { MUNICIPIOS_COLOMBIA } from '@/lib/municipiosColombia'
+import { rellenar } from '@/lib/i18n/idiomas'
+import type { Diccionario } from '@/lib/i18n/diccionarios/es'
 
 type MunicipioSelectorProps = {
   label: string
@@ -10,8 +12,14 @@ type MunicipioSelectorProps = {
   value: string
   required?: boolean
   error?: string
-  placeholder?: string
+  /**
+   * Sin valor por defecto, a propósito: uno en español aparecería tal cual en
+   * el formulario en inglés el día que alguien olvidara pasarlo.
+   */
+  placeholder: string
   hint?: string
+  /** Los textos del desplegable, en el idioma del formulario. */
+  textos: Diccionario['formularios']['comun']['municipio']
   onChange: (valor: string) => void
 }
 
@@ -21,8 +29,9 @@ export function MunicipioSelector({
   value,
   required = false,
   error,
-  placeholder = 'Busca o escribe tu ciudad o municipio...',
+  placeholder,
   hint,
+  textos,
   onChange,
 }: MunicipioSelectorProps) {
   const [abierto, setAbierto] = useState(false)
@@ -105,7 +114,7 @@ export function MunicipioSelector({
             color: 'var(--color-text-secondary, #64748b)',
           }}
           tabIndex={-1}
-          aria-label="Desplegar lista de municipios"
+          aria-label={textos.desplegar}
         >
           <ChevronDown size={16} style={{ transform: abierto ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
         </button>
@@ -134,9 +143,7 @@ export function MunicipioSelector({
         >
           <div style={{ padding: '6px 10px', fontSize: '0.74rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Search size={12} />
-            {busqueda.trim()
-              ? `Coincidencias para "${busqueda}" (o escribe libremente):`
-              : 'Ciudades y municipios principales de Colombia:'}
+            {busqueda.trim() ? rellenar(textos.coincidencias, { busqueda }) : textos.principales}
           </div>
 
           {filtrados.length > 0 ? (
@@ -146,6 +153,9 @@ export function MunicipioSelector({
                 <div
                   key={m}
                   onClick={() => seleccionar(m)}
+                  // Los nombres de la lista son colombianos y van en español en
+                  // los tres idiomas: se marcan para que se lean como tales.
+                  lang="es"
                   style={{
                     padding: '8px 12px',
                     fontSize: '0.86rem',
@@ -171,7 +181,12 @@ export function MunicipioSelector({
             })
           ) : (
             <div style={{ padding: '10px 12px', fontSize: '0.84rem', color: '#64748b' }}>
-              No encontramos &ldquo;{busqueda}&rdquo; en la lista, pero <strong>se guardará tal como lo escribiste</strong>.
+              {/*
+                Lo que la persona tecleó entra como texto llano, nunca a través
+                de `TextoRico`: es lo único de este componente que no escribimos
+                nosotros.
+              */}
+              {rellenar(textos.noEsta, { busqueda })} <strong>{textos.seGuarda}</strong>.
             </div>
           )}
         </div>

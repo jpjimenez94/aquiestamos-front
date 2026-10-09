@@ -1,0 +1,890 @@
+/* ==========================================================================
+   Infografías
+   Lo que eran `contacto.png` y `ser-parte-body.png`: dos carteles con todo su
+   texto dibujado dentro de la imagen. Ahora el texto es texto —se lee en un
+   teléfono, se traduce, lo encuentra un buscador— y el dibujo son recortes del
+   cartel original (`scripts/recortar-infografias.cjs`).
+
+   Lo importan los dos componentes: `InfografiaEmergencia` e `InfografiaCamino`.
+
+   Los colores salen del cartel, oscurecidos lo justo. Su naranja y su lila
+   daban 2,6:1 y 3,6:1 sobre el papel: para un título grande pasaba, para una
+   frase no. Hay una prueba que los vigila (`test/contraste.test.ts`).
+   ========================================================================== */
+
+:root {
+  --info-papel: #fdf2e7;
+  --info-papel-camino: #fdf6ee;
+  --info-tarjeta: #f9ede0;
+  --info-tinta: #14265e;
+  /* El naranja de una palabra resaltada en mitad de una frase. */
+  --info-acento: #a8500c;
+  /* El lila, cuando es texto. */
+  --info-lila: #5b4d94;
+  /* El lila, cuando es la línea que une los pasos: ahí es un adorno. */
+  --info-linea: #b9acd8;
+  --info-noche: #1a3364;
+  --info-crema: #fff6eb;
+  --info-pildora: #6f629e;
+  /* Los dos tonos de los números del segundo cartel, con la cifra en blanco. */
+  --info-numero-lila: #7f77a3;
+  --info-numero-naranja: #c9741a;
+  /* Los fondos de las tarjetas del segundo cartel y de los círculos de sus
+     iconos. Tienen nombre para que la prueba de contraste pueda leerlos. */
+  --info-tarjeta-lila: #f1ebf0;
+  --info-tarjeta-naranja: #faeddf;
+  --info-tarjeta-llamada: #ede7ec;
+  --info-circulo-lila: #ebe5ee;
+  --info-circulo-naranja: #fbe6cf;
+}
+
+.cartel {
+  position: relative;
+  margin: 0 auto 48px;
+  overflow: hidden;
+  border: 1px solid rgba(20, 38, 94, 0.07);
+  border-radius: 24px;
+  background-color: var(--info-papel);
+  color: var(--info-tinta);
+  box-shadow: var(--shadow-card);
+}
+
+.cartel p {
+  margin: 0;
+}
+
+/* Las imágenes llevan su ancho y su alto de verdad en el HTML; aquí se les
+   dice que el alto siga al ancho cuando la columna las encoge.
+
+   Va dentro de `:where()` para que no pese nada: escrito como `.cartel img`
+   le ganaba a `.cartel__planta { display: none }` —una clase contra una clase
+   más una etiqueta— y los dibujos que el teléfono debía esconder seguían ahí. */
+:where(.cartel img) {
+  display: block;
+  height: auto;
+}
+
+.cartel__titulo {
+  margin: 0;
+  color: var(--info-tinta);
+  font-size: clamp(1.9rem, 4.6vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* ---------- «Cuando una emergencia termina…» ---------- */
+
+.cartel--emergencia {
+  max-width: 780px;
+}
+
+.cartel__cabecera {
+  position: relative;
+  min-height: 320px;
+  padding: 60px 44px 12px;
+}
+
+.cartel__colina {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56%;
+}
+
+/* Por encima del dibujo, que viene después en el HTML y lo taparía. */
+.cartel--emergencia .cartel__titulo {
+  position: relative;
+  z-index: 1;
+  max-width: 54%;
+}
+
+/* La segunda mitad del título, en naranja y en su propio renglón. Es letra
+   grande: al naranja del sitio le basta con 3:1 y lo cumple. */
+.cartel__titulo em {
+  display: block;
+  color: var(--color-orange);
+  font-style: normal;
+}
+
+.cartel--emergencia .cartel__titulo::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-top: 22px;
+  background-color: var(--color-orange);
+}
+
+/*
+  El camino: cuatro pasos unidos por una línea que serpentea, como en el
+  cartel. La línea no es un dibujo: es el borde de una caja por paso. Los
+  impares la llevan por la izquierda (arriba, lado y abajo, con las esquinas
+  redondas) y los pares por la derecha; como cada paso monta dos píxeles sobre
+  el anterior, el borde de abajo de uno es el de arriba del siguiente y la
+  línea sale continua. Así se estira sola con el texto, que en portugués es más
+  largo que en español, cosa que un trazo dibujado no haría.
+
+  El dibujo de cada paso va centrado sobre el tramo vertical de su lado, de
+  modo que la línea entra por arriba del círculo y sale por abajo.
+*/
+.camino {
+  --dibujo: 168px;
+  --radio: 64px;
+  margin: 0;
+  padding: 0 44px;
+  list-style: none;
+}
+
+.camino__paso {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--dibujo) minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+  padding: 30px 0;
+}
+
+.camino__paso + .camino__paso {
+  margin-top: -2px;
+}
+
+.camino__paso:nth-child(even) {
+  grid-template-columns: minmax(0, 1fr) var(--dibujo);
+}
+
+.camino__paso:nth-child(even) .camino__dibujo {
+  order: 2;
+}
+
+.camino__paso::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border: 2px solid var(--info-linea);
+  pointer-events: none;
+}
+
+.camino__paso:nth-child(odd)::before {
+  left: calc(var(--dibujo) / 2);
+  right: calc(var(--dibujo) / 2 + var(--radio));
+  border-right: 0;
+  border-radius: var(--radio) 0 0 var(--radio);
+}
+
+.camino__paso:nth-child(even)::before {
+  left: calc(var(--dibujo) / 2 + var(--radio));
+  right: calc(var(--dibujo) / 2);
+  border-left: 0;
+  border-radius: 0 var(--radio) var(--radio) 0;
+}
+
+/* Encima de la línea: el círculo la tapa y parece que pasa por detrás. */
+.camino__dibujo {
+  position: relative;
+  z-index: 1;
+}
+
+.camino__dibujo img {
+  width: 100%;
+}
+
+/* El cuarto paso lleva un icono, no una escena: más pequeño y centrado. */
+.camino__dibujo--icono {
+  width: 96px;
+  justify-self: center;
+}
+
+.camino__texto {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.camino__titulo {
+  margin: 0;
+  color: var(--info-tinta);
+  font-family: var(--font-montserrat), Helvetica, sans-serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+/* «Por eso estamos creando una», con su rayita naranja encima. */
+.camino__antes,
+.camino__nota {
+  position: relative;
+  margin-top: 10px;
+  padding-top: 16px;
+}
+
+.camino__antes::before,
+.camino__nota::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 2px;
+  background-color: var(--color-orange);
+}
+
+.camino__texto .camino__antes {
+  font-size: 0.86rem;
+}
+
+.camino__lema {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.camino__lema strong {
+  color: var(--info-acento);
+  font-weight: 600;
+}
+
+.camino__parrafo strong {
+  color: var(--info-acento);
+}
+
+.camino__texto .camino__nota {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.camino__nota img {
+  flex-shrink: 0;
+  width: 52px;
+}
+
+.camino__nota strong {
+  color: var(--info-lila);
+}
+
+.cartel__cierre {
+  display: grid;
+  grid-template-columns: 35.5% minmax(0, 1fr) 15%;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.cartel__faro,
+.cartel__planta {
+  width: 100%;
+}
+
+/* La mancha azul del cierre. Monta sobre el borde derecho del faro, que se
+   funde justo ahí: la colina y la mancha acaban siendo una sola forma. */
+.cartel__mancha {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: -9%;
+  padding: 40px 34px 30px 56px;
+  border-radius: 130px 150px 0 0 / 110px 120px 0 0;
+  background-color: var(--info-noche);
+  color: var(--info-crema);
+}
+
+.cartel__corazon {
+  flex-shrink: 0;
+  color: #f1a35f;
+}
+
+.cartel__frase {
+  font-size: 1.02rem;
+  line-height: 1.4;
+}
+
+.cartel__pastilla {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  background-color: var(--info-pildora);
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: background-color 0.15s ease;
+}
+
+.cartel__pastilla:hover {
+  background-color: #63568f;
+}
+
+@media (max-width: 640px) {
+  .cartel {
+    border-radius: 18px;
+  }
+
+  /* En el teléfono el dibujo va primero y a todo el ancho; el título, debajo. */
+  .cartel__cabecera {
+    display: flex;
+    flex-direction: column-reverse;
+    min-height: 0;
+    padding: 0 0 6px;
+  }
+
+  .cartel__colina {
+    position: static;
+    width: 100%;
+  }
+
+  .cartel--emergencia .cartel__titulo {
+    max-width: none;
+    padding: 8px 22px 0;
+  }
+
+  /* Ya no serpentea: todos los dibujos a la izquierda y la línea recta por
+     detrás de ellos, de arriba abajo. */
+  .camino {
+    --dibujo: 92px;
+    padding: 0 20px;
+  }
+
+  .camino__paso,
+  .camino__paso:nth-child(even) {
+    grid-template-columns: var(--dibujo) minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    padding: 22px 0;
+  }
+
+  .camino__paso:nth-child(even) .camino__dibujo {
+    order: 0;
+  }
+
+  /* Se escribe el borde entero y no solo su grosor: los pares venían con
+     `border-left: 0`, que también le quita el trazo, y se quedaban sin línea. */
+  .camino__paso:nth-child(odd)::before,
+  .camino__paso:nth-child(even)::before {
+    left: calc(var(--dibujo) / 2);
+    right: auto;
+    width: 0;
+    border: 0;
+    border-left: 2px solid var(--info-linea);
+    border-radius: 0;
+  }
+
+  .camino__dibujo--icono {
+    width: 64px;
+  }
+
+  .camino__lema {
+    font-size: 1.36rem;
+  }
+
+  .cartel__cierre {
+    grid-template-columns: 1fr;
+    margin-top: 12px;
+  }
+
+  .cartel__faro {
+    width: 54%;
+  }
+
+  .cartel__mancha {
+    margin: -70px 0 0;
+    padding: 34px 24px 28px 28px;
+    border-radius: 70px 90px 0 0 / 60px 70px 0 0;
+  }
+
+  .cartel__planta {
+    display: none;
+  }
+}
+
+/* ---------- «¿Cómo puedes hacer parte?» ---------- */
+
+.cartel--camino {
+  max-width: 940px;
+  padding: 40px 36px 28px;
+  background-color: var(--info-papel-camino);
+}
+
+.cartel--camino h3,
+.cartel--camino h4 {
+  margin: 0;
+  color: var(--info-tinta);
+}
+
+.cartel-camino__cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 30px;
+}
+
+.cartel-camino__logo {
+  width: 100%;
+  max-width: 340px;
+}
+
+.cartel-camino__presentacion {
+  padding-left: 30px;
+  border-left: 1px solid rgba(20, 38, 94, 0.22);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.cartel--camino .cartel__titulo {
+  margin-bottom: 12px;
+  font-size: clamp(1.7rem, 3.6vw, 2.3rem);
+  font-weight: 500;
+  line-height: 1.14;
+}
+
+.cartel-camino__rama {
+  align-self: start;
+  width: 78px;
+}
+
+.cartel-camino__mision {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 30px;
+  padding: 22px 28px;
+  border-radius: 18px;
+  background-color: var(--info-tarjeta);
+}
+
+.cartel-camino__mision-icono {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--info-circulo-naranja);
+  color: var(--info-acento);
+}
+
+.cartel--camino .cartel-camino__mision h3 {
+  margin-bottom: 4px;
+  font-size: 1.4rem;
+}
+
+.cartel-camino__mision p {
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+
+.cartel--camino .cartel-camino__rotulo {
+  margin: 34px 0 22px;
+  font-family: var(--font-montserrat), Helvetica, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cartel-camino__pasos {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cartel-camino__paso {
+  --tono: var(--info-numero-lila);
+  --tono-fondo: var(--info-tarjeta-lila);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Lila, naranja, lila, naranja, lila: como en el cartel. */
+.cartel-camino__paso:nth-child(even) {
+  --tono: var(--info-numero-naranja);
+  --tono-fondo: var(--info-tarjeta-naranja);
+}
+
+.cartel-camino__numero {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--tono);
+  color: #ffffff;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* La flecha punteada de un paso al siguiente: solo cuando van los cinco en
+   fila, que es cuando «siguiente» quiere decir «a la derecha». */
+.cartel-camino__paso + .cartel-camino__paso .cartel-camino__numero::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 34px);
+  width: 50px;
+  border-top: 2px dashed rgba(20, 38, 94, 0.5);
+}
+
+.cartel-camino__paso + .cartel-camino__paso .cartel-camino__numero::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 3px);
+  right: calc(100% + 32px);
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid rgba(20, 38, 94, 0.6);
+  border-right: 2px solid rgba(20, 38, 94, 0.6);
+  transform: rotate(45deg);
+}
+
+.cartel-camino__tarjeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 22px 14px 18px;
+  border-radius: 16px;
+  background-color: var(--tono-fondo);
+  text-align: center;
+}
+
+/* La raya de color al pie de cada tarjeta. */
+.cartel-camino__tarjeta::after {
+  content: "";
+  width: 78%;
+  height: 3px;
+  margin-top: auto;
+  border-radius: 2px;
+  background-color: var(--tono);
+}
+
+.cartel-camino__icono {
+  color: var(--info-tinta);
+}
+
+.cartel--camino .cartel-camino__tarjeta h4 {
+  font-size: 1.22rem;
+  line-height: 1.2;
+}
+
+.cartel-camino__tarjeta p {
+  padding-bottom: 14px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.cartel-camino__beneficios {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 26px;
+  margin-top: 22px;
+  padding: 20px 26px;
+  border-radius: 18px;
+  background-color: var(--info-tarjeta);
+}
+
+.cartel-camino__manos {
+  width: 100%;
+}
+
+.cartel--camino .cartel-camino__beneficios h3 {
+  margin-bottom: 14px;
+  font-size: 1.35rem;
+}
+
+.cartel-camino__beneficios ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cartel-camino__beneficios li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.cartel-camino__beneficios li + li {
+  border-left: 1px solid rgba(20, 38, 94, 0.14);
+}
+
+/* El icono dentro de su círculo: el relleno hace de círculo. */
+.cartel-camino__beneficios li svg {
+  box-sizing: content-box;
+  padding: 9px;
+  border-radius: 50%;
+  background-color: var(--info-circulo-lila);
+  color: var(--info-lila);
+}
+
+.cartel-camino__beneficios li:nth-child(even) svg {
+  background-color: var(--info-circulo-naranja);
+  color: var(--info-acento);
+}
+
+.cartel-camino__llamada {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.cartel-camino__lista {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px 26px;
+  border-radius: 18px;
+  background-color: var(--info-tarjeta-llamada);
+}
+
+.cartel-camino__destello {
+  color: var(--info-lila);
+}
+
+.cartel--camino .cartel-camino__lista h3 {
+  font-size: 1.6rem;
+  line-height: 1.15;
+}
+
+.cartel-camino__lista p {
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+
+.cartel-camino__contactos {
+  display: grid;
+  gap: 12px;
+}
+
+.cartel-camino__contacto {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background-color: var(--info-tarjeta);
+  font-size: 0.86rem;
+  line-height: 1.35;
+  transition: background-color 0.15s ease;
+}
+
+.cartel-camino__contacto:hover {
+  background-color: #f5e4d2;
+}
+
+.cartel-camino__contacto-rotulo,
+.cartel-camino__contacto strong {
+  display: block;
+}
+
+.cartel-camino__contacto strong {
+  font-size: 1rem;
+}
+
+.cartel-camino__contacto-icono {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #e6e0ea;
+  color: var(--info-tinta);
+}
+
+.cartel-camino__abrazo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 18px;
+  background-color: #faefe5;
+}
+
+.cartel-camino__abrazo img {
+  width: 100%;
+  max-width: 240px;
+}
+
+.cartel--camino .cartel-camino__cierre {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  background-color: var(--info-tarjeta);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.cartel-camino__cierre span {
+  flex: 1;
+}
+
+.cartel-camino__cierre svg {
+  flex-shrink: 0;
+  color: var(--info-acento);
+}
+
+@media (max-width: 900px) {
+  .cartel-camino__pasos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 22px;
+  }
+
+  /* Ya no van en una fila: la flecha no apuntaría a ninguna parte. */
+  .cartel-camino__paso + .cartel-camino__paso .cartel-camino__numero::before,
+  .cartel-camino__paso + .cartel-camino__paso .cartel-camino__numero::after {
+    display: none;
+  }
+
+  .cartel-camino__llamada {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cartel-camino__abrazo {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .cartel--camino {
+    padding: 26px 18px 20px;
+  }
+
+  .cartel-camino__cabecera {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cartel-camino__logo {
+    max-width: 250px;
+  }
+
+  .cartel-camino__presentacion {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .cartel-camino__rama {
+    display: none;
+  }
+
+  .cartel-camino__mision {
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .cartel-camino__mision-icono {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* En una columna cada paso es número a la izquierda y tarjeta a la derecha:
+     así el orden se lee de arriba abajo sin flechas. */
+  .cartel-camino__pasos {
+    grid-template-columns: 1fr;
+    row-gap: 12px;
+  }
+
+  .cartel-camino__paso {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .cartel-camino__numero {
+    flex-shrink: 0;
+    align-self: center;
+    width: 44px;
+    height: 44px;
+    font-size: 1.55rem;
+  }
+
+  .cartel-camino__tarjeta {
+    align-items: flex-start;
+    padding: 16px 16px 14px;
+    text-align: left;
+  }
+
+  .cartel-camino__tarjeta::after {
+    width: 40%;
+  }
+
+  .cartel-camino__icono {
+    width: 34px;
+    height: 34px;
+  }
+
+  .cartel-camino__beneficios {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .cartel-camino__manos {
+    width: 120px;
+    margin: 0 auto;
+  }
+
+  .cartel--camino .cartel-camino__beneficios h3 {
+    text-align: center;
+  }
+
+  .cartel-camino__beneficios ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 18px;
+  }
+
+  .cartel-camino__beneficios li:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .cartel-camino__llamada {
+    grid-template-columns: 1fr;
+  }
+
+  .cartel-camino__lista {
+    padding: 20px;
+  }
+
+  .cartel--camino .cartel-camino__cierre {
+    align-items: flex-start;
+    padding: 14px 16px;
+  }
+}

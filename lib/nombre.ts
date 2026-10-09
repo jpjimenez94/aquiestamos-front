@@ -51,6 +51,32 @@ export function nombrePropio(valor: string | null | undefined): string {
     .join(' ')
 }
 
+/**
+ * ¿Esto puede ser el nombre de una persona?
+ *
+ * La regla vivía copiada en dos formularios y solo conocía las letras del
+ * español: `[a-zA-ZáéíóúÁÉÍÓÚñÑ]`. Con eso João, Zoë, Søren y Günther no
+ * podían postularse, y tampoco O'Brien ni Ana-María. Mientras el sitio estuvo
+ * solo en español casi no se notó; con la versión en portugués, rechazar la
+ * «ã» es rechazar a medio Brasil.
+ *
+ * Ahora vale cualquier letra de cualquier alfabeto, con sus tildes —también
+ * las que llegan sueltas, que es como las manda el teclado de algunos
+ * teléfonos—, y lo que la gente lleva de verdad en el nombre: espacios,
+ * apóstrofos, guiones y el punto de una inicial («María J.»).
+ *
+ * Sigue sin aceptar cifras ni símbolos: eso suele ser un correo o un teléfono
+ * escrito en la casilla equivocada, y avisarlo a tiempo le ahorra un registro
+ * que luego nadie sabe a nombre de quién está.
+ */
+export function nombreValido(valor: string | null | undefined): boolean {
+  const texto = (valor ?? '').trim()
+  if (!texto) return false
+  if (!/^[\p{L}\p{M}\s'’.-]+$/u.test(texto)) return false
+  // «...» o «-» pasan la regla de arriba y no son el nombre de nadie.
+  return /\p{L}/u.test(texto)
+}
+
 /** Solo el nombre de pila, ya escrito como se debe: para saludar. */
 export function nombreDePila(valor: string | null | undefined): string {
   return nombrePropio(valor).split(' ')[0] ?? ''

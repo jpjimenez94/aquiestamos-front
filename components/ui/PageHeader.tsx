@@ -8,26 +8,37 @@ export type Crumb = { href: string; label: string }
 /**
  * Reproduce la cabecera de una página de Notion: migas de pan, portada ancha,
  * icono superpuesto sobre la portada y título.
+ *
+ * `inicio` y `rutaAria` son lo único que la cabecera dice por su cuenta, y por
+ * eso llegan de fuera: quien la usa sabe en qué idioma está la página y a qué
+ * portada tiene que volver la primera miga. Sin ellos se queda en español, que
+ * es como estaba.
  */
 export function PageHeader({
   cover,
   icon,
   title,
   crumbs = [],
+  inicio = { href: '/', label: 'Inicio' },
+  rutaAria = 'Ruta de navegación',
   children,
 }: {
   cover: string
   icon: string
   title: string
   crumbs?: Crumb[]
+  /** La primera miga: la portada, en el idioma de la página. */
+  inicio?: Crumb
+  /** Cómo se llama la ruta de migas para un lector de pantalla. */
+  rutaAria?: string
   children?: ReactNode
 }) {
   return (
     <header>
       {crumbs.length > 0 ? (
         <div className="content content--wide">
-          <nav className="breadcrumbs" aria-label="Ruta de navegación">
-            <Link href="/">Inicio</Link>
+          <nav className="breadcrumbs" aria-label={rutaAria}>
+            <Link href={inicio.href}>{inicio.label}</Link>
             {crumbs.map((crumb) => (
               <span key={crumb.href} style={{ display: 'inline-flex', gap: 6 }}>
                 <span aria-hidden>/</span>

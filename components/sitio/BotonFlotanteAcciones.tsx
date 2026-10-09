@@ -3,13 +3,23 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MessageCircle, HelpCircle } from 'lucide-react'
-import { whatsappHref, site } from '@/lib/site'
+import { whatsappHref } from '@/lib/site'
+import { ruta, type Idioma } from '@/lib/i18n/idiomas'
+import type { Diccionario } from '@/lib/i18n/diccionarios/es'
 
-export function BotonFlotanteAcciones() {
+export function BotonFlotanteAcciones({
+  idioma,
+  t,
+}: {
+  idioma: Idioma
+  t: Diccionario['flotante']
+}) {
   const pathname = usePathname()
+  // La portada de ESTE idioma: `/`, `/en` o `/pt`.
+  const portada = ruta(idioma, '/')
 
   function irAPreguntas(e: React.MouseEvent) {
-    if (pathname === '/') {
+    if (pathname === portada) {
       e.preventDefault()
       const el = document.getElementById('preguntas-frecuentes')
       if (el) {
@@ -20,7 +30,7 @@ export function BotonFlotanteAcciones() {
 
   return (
     <aside
-      aria-label="Acciones rápidas de contacto y ayuda"
+      aria-label={t.grupo}
       style={{
         position: 'fixed',
         bottom: 24,
@@ -35,10 +45,10 @@ export function BotonFlotanteAcciones() {
     >
       {/* Botón flotante: Preguntas frecuentes */}
       <Link
-        href="/#preguntas-frecuentes"
+        href={ruta(idioma, '/#preguntas-frecuentes')}
         onClick={irAPreguntas}
-        aria-label="Ver preguntas frecuentes"
-        title="Ver preguntas frecuentes"
+        aria-label={t.preguntasAyuda}
+        title={t.preguntasAyuda}
         style={{
           pointerEvents: 'auto',
           display: 'flex',
@@ -66,7 +76,7 @@ export function BotonFlotanteAcciones() {
         }}
       >
         <HelpCircle size={18} style={{ color: '#fff6eb', flexShrink: 0 }} />
-        <span>Preguntas frecuentes</span>
+        <span>{t.preguntas}</span>
       </Link>
 
       {/* Botón flotante: WhatsApp */}
@@ -74,8 +84,8 @@ export function BotonFlotanteAcciones() {
         href={whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Escribir a WhatsApp oficial"
-        title="Escribir a WhatsApp oficial"
+        aria-label={t.whatsappAyuda}
+        title={t.whatsappAyuda}
         style={{
           pointerEvents: 'auto',
           display: 'flex',
@@ -101,7 +111,7 @@ export function BotonFlotanteAcciones() {
         }}
       >
         <MessageCircle size={20} style={{ flexShrink: 0 }} />
-        <span>WhatsApp</span>
+        <span>{t.whatsapp}</span>
       </a>
     </aside>
   )

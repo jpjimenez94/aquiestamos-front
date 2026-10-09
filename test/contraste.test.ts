@@ -11,12 +11,16 @@ import { join } from 'node:path'
  */
 
 const css = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8')
+const cssInfografias = readFileSync(join(process.cwd(), 'app/infografias.css'), 'utf8')
 
-function token(nombre: string): string {
-  const m = css.match(new RegExp(`--${nombre}:\\s*(#[0-9a-fA-F]{6})`))
-  if (!m) throw new Error(`No se encontró el token --${nombre} en globals.css`)
+function token(nombre: string, hoja = css, archivo = 'globals.css'): string {
+  const m = hoja.match(new RegExp(`--${nombre}:\\s*(#[0-9a-fA-F]{6})`))
+  if (!m) throw new Error(`No se encontró el token --${nombre} en ${archivo}`)
   return m[1]
 }
+
+/** Un token de las infografías, que tienen su propia hoja. */
+const info = (nombre: string) => token(`info-${nombre}`, cssInfografias, 'infografias.css')
 
 function canalLineal(c: number): number {
   const s = c / 255
@@ -68,5 +72,61 @@ describe('contraste de la paleta', () => {
   it('los dos fondos siguen siendo claros (la paleta no se invirtió sin querer)', () => {
     expect(luminancia(CREMA)).toBeGreaterThan(0.5)
     expect(luminancia(TARJETA)).toBeGreaterThan(0.5)
+  })
+})
+
+/**
+ * Las dos infografías dejaron de ser imágenes y ahora su texto es texto: tiene
+ * que leerse como cualquier otro. Los colores salen del cartel original, que
+ * estaba pensado para verse entero y de lejos; su naranja y su lila, usados en
+ * una frase, no llegaban.
+ */
+describe('contraste de las infografías', () => {
+  /** Todo fondo claro sobre el que se escribe algo en los dos carteles. */
+  const papeles = [
+    'papel',
+    'papel-camino',
+    'tarjeta',
+    'tarjeta-lila',
+    'tarjeta-naranja',
+    'tarjeta-llamada',
+    'circulo-lila',
+    'circulo-naranja',
+  ]
+
+  it.each(papeles)('la tinta cumple AA sobre «%s»', (papel) => {
+    expect(contraste(info('tinta'), info(papel))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // El naranja y el lila no van sobre cualquier fondo: aquí están los pares
+  // que de verdad aparecen en los carteles. Quien use uno nuevo lo añade.
+  it.each(['papel', 'tarjeta', 'circulo-naranja'])(
+    'el naranja de las palabras e iconos resaltados cumple AA sobre «%s»',
+    (papel) => {
+      expect(contraste(info('acento'), info(papel))).toBeGreaterThanOrEqual(4.5)
+    },
+  )
+
+  it.each(['papel', 'tarjeta', 'tarjeta-llamada', 'circulo-lila'])(
+    'el lila de las palabras e iconos resaltados cumple AA sobre «%s»',
+    (papel) => {
+      expect(contraste(info('lila'), info(papel))).toBeGreaterThanOrEqual(4.5)
+    },
+  )
+
+  it('el naranja del sitio alcanza para el título, que es letra grande (3:1)', () => {
+    // Solo se usa en la segunda mitad del título del primer cartel y en las
+    // rayitas de adorno. Para una frase normal está `--info-acento`.
+    expect(contraste(token('color-orange'), info('papel'))).toBeGreaterThanOrEqual(3)
+  })
+
+  it('el cierre sobre la mancha azul se lee', () => {
+    expect(contraste(info('crema'), info('noche'))).toBeGreaterThanOrEqual(4.5)
+    expect(contraste('#ffffff', info('pildora'))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('las cifras de los pasos se leen sobre sus dos colores (letra grande, 3:1)', () => {
+    expect(contraste('#ffffff', info('numero-lila'))).toBeGreaterThanOrEqual(3)
+    expect(contraste('#ffffff', info('numero-naranja'))).toBeGreaterThanOrEqual(3)
   })
 })
