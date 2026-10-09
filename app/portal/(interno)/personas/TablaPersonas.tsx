@@ -4,7 +4,7 @@ import { seguimientoPendiente, type Seguimiento } from '@/lib/seguimiento'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, UserCheck, Calendar, RotateCcw, MessageSquare } from 'lucide-react'
-import { Etiqueta, Vacio } from '../componentes'
+import { Etiqueta, EtiquetaIdioma, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonSeguimientoWhatsApp } from './BotonSeguimientoWhatsApp'
 import { BotonRecordarCitaPrevia } from './BotonRecordarCitaPrevia'
@@ -20,6 +20,8 @@ export type Persona = {
   city: string
   isMinor: boolean
   preferredModality: string | null
+  /** En qué idioma llenó el formulario: es, en, pt, o null si no se sabe. */
+  formLocale?: string | null
   availableDays: string[]
   availableSlots: string[]
   status: string
@@ -582,6 +584,7 @@ export function TablaPersonas({
                         {p.isMinor ? ' · menor de edad' : ''}
                         {p.preferredModality ? ` · ${p.preferredModality.toLowerCase()}` : ''}
                       </span>
+                      <EtiquetaIdioma formLocale={p.formLocale} />
                       {/*
                         Ciudad y disponibilidad tenían columna propia. Con once
                         columnas la tabla pedía 1505 px y en pantalla había

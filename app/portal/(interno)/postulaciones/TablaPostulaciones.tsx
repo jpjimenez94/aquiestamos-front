@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
-import { Etiqueta, Vacio } from '../componentes'
+import { Etiqueta, EtiquetaIdioma, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonVerificarTarjeta } from '@/components/portal/BotonVerificarTarjeta'
 import { BotonPedirDocumentosEmail } from '@/components/portal/BotonPedirDocumentosEmail'
@@ -22,6 +22,8 @@ export type Postulacion = {
   yearsExperience: string | null
   populations: string[]
   modality: string
+  /** En qué idioma llenó el formulario: es, en, pt, o null si no se sabe. */
+  formLocale?: string | null
   availableDays: string[]
   status: string
   createdAt: string
@@ -466,6 +468,7 @@ export function TablaPostulaciones({
                     <span className="tabla__secundario">
                       {p.city ?? 'Sin ciudad'} · {p.phone}
                     </span>
+                    <EtiquetaIdioma formLocale={p.formLocale} />
                   </td>
                   <td>
                     {p.profession ?? '—'}

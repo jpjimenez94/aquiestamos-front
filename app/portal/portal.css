@@ -442,6 +442,13 @@ body.sin-desplazamiento {
 .etiqueta[data-tono='rojo']  { background-color: #f7e2e0; color: #8f302c; }
 .etiqueta[data-tono='azul']  { background-color: #dceaf1; color: #26637f; }
 
+/* «Formulario en inglés», junto al nombre en una tabla: en su propio renglón,
+   para que no empuje el nombre ni se pierda al final del teléfono. */
+.etiqueta--idioma {
+  display: table;
+  margin-top: 4px;
+}
+
 /* ---------- Botones compactos ---------- */
 
 .boton-mini {

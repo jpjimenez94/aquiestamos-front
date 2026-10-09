@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { etiquetaDeIdioma } from '@/lib/idiomaDelFormulario'
 
 export function Cabecera({
   titulo,
@@ -55,6 +56,28 @@ export function Etiqueta({ estado, texto }: { estado: string; texto?: string }) 
   return (
     <span className="etiqueta" data-tono={TONOS[estado] ?? ''}>
       {texto ?? estado}
+    </span>
+  )
+}
+
+/**
+ * «Formulario en inglés»: la persona llenó el formulario del sitio en otro
+ * idioma, y puede que no hable español.
+ *
+ * No pinta nada si fue en español o si no se sabe (`lib/idiomaDelFormulario`).
+ * Va junto al nombre y no en una columna propia: es un aviso para quien está a
+ * punto de llamar, y tiene que verse sin buscarlo.
+ */
+export function EtiquetaIdioma({ formLocale }: { formLocale?: string | null }) {
+  const texto = etiquetaDeIdioma(formLocale)
+  if (!texto) return null
+  return (
+    <span
+      className="etiqueta etiqueta--idioma"
+      data-tono="azul"
+      title="Llenó el formulario del sitio en ese idioma: puede que no hable español."
+    >
+      {texto}
     </span>
   )
 }

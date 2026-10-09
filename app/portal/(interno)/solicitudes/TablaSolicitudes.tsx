@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
-import { Etiqueta, Vacio } from '../componentes'
+import { Etiqueta, EtiquetaIdioma, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { BotonAdmitirSolicitud } from './BotonAdmitirSolicitud'
 import { BotonEliminarSolicitud } from './BotonEliminarSolicitud'
@@ -38,6 +38,8 @@ export type Solicitud = {
   relationship?: string | null
   preferredContact: string | null
   preferredModality: string | null
+  /** En qué idioma llenó el formulario: es, en, pt, o null si no se sabe. */
+  formLocale?: string | null
   availableDays: string[]
   availableSlots: string[]
   status: string
@@ -425,6 +427,7 @@ export function TablaSolicitudes({
                       {s.phone}
                       {s.isMinor ? ' · menor de edad' : ''}
                     </span>
+                    <EtiquetaIdioma formLocale={s.formLocale} />
                   </td>
                   <td>{s.city ?? '—'}</td>
                   <td>

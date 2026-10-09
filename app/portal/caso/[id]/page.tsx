@@ -14,6 +14,7 @@ import { porDia, enPalabras } from './franjas'
 import { Dato, Etiqueta } from '../../(interno)/componentes'
 import { enBogota } from '@/lib/portal'
 import { nombrePropio } from '@/lib/nombre'
+import { avisoDeIdioma } from '@/lib/idiomaDelFormulario'
 
 /**
  * Esta pantalla usa las tarjetas del portal (`panel`, `datos`, `tabla`) y no
@@ -153,6 +154,10 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
                   : 'sin especificar'}
               </Dato>
               {caso.isMinor ? <Dato etiqueta="Es menor de edad">Sí</Dato> : null}
+              {/* Antes de aceptar: saber si quizá no habla español es parte de decidir. */}
+              {avisoDeIdioma(caso.formLocale) ? (
+                <Dato etiqueta="Idioma del formulario">{avisoDeIdioma(caso.formLocale)}</Dato>
+              ) : null}
             </div>
           </div>
 
@@ -202,6 +207,9 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
             <Dato etiqueta="Modalidad que prefiere">
               {paciente.preferredModality?.toLowerCase() ?? '—'}
             </Dato>
+            {avisoDeIdioma(paciente.formLocale) ? (
+              <Dato etiqueta="Idioma del formulario">{avisoDeIdioma(paciente.formLocale)}</Dato>
+            ) : null}
           </div>
         </div>
 

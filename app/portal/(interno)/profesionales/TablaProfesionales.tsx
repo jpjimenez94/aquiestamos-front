@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw } from 'lucide-react'
-import { Etiqueta, Vacio } from '../componentes'
+import { Etiqueta, EtiquetaIdioma, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { useTabla } from '@/lib/useTabla'
 import { contiene } from '@/lib/tabla'
@@ -21,6 +21,8 @@ export type Profesional = {
   city: string
   modality: string
   populations: string[]
+  /** En qué idioma se postuló: es, en, pt, o null si no se sabe. */
+  formLocale?: string | null
   professionalCardVerified?: boolean
   professionalCardVerifiedAt?: string | null
   professionalCardVerifiedBy?: string | null
@@ -389,6 +391,7 @@ export function TablaProfesionales({ profesionales }: { profesionales: Profesion
                     <span className="tabla__secundario">
                       {p.profession} · {p.city}
                     </span>
+                    <EtiquetaIdioma formLocale={p.formLocale} />
                   </td>
                   <td className="tabla__secundario" style={{ marginTop: 0 }}>
                     {p.populations?.slice(0, 3).join(', ') || '—'}

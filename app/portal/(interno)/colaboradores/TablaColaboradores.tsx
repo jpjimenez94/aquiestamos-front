@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, RotateCcw, Edit3, Trash2, Check, AlertCircle, MessageSquare, Mail, Copy } from 'lucide-react'
-import { Etiqueta, Vacio } from '../componentes'
+import { Etiqueta, EtiquetaIdioma, Vacio } from '../componentes'
 import { PaginacionTabla } from '../PaginacionTabla'
 import { nombrePropio } from '@/lib/nombre'
 import { enBogota } from '@/lib/fechas'
@@ -23,6 +23,8 @@ export type Colaborador = {
   professionalCard?: string | null
   skills: string | null
   modality: string
+  /** En qué idioma llenó el formulario: es, en, pt, o null si no se sabe. */
+  formLocale?: string | null
   availableToTravel: string | null
   availableDays: string[]
   availableSlots: string[]
@@ -511,6 +513,7 @@ export function TablaColaboradores({
                         </span>
                       ) : null}
                     </span>
+                    <EtiquetaIdioma formLocale={c.formLocale} />
                     <span className="tabla__secundario" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 3 }}>
                       <span>{c.phone} · {c.email}</span>
                       <button

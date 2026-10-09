@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
+import { idiomaDistintoDelEspanol } from '@/lib/idiomaDelFormulario'
 import { EditorDisponibilidad } from './EditorDisponibilidad'
 import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
 import { BotonCambiarEstadoProfesional } from './BotonCambiarEstadoProfesional'
@@ -20,6 +21,8 @@ type Profesional = {
   modality: string
   populations: string[]
   travelsTo?: string | null
+  /** En qué idioma se postuló: es, en, pt, o null si no se sabe. */
+  formLocale?: string | null
   professionalCardNumber?: string | null
   professionalCardDocumentUrl?: string | null
   professionalCardVerified?: boolean
@@ -169,6 +172,10 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
           <Dato etiqueta="Teléfono">{p.phone}</Dato>
           <Dato etiqueta="Correo">{p.email}</Dato>
           <Dato etiqueta="Poblaciones">{p.populations?.join(', ') || '—'}</Dato>
+          {/* Solo si se postuló en otro idioma: sirve para emparejar con quien pidió ayuda en ese idioma. */}
+          {idiomaDistintoDelEspanol(p.formLocale) ? (
+            <Dato etiqueta="Se postuló en">{idiomaDistintoDelEspanol(p.formLocale)}</Dato>
+          ) : null}
           {p.travelsTo ? <Dato etiqueta="Se desplaza a">{p.travelsTo}</Dato> : null}
           {p.notes ? <Dato etiqueta="Notas internas">{p.notes}</Dato> : null}
         </div>
