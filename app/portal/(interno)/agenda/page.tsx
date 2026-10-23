@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { portalFetch, soloHora, enBogota } from '@/lib/portal'
+import { esFechaDeCalendario, fechaEnBogota, semanaEnBogota } from '@/lib/fechas'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
 import { BotonExportarCSV } from '@/components/portal/BotonExportarCSV'
 import { EnlaceCapacitacion } from '@/components/portal/EnlaceCapacitacion'
@@ -193,22 +194,6 @@ const ESTADO_CITA_LABEL: Record<string, string> = {
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
-function lunesDe(fecha: Date) {
-  const d = new Date(fecha)
-  const dia = (d.getDay() + 6) % 7
-  d.setDate(d.getDate() - dia)
-  d.setHours(0, 0, 0, 0)
-  return d
-}
-
-function claveDia(fecha: Date | string) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Bogota',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(typeof fecha === 'string' ? new Date(fecha) : fecha)
-}
 
 export default async function AgendaPage({
   searchParams,
@@ -777,43 +762,42 @@ export default async function AgendaPage({
 
   // --- Vista 2: Calendario Semanal ---
   if (vista === 'semana') {
-    const referencia = params.semana ? new Date(`${params.semana}T12:00:00`) : new Date()
-    const lunes = lunesDe(Number.isNaN(referencia.getTime()) ? new Date() : referencia)
-    const domingo = new Date(lunes)
-    domingo.setDate(domingo.getDate() + 7)
+    // La semana se arma en hora de Bogotá, no en la del servidor (que en
+    // Vercel es UTC y corría todas las citas un día): ver `semanaEnBogota`.
+    const semana = semanaEnBogota(esFechaDeCalendario(params.semana) ? params.semana : fechaEnBogota())
 
     const respuesta = await portalFetch<Cita[]>(
-      `/appointments?desde=${lunes.toISOString()}&hasta=${domingo.toISOString()}`,
+      `/appointments?desde=${semana.desde.toISOString()}&hasta=${semana.hasta.toISOString()}`,
     )
     const citas = respuesta.data ?? []
 
     const porDia = new Map<string, Cita[]>()
     for (const cita of citas) {
-      const clave = claveDia(cita.inicio)
+      const clave = fechaEnBogota(cita.inicio)
       porDia.set(clave, [...(porDia.get(clave) ?? []), cita])
     }
 
-    const anterior = new Date(lunes)
-    anterior.setDate(anterior.getDate() - 7)
-    const siguiente = new Date(lunes)
-    siguiente.setDate(siguiente.getDate() + 7)
-    const aParam = (d: Date) => d.toISOString().slice(0, 10)
-    const hoy = claveDia(new Date())
+    const hoy = fechaEnBogota()
+    const delLunes = new Date(`${semana.lunes}T12:00:00Z`).toLocaleDateString('es-CO', {
+      timeZone: 'UTC',
+      day: 'numeric',
+      month: 'long',
+    })
 
     return (
       <>
         <Cabecera
           titulo="Agenda de la red"
-          descripcion={`Semana del ${lunes.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}`}
+          descripcion={`Semana del ${delLunes}`}
           acciones={
             <>
-              <Link className="boton-mini" href={`/portal/agenda?vista=semana&semana=${aParam(anterior)}`}>
+              <Link className="boton-mini" href={`/portal/agenda?vista=semana&semana=${semana.anterior}`}>
                 ← Semana anterior
               </Link>
               <Link className="boton-mini" href="/portal/agenda?vista=semana">
                 Esta semana
               </Link>
-              <Link className="boton-mini" href={`/portal/agenda?vista=semana&semana=${aParam(siguiente)}`}>
+              <Link className="boton-mini" href={`/portal/agenda?vista=semana&semana=${semana.siguiente}`}>
                 Semana siguiente →
               </Link>
             </>
@@ -840,16 +824,14 @@ export default async function AgendaPage({
         ) : (
           <div className="semana">
             {DIAS.map((nombre, indice) => {
-              const fecha = new Date(lunes)
-              fecha.setDate(fecha.getDate() + indice)
-              const clave = claveDia(fecha)
+              const clave = semana.dias[indice]
               const delDia = (porDia.get(clave) ?? []).sort((a, b) => a.inicio.localeCompare(b.inicio))
 
               return (
                 <div className="dia" key={nombre} data-hoy={clave === hoy}>
                   <div className="dia__cabecera">
                     {nombre.slice(0, 3)}
-                    <span className="dia__numero">{fecha.getDate()}</span>
+                    <span className="dia__numero">{Number(clave.slice(8, 10))}</span>
                   </div>
 
                   {delDia.length === 0 ? (
