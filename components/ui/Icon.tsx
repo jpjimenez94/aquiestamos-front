@@ -1,6 +1,7 @@
 import {
   Accessibility,
   ArrowRight,
+  Briefcase,
   Feather,
   Heart,
   Instagram,
@@ -25,6 +26,7 @@ const REGISTRY: Record<string, { Icon: LucideIcon; color: string }> = {
   'arrow-right-orange': { Icon: ArrowRight, color: 'var(--color-orange)' },
   bulb: { Icon: Lightbulb, color: 'var(--color-yellow)' },
   instagram: { Icon: Instagram, color: 'var(--color-blue)' },
+  briefcase: { Icon: Briefcase, color: 'var(--color-orange)' },
 }
 
 export type IconName = keyof typeof REGISTRY

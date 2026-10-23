@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-import { site, whatsappHref } from '../lib/site'
+import { comercialHref, site, whatsappConMensaje, whatsappHref } from '../lib/site'
 
 /**
  * El WhatsApp de la red se escribe en un solo sitio: `lib/site.ts`.
@@ -62,6 +62,22 @@ describe('el WhatsApp de la red', () => {
     expect(whatsappHref).toBe(`https://wa.me/${site.whatsappNumber}`)
     expect(soloDigitos(site.whatsappInternacional)).toBe(site.whatsappNumber)
     expect(site.whatsappNumber.endsWith(soloDigitos(site.whatsappDisplay))).toBe(true)
+  })
+
+  it('el contacto comercial es otro número, y también dice lo mismo en sus tres formas', () => {
+    const soloDigitos = (texto: string) => texto.split(/[^0-9]/).join('')
+    const c = site.comercial
+
+    expect(c.whatsappNumber).not.toBe(site.whatsappNumber)
+    expect(comercialHref).toBe(`https://wa.me/${c.whatsappNumber}`)
+    expect(soloDigitos(c.whatsappInternacional)).toBe(c.whatsappNumber)
+    expect(c.whatsappNumber.endsWith(soloDigitos(c.whatsappDisplay))).toBe(true)
+  })
+
+  it('el enlace con mensaje va al WhatsApp de la red y lleva el texto codificado', () => {
+    expect(whatsappConMensaje('Hola, quiero compartir: un libro')).toBe(
+      `${whatsappHref}?text=Hola%2C%20quiero%20compartir%3A%20un%20libro`,
+    )
   })
 
   it('distingue un número escrito de un enlace armado con el dato de alguien', () => {

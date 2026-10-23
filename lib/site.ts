@@ -41,12 +41,34 @@ export const site = {
    * en otro país, y «310 218 6299» sin indicativo no le sirve para llamar.
    */
   whatsappInternacional: '+57 310 218 6299',
+  /**
+   * Para temas comerciales: Daniel Mancera, director de comunicaciones. Va en
+   * «Contáctanos», aparte del WhatsApp de la red, que es por donde escribe
+   * quien pide ayuda: no conviene que una cosa tape a la otra.
+   */
+  comercial: {
+    nombre: 'Daniel Mancera',
+    whatsappNumber: '573244588619',
+    whatsappDisplay: '324 458 8619',
+    whatsappInternacional: '+57 324 458 8619',
+  },
   instagramUrl:
     process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? 'https://www.instagram.com/aquiestamos.red',
   instagramHandle: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? '@aquiestamos.red',
 } as const
 
 export const whatsappHref = `https://wa.me/${site.whatsappNumber}`
+
+/** El WhatsApp del contacto comercial. */
+export const comercialHref = `https://wa.me/${site.comercial.whatsappNumber}`
+
+/**
+ * El WhatsApp de la red con un mensaje ya escrito, para que quien escribe no
+ * tenga que pensar cómo empezar. El mensaje llega en el idioma de la página.
+ */
+export function whatsappConMensaje(mensaje: string): string {
+  return `${whatsappHref}?text=${encodeURIComponent(mensaje)}`
+}
 
 /**
  * El menú, en el orden en que se enseña.

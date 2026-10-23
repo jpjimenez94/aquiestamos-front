@@ -22,6 +22,11 @@ export function numeroWhatsapp(idioma: Idioma): string {
   return idioma === IDIOMA_BASE ? site.whatsappDisplay : site.whatsappInternacional
 }
 
+/** El del contacto comercial, con la misma regla. */
+export function numeroComercial(idioma: Idioma): string {
+  return idioma === IDIOMA_BASE ? site.comercial.whatsappDisplay : site.comercial.whatsappInternacional
+}
+
 /**
  * Pinta una lista de bloques del diccionario: párrafos, viñetas y recuadros.
  * Es como se escriben los textos largos —la política de datos— para que los

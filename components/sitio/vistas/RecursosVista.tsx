@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Download } from 'lucide-react'
+import { Download, MessageCircle } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Callout } from '@/components/ui/Callout'
 import { ButtonLink } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { getResource, getResourceGroups } from '@/lib/api'
+import { whatsappConMensaje } from '@/lib/site'
 import type { Resource } from '@/lib/types'
 import { rellenar, ruta, type Idioma } from '@/lib/i18n/idiomas'
 import { diccionario, type Diccionario } from '@/lib/i18n/diccionario'
@@ -139,6 +140,19 @@ export async function RecursosVista({ idioma }: { idioma: Idioma }) {
         <div style={{ marginTop: 16 }}>
           <Callout variant="tip" emoji="💡">
             <p style={{ margin: 0 }}>{r.compartir}</p>
+            {/*
+              Decía «puedes contactarnos» y no decía cómo. El botón abre el
+              WhatsApp de la red con el mensaje empezado.
+            */}
+            <div style={{ marginTop: 12 }}>
+              <ButtonLink
+                href={whatsappConMensaje(r.compartirMensaje)}
+                external
+                icon={<MessageCircle size={16} />}
+              >
+                {r.compartirBoton}
+              </ButtonLink>
+            </div>
           </Callout>
         </div>
       </section>

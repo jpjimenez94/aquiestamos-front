@@ -4,13 +4,13 @@ import { Instagram, MessageCircle } from 'lucide-react'
 import { ButtonLink } from '@/components/ui/Button'
 import { Callout } from '@/components/ui/Callout'
 import { Icon } from '@/components/ui/Icon'
-import { TARJETAS_INICIO, site, whatsappHref } from '@/lib/site'
+import { TARJETAS_INICIO, comercialHref, site, whatsappHref } from '@/lib/site'
 import { ruta, type Idioma } from '@/lib/i18n/idiomas'
 import { diccionario } from '@/lib/i18n/diccionario'
 import { SeccionPreguntasFrecuentes } from '@/components/sitio/SeccionPreguntasFrecuentes'
 import { InfografiaEmergencia } from '@/components/sitio/InfografiaEmergencia'
 import { MisionVisionCompromiso } from '@/components/sitio/MisionVisionCompromiso'
-import { numeroWhatsapp } from './comun'
+import { numeroComercial, numeroWhatsapp } from './comun'
 
 /**
  * La portada, en el idioma que se le pida.
@@ -132,6 +132,22 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
               {i.noEstasSola}
             </h3>
             <p className="text-muted">{i.estamosAqui}</p>
+
+            {/* Lo comercial va aparte del WhatsApp de la red, que es para quien pide ayuda. */}
+            <div style={{ marginTop: 28 }}>
+              <h3 className="contact-card__title">
+                <Icon name="briefcase" size={20} />
+                {i.comercialTitulo}
+              </h3>
+              <p className="text-muted">
+                {site.comercial.nombre} · {i.comercialCargo}
+                <br />
+                {numeroComercial(idioma)}
+              </p>
+              <ButtonLink href={comercialHref} external icon={<MessageCircle size={16} />}>
+                {i.comercialBoton}
+              </ButtonLink>
+            </div>
           </div>
 
           <div>
