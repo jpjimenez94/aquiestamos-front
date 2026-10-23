@@ -158,6 +158,37 @@ export const es = {
     sobreTitulo: 'Sobre Aquí Estamos',
     sobreTexto:
       'Somos una red colaborativa que busca facilitar el acceso a la atención psicológica y promover el bienestar emocional a través de la comunidad, la información y el acompañamiento.',
+    /**
+     * Visión y compromiso: los del «Manual operativo para profesionales de
+     * salud mental» (2026), página 2. Del compromiso quedan fuera las frases
+     * que le hablan a quien lee el manual —«Este manual nace para acompañar
+     * ese compromiso», «Bienvenido/a a Aquí Estamos»— y el párrafo sobre el
+     * criterio de cada profesional, que es para ellos y no para el público.
+     *
+     * La misión no está aquí: es una sola en todo el sitio, `camino.mision`,
+     * la del cartel de «Quiero ser parte». El manual no tiene un apartado con
+     * ese nombre, y dos misiones distintas en el mismo sitio serían peor que
+     * ninguna.
+     */
+    visionTitulo: 'Nuestra visión',
+    vision: [
+      'Queremos contribuir a construir una sociedad más humana, solidaria y conectada, donde pedir ayuda no sea motivo de vergüenza y donde recibirla no dependa exclusivamente de tener recursos económicos, contactos o posibilidades de acceso.',
+      'Aspiramos a fortalecer una red de personas y profesionales capaces de responder ante las dificultades con conocimiento, humanidad y responsabilidad.',
+      'Y que cada intervención deje algo más que una atención puntual: queremos que contribuya a reconstruir vínculos, recuperar confianza y fortalecer el tejido humano de nuestras comunidades.',
+    ],
+    compromisoTitulo: 'Nuestro compromiso',
+    compromiso: [
+      'Aquí Estamos no pretende reemplazar los sistemas formales de salud, protección o emergencia. Nuestro propósito es articular capacidades y acercar apoyo identificando necesidades, facilitando orientación y conectando a las personas con los recursos adecuados.',
+      'Por eso esta Red se construye sobre dos pilares que deben avanzar siempre juntos: humanidad y responsabilidad.',
+    ],
+    pilares: [
+      { titulo: 'Humanidad', texto: 'La humanidad nos recuerda por qué hacemos lo que hacemos.' },
+      { titulo: 'Responsabilidad', texto: 'La responsabilidad nos recuerda cómo debemos hacerlo.' },
+    ],
+    compromisoCierre: [
+      'Porque cuando una persona sostiene a otra, cuando un profesional comparte su conocimiento, cuando alguien escucha, orienta o simplemente permanece presente en un momento difícil, se reconstruye algo que va mucho más allá de esa situación particular. Se reconstruye humanidad.',
+      'Porque cuando todo parece fragmentarse, siempre podemos comenzar por volver a encontrarnos.',
+    ],
     contacto: 'Contáctanos',
     noEstasSola: 'No estás sola/o.',
     estamosAqui: 'Estamos aquí para acompañarte.',

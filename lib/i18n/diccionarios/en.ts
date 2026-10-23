@@ -140,6 +140,25 @@ export const en: Diccionario = {
     sobreTitulo: 'About Aquí Estamos',
     sobreTexto:
       'We are a collaborative network that works to make psychological care easier to reach and to promote emotional well-being through community, information and support.',
+    visionTitulo: 'Our vision',
+    vision: [
+      'We want to help build a more humane, caring and connected society, where asking for help is nothing to be ashamed of and where receiving it does not depend solely on having money, contacts or the means to reach it.',
+      'We aspire to strengthen a network of people and professionals able to respond to hardship with knowledge, humanity and responsibility.',
+      'And we want every intervention to leave something more than one-off care: we want it to help rebuild bonds, restore trust and strengthen the human fabric of our communities.',
+    ],
+    compromisoTitulo: 'Our commitment',
+    compromiso: [
+      'Aquí Estamos does not seek to replace formal health, protection or emergency systems. Our purpose is to bring capacities together and bring support closer: identifying needs, offering guidance and connecting people with the right resources.',
+      'That is why this network is built on two pillars that must always move forward together: humanity and responsibility.',
+    ],
+    pilares: [
+      { titulo: 'Humanity', texto: 'Humanity reminds us why we do what we do.' },
+      { titulo: 'Responsibility', texto: 'Responsibility reminds us how we must do it.' },
+    ],
+    compromisoCierre: [
+      'Because when one person holds up another, when a professional shares what they know, when someone listens, offers guidance or simply stays present in a difficult moment, something is rebuilt that goes far beyond that one situation. Humanity is rebuilt.',
+      'Because when everything seems to come apart, we can always begin by finding each other again.',
+    ],
     contacto: 'Contact us',
     noEstasSola: 'You are not alone.',
     estamosAqui: 'We are here to accompany you.',

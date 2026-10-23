@@ -146,6 +146,25 @@ export const pt: Diccionario = {
     sobreTitulo: 'Sobre a Aquí Estamos',
     sobreTexto:
       'Somos uma rede colaborativa que busca facilitar o acesso ao atendimento psicológico e promover o bem-estar emocional por meio da comunidade, da informação e do acompanhamento.',
+    visionTitulo: 'Nossa visão',
+    vision: [
+      'Queremos contribuir para construir uma sociedade mais humana, solidária e conectada, onde pedir ajuda não seja motivo de vergonha e onde recebê-la não dependa exclusivamente de ter recursos financeiros, contatos ou possibilidades de acesso.',
+      'Aspiramos a fortalecer uma rede de pessoas e profissionais capazes de responder às dificuldades com conhecimento, humanidade e responsabilidade.',
+      'E que cada intervenção deixe algo além de um atendimento pontual: queremos que ela contribua para reconstruir vínculos, recuperar a confiança e fortalecer o tecido humano das nossas comunidades.',
+    ],
+    compromisoTitulo: 'Nosso compromisso',
+    compromiso: [
+      'A Aquí Estamos não pretende substituir os sistemas formais de saúde, proteção ou emergência. Nosso propósito é articular capacidades e aproximar o apoio, identificando necessidades, oferecendo orientação e conectando as pessoas aos recursos adequados.',
+      'Por isso, esta rede se constrói sobre dois pilares que devem avançar sempre juntos: humanidade e responsabilidade.',
+    ],
+    pilares: [
+      { titulo: 'Humanidade', texto: 'A humanidade nos lembra por que fazemos o que fazemos.' },
+      { titulo: 'Responsabilidade', texto: 'A responsabilidade nos lembra como devemos fazê-lo.' },
+    ],
+    compromisoCierre: [
+      'Porque quando uma pessoa ampara outra, quando um profissional compartilha o que sabe, quando alguém escuta, orienta ou simplesmente permanece presente em um momento difícil, reconstrói-se algo que vai muito além daquela situação. Reconstrói-se a humanidade.',
+      'Porque, quando tudo parece se fragmentar, sempre podemos começar por nos reencontrar.',
+    ],
     contacto: 'Fale conosco',
     noEstasSola: 'Você não está só.',
     estamosAqui: 'Estamos aqui para acompanhar você.',

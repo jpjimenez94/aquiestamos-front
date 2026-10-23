@@ -69,6 +69,12 @@ describe('contraste de la paleta', () => {
     }
   })
 
+  it('el naranja de los iconos se distingue sobre la banda azul de la misión (3:1)', () => {
+    // En la portada, la misión va sobre el azul noche de la barra con su icono
+    // en el naranja del sitio. Ver `app/mision-vision-compromiso.css`.
+    expect(contraste(token('color-orange'), token('navbar-background-color'))).toBeGreaterThanOrEqual(3)
+  })
+
   it('los dos fondos siguen siendo claros (la paleta no se invirtió sin querer)', () => {
     expect(luminancia(CREMA)).toBeGreaterThan(0.5)
     expect(luminancia(TARJETA)).toBeGreaterThan(0.5)

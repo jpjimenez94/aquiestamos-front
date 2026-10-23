@@ -9,6 +9,7 @@ import { ruta, type Idioma } from '@/lib/i18n/idiomas'
 import { diccionario } from '@/lib/i18n/diccionario'
 import { SeccionPreguntasFrecuentes } from '@/components/sitio/SeccionPreguntasFrecuentes'
 import { InfografiaEmergencia } from '@/components/sitio/InfografiaEmergencia'
+import { MisionVisionCompromiso } from '@/components/sitio/MisionVisionCompromiso'
 import { TextoRico } from '@/components/sitio/TextoRico'
 import { numeroWhatsapp } from './comun'
 
@@ -99,6 +100,11 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
             <p>{i.sobreTexto}</p>
           </div>
         </div>
+
+        <MisionVisionCompromiso
+          t={i}
+          mision={{ titulo: t.camino.misionTitulo, texto: t.camino.mision }}
+        />
       </section>
 
       <div className="content">
