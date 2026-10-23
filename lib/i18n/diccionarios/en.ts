@@ -648,7 +648,12 @@ export const en: Diccionario = {
       {
         titulo: 'Your data',
         texto:
-          'Your health data is sensitive under Colombian law and you are not obliged to authorize its use; if you agree, we use it only to coordinate your support, as our data policy says. You can ask to see, correct or delete it whenever you want. The network does not keep clinical records of your sessions.',
+          'Your health data is sensitive under Colombian law and you are not obliged to authorize its use; if you agree, we use it only to coordinate your support, as our data policy says. You can ask to see, correct or delete it whenever you want.',
+      },
+      {
+        titulo: 'What we record',
+        texto:
+          'The network does not keep clinical records of your sessions. It does keep an internal administrative record: your contact details, what you answered when you asked for help, your appointments and the notes we use to coordinate your support. It is not public: only your professional and the network’s coordination team can see it.',
       },
       {
         titulo: 'Your signature',

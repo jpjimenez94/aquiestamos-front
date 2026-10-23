@@ -47,9 +47,20 @@ export const RESPONSABLE = {
  *   · La confidencialidad tiene DOS límites legales, no uno: el riesgo serio
  *     y el requerimiento formal de autoridad competente. Decir «un solo
  *     límite» era jurídicamente impreciso.
+ *
+ * Versión sesion-2026-10 — el registro administrativo, dicho:
+ *   · «Tus datos» terminaba en «La red no guarda historia clínica de tus
+ *     sesiones.» y ahí se quedaba. Era verdad, pero callaba que sí hay un
+ *     registro administrativo —contacto, lo que respondió al pedir ayuda,
+ *     citas y notas de seguimiento— y quién lo ve. Ahora tiene su propio
+ *     punto, «Qué registramos». Lo pidió el equipo en octubre de 2026.
+ *   · Quién lo ve se dice como en el aviso de tratamiento de datos que la
+ *     persona ya aceptó al pedir ayuda: su profesional y el equipo de
+ *     coordinación. Decir «solo el profesional» sería falso: coordinación
+ *     lo usa para asignar, agendar y hacer seguimiento.
  */
 export const CONSENTIMIENTO_SESION = {
-  version: 'sesion-2026-08-2',
+  version: 'sesion-2026-10',
   /** La página donde vive el texto completo, para enlazarlo desde donde se firma. */
   url: '/consentimiento-informado',
   /**
@@ -76,7 +87,12 @@ export const CONSENTIMIENTO_SESION = {
     {
       titulo: 'Tus datos',
       texto:
-        'Tus datos de salud son sensibles según la ley colombiana y no estás obligado a autorizar su uso; si aceptas, los usamos solo para coordinar tu acompañamiento, como dice nuestra política de datos. Puedes pedir verlos, corregirlos o eliminarlos cuando quieras. La red no guarda historia clínica de tus sesiones.',
+        'Tus datos de salud son sensibles según la ley colombiana y no estás obligado a autorizar su uso; si aceptas, los usamos solo para coordinar tu acompañamiento, como dice nuestra política de datos. Puedes pedir verlos, corregirlos o eliminarlos cuando quieras.',
+    },
+    {
+      titulo: 'Qué registramos',
+      texto:
+        'La red no guarda historia clínica de tus sesiones. Sí lleva un registro administrativo interno: tus datos de contacto, lo que respondiste al pedir ayuda, tus citas y las notas con que coordinamos tu acompañamiento. No es público: solo lo ven tu profesional y el equipo de coordinación de la red.',
     },
     {
       titulo: 'Tu firma',

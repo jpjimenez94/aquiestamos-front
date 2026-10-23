@@ -656,7 +656,12 @@ export const pt: Diccionario = {
       {
         titulo: 'Seus dados',
         texto:
-          'Seus dados de saúde são sensíveis segundo a lei colombiana, e você não tem obrigação de autorizar seu uso; se aceitar, nós os usamos apenas para coordenar seu acompanhamento, como diz nossa política de dados. Você pode pedir para vê-los, corrigi-los ou eliminá-los quando quiser. A rede não guarda prontuário clínico das suas sessões.',
+          'Seus dados de saúde são sensíveis segundo a lei colombiana, e você não tem obrigação de autorizar seu uso; se aceitar, nós os usamos apenas para coordenar seu acompanhamento, como diz nossa política de dados. Você pode pedir para vê-los, corrigi-los ou eliminá-los quando quiser.',
+      },
+      {
+        titulo: 'O que registramos',
+        texto:
+          'A rede não guarda prontuário clínico das suas sessões. Ela mantém, sim, um registro administrativo interno: seus dados de contato, o que você respondeu ao pedir ajuda, suas consultas e as anotações com que coordenamos seu acompanhamento. Ele não é público: só o seu profissional e a equipe de coordenação da rede têm acesso.',
       },
       {
         titulo: 'Sua assinatura',

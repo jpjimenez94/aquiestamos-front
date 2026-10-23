@@ -651,7 +651,7 @@ export const es = {
     intro:
       'Esto es lo que aceptas cuando agendas una sesión con la red. Lo verás otra vez al elegir tu hora, y ahí lo firmas escribiendo tu nombre. Si algo no te queda claro, pregúntanos antes: preferimos explicarlo.',
     /**
-     * Los cinco puntos son los de `CONSENTIMIENTO_SESION`: el mismo texto que
+     * Los puntos son los de `CONSENTIMIENTO_SESION`: el mismo texto que
      * se firma. No se copian aquí; se señalan. Una copia sería publicar una
      * versión que puede dejar de coincidir con la que la gente acepta.
      */

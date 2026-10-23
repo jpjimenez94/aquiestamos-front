@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CASILLAS, VERSION_CONSENTIMIENTO } from '../lib/consentimiento'
+import { CASILLAS, CONSENTIMIENTO_SESION, VERSION_CONSENTIMIENTO } from '../lib/consentimiento'
 
 /**
  * Lo que una casilla tiene que decir para que valga.
@@ -60,5 +60,30 @@ describe('la versión del consentimiento', () => {
     // borra esa prueba sin dejar rastro.
     expect(CASILLAS.datos).toMatch(/finalidades descritas arriba/)
     expect(CASILLAS.sensiblesAtencion).toMatch(/dato sensible de salud/)
+  })
+})
+
+describe('el consentimiento de la sesión', () => {
+  /**
+   * Decía que la red no guarda historia clínica, y era verdad; callaba que sí
+   * hay un registro administrativo. Ahora lo dice, y con eso cambió el texto que
+   * se firma: la versión tiene que ser otra, o una firma de agosto y una de
+   * noviembre parecerían haber aceptado lo mismo.
+   */
+  it('subió de versión al decir lo del registro administrativo', () => {
+    expect(CONSENTIMIENTO_SESION.version).toBe('sesion-2026-10')
+  })
+
+  it('dice que no hay historia clínica, que sí hay un registro administrativo y quién lo ve', () => {
+    const todo = CONSENTIMIENTO_SESION.puntos.map((p) => p.texto).join(' ')
+    expect(todo).toMatch(/no guarda historia clínica/)
+    expect(todo).toMatch(/registro administrativo interno/)
+    expect(todo).toMatch(/solo lo ven tu profesional y el equipo de coordinación/)
+  })
+
+  it('la versión cabe en lo que acepta el backend (20 caracteres)', () => {
+    // `firmarConsentimientoSchema` en el backend: z.string().max(20). Una más
+    // larga haría rebotar todas las firmas.
+    expect(CONSENTIMIENTO_SESION.version.length).toBeLessThanOrEqual(20)
   })
 })
