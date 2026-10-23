@@ -117,8 +117,6 @@ export const pt: Diccionario = {
   inicio: {
     heroAlt: 'Ilustração da rede Aquí Estamos',
     titulo: 'Rede de acompanhamento psicológico e atendimento em crise',
-    duracion:
-      'Oferecerá acompanhamento e atendimento durante os próximos **3 a 4 meses**, contribuindo assim para a reconstrução do tecido social.',
     etapa:
       'Nesta primeira etapa, estamos construindo uma comunidade colaborativa de profissionais comprometidos com o cuidado emocional, a prevenção e o atendimento em situações de crise.',
     accesos: 'Como podemos ajudar você?',
@@ -192,8 +190,7 @@ export const pt: Diccionario = {
     },
     temporal: {
       texto:
-        'Uma rede temporária de profissionais, estudantes e aliados que queiram contribuir para a resposta psicológica diante da emergência de **10 de agosto de 2026 na Colômbia.**',
-      vigencia: 'A rede terá uma **vigência inicial de quatro meses.**',
+        'Uma rede de profissionais, estudantes e aliados que queiram contribuir para a resposta psicológica diante da emergência de **10 de agosto de 2026 na Colômbia.**',
     },
     personas: {
       texto:
@@ -432,7 +429,7 @@ export const pt: Diccionario = {
     bajada:
       'Faça parte da nossa rede de profissionais e vamos construir mais possibilidades de acompanhamento.',
     aviso: [
-      'Estamos formando uma rede de profissionais de psicologia interessados em oferecer acompanhamento psicológico e primeiros cuidados psicológicos a famílias afetadas por situações de emergência e crise durante os próximos quatro meses.',
+      'Estamos formando uma rede de profissionais de psicologia interessados em oferecer acompanhamento psicológico e primeiros cuidados psicológicos a famílias afetadas por situações de emergência e crise.',
       'As informações registradas serão usadas para identificar perfis, experiência e população de foco dos profissionais disponíveis para participar desta iniciativa.',
       'Agradecemos por colocar seu conhecimento e sua experiência a serviço de quem hoje precisa de acompanhamento.',
     ],

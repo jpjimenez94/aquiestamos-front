@@ -189,10 +189,6 @@ async function main() {
     })
   }
   {
-    const zona = { left: 306, top: 1071, width: 78, height: 78 }
-    await recortar('emergencia-calendario', A, zona, { mascara: vineta(zona, [345, 1110, 36]) })
-  }
-  {
     const zona = { left: 617, top: 1234, width: 86, height: 86 }
     await recortar('emergencia-birrete', A, zona, { mascara: vineta(zona, [660, 1277, 40]) })
   }

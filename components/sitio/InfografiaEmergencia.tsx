@@ -82,12 +82,6 @@ export function InfografiaEmergencia({
             <p className="camino__parrafo">
               <TextoRico texto={t.temporal.texto} idioma={idioma} />
             </p>
-            <p className="camino__nota">
-              <Image src={`${I}/emergencia-calendario.webp`} alt="" width={78} height={78} />
-              <span>
-                <TextoRico texto={t.temporal.vigencia} idioma={idioma} />
-              </span>
-            </p>
           </div>
         </li>
 

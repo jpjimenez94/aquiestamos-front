@@ -129,8 +129,6 @@ export const es = {
   inicio: {
     heroAlt: 'Ilustración de la red Aquí Estamos',
     titulo: 'Red de acompañamiento psicológico y atención en crisis',
-    duracion:
-      'Brindará acompañamiento y atención durante los próximos **3 a 4 meses**, aportando así a la reconstrucción del tejido social.',
     etapa:
       'Durante esta primera etapa, estamos construyendo una comunidad colaborativa de profesionales comprometidos con el cuidado emocional, la prevención y la atención en situaciones de crisis.',
     accesos: '¿Cómo podemos ayudarte?',
@@ -206,6 +204,10 @@ export const es = {
    * El texto es el de la infografía, literal. Estaba dibujado dentro de una
    * imagen de 1024×1536: en un teléfono no se leía, no se podía traducir, un
    * lector de pantalla solo oía una línea de `alt` y Google no indexaba nada.
+   *
+   * Menos dos cosas, quitadas en octubre de 2026 a pedido del equipo: la
+   * «vigencia inicial de cuatro meses» y la palabra «temporal». La red sigue
+   * funcionando, y el sitio no puede decir que está por terminar.
    */
   emergencia: {
     nombre: 'Por qué existe la red',
@@ -223,8 +225,7 @@ export const es = {
     },
     temporal: {
       texto:
-        'Una red temporal de profesionales, estudiantes y aliados que quieran aportar a la respuesta psicológica frente a la emergencia del **10 de agosto de 2026 en Colombia.**',
-      vigencia: 'La red tendrá una **vigencia inicial de cuatro meses.**',
+        'Una red de profesionales, estudiantes y aliados que quieran aportar a la respuesta psicológica frente a la emergencia del **10 de agosto de 2026 en Colombia.**',
     },
     personas: {
       texto:
@@ -477,7 +478,7 @@ export const es = {
     bajada:
       'Haz parte de nuestra red de profesionales y construyamos más posibilidades de acompañamiento.',
     aviso: [
-      'Estamos conformando una red de profesionales de psicología interesados en brindar acompañamiento psicológico y primeros auxilios psicológicos a familias afectadas por situaciones de emergencia y crisis durante los próximos cuatro meses.',
+      'Estamos conformando una red de profesionales de psicología interesados en brindar acompañamiento psicológico y primeros auxilios psicológicos a familias afectadas por situaciones de emergencia y crisis.',
       'La información registrada será utilizada para identificar perfiles, experiencia y población de enfoque de los profesionales disponibles para participar en esta iniciativa.',
       'Gracias por poner tu conocimiento y experiencia al servicio de quienes hoy necesitan acompañamiento.',
     ],

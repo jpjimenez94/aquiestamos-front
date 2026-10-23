@@ -10,7 +10,6 @@ import { diccionario } from '@/lib/i18n/diccionario'
 import { SeccionPreguntasFrecuentes } from '@/components/sitio/SeccionPreguntasFrecuentes'
 import { InfografiaEmergencia } from '@/components/sitio/InfografiaEmergencia'
 import { MisionVisionCompromiso } from '@/components/sitio/MisionVisionCompromiso'
-import { TextoRico } from '@/components/sitio/TextoRico'
 import { numeroWhatsapp } from './comun'
 
 /**
@@ -42,10 +41,6 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
         <h1>{i.titulo}</h1>
 
         <p>{t.sitio.descripcion}</p>
-
-        <p>
-          <TextoRico texto={i.duracion} idioma={idioma} />
-        </p>
 
         <Callout icon="arrow-right-red">
           <p>{i.etapa}</p>

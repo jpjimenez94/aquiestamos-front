@@ -111,8 +111,6 @@ export const en: Diccionario = {
   inicio: {
     heroAlt: 'Illustration of the Aquí Estamos network',
     titulo: 'Psychological support and crisis care network',
-    duracion:
-      'It will provide support and care over the next **3 to 4 months**, helping to rebuild the social fabric.',
     etapa:
       'During this first stage, we are building a collaborative community of professionals committed to emotional care, prevention and support in crisis situations.',
     accesos: 'How can we help you?',
@@ -186,8 +184,7 @@ export const en: Diccionario = {
     },
     temporal: {
       texto:
-        'A temporary network of professionals, students and allies who want to contribute to the psychological response to the emergency of **August 10, 2026 in Colombia.**',
-      vigencia: 'The network will run for an **initial period of four months.**',
+        'A network of professionals, students and allies who want to contribute to the psychological response to the emergency of **August 10, 2026 in Colombia.**',
     },
     personas: {
       texto:
@@ -425,7 +422,7 @@ export const en: Diccionario = {
     titulo: 'I want to offer psychological support',
     bajada: 'Join our network of professionals and help us create more possibilities for support.',
     aviso: [
-      'We are forming a network of psychology professionals interested in providing psychological support and psychological first aid to families affected by emergency and crisis situations over the next four months.',
+      'We are forming a network of psychology professionals interested in providing psychological support and psychological first aid to families affected by emergency and crisis situations.',
       'The information you register will be used to identify the profiles, experience and focus populations of the professionals available to take part in this initiative.',
       'Thank you for putting your knowledge and experience at the service of those who need support today.',
     ],
