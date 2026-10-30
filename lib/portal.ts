@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { BACKEND_URL } from './api'
+import { leerSesion, type Sesion } from './sesion'
 
 /**
  * Acceso al backend desde el portal.
@@ -40,6 +41,11 @@ export async function tokenDeSesion(): Promise<string | null> {
 
 type Respuesta<T> = {
   success: boolean
+  /**
+   * El código HTTP del backend; 0 si no contestó. Hace falta para distinguir
+   * «tu sesión ya no vale» (401) de «el servidor no respondió».
+   */
+  status?: number
   message?: string
   data?: T
   details?: Record<string, unknown>
@@ -64,11 +70,27 @@ export async function portalFetch<T>(
       cache: 'no-store',
     })
 
-    return (await respuesta.json()) as Respuesta<T>
+    // Un 502 de un proxy de por medio no trae JSON: se dice, sin perder el código.
+    let cuerpo: Respuesta<T>
+    try {
+      cuerpo = (await respuesta.json()) as Respuesta<T>
+    } catch {
+      cuerpo = { success: false, message: 'El servidor respondió algo que no se pudo leer' }
+    }
+    return { ...cuerpo, status: respuesta.status }
   } catch (error) {
     console.error('[portal] backend inalcanzable:', ruta, error)
-    return { success: false, message: 'No pudimos conectarnos con el servidor' }
+    return { success: false, status: 0, message: 'No pudimos conectarnos con el servidor' }
   }
+}
+
+/**
+ * La sesión de quien navega, distinguiendo «ya no vale» de «el servidor no
+ * respondió». Es lo que mira el layout del portal; ver `lib/sesion.ts`.
+ */
+export async function sesionActual(): Promise<Sesion> {
+  if (!(await tokenDeSesion())) return { estado: 'vencida' }
+  return leerSesion(await portalFetch<Usuario>('/auth/me'))
 }
 
 /** Quién está usando el portal, o null si la sesión ya no vale. */

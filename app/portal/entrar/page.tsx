@@ -10,15 +10,21 @@ export const metadata: Metadata = {
 export default async function EntrarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ volver?: string }>
+  searchParams: Promise<{ volver?: string; vencida?: string }>
 }) {
-  const { volver } = await searchParams
+  const { volver, vencida } = await searchParams
 
   return (
     <div className="entrar">
       <div className="entrar__caja">
         <h1>Portal de coordinación</h1>
         <p>Aquí Estamos · acceso del equipo</p>
+        {/* Llega aquí desde /api/portal/sesion-vencida: que sepa por qué. */}
+        {vencida ? (
+          <p className="entrar__aviso" role="status">
+            Tu sesión terminó. Vuelve a entrar para seguir.
+          </p>
+        ) : null}
         <FormularioEntrar volver={volver} />
       </div>
     </div>

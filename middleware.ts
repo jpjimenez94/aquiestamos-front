@@ -16,8 +16,10 @@ export function middleware(request: NextRequest) {
 
   // Rutas públicas dentro del portal que no requieren sesión de administrador/agendador
   if (pathname === '/portal/entrar' || pathname.startsWith('/portal/caso/')) {
-    // Si ya está logueado pero intenta entrar a /entrar, lo redirigimos al dashboard
-    if (pathname === '/portal/entrar' && tieneCookie) {
+    // Si ya está logueado pero intenta entrar a /entrar, lo redirigimos al dashboard.
+    // Salvo que venga de una sesión vencida (?vencida=1): ahí la cookie sobra,
+    // y devolverlo a /portal sería volver al bucle de redirecciones.
+    if (pathname === '/portal/entrar' && tieneCookie && !request.nextUrl.searchParams.has('vencida')) {
       return NextResponse.redirect(new URL('/portal', request.url))
     }
     return NextResponse.next()
