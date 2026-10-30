@@ -32,8 +32,13 @@ import {
   ListTodo,
   Key,
   SlidersHorizontal,
+  CalendarClock,
+  Hourglass,
+  PhoneOff,
+  Archive,
 } from "lucide-react";
 import type { Usuario } from "@/lib/portal";
+import { BANDEJAS, rutaDeBandeja, type IdBandeja } from "./agenda/bandejas";
 import { nombrePropio } from "@/lib/nombre";
 import { ModalCambiarMiClave } from "@/components/portal/ModalCambiarMiClave";
 
@@ -65,6 +70,18 @@ type Enlace = {
   permiso?: string;
   soloRoles?: Usuario["role"][];
   badgeKey?: keyof ContadoresBadges;
+  /** Va colgando del enlace de arriba: las bandejas de la agenda. */
+  sub?: boolean;
+};
+
+const ICONO_DE_BANDEJA: Record<IdBandeja, React.ReactNode> = {
+  "por-asignar": <Inbox size={15} />,
+  "falta-hora": <CalendarClock size={15} />,
+  "falta-confirmar": <Hourglass size={15} />,
+  confirmadas: <CalendarCheck size={15} />,
+  acompanamiento: <HeartHandshake size={15} />,
+  "no-contestan": <PhoneOff size={15} />,
+  cerrados: <Archive size={15} />,
 };
 
 // Cada grupo lleva su icono, de la misma familia y tamaño que los enlaces:
@@ -163,6 +180,15 @@ const GRUPOS: { titulo: string; icono: React.ReactNode; enlaces: Enlace[] }[] = 
         permiso: "agenda:leer",
         badgeKey: "agenda",
       },
+      // Cada bandeja del tablero, sola: lo pidió la operación para trabajar
+      // un paso a la vez. Mismo orden que el tablero.
+      ...BANDEJAS.map((b) => ({
+        href: rutaDeBandeja(b.id),
+        texto: b.menu,
+        icono: ICONO_DE_BANDEJA[b.id],
+        permiso: "agenda:leer",
+        sub: true,
+      })),
       {
         href: "/portal/mi-agenda",
         texto: "Mi agenda",
@@ -314,6 +340,22 @@ export function LateralPortal({
   contadores?: ContadoresBadges;
 }) {
   const ruta = usePathname();
+
+  /**
+   * Qué enlace se enciende: el más largo que coincide con la ruta.
+   *
+   * Con «empieza por», «Agenda de la red» se encendía a la vez que la
+   * bandeja abierta, porque /portal/agenda/bandeja/… también empieza por
+   * /portal/agenda. Gana el más específico; una ficha de cita sigue
+   * encendiendo «Agenda de la red», como antes.
+   */
+  const activo =
+    GRUPOS.flatMap((g) => g.enlaces)
+      .map((e) => e.href)
+      .filter((href) =>
+        href === "/portal" ? ruta === "/portal" : ruta === href || ruta.startsWith(`${href}/`),
+      )
+      .sort((a, b) => b.length - a.length)[0] ?? null;
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [modalClaveAbierto, setModalClaveAbierto] = useState(false);
@@ -517,11 +559,8 @@ export function LateralPortal({
                       key={enlace.href}
                       className="portal__enlace"
                       href={enlace.href}
-                      data-activo={
-                        enlace.href === "/portal"
-                          ? ruta === "/portal"
-                          : ruta.startsWith(enlace.href)
-                      }
+                      data-activo={enlace.href === activo}
+                      data-sub={enlace.sub ? true : undefined}
                     >
                       {enlace.icono}
                       <span>{enlace.texto}</span>

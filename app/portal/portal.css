@@ -102,6 +102,16 @@ body.sin-desplazamiento {
   transition: background-color 0.14s ease;
 }
 
+/*
+ * Las bandejas de la agenda cuelgan de «Agenda de la red»: un escalón más
+ * adentro y un punto más pequeñas, para que se lean como parte de ella.
+ */
+.portal__enlace[data-sub] {
+  gap: 8px;
+  padding: 6px 10px 6px 30px;
+  font-size: 0.82rem;
+}
+
 .portal__enlace:hover {
   background-color: rgba(255, 255, 255, 0.12);
 }
@@ -1283,26 +1293,34 @@ body.sin-desplazamiento {
 
 /* ---------- Pipeline / Tablero de Casos ---------- */
 
-/*
- * Una sola fila, en el orden del camino de cada caso, que se desliza de lado.
- * Antes las columnas se acomodaban en varias filas según el ancho de la
- * pantalla y el orden se perdía; la operación pidió verlas en fila. Si caben
- * todas, se reparten el ancho; si no, cada una guarda sus 260 px y aparece
- * la barra de desplazamiento.
- */
 .pipeline-grid {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(260px, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
   align-items: flex-start;
-  overflow-x: auto;
-  padding-bottom: 10px;
-  scroll-snap-type: x proximity;
 }
 
-.pipeline-grid > .pipeline-columna {
-  scroll-snap-align: start;
+/* `hidden` no gana solo: `.pipeline-columna` pone display: flex. */
+.pipeline-columna[hidden] {
+  display: none;
+}
+
+/*
+ * Una bandeja sola (desde el menú de Agenda): la columna ocupa todo el ancho
+ * y sus tarjetas se reparten en rejilla, en vez de una tira larguísima.
+ */
+.pipeline-grid--una {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pipeline-grid--una > .pipeline-columna:not([hidden]) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  align-items: start;
+}
+
+.pipeline-grid--una > .pipeline-columna > :not(.pipeline-card) {
+  grid-column: 1 / -1;
 }
 
 .pipeline-columna {

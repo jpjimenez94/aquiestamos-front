@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { portalFetch, soloHora, enBogota } from '@/lib/portal'
 import { esFechaDeCalendario, fechaEnBogota, semanaEnBogota } from '@/lib/fechas'
+import { buscarBandeja, type IdBandeja } from './bandejas'
 import { Cabecera, Etiqueta, Vacio } from '../componentes'
 import { BotonExportarCSV } from '@/components/portal/BotonExportarCSV'
 import { EnlaceCapacitacion } from '@/components/portal/EnlaceCapacitacion'
@@ -205,6 +206,8 @@ export default async function AgendaPage({
     q?: string
     desde?: string
     hasta?: string
+    /** Una sola bandeja del tablero: la usa /portal/agenda/bandeja/<id>. */
+    bandeja?: string
   }>
 }) {
   const params = await searchParams
@@ -212,6 +215,14 @@ export default async function AgendaPage({
 
   // --- Vista 1: Tablero de Casos (Pipeline de Gestión) ---
   if (vista === 'tablero') {
+    /**
+     * Una bandeja sola, cuando se entra desde el menú
+     * (/portal/agenda/bandeja/<id>). Son los mismos datos y las mismas
+     * tarjetas; las demás columnas se ocultan y la elegida ocupa el ancho.
+     */
+    const bandeja = buscarBandeja(params.bandeja)
+    const oculta = (id: IdBandeja) => (bandeja && bandeja.id !== id ? true : undefined)
+
     const [tableroRes, liveRes] = await Promise.all([
       portalFetch<{
         porAsignar: Paciente[]
@@ -268,9 +279,22 @@ export default async function AgendaPage({
     return (
       <>
         <Cabecera
-          titulo="Agenda y Gestión de Casos"
-          descripcion="Cada columna es un estado del caso: dónde está y qué respuesta se espera."
-          acciones={<EnlaceCapacitacion video="operaciones-y-atencion" />}
+          titulo={bandeja ? bandeja.titulo : 'Agenda y Gestión de Casos'}
+          descripcion={
+            bandeja
+              ? bandeja.descripcion
+              : 'Cada columna es un estado del caso: dónde está y qué respuesta se espera.'
+          }
+          acciones={
+            <>
+              {bandeja ? (
+                <Link className="boton-mini" href="/portal/agenda">
+                  ← Todas las bandejas
+                </Link>
+              ) : null}
+              <EnlaceCapacitacion video="operaciones-y-atencion" />
+            </>
+          }
         />
 
         {/* Banner de Supervisión en Tiempo Real */}
@@ -368,9 +392,9 @@ export default async function AgendaPage({
           </Link>
         </div>
 
-        <div className="pipeline-grid">
+        <div className={bandeja ? 'pipeline-grid pipeline-grid--una' : 'pipeline-grid'}>
           {/* Columna 1: Por Asignar */}
-          <div className="pipeline-columna">
+          <div className="pipeline-columna" hidden={oculta('por-asignar')}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <AlertCircle size={15} style={{ color: '#d97706' }} />
@@ -412,7 +436,7 @@ export default async function AgendaPage({
 
           {/* Columna 2: la propuesta salió y el profesional no ha respondido */}
           {hayPropuestasAntiguas ? (
-          <div className="pipeline-columna">
+          <div className="pipeline-columna" hidden={bandeja ? true : undefined}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#d97706' }} />
@@ -441,7 +465,7 @@ export default async function AgendaPage({
           ) : null}
 
           {/* Columna 3: el profesional aceptó; falta que la persona confirme horario */}
-          <div className="pipeline-columna">
+          <div className="pipeline-columna" hidden={oculta('falta-hora')}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <UserCheck size={15} style={{ color: '#0284c7' }} />
@@ -485,7 +509,7 @@ export default async function AgendaPage({
     Le falta el si de la persona, y ahora lo dice — con la misma forma
             que la columna 3, que ya separaba el estado de lo que falta.
           */}
-          <div className="pipeline-columna">
+          <div className="pipeline-columna" hidden={oculta('falta-confirmar')}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <Clock size={15} style={{ color: '#7c3aed' }} />
@@ -542,7 +566,7 @@ export default async function AgendaPage({
           </div>
 
           {/* Columna 5: Citas confirmadas (CONFIRMADA) */}
-          <div className="pipeline-columna">
+          <div className="pipeline-columna" hidden={oculta('confirmadas')}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <CheckCircle2 size={15} style={{ color: '#059669' }} />
@@ -579,7 +603,7 @@ export default async function AgendaPage({
           </div>
 
           {/* Columna 6: En Acompañamiento / Seguimiento */}
-          <div className="pipeline-columna">
+          <div className="pipeline-columna" hidden={oculta('acompanamiento')}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <UserCheck size={15} style={{ color: '#0284c7' }} />
@@ -687,8 +711,8 @@ export default async function AgendaPage({
             operación: primero el camino de cada caso, en orden, y después lo
             que pide volver a llamar.
           */}
-          {noContestan.length > 0 ? (
-            <div className="pipeline-columna">
+          {noContestan.length > 0 || bandeja?.id === 'no-contestan' ? (
+            <div className="pipeline-columna" hidden={oculta('no-contestan')}>
               <div className="pipeline-columna__cabecera">
                 <span className="pipeline-columna__titulo">
                   <PhoneOff size={15} style={{ color: '#b45309' }} />
@@ -696,6 +720,9 @@ export default async function AgendaPage({
                 </span>
                 <span className="pipeline-columna__contador">{noContestan.length}</span>
               </div>
+              {noContestan.length === 0 ? (
+                <span className="tabla__secundario">Nadie en esta bandeja: hoy no hay personas sin contactar.</span>
+              ) : null}
               {noContestan.map((p) => (
                 <Link
                   key={p.id}
@@ -732,7 +759,7 @@ export default async function AgendaPage({
           ) : null}
 
           {/* Columna 7: cerrar no es desaparecer. Los últimos, en gris. */}
-          <div className="pipeline-columna" style={{ opacity: 0.85 }}>
+          <div className="pipeline-columna" style={{ opacity: 0.85 }} hidden={oculta('cerrados')}>
             <div className="pipeline-columna__cabecera">
               <span className="pipeline-columna__titulo">
                 <History size={15} style={{ color: '#6b7280' }} />
