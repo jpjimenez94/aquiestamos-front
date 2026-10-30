@@ -20,10 +20,11 @@ export default function ProcesosPage() {
         acciones={
           <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}>
             {/*
-              Dos manuales, y no son el mismo documento. El técnico explica cómo
+              Tres manuales, y no son el mismo documento. El técnico explica cómo
               está hecha la red; el operativo, cómo se usa —el que se le pasa a
               quien entra a coordinación el lunes—. Va primero porque es el que
-              más gente necesita.
+              más gente necesita. El de profesionales es el que reciben los
+              psicólogos: está aquí para abrirlo y compartirlo.
             */}
             {/*
               Lo primero de la fila: el título de la página no dice «vídeo», y
@@ -50,6 +51,15 @@ export default function ProcesosPage() {
               title="Abrir el documento técnico formal"
             >
               Manual técnico
+            </a>
+            <a
+              className="boton-mini"
+              href="/manual-profesionales"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="El manual que reciben los psicólogos de la red"
+            >
+              Manual para profesionales
             </a>
             {/* Cada manual con su descarga: «Descargar manual» a secas no decía cuál. */}
             <a

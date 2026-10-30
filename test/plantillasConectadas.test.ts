@@ -83,6 +83,9 @@ const CASOS: [string, (plantilla: string) => string][] = [
 
   ['constancia de desistimiento', (plantilla) =>
     M.mensajeDeDesistimiento({ persona: 'Ana Ruiz', enlace: 'https://x/y', plantilla })],
+
+  ['manual para profesionales', (plantilla) =>
+    M.mensajeDelManual({ profesional: 'Sofía Vélez', enlace: 'https://x/manual-profesionales', plantilla })],
 ]
 
 describe('el texto del portal manda sobre el del código', () => {
@@ -112,7 +115,7 @@ describe('el texto del portal manda sobre el del código', () => {
    * cancelar cambiaban el estado y no le decían nada a nadie. La persona podía
    * presentarse a una sesión que ya no existía, y el profesional también.
    */
-  it('están las veintidós', () => {
-    expect(CASOS).toHaveLength(22)
+  it('están las veintitrés', () => {
+    expect(CASOS).toHaveLength(23)
   })
 })

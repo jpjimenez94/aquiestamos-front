@@ -1904,3 +1904,27 @@ export function mensajeDeDesistimiento(d: {
     LINEA_DE_CRISIS,
   ].join('\n')
 }
+
+/**
+ * El enlace al manual operativo, a un profesional que ya está en la red.
+ *
+ * Lo manda coordinación desde Profesionales, sobre todo a quienes atienden
+ * hoy: a los que entran desde ahora les llega en el correo de bienvenida.
+ * El texto de abajo es el respaldo, idéntico al de fábrica de
+ * WHATSAPP_MANUAL_PROFESIONAL, para cuando la plantilla no llegue.
+ */
+export function mensajeDelManual(d: { profesional: string; enlace: string; plantilla?: string }): string {
+  const nombre = nombreDePila(d.profesional) || 'hola'
+  const variables = { profesional: nombre, enlace: d.enlace }
+  if (d.plantilla?.trim()) return renderPlantilla(d.plantilla, variables)
+
+  return [
+    `Hola ${nombre},`,
+    '',
+    'Te compartimos el manual operativo de la Red Aquí Estamos: cómo funcionan la asignación, el agendamiento y el seguimiento, tus derechos y responsabilidades, y qué hacer ante una situación de riesgo.',
+    '',
+    `Lo puedes leer desde el teléfono: ${d.enlace}`,
+    '',
+    'Es de uso interno: por favor no lo compartas fuera de la red. Gracias por estar.',
+  ].join('\n')
+}
