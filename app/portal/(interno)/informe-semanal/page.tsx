@@ -9,6 +9,9 @@ import {
   PRIORIDAD_LEGIBLE,
   resumenPorPrioridad,
   GRUPOS_DE_CITAS,
+  GRUPOS_DE_CIERRE,
+  cuandoLargo,
+  resumenDeCierres,
   type InformeSemanal,
   type ListaPendiente,
 } from '@/lib/informeSemanal'
@@ -242,18 +245,39 @@ export default async function InformeSemanalPage({
         <h2>Casos y profesionales</h2>
         <div className="informe__cifras">
           <Cifra que="Casos nuevos" cuanto={d.casos.nuevosEnLaSemana} nota="En la semana" />
-          <Cifra que="Casos cerrados" cuanto={d.casos.cerradosEnLaSemana} nota="En la semana" />
+          <Cifra
+            que="Casos cerrados"
+            cuanto={d.casos.cerradosEnLaSemana}
+            nota={resumenDeCierres(d.casos.cerradosPorMotivo) || 'En la semana'}
+            enlace={d.casos.cerradosEnLaSemana > 0 ? '#casos-cerrados' : undefined}
+          />
           <Cifra
             que="Derivados a red externa"
             cuanto={d.casos.derivadosRedExterna}
             nota="El portal no tiene dónde apuntarlas"
           />
+          {/*
+            «Activos» era el estado de la ficha —habilitado para recibir
+            casos— y se leía como «atendiendo». Ahora se llama por lo que es, y
+            al lado van las dos cifras que sí dicen quién atiende.
+          */}
           <Cifra
-            que="Profesionales activos"
+            que="Profesionales habilitados"
             cuanto={d.profesionales.activos}
+            nota="Pueden recibir casos"
             enlace="/portal/profesionales"
           />
+          <Cifra
+            que="Con tarjeta verificada"
+            cuanto={d.profesionales.verificados ?? null}
+            nota="De los habilitados"
+          />
           <Cifra que="Con casos asignados" cuanto={d.profesionales.conCasosAsignados} />
+          <Cifra
+            que="Dieron sesiones"
+            cuanto={d.profesionales.conSesionesEnLaSemana ?? null}
+            nota="Al menos una en la semana"
+          />
           <Cifra que="Nuevos esta semana" cuanto={d.profesionales.nuevosEnLaSemana} />
           <Cifra
             que="Pendientes de validar"
@@ -342,7 +366,7 @@ export default async function InformeSemanalPage({
                 <ul className="informe__lista">
                   {suyas.map((c) => (
                     <li key={c.id}>
-                      <span className="informe__cuando">{enBogota(c.cuando)}</span>
+                      <span className="informe__cuando">{cuandoLargo(c.cuando)}</span>
                       {c.personaId ? (
                         <Link href={`/portal/personas/${c.personaId}`}>
                           {nombrePropio(c.persona ?? 'Sin nombre')}
@@ -361,6 +385,58 @@ export default async function InformeSemanalPage({
           })
         )}
       </div>
+
+      {/*
+        Los casos cerrados, abiertos por motivo.
+
+        «Aparece que se cerró un caso la semana pasada, y eso no ocurrió»
+        —la operación—. Sí ocurrió, pero no era lo que parecía: la persona no
+        quiso el acompañamiento y coordinación cerró el caso con ese motivo.
+        Con el nombre y el motivo al lado de la cifra, eso se ve sin tener que
+        preguntarlo.
+      */}
+      {(d.casosCerradosDeLaSemana ?? []).length > 0 ? (
+        <div className="panel" id="casos-cerrados">
+          <h2>Los casos cerrados, uno por uno</h2>
+          <p className="panel__nota" style={{ marginTop: 0 }}>
+            Cada cierre con su motivo. Terminar un acompañamiento y no llegar a empezarlo no son lo
+            mismo, y aquí van separados.
+          </p>
+          {GRUPOS_DE_CIERRE.map((grupo) => {
+            const suyos = (d.casosCerradosDeLaSemana ?? []).filter((x) => x.porQue === grupo.porQue)
+            if (suyos.length === 0) return null
+            return (
+              <details className="informe__grupo" key={grupo.porQue} open>
+                <summary>
+                  <strong>{grupo.titulo}</strong>
+                  <span className="tabla__secundario"> · {suyos.length}</span>
+                </summary>
+                <p className="panel__nota" style={{ margin: '6px 0 0' }}>
+                  {grupo.explica}
+                </p>
+                <ul className="informe__lista">
+                  {suyos.map((x) => (
+                    <li key={x.id}>
+                      <span className="informe__cuando">{cuandoLargo(x.cuando)}</span>
+                      {x.personaId ? (
+                        <Link href={`/portal/personas/${x.personaId}`}>
+                          {nombrePropio(x.persona ?? 'Sin nombre')}
+                        </Link>
+                      ) : (
+                        <span>{nombrePropio(x.persona ?? 'Sin nombre')}</span>
+                      )}
+                      <span className="tabla__secundario">
+                        con {nombrePropio(x.profesional ?? 'sin profesional')}
+                        {grupo.porQue === 'OTRO' && x.motivo ? ` · ${x.motivo}` : ''}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )
+          })}
+        </div>
+      ) : null}
 
       <p className="informe__pie">
         Lo que no sale de aquí —logros, obstáculos, estado del área y prioridades de la semana

@@ -68,6 +68,78 @@ export const GRUPOS_DE_CITAS: {
   },
 ]
 
+/**
+ * Un caso que se cerró en la semana, con el porqué ya decidido por el backend
+ * (`porQueSeCerro`, a partir del motivo que se escribió al cerrarlo).
+ */
+export type CasoCerradoDelInforme = {
+  id: string
+  cuando: string
+  personaId: string | null
+  persona: string | null
+  profesional: string | null
+  motivo: string | null
+  porQue: 'COMPLETADO' | 'DESISTIO' | 'SIN_CONTACTO' | 'REMITIDO' | 'OTRO'
+}
+
+/**
+ * Cómo se llama cada grupo de cierres, y en qué orden se enseña.
+ *
+ * «Casos cerrados» sumaba en una cifra el acompañamiento que terminó y la
+ * persona que nunca quiso empezar. La operación buscó un acompañamiento
+ * terminado que no existía: era un desistimiento. Por eso van separados.
+ */
+export const GRUPOS_DE_CIERRE: {
+  porQue: CasoCerradoDelInforme['porQue']
+  titulo: string
+  explica: string
+}[] = [
+  {
+    porQue: 'COMPLETADO',
+    titulo: 'Terminaron su acompañamiento',
+    explica: 'Se cerraron como «Acompañamiento completado».',
+  },
+  {
+    porQue: 'DESISTIO',
+    titulo: 'Desistieron o ya no lo necesitan',
+    explica:
+      'La persona no quiso seguir —o no quiso empezar—, o firmó el desistimiento. No es un acompañamiento terminado.',
+  },
+  {
+    porQue: 'SIN_CONTACTO',
+    titulo: 'No fue posible volver a contactarlas',
+    explica: 'Se cerraron después de no lograr hablar con ellas.',
+  },
+  {
+    porQue: 'REMITIDO',
+    titulo: 'Remitidos a otro servicio',
+    explica: 'Se cerraron porque pasaron a otro servicio.',
+  },
+  {
+    porQue: 'OTRO',
+    titulo: 'Otro motivo',
+    explica: 'El motivo que se escribió va al lado de cada nombre.',
+  },
+]
+
+/** «1 desistió y 1 terminó», que es como se dice. */
+export function resumenDeCierres(
+  porMotivo: Partial<Record<CasoCerradoDelInforme['porQue'], number>> | undefined,
+): string {
+  if (!porMotivo) return ''
+  const nombre: Record<CasoCerradoDelInforme['porQue'], [string, string]> = {
+    COMPLETADO: ['terminó', 'terminaron'],
+    DESISTIO: ['desistió', 'desistieron'],
+    SIN_CONTACTO: ['sin contacto', 'sin contacto'],
+    REMITIDO: ['remitido', 'remitidos'],
+    OTRO: ['otro motivo', 'otro motivo'],
+  }
+  const partes = GRUPOS_DE_CIERRE.map((g) => [g.porQue, porMotivo[g.porQue] ?? 0] as const)
+    .filter(([, n]) => n > 0)
+    .map(([clave, n]) => `${n} ${nombre[clave][n === 1 ? 0 : 1]}`)
+  return partes.join(' · ')
+}
+
 export type InformeSemanal = {
   periodo: { desde: string; hasta: string }
   voluntariado: {
@@ -100,10 +172,16 @@ export type InformeSemanal = {
   casos: {
     nuevosEnLaSemana: number
     cerradosEnLaSemana: number
+    cerradosPorMotivo?: Partial<Record<CasoCerradoDelInforme['porQue'], number>>
     derivadosRedExterna: number | null
   }
   profesionales: {
+    /** El estado de la ficha: habilitado para recibir casos. En pantalla, «habilitados». */
     activos: number
+    /** Habilitados con la tarjeta profesional verificada. */
+    verificados?: number
+    /** Profesionales distintos que dieron al menos una sesión en la semana. */
+    conSesionesEnLaSemana?: number
     pausados: number
     inactivos: number
     pendientesDeValidar: number
@@ -118,6 +196,8 @@ export type InformeSemanal = {
   }
   /** Las citas de la semana, una por una, detrás de las cifras. */
   citasDeLaSemana?: CitaDelInforme[]
+  /** Los casos cerrados en la semana, uno por uno. */
+  casosCerradosDeLaSemana?: CasoCerradoDelInforme[]
 }
 
 /** Los nombres de área como se escriben en el informe, no como los guarda la base. */
@@ -158,7 +238,7 @@ export function resumenPorPrioridad(lista: ListaPendiente[]): string {
 }
 
 /** Día, mes y hora en Bogotá: el documento se lee fuera del portal. */
-const cuandoLargo = (iso: string) =>
+export const cuandoLargo = (iso: string) =>
   new Date(iso).toLocaleString('es-CO', {
     timeZone: 'America/Bogota',
     weekday: 'short',
@@ -303,9 +383,25 @@ ${GRUPOS_DE_CITAS.map((grupo) => {
 <h2>4 · Seguimiento de casos y profesionales</h2>
 <table>
   ${fila('Casos nuevos (personas admitidas)', c.nuevosEnLaSemana)}
-  ${fila('Casos cerrados', c.cerradosEnLaSemana)}
+  ${fila('Casos cerrados', c.cerradosEnLaSemana, resumenDeCierres(c.cerradosPorMotivo) || undefined)}
   ${fila('Derivados a red externa', c.derivadosRedExterna, 'El portal no tiene todavía dónde apuntarlas.')}
 </table>
+
+${(d.casosCerradosDeLaSemana ?? []).length === 0 ? '' : `<h3>Los casos cerrados, uno por uno</h3>
+${GRUPOS_DE_CIERRE.map((grupo) => {
+  const suyos = (d.casosCerradosDeLaSemana ?? []).filter((x) => x.porQue === grupo.porQue)
+  if (suyos.length === 0) return ''
+  return `
+  <h4>${escapar(grupo.titulo)} · ${suyos.length}</h4>
+  <ul>${suyos
+    .map(
+      (x) =>
+        `<li>${escapar(cuandoLargo(x.cuando))} — ${escapar(x.persona ?? 'sin nombre')} con ${escapar(
+          x.profesional ?? 'sin profesional',
+        )}${grupo.porQue === 'OTRO' && x.motivo ? ` — ${escapar(x.motivo)}` : ''}.</li>`,
+    )
+    .join('')}</ul>`
+}).join('')}`}
 
 ${listaHtml(
   'No contestan',
@@ -335,8 +431,10 @@ ${listaHtml(
 )}
 
 <table>
-  ${fila('Profesionales activos', p.activos)}
+  ${fila('Profesionales habilitados', p.activos, 'Pueden recibir casos. No quiere decir que estén atendiendo.')}
+  ${fila('Con tarjeta profesional verificada', p.verificados ?? null)}
   ${fila('Con casos asignados', p.conCasosAsignados)}
+  ${fila('Dieron al menos una sesión en la semana', p.conSesionesEnLaSemana ?? null)}
   ${fila('Nuevos esta semana', p.nuevosEnLaSemana)}
   ${fila('Pendientes de validar', p.pendientesDeValidar)}
   ${fila('Pausados', p.pausados)}
