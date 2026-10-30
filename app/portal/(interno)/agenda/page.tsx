@@ -410,59 +410,6 @@ export default async function AgendaPage({
             )}
           </div>
 
-          {/*
-            No contestan: la otra mitad de «Por asignar».
-
-            Estaban mezcladas con quienes esperan a que alguien las asigne, y
-            son dos trabajos distintos: una pide buscar profesional, la otra
-            pide volver a llamar o conseguir otro teléfono. La columna solo
-            aparece si hay alguien — con la lista vacía sería una columna
-            recordando un problema que hoy no existe.
-          */}
-          {noContestan.length > 0 ? (
-            <div className="pipeline-columna">
-              <div className="pipeline-columna__cabecera">
-                <span className="pipeline-columna__titulo">
-                  <PhoneOff size={15} style={{ color: '#b45309' }} />
-                  No contestan
-                </span>
-                <span className="pipeline-columna__contador">{noContestan.length}</span>
-              </div>
-              {noContestan.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/portal/personas/${p.id}`}
-                  className="pipeline-card"
-                  style={{ borderLeft: '3px solid #b45309' }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
-                    <Etiqueta estado={p.priority} texto={PRIORIDAD_LABEL[p.priority] ?? p.priority} />
-                  </div>
-                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
-                    {p.sinContacto?.motivo === 'NUMERO_ERRADO'
-                      ? 'El número está mal'
-                      : p.sinContacto?.motivo === 'OTRO'
-                        ? 'Sin contacto'
-                        : 'No contesta'}{' '}
-                    · {p.sinContacto?.intentos ?? 0}{' '}
-                    {p.sinContacto?.intentos === 1 ? 'intento' : 'intentos'}
-                  </span>
-                  {p.sinContacto?.ultimoIntento ? (
-                    <span className="tabla__secundario" style={{ fontSize: '0.74rem' }}>
-                      Último intento el {enBogota(p.sinContacto.ultimoIntento, false)}
-                    </span>
-                  ) : null}
-                  {p.isMinor && (
-                    <span style={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600 }}>
-                      Menor de edad
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          ) : null}
-
           {/* Columna 2: la propuesta salió y el profesional no ha respondido */}
           {hayPropuestasAntiguas ? (
           <div className="pipeline-columna">
@@ -726,6 +673,63 @@ export default async function AgendaPage({
               ))
             )}
           </div>
+
+          {/*
+            No contestan: la otra mitad de «Por asignar».
+
+            Estaban mezcladas con quienes esperan a que alguien las asigne, y
+            son dos trabajos distintos: una pide buscar profesional, la otra
+            pide volver a llamar o conseguir otro teléfono. La columna solo
+            aparece si hay alguien — con la lista vacía sería una columna
+            recordando un problema que hoy no existe.
+
+            Va al final, después de «En acompañamiento», como pidió la
+            operación: primero el camino de cada caso, en orden, y después lo
+            que pide volver a llamar.
+          */}
+          {noContestan.length > 0 ? (
+            <div className="pipeline-columna">
+              <div className="pipeline-columna__cabecera">
+                <span className="pipeline-columna__titulo">
+                  <PhoneOff size={15} style={{ color: '#b45309' }} />
+                  No contestan
+                </span>
+                <span className="pipeline-columna__contador">{noContestan.length}</span>
+              </div>
+              {noContestan.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/portal/personas/${p.id}`}
+                  className="pipeline-card"
+                  style={{ borderLeft: '3px solid #b45309' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.9rem' }}>{nombrePropio(p.fullName)}</strong>
+                    <Etiqueta estado={p.priority} texto={PRIORIDAD_LABEL[p.priority] ?? p.priority} />
+                  </div>
+                  <span className="tabla__secundario" style={{ fontSize: '0.78rem' }}>
+                    {p.sinContacto?.motivo === 'NUMERO_ERRADO'
+                      ? 'El número está mal'
+                      : p.sinContacto?.motivo === 'OTRO'
+                        ? 'Sin contacto'
+                        : 'No contesta'}{' '}
+                    · {p.sinContacto?.intentos ?? 0}{' '}
+                    {p.sinContacto?.intentos === 1 ? 'intento' : 'intentos'}
+                  </span>
+                  {p.sinContacto?.ultimoIntento ? (
+                    <span className="tabla__secundario" style={{ fontSize: '0.74rem' }}>
+                      Último intento el {enBogota(p.sinContacto.ultimoIntento, false)}
+                    </span>
+                  ) : null}
+                  {p.isMinor && (
+                    <span style={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600 }}>
+                      Menor de edad
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          ) : null}
 
           {/* Columna 7: cerrar no es desaparecer. Los últimos, en gris. */}
           <div className="pipeline-columna" style={{ opacity: 0.85 }}>

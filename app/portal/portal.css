@@ -1283,11 +1283,26 @@ body.sin-desplazamiento {
 
 /* ---------- Pipeline / Tablero de Casos ---------- */
 
+/*
+ * Una sola fila, en el orden del camino de cada caso, que se desliza de lado.
+ * Antes las columnas se acomodaban en varias filas según el ancho de la
+ * pantalla y el orden se perdía; la operación pidió verlas en fila. Si caben
+ * todas, se reparten el ancho; si no, cada una guarda sus 260 px y aparece
+ * la barra de desplazamiento.
+ */
 .pipeline-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 1fr);
   gap: 16px;
   align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scroll-snap-type: x proximity;
+}
+
+.pipeline-grid > .pipeline-columna {
+  scroll-snap-align: start;
 }
 
 .pipeline-columna {
