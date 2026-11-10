@@ -16,6 +16,7 @@ type HistorialAsignacion = {
 
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { avisoDeIdioma } from '@/lib/idiomaDelFormulario'
+import { avisoDePais } from '@/lib/paisDelFormulario'
 import { IndicadorDePasos } from '@/components/portal/IndicadorDePasos'
 import { pasoDelCaso, armarHechos, proximaYUltima, citaAcordadaVigente } from '@/lib/pasosDelCaso'
 import { seguimientoPendiente } from '@/lib/seguimiento'
@@ -73,6 +74,7 @@ type Persona = {
   preferredModality: string | null
   /** En qué idioma llenó el formulario: es, en, pt, o null si no se sabe. */
   formLocale?: string | null
+  country?: string | null
   availableDays: string[]
   availableSlots: string[]
   status: string
@@ -301,6 +303,10 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           {/* Solo si llenó el formulario en otro idioma: hay que saberlo antes de llamar. */}
           {avisoDeIdioma(persona.formLocale) ? (
             <Dato etiqueta="Idioma del formulario">{avisoDeIdioma(persona.formLocale)}</Dato>
+          ) : null}
+          {/* Y si escribe desde fuera de Colombia: otra hora, y solo virtual. */}
+          {avisoDePais(persona.country) ? (
+            <Dato etiqueta="Escribe desde">{avisoDePais(persona.country)}</Dato>
           ) : null}
           <Dato etiqueta="Días que puede">
             {persona.availableDays?.length

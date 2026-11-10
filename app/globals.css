@@ -818,6 +818,232 @@ img {
   align-items: start;
 }
 
+/*
+  Botones flotantes: en el teléfono, el de preguntas y el de Instagram se
+  quedan en su icono (su nombre sigue en aria-label). Tres píldoras con texto
+  tapaban media pantalla; WhatsApp conserva el suyo, que es el que más se usa.
+*/
+@media (max-width: 600px) {
+  .flotante__etiqueta {
+    display: none;
+  }
+}
+
+/* ---------- Socios estratégicos ---------- */
+
+.socios {
+  margin-top: 48px;
+  text-align: center;
+}
+
+.socios h2 {
+  margin-bottom: 6px;
+}
+
+.socios__lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 16px;
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
+/* Cada logo en su ficha blanca: así los que vienen con fondo blanco se ven
+   a propósito y no como un recorte sobre el crema de la página. */
+.socios__lista li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  min-height: 100px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-default);
+  background-color: #ffffff;
+}
+
+.socios__lista a {
+  display: block;
+  border-radius: 8px;
+  transition: transform 0.15s ease;
+}
+
+.socios__lista a:hover {
+  transform: translateY(-2px);
+}
+
+.socios__nombre {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-default);
+}
+
+.socios__logo {
+  display: block;
+  width: auto;
+  height: 76px;
+  max-width: 210px;
+  object-fit: contain;
+}
+
+/* ---------- Donar ---------- */
+
+.donar-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 28px;
+  padding: 26px 28px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-card-bg);
+}
+
+.donar-cta h2 {
+  margin: 0 0 6px;
+}
+
+.donar-cta p {
+  margin: 0;
+  max-width: 560px;
+}
+
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  list-style: none;
+  margin: 8px 0 10px;
+  padding: 0;
+}
+
+.cifra {
+  padding: 20px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-card-bg);
+  text-align: center;
+}
+
+.cifra__numero {
+  display: block;
+  font-size: 2.3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-red);
+}
+
+.cifra__texto {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.impacto {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.impacto__tarjeta {
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-card-bg);
+}
+
+.impacto__imagen {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background-color: #ffffff;
+}
+
+.impacto__cuerpo {
+  padding: 16px 18px 18px;
+}
+
+.impacto__cuerpo h3 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+}
+
+.impacto__cuerpo p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.donar-medios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.donar-medio {
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-card-bg);
+}
+
+.donar-medio h2 {
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+
+.donar-banco {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 14px 0 0;
+}
+
+.donar-banco dt {
+  color: var(--color-text-light);
+  font-size: 0.88rem;
+}
+
+.donar-banco dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .impacto {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contact-equipo {
+  margin: 44px 0 20px;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+
+.proyeccion {
+  margin-top: 48px;
+  padding: 28px 28px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-card-bg);
+}
+
+.proyeccion h2 {
+  margin-top: 0;
+}
+
+.proyeccion p:last-child {
+  margin-bottom: 0;
+}
+
 .contact-card__title {
   display: flex;
   align-items: center;

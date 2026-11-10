@@ -31,7 +31,7 @@ export const en: Diccionario = {
     nombre: 'Aquí Estamos',
     lema: 'Psychological support and crisis care network',
     descripcion:
-      'Aquí Estamos (“We Are Here”) is a network of volunteer mental health professionals who have come together to bring psychological support, guidance and resources to the people and communities who need them in the wake of the earthquake of August 10, 2026.',
+      'Aquí Estamos (“We Are Here”) is a collaborative network of professionals and volunteers committed to emotional well-being, psychosocial support and care in crisis situations.',
     irAlInicio: '{nombre} — home',
   },
 
@@ -62,6 +62,10 @@ export const en: Diccionario = {
         aclaracion: '(Request emotional support and psychological care)',
       },
       recursos: { etiqueta: 'Resources', aclaracion: '' },
+      donar: {
+        etiqueta: 'Donate',
+        aclaracion: '(Support the network with a donation)',
+      },
     },
   },
 
@@ -81,6 +85,8 @@ export const en: Diccionario = {
     preguntasAyuda: 'See frequently asked questions',
     whatsapp: 'WhatsApp',
     whatsappAyuda: 'Message our official WhatsApp',
+    instagram: 'Instagram',
+    instagramAyuda: 'Follow the network on Instagram',
   },
 
   migas: {
@@ -110,9 +116,12 @@ export const en: Diccionario = {
 
   inicio: {
     heroAlt: 'Illustration of the Aquí Estamos network',
-    titulo: 'Psychological support and crisis care network',
-    etapa:
-      'During this first stage, we are building a collaborative community of professionals committed to emotional care, prevention and support in crisis situations.',
+    titulo: 'A network that connects people, builds hope and transforms lives',
+    presentacion: [
+      'We are a collaborative network of professionals and volunteers committed to emotional well-being, psychosocial support and care in crisis situations.',
+      'We connect people, communities and professionals to bring listening, guidance and timely support, strengthening the human and social fabric through local initiatives, strategic alliances and international cooperation.',
+    ],
+    destacado: 'Because accompanying someone is also a way of rebuilding, and being there can make a difference.',
     accesos: 'How can we help you?',
     tarjetas: {
       serParte: {
@@ -157,16 +166,30 @@ export const en: Diccionario = {
       'Because when one person holds up another, when a professional shares what they know, when someone listens, offers guidance or simply stays present in a difficult moment, something is rebuilt that goes far beyond that one situation. Humanity is rebuilt.',
       'Because when everything seems to come apart, we can always begin by finding each other again.',
     ],
+    proyeccionTitulo: 'Reaching new communities, at home and abroad',
+    proyeccion:
+      'We strengthen the human and social fabric through psychosocial support initiatives and international strategic alliances, such as our partnership with the Psychologische Hochschule Berlin (PHB), and in November 2026 we begin our work on the ground in Tanzania.',
+    donarTitulo: 'Support the network',
+    donarTexto: 'Your donation sustains free psychological support for people and families in crisis.',
+    donarBoton: 'I want to donate',
+    sociosTitulo: 'Strategic partners',
+    sociosTexto: 'Organizations that walk alongside us to bring psychosocial support to more people.',
+    sociosVisitar: 'Visit the {nombre} website (opens in a new tab)',
     contacto: 'Contact us',
     noEstasSola: 'You are not alone.',
     estamosAqui: 'We are here to accompany you.',
-    whatsappTitulo: 'Message us on WhatsApp',
+    whatsappTitulo: 'Psychosocial support and volunteering',
+    whatsappTexto: 'Write to us to ask for support or to join our network as a volunteer.',
     whatsappBoton: 'Send a WhatsApp message',
-    instagramTitulo: 'Follow us on Instagram',
+    instagramTitulo: 'Connect with our network',
+    instagramTexto: 'Follow us on Instagram and learn about our work and social impact.',
     instagramBoton: 'Follow us',
-    comercialTitulo: 'Business inquiries',
-    comercialCargo: 'Communications Director',
-    comercialBoton: 'Message Daniel on WhatsApp',
+    equipo: {
+      titulo: 'Leadership team',
+      direccion: { cargo: 'Founder and Director', boton: 'Message Poli on WhatsApp' },
+      subdireccion: { cargo: 'Deputy Director', boton: 'Message Alejandra on WhatsApp' },
+      relaciones: { cargo: 'Communications Director · Public relations', boton: 'Message Daniel on WhatsApp' },
+    },
     cierreAlt: 'Illustration of community',
     cierre: 'Accompanying one another is a way of rebuilding our country',
   },
@@ -425,9 +448,10 @@ export const en: Diccionario = {
     titulo: 'I want to offer psychological support',
     bajada: 'Join our network of professionals and help us create more possibilities for support.',
     aviso: [
-      'We are forming a network of psychology professionals interested in providing psychological support and psychological first aid to families affected by emergency and crisis situations.',
-      'The information you register will be used to identify the profiles, experience and focus populations of the professionals available to take part in this initiative.',
-      'Thank you for putting your knowledge and experience at the service of those who need support today.',
+      'At Red Aquí Estamos we bring together a network of psychology professionals committed to providing psychological support and psychological first aid to people and families going through emergencies and crises.',
+      'If this purpose resonates with you, we invite you to contribute your knowledge and experience to emotional well-being and to rebuilding the human and social fabric.',
+      'The information you give us will help us get to know your professional profile and explore ways for you to take part in the network.',
+      '**Your experience can make a difference.** Thank you for wanting to be part of this!',
     ],
     whatsapp: 'Send a WhatsApp message',
     formulario: 'Fill out the form',
@@ -442,9 +466,68 @@ export const en: Diccionario = {
     },
     titulo: 'I want to be a general volunteer',
     bajada: 'An emergency is not met with psychology alone. Join from what you know how to do.',
-    aviso:
-      '**Multidisciplinary volunteer directory.** If you want to contribute from health and first aid, logistics, law, social work, communication, technology or project management, leave us your details. When a brigade or a specific need comes up, the coordination team will contact you. Signing up takes 2 minutes and does not commit you to anything.',
+    aviso: [
+      'At Red Aquí Estamos we have a multidisciplinary volunteer network that brings together people willing to contribute their knowledge, skills and experience in emergencies and crises.',
+      'If you would like to contribute from your field of study, profession or trade, we invite you to join and put your abilities at the service of people and families who need support.',
+      'The information you share with us will help us get to know your profile and availability, so we can find ways for you to take part and collaborate in the network’s activities.',
+      '**Every contribution counts.** Your willingness can make a difference.',
+    ],
     whatsapp: 'Questions? Message us on WhatsApp {numero}',
+  },
+
+  donar: {
+    meta: {
+      titulo: 'Donate',
+      descripcion: 'Support Red Aquí Estamos: your donation sustains free psychological support for people and families in emergencies and crises.',
+    },
+    titulo: 'Support the network',
+    bajada: 'Your donation sustains free psychological support for people and families in crisis.',
+    intro: 'Aquí Estamos is a network of professionals and volunteers who support people and families in emergencies and crises free of charge. Your donation helps us sustain this work and reach more people.',
+    boton: 'Donate now',
+    botonNota: 'This opens WhyDonate, the platform where we receive online donations.',
+    titular: 'There the campaign appears under the name María Ramírez: that is Poli, the network’s founder and director.',
+    cifrasTitulo: 'The network today',
+    cifras: {
+      profesionales: 'active volunteer professionals',
+      personasAcompanadas: 'people supported',
+      sesiones: 'support sessions',
+      voluntariosDeApoyo: 'people in support volunteering',
+    },
+    cifrasNota: 'Network figures as of {fecha}.',
+    impactoTitulo: 'What your donation sustains',
+    impacto: [
+      {
+        titulo: 'Free psychological support',
+        texto: 'Sessions with psychology professionals for people and families going through an emergency or a crisis, at no cost to them.',
+        alt: 'Illustration of a person being supported',
+      },
+      {
+        titulo: 'Presence in communities',
+        texto: 'Psychosocial support initiatives with communities, together with our partners.',
+        alt: 'Hands supporting each other',
+      },
+      {
+        titulo: 'A network that cares for its own',
+        texto: 'Training, coordination and care for the professionals and volunteers who make every session possible.',
+        alt: 'Illustration of community',
+      },
+    ],
+    qrTitulo: 'Donate with the QR code',
+    qrTexto: 'Scan it with your phone’s camera.',
+    qrAlt: 'QR code to donate to Red Aquí Estamos',
+    bancoTitulo: 'Bank transfer (Colombia)',
+    banco: {
+      entidad: 'Bank',
+      titular: 'Account holder',
+      tipo: 'Account type',
+      numero: 'Account number',
+      documento: 'NIT (tax ID)',
+    },
+    copiar: 'Copy the number',
+    copiado: 'Copied!',
+    dudas: 'Do you have a question about your donation?',
+    dudasBoton: 'Message us on WhatsApp',
+    dudasMensaje: 'Hello, I have a question about a donation to Red Aquí Estamos.',
   },
 
   recursos: {
@@ -700,6 +783,15 @@ export const en: Diccionario = {
         principales: 'Main cities and municipalities of Colombia:',
         noEsta: 'We couldn’t find “{busqueda}” in the list, but',
         seGuarda: 'it will be saved exactly as you typed it',
+      },
+      pais: {
+        etiqueta: 'Which country are you in?',
+        ciudadFuera: { etiqueta: 'Which city?', ejemplo: 'E.g. Madrid' },
+        avisoAtencion:
+          'Since you are writing from outside Colombia, support will be online (video or phone call) and times are arranged in Colombian time. If you are in danger, call the emergency number of the country you are in.',
+        avisoVoluntariado:
+          'From outside Colombia you can join online. The network works on Colombian time.',
+        soloVirtual: 'From outside Colombia, this can only be online.',
       },
       casillas: {
         atencion:

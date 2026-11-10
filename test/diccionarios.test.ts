@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { es } from '../lib/i18n/diccionarios/es'
 import { en } from '../lib/i18n/diccionarios/en'
 import { pt } from '../lib/i18n/diccionarios/pt'
+import { fr } from '../lib/i18n/diccionarios/fr'
 import { enlacesDe } from '../lib/i18n/textoRico'
 import { CASILLAS, LINEAS_EMERGENCIA } from '../lib/consentimiento'
 
@@ -22,7 +23,7 @@ import { CASILLAS, LINEAS_EMERGENCIA } from '../lib/consentimiento'
  * Nada de eso lo ve el typecheck ni el build: son cadenas. Lo ve esto.
  */
 
-const TRADUCCIONES = { en, pt } as const
+const TRADUCCIONES = { en, pt, fr } as const
 
 /**
  * Frases que SOLO existen en las traducciones: avisos de que el texto que
@@ -65,6 +66,7 @@ const IGUALES_A_PROPOSITO: Record<keyof typeof TRADUCCIONES, RegExp[]> = {
   en: [],
   // «Recursos para todos» se dice exactamente así en portugués.
   pt: [/^inicio\.tarjetas\.recursos\.titulo$/, /^recursos\.meta\.titulo$/, /^recursos\.titulo$/],
+  fr: [],
 }
 
 type Hoja = { ruta: string; valor: string }
@@ -215,8 +217,10 @@ describe.each(Object.entries(TRADUCCIONES))('la traducción «%s»', (idioma, tr
     // misma autorización.
     const casilla = traduccion.formularios.comun.casillas.atencion
     expect(casilla).toMatch(/Red Aquí Estamos/)
-    expect(casilla).toMatch(idioma === 'en' ? /sensitive/i : /sensível/i)
-    expect(casilla).toMatch(idioma === 'en' ? /not obliged/i : /não sou obrigad/i)
+    const SENSIBLE = { en: /sensitive/i, pt: /sensível/i, fr: /sensible/i }
+    const NO_OBLIGADO = { en: /not obliged/i, pt: /não sou obrigad/i, fr: /pas obligé/i }
+    expect(casilla).toMatch(SENSIBLE[idioma as keyof typeof SENSIBLE])
+    expect(casilla).toMatch(NO_OBLIGADO[idioma as keyof typeof NO_OBLIGADO])
     expect(casilla.length).toBeGreaterThan(80)
   })
 

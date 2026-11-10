@@ -75,6 +75,10 @@ export const es = {
         aclaracion: '(Solicitar apoyo emocional y atención psicológica)',
       },
       recursos: { etiqueta: 'Recursos', aclaracion: '' },
+      donar: {
+        etiqueta: 'Donar',
+        aclaracion: '(Apoya a la Red con un aporte)',
+      },
     },
   },
 
@@ -94,6 +98,8 @@ export const es = {
     preguntasAyuda: 'Ver preguntas frecuentes',
     whatsapp: 'WhatsApp',
     whatsappAyuda: 'Escribir a WhatsApp oficial',
+    instagram: 'Instagram',
+    instagramAyuda: 'Seguir a la red en Instagram',
   },
 
   migas: {
@@ -128,9 +134,17 @@ export const es = {
 
   inicio: {
     heroAlt: 'Ilustración de la red Aquí Estamos',
-    titulo: 'Red de acompañamiento psicológico y atención en crisis',
-    etapa:
-      'Durante esta primera etapa, estamos construyendo una comunidad colaborativa de profesionales comprometidos con el cuidado emocional, la prevención y la atención en situaciones de crisis.',
+    /**
+     * La portada, como la pidió el equipo en noviembre de 2026: «lo primero
+     * que recibe a las personas». El nombre de la red no se repite como
+     * título porque el logo grande de arriba ya lo dice.
+     */
+    titulo: 'Una red que conecta personas, construye esperanza y transforma realidades',
+    presentacion: [
+      'Somos una red colaborativa de profesionales y voluntarios comprometidos con el bienestar emocional, el acompañamiento psicosocial y la atención en situaciones de crisis.',
+      'Conectamos personas, comunidades y profesionales para acercar escucha, orientación y apoyo oportuno, fortaleciendo el tejido humano y social a través de iniciativas territoriales, alianzas estratégicas y cooperación internacional.',
+    ],
+    destacado: 'Porque acompañar también es reconstruir, y estar presentes puede marcar la diferencia.',
     accesos: '¿Cómo podemos ayudarte?',
     tarjetas: {
       serParte: {
@@ -187,16 +201,39 @@ export const es = {
       'Porque cuando una persona sostiene a otra, cuando un profesional comparte su conocimiento, cuando alguien escucha, orienta o simplemente permanece presente en un momento difícil, se reconstruye algo que va mucho más allá de esa situación particular. Se reconstruye humanidad.',
       'Porque cuando todo parece fragmentarse, siempre podemos comenzar por volver a encontrarnos.',
     ],
+    /**
+     * Pedida por el equipo en noviembre de 2026, para dejar escrito que la red
+     * tiene vínculos fuera de Colombia y está creciendo. Dice «en noviembre
+     * de 2026» y no «el 12 de noviembre» para que no caduque al día siguiente.
+     */
+    proyeccionTitulo: 'Proyección territorial e internacional',
+    proyeccion:
+      'Fortalecemos el tejido humano y social mediante iniciativas de apoyo psicosocial y alianzas estratégicas internacionales, como nuestra vinculación con la Psychologische Hochschule Berlin (PHB), y en noviembre de 2026 iniciamos nuestra proyección territorial en Tanzania.',
+    donarTitulo: 'Apoya a la Red',
+    donarTexto: 'Tu aporte sostiene acompañamiento psicológico gratuito para personas y familias en crisis.',
+    donarBoton: 'Quiero donar',
+    sociosTitulo: 'Socios estratégicos',
+    sociosTexto: 'Organizaciones que caminan con nosotros para acercar apoyo psicosocial a más personas.',
+    sociosVisitar: 'Visitar la página de {nombre} (se abre en otra pestaña)',
     contacto: 'Contáctanos',
     noEstasSola: 'No estás sola/o.',
     estamosAqui: 'Estamos aquí para acompañarte.',
-    whatsappTitulo: 'Escríbenos por WhatsApp',
+    whatsappTitulo: 'Acompañamiento psicosocial y voluntariado',
+    whatsappTexto: 'Escríbenos para solicitar acompañamiento o sumarte como voluntario a nuestra Red.',
     whatsappBoton: 'Enviar mensaje a Whatsapp',
-    instagramTitulo: 'Síguenos en Instagram',
+    instagramTitulo: 'Conéctate con nuestra Red',
+    instagramTexto: 'Síguenos en Instagram y conoce nuestro trabajo e impacto social.',
     instagramBoton: 'Síguenos',
-    comercialTitulo: 'Temas comerciales',
-    comercialCargo: 'Director de Comunicaciones',
-    comercialBoton: 'Escribir a Daniel por WhatsApp',
+    /**
+     * El equipo directivo, con el WhatsApp de cada uno (`site.equipo`). Daniel
+     * iba antes bajo «Temas comerciales»; el equipo pidió «Relaciones públicas».
+     */
+    equipo: {
+      titulo: 'Equipo directivo',
+      direccion: { cargo: 'Fundadora y Directora', boton: 'Escribir a Poli por WhatsApp' },
+      subdireccion: { cargo: 'Subdirectora', boton: 'Escribir a Alejandra por WhatsApp' },
+      relaciones: { cargo: 'Director de Comunicaciones · Relaciones públicas', boton: 'Escribir a Daniel por WhatsApp' },
+    },
     cierreAlt: 'Ilustración de comunidad',
     cierre: 'Acompañar es una forma de reconstruir nuestro país',
   },
@@ -481,9 +518,10 @@ export const es = {
     bajada:
       'Haz parte de nuestra red de profesionales y construyamos más posibilidades de acompañamiento.',
     aviso: [
-      'Estamos conformando una red de profesionales de psicología interesados en brindar acompañamiento psicológico y primeros auxilios psicológicos a familias afectadas por situaciones de emergencia y crisis.',
-      'La información registrada será utilizada para identificar perfiles, experiencia y población de enfoque de los profesionales disponibles para participar en esta iniciativa.',
-      'Gracias por poner tu conocimiento y experiencia al servicio de quienes hoy necesitan acompañamiento.',
+      'En Red Aquí Estamos articulamos una red de profesionales de la psicología comprometidos con brindar acompañamiento psicológico y primeros auxilios psicológicos a personas y familias que atraviesan situaciones de emergencia y crisis.',
+      'Si este propósito resuena contigo, te invitamos a sumar tus conocimientos y experiencia para contribuir al bienestar emocional y la reconstrucción del tejido humano y social.',
+      'La información que nos suministres permitirá conocer tu perfil profesional y explorar oportunidades de participación en la Red.',
+      '**Tu experiencia puede marcar la diferencia.** ¡Gracias por querer ser parte!',
     ],
     whatsapp: 'Enviar mensaje a Whatsapp',
     formulario: 'Diligencia el formulario',
@@ -500,9 +538,73 @@ export const es = {
     titulo: 'Quiero ser voluntario general',
     bajada:
       'Una emergencia no se atiende solo desde la psicología. Súmate desde lo que sabes hacer.',
-    aviso:
-      '**Directorio de Voluntariado Multidisciplinario.** Si quieres aportar desde salud y primeros auxilios, logística, derecho, trabajo social, comunicación, tecnología o gestión de proyectos, déjanos tus datos. Cuando surja una brigada o necesidad concreta, el equipo de coordinación te contactará. Registrarte toma 2 minutos y no te compromete a nada.',
+    aviso: [
+      'En Red Aquí Estamos contamos con una red de voluntariado multidisciplinario que reúne personas dispuestas a aportar sus conocimientos, habilidades y experiencia ante situaciones de emergencia y crisis.',
+      'Si deseas contribuir desde tu área de formación, profesión u oficio, te invitamos a sumarte y poner tus capacidades al servicio de personas y familias que necesitan apoyo.',
+      'La información que nos compartas nos permitirá conocer tu perfil y disponibilidad para identificar oportunidades de participación y colaboración en las acciones de la Red.',
+      '**Cada aporte suma.** Tu disposición puede marcar una diferencia.',
+    ],
     whatsapp: '¿Tienes dudas? Escríbenos al WhatsApp {numero}',
+  },
+
+  /**
+   * «Donar»: la página para apoyar a la red con dinero. La pidió el equipo en
+   * noviembre de 2026: «todo en una sola página», con un llamado a donar e
+   * imágenes que asocien resultados. Ver `DonarVista`.
+   */
+  donar: {
+    meta: {
+      titulo: 'Donar',
+      descripcion: 'Apoya a la Red Aquí Estamos: tu aporte sostiene acompañamiento psicológico gratuito para personas y familias en situaciones de emergencia y crisis.',
+    },
+    titulo: 'Apoya a la Red',
+    bajada: 'Tu aporte sostiene acompañamiento psicológico gratuito para personas y familias en crisis.',
+    intro: 'Aquí Estamos es una red de profesionales y voluntarios que acompaña de forma gratuita a personas y familias en situaciones de emergencia y crisis. Con tu aporte podemos sostener ese trabajo y llegar a más personas.',
+    boton: 'Donar ahora',
+    botonNota: 'Se abre WhyDonate, la plataforma donde recibimos las donaciones en línea.',
+    titular: 'Allí la campaña aparece a nombre de María Ramírez: es Poli, fundadora y directora de la Red.',
+    cifrasTitulo: 'La Red hoy',
+    cifras: {
+      profesionales: 'profesionales voluntarios activos',
+      personasAcompanadas: 'personas acompañadas',
+      sesiones: 'sesiones de acompañamiento',
+      voluntariosDeApoyo: 'personas en el voluntariado de apoyo',
+    },
+    cifrasNota: 'Datos de la Red al {fecha}.',
+    impactoTitulo: 'Lo que tu aporte sostiene',
+    impacto: [
+      {
+        titulo: 'Acompañamiento gratuito',
+        texto: 'Sesiones con profesionales de la psicología para personas y familias que atraviesan una emergencia o una crisis, sin costo para ellas.',
+        alt: 'Ilustración de una persona acompañada',
+      },
+      {
+        titulo: 'Presencia en los territorios',
+        texto: 'Iniciativas de apoyo psicosocial con las comunidades, de la mano de nuestros aliados.',
+        alt: 'Manos que se acompañan',
+      },
+      {
+        titulo: 'Una red que se cuida',
+        texto: 'Formación, coordinación y cuidado de los profesionales y voluntarios que hacen posible cada acompañamiento.',
+        alt: 'Ilustración de comunidad',
+      },
+    ],
+    qrTitulo: 'Dona con el código QR',
+    qrTexto: 'Escanéalo con la cámara de tu teléfono.',
+    qrAlt: 'Código QR para donar a la Red Aquí Estamos',
+    bancoTitulo: 'Transferencia bancaria',
+    banco: {
+      entidad: 'Banco',
+      titular: 'Titular',
+      tipo: 'Tipo de cuenta',
+      numero: 'Número de cuenta',
+      documento: 'NIT',
+    },
+    copiar: 'Copiar el número',
+    copiado: '¡Copiado!',
+    dudas: '¿Tienes alguna pregunta sobre tu donación?',
+    dudasBoton: 'Escríbenos por WhatsApp',
+    dudasMensaje: 'Hola, tengo una pregunta sobre una donación a la Red Aquí Estamos.',
   },
 
   recursos: {
@@ -701,6 +803,19 @@ export const es = {
         principales: 'Ciudades y municipios principales de Colombia:',
         noEsta: 'No encontramos “{busqueda}” en la lista, pero',
         seGuarda: 'se guardará tal como lo escribiste',
+      },
+      /**
+       * País y ciudad (`CampoUbicacion`). Fuera de Colombia la ciudad se
+       * escribe a mano y el acompañamiento solo puede ser virtual.
+       */
+      pais: {
+        etiqueta: '¿En qué país estás?',
+        ciudadFuera: { etiqueta: '¿En qué ciudad?', ejemplo: 'Ej: Madrid' },
+        avisoAtencion:
+          'Como escribes desde fuera de Colombia, el acompañamiento será virtual (por videollamada o llamada) y los horarios se acuerdan en hora de Colombia. Si estás en peligro, llama al número de emergencias del país donde estás.',
+        avisoVoluntariado:
+          'Desde fuera de Colombia puedes sumarte de forma virtual. Los horarios de la red van en hora de Colombia.',
+        soloVirtual: 'Desde fuera de Colombia, solo es posible de forma virtual.',
       },
       /**
        * Las autorizaciones. Son las de `lib/consentimiento.ts`, la versión que

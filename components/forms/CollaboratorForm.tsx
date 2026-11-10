@@ -11,7 +11,8 @@ import {
 import { Button } from '@/components/ui/Button'
 import { ConHueco } from '@/components/sitio/ConHueco'
 import { ConsentField, RadioField, TextArea, TextField } from './fields'
-import { MunicipioSelector } from './MunicipioSelector'
+import { CampoUbicacion } from './CampoUbicacion'
+import { esDeFuera, type OpcionDePais } from '@/lib/paises'
 import { FormStatus, type Status } from './FormStatus'
 import { pasoConError, rechazoDelServidor } from './rechazo'
 import { HUECO_PARA_LA_BARRA, usePasoALaVista } from './pasoALaVista'
@@ -118,6 +119,7 @@ const PASO_DE_CADA_CAMPO: Record<string, 1 | 2> = {
   fullName: 1,
   phone: 1,
   email: 1,
+  country: 1,
   city: 1,
   area: 2,
   discipline: 2,
@@ -132,6 +134,8 @@ const VACIO = {
   fullName: '',
   phone: '',
   email: '',
+  // Colombia de entrada: es de donde escribe casi todo el mundo.
+  country: 'CO',
   city: '',
 
   // Paso 2: Área y Oficio
@@ -167,11 +171,14 @@ export function CollaboratorForm({
   t,
   comun,
   anosDeRetencion,
+  paises,
 }: {
   idioma: Idioma
   t: Textos
   comun: Comun
   anosDeRetencion: number
+  /** La lista del desplegable de países, hecha en el servidor. Ver `lib/paises.ts`. */
+  paises: OpcionDePais[]
 }) {
   const [paso, setPaso] = useState<1 | 2 | 3>(1)
   const [form, setForm] = useState(VACIO)
@@ -197,6 +204,20 @@ export function CollaboratorForm({
   function update<K extends keyof typeof VACIO>(key: K, value: (typeof VACIO)[K]) {
     setForm((current) => ({ ...current, [key]: value }))
     clearError(key as string)
+  }
+
+  /**
+   * Elegir un país de fuera deja la modalidad en virtual: desde otro país no
+   * hay cita presencial posible, y el paso 3 ya no ofrece otra cosa.
+   * Lo que solo se pregunta a quien va presencial —desplazamiento, vacuna— se
+   * vacía, para no mandar datos de salud que ya no vienen al caso.
+   */
+  function cambiarPais(codigo: string) {
+    setForm((actual) =>
+      esDeFuera(codigo)
+        ? { ...actual, country: codigo, modality: 'VIRTUAL', availableToTravel: '', yellowFeverVaccine: '' }
+        : { ...actual, country: codigo },
+    )
   }
 
   function cambiarArea(value: string) {
@@ -480,16 +501,16 @@ export function CollaboratorForm({
               onChange={(v) => update('email', v)}
             />
 
-            <MunicipioSelector
-              label={t.ciudad.etiqueta}
-              name="city"
-              required
-              placeholder={t.ciudad.ejemplo}
-              hint={t.ciudad.pista}
-              textos={comun.municipio}
-              value={form.city}
-              error={errors.city}
-              onChange={(v) => update('city', v)}
+            <CampoUbicacion
+              paises={paises}
+              pais={form.country}
+              ciudad={form.city}
+              onPais={cambiarPais}
+              onCiudad={(v) => update('city', v)}
+              errorCiudad={errors.city}
+              preguntaCiudad={t.ciudad}
+              avisoFuera={comun.pais.avisoVoluntariado}
+              comun={comun}
             />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
@@ -637,7 +658,11 @@ export function CollaboratorForm({
             <RadioField
               label={t.modalidad.etiqueta}
               required
-              options={MODALIDAD.map((value) => ({ value, label: t.modalidad.opciones[value] }))}
+              hint={esDeFuera(form.country) ? comun.pais.soloVirtual : undefined}
+              options={MODALIDAD.filter((value) => !esDeFuera(form.country) || value === 'VIRTUAL').map((value) => ({
+                value,
+                label: t.modalidad.opciones[value],
+              }))}
               value={form.modality}
               error={errors.modality}
               onChange={(v) => update('modality', v)}

@@ -13,7 +13,8 @@ import {
 import { Button } from '@/components/ui/Button'
 import { TextoRico } from '@/components/sitio/TextoRico'
 import { ConsentField, RadioField, TextField } from './fields'
-import { MunicipioSelector } from './MunicipioSelector'
+import { CampoUbicacion } from './CampoUbicacion'
+import { esDeFuera, type OpcionDePais } from '@/lib/paises'
 import { FormStatus, type Status } from './FormStatus'
 import { pasoConError, rechazoDelServidor } from './rechazo'
 import { HUECO_PARA_LA_BARRA, usePasoALaVista } from './pasoALaVista'
@@ -113,6 +114,7 @@ const PASO_DE_CADA_CAMPO: Record<string, 1 | 2> = {
   fullName: 1,
   phone: 1,
   email: 1,
+  country: 1,
   city: 1,
   profession: 2,
   professionOther: 2,
@@ -135,6 +137,8 @@ const VACIO = {
   fullName: '',
   phone: '',
   email: '',
+  // Colombia de entrada: es de donde escribe casi todo el mundo.
+  country: 'CO',
   city: '',
   profession: '',
   professionOther: '',
@@ -283,10 +287,13 @@ export function VolunteerForm({
   comun,
   whatsapp,
   anosDeRetencion,
+  paises,
 }: {
   idioma: Idioma
   t: Textos
   comun: Comun
+  /** La lista del desplegable de países, hecha en el servidor. Ver `lib/paises.ts`. */
+  paises: OpcionDePais[]
   /** El número de la red tal como se enseña, no el del enlace. */
   whatsapp: string
   anosDeRetencion: number
@@ -345,6 +352,20 @@ export function VolunteerForm({
   function update<K extends keyof typeof VACIO>(key: K, value: (typeof VACIO)[K]) {
     setForm((current) => ({ ...current, [key]: value }))
     clearError(key as string)
+  }
+
+  /**
+   * Elegir un país de fuera deja la modalidad en virtual: desde otro país no
+   * hay cita presencial posible, y el paso 3 ya no ofrece otra cosa.
+   * Lo que solo se pregunta a quien va presencial —desplazamiento, vacuna— se
+   * vacía, para no mandar datos de salud que ya no vienen al caso.
+   */
+  function cambiarPais(codigo: string) {
+    setForm((actual) =>
+      esDeFuera(codigo)
+        ? { ...actual, country: codigo, modality: 'VIRTUAL', availableToTravel: '', yellowFeverVaccine: '' }
+        : { ...actual, country: codigo },
+    )
   }
 
   /** Lo que hace un campo de documento al subir o quitar su archivo. */
@@ -810,15 +831,16 @@ export function VolunteerForm({
               onChange={(v) => update('email', v)}
             />
 
-            <MunicipioSelector
-              label={t.paso1.ciudad.etiqueta}
-              name="city"
-              required
-              placeholder={t.paso1.ciudad.ejemplo}
-              textos={comun.municipio}
-              value={form.city}
-              error={errors.city}
-              onChange={(v) => update('city', v)}
+            <CampoUbicacion
+              paises={paises}
+              pais={form.country}
+              ciudad={form.city}
+              onPais={cambiarPais}
+              onCiudad={(v) => update('city', v)}
+              errorCiudad={errors.city}
+              preguntaCiudad={t.paso1.ciudad}
+              avisoFuera={comun.pais.avisoVoluntariado}
+              comun={comun}
             />
           </div>
 
@@ -1059,7 +1081,7 @@ export function VolunteerForm({
               {t.paso3.modalidad.etiqueta} <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-              {MODALIDAD.map((m) => {
+              {MODALIDAD.filter((m) => !esDeFuera(form.country) || m.value === 'VIRTUAL').map((m) => {
                 const activa = form.modality === m.value
                 const textos = t.paso3.modalidad.opciones[m.value]
                 return (
@@ -1090,6 +1112,11 @@ export function VolunteerForm({
                 )
               })}
             </div>
+            {esDeFuera(form.country) && (
+              <p className="field__hint" style={{ marginTop: 8 }}>
+                {comun.pais.soloVirtual}
+              </p>
+            )}
             {errors.modality && <p className="field__error">{errors.modality}</p>}
           </div>
 

@@ -113,6 +113,7 @@ const DATOS: Record<RutaTraducida, (t: Diccionario) => Datos> = {
   '/recursos': (t) => t.recursos.meta,
   '/politica-de-datos': (t) => t.politica.meta,
   '/consentimiento-informado': (t) => t.consentimiento.meta,
+  '/donar': (t) => t.donar.meta,
 }
 
 /** Los metadatos de una de las páginas traducidas, en un idioma. */

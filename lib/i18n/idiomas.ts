@@ -6,7 +6,7 @@
  * mandaron, en los correos y en lo que Google tiene indexado; moverla a `/es/…`
  * habría roto todo eso para ganar una simetría que no le sirve a nadie.
  *
- * Los demás idiomas cuelgan de su prefijo: `/en/…` y `/pt/…`, con las mismas
+ * Los demás idiomas cuelgan de su prefijo: `/en/…`, `/pt/…` y `/fr/…`, con las mismas
  * rutas por dentro. Así cambiar de idioma es cambiar el prefijo y nada más: no
  * hay tabla de equivalencias que mantener ni enlace que pueda quedar huérfano.
  *
@@ -16,13 +16,13 @@
  * atender detrás de ella sería prometer algo que la red no puede cumplir.
  */
 
-export const IDIOMAS = ['es', 'en', 'pt'] as const
+export const IDIOMAS = ['es', 'en', 'pt', 'fr'] as const
 export type Idioma = (typeof IDIOMAS)[number]
 
 export const IDIOMA_BASE: Idioma = 'es'
 
 /** Los que viven bajo un prefijo en la URL. */
-export const IDIOMAS_CON_PREFIJO = ['en', 'pt'] as const
+export const IDIOMAS_CON_PREFIJO = ['en', 'pt', 'fr'] as const
 export type IdiomaConPrefijo = (typeof IDIOMAS_CON_PREFIJO)[number]
 
 /**
@@ -37,6 +37,8 @@ export const ETIQUETA: Record<Idioma, string> = {
   es: 'es',
   en: 'en',
   pt: 'pt-BR',
+  // El francés va sin país: no hay una variante que se quiera enseñar en particular.
+  fr: 'fr',
 }
 
 /** Para Open Graph, que usa guion bajo y siempre quiere país. */
@@ -44,6 +46,7 @@ export const LOCALE_OG: Record<Idioma, string> = {
   es: 'es_CO',
   en: 'en_US',
   pt: 'pt_BR',
+  fr: 'fr_FR',
 }
 
 /** Cada idioma se nombra a sí mismo: quien busca el suyo lo reconoce escrito así. */
@@ -51,6 +54,7 @@ export const NOMBRE: Record<Idioma, string> = {
   es: 'Español',
   en: 'English',
   pt: 'Português',
+  fr: 'Français',
 }
 
 /** La sigla del selector, que en la barra no hay sitio para más. */
@@ -58,6 +62,7 @@ export const SIGLA: Record<Idioma, string> = {
   es: 'ES',
   en: 'EN',
   pt: 'PT',
+  fr: 'FR',
 }
 
 export function esIdioma(valor: unknown): valor is Idioma {
@@ -86,6 +91,7 @@ export const RUTAS_TRADUCIDAS = [
   '/recursos',
   '/politica-de-datos',
   '/consentimiento-informado',
+  '/donar',
 ] as const
 
 export type RutaTraducida = (typeof RUTAS_TRADUCIDAS)[number]
@@ -163,7 +169,7 @@ export function equivalente(pathname: string | null | undefined, destino: Idioma
  * Es lo que le dice a un buscador «esto mismo existe en inglés aquí», para que
  * a quien busca en inglés le enseñe la versión en inglés y no la española.
  * `x-default` es la que se enseña cuando el idioma de quien busca no es
- * ninguno de los tres: la española, que es la original.
+ * ninguno de los del sitio: la española, que es la original.
  */
 export function alternativas(rutaSinPrefijo: string): Record<string, string> {
   const versiones: Record<string, string> = {}
@@ -199,7 +205,7 @@ export function rellenar(
  * exactamente su variante.
  *
  * Devuelve `null` si no hay ninguno, y entonces no se sugiere nada: a quien
- * navega en francés o en alemán no hay por qué empujarlo a ningún sitio.
+ * navega en alemán o en italiano no hay por qué empujarlo a ningún sitio.
  */
 export function idiomaPreferido(preferencias: readonly string[] | null | undefined): Idioma | null {
   for (const preferencia of preferencias ?? []) {

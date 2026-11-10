@@ -15,9 +15,10 @@ import { IDIOMAS } from '../lib/i18n/idiomas'
  */
 
 describe('el idioma del formulario, dicho para el equipo', () => {
-  it('avisa cuando el formulario se llenó en inglés o en portugués', () => {
+  it('avisa cuando el formulario se llenó en inglés, en portugués o en francés', () => {
     expect(etiquetaDeIdioma('en')).toBe('Formulario en inglés')
     expect(etiquetaDeIdioma('pt')).toBe('Formulario en portugués')
+    expect(etiquetaDeIdioma('fr')).toBe('Formulario en francés')
   })
 
   it('no dice nada si fue en español: es lo esperado', () => {
@@ -35,7 +36,7 @@ describe('el idioma del formulario, dicho para el equipo', () => {
   })
 
   it('no se inventa un idioma con un valor que no conoce', () => {
-    for (const raro of ['fr', 'EN', 'pt-BR', 'toString', 'constructor']) {
+    for (const raro of ['de', 'EN', 'pt-BR', 'toString', 'constructor']) {
       expect(etiquetaDeIdioma(raro), raro).toBeNull()
     }
   })

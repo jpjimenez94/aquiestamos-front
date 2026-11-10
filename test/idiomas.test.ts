@@ -106,11 +106,12 @@ describe('a dónde lleva el selector de idioma', () => {
 })
 
 describe('las versiones de una página para los buscadores', () => {
-  it('anuncia los tres idiomas, con el portugués como brasileño', () => {
+  it('anuncia los cuatro idiomas, con el portugués como brasileño', () => {
     expect(alternativas('/recursos')).toEqual({
       es: '/recursos',
       en: '/en/recursos',
       'pt-BR': '/pt/recursos',
+      fr: '/fr/recursos',
       'x-default': '/recursos',
     })
   })
@@ -130,11 +131,13 @@ describe('el idioma que le conviene a alguien según su navegador', () => {
   })
 
   it('salta los idiomas que el sitio no tiene', () => {
-    expect(idiomaPreferido(['fr-FR', 'de', 'en'])).toBe('en')
+    expect(idiomaPreferido(['de-DE', 'it', 'en'])).toBe('en')
+    // El francés sí lo tiene, desde noviembre de 2026.
+    expect(idiomaPreferido(['fr-FR', 'de', 'en'])).toBe('fr')
   })
 
-  it('no propone nada a quien no lee ninguno de los tres', () => {
-    expect(idiomaPreferido(['fr-FR', 'de'])).toBeNull()
+  it('no propone nada a quien no lee ninguno de los del sitio', () => {
+    expect(idiomaPreferido(['de-DE', 'it'])).toBeNull()
     expect(idiomaPreferido([])).toBeNull()
     expect(idiomaPreferido(null)).toBeNull()
   })

@@ -37,7 +37,7 @@ export const pt: Diccionario = {
     nombre: 'Aquí Estamos',
     lema: 'Rede de acompanhamento psicológico e atendimento em crise',
     descripcion:
-      'Aquí Estamos é uma rede de profissionais voluntários de saúde mental que se uniram para levar acompanhamento psicológico, orientação e recursos às pessoas e comunidades que precisam, no contexto do terremoto de 10 de agosto de 2026.',
+      'Aquí Estamos é uma rede colaborativa de profissionais e voluntários comprometidos com o bem-estar emocional, o acompanhamento psicossocial e o atendimento em situações de crise.',
     irAlInicio: '{nombre} — início',
   },
 
@@ -68,6 +68,10 @@ export const pt: Diccionario = {
         aclaracion: '(Solicitar apoio emocional e atendimento psicológico)',
       },
       recursos: { etiqueta: 'Recursos', aclaracion: '' },
+      donar: {
+        etiqueta: 'Doar',
+        aclaracion: '(Apoie a Rede com uma doação)',
+      },
     },
   },
 
@@ -87,6 +91,8 @@ export const pt: Diccionario = {
     preguntasAyuda: 'Ver perguntas frequentes',
     whatsapp: 'WhatsApp',
     whatsappAyuda: 'Escrever para o WhatsApp oficial',
+    instagram: 'Instagram',
+    instagramAyuda: 'Seguir a rede no Instagram',
   },
 
   migas: {
@@ -116,9 +122,12 @@ export const pt: Diccionario = {
 
   inicio: {
     heroAlt: 'Ilustração da rede Aquí Estamos',
-    titulo: 'Rede de acompanhamento psicológico e atendimento em crise',
-    etapa:
-      'Nesta primeira etapa, estamos construindo uma comunidade colaborativa de profissionais comprometidos com o cuidado emocional, a prevenção e o atendimento em situações de crise.',
+    titulo: 'Uma rede que conecta pessoas, constrói esperança e transforma realidades',
+    presentacion: [
+      'Somos uma rede colaborativa de profissionais e voluntários comprometidos com o bem-estar emocional, o acompanhamento psicossocial e o atendimento em situações de crise.',
+      'Conectamos pessoas, comunidades e profissionais para levar escuta, orientação e apoio oportuno, fortalecendo o tecido humano e social por meio de iniciativas territoriais, alianças estratégicas e cooperação internacional.',
+    ],
+    destacado: 'Porque acompanhar também é reconstruir, e estar presente pode fazer a diferença.',
     accesos: 'Como podemos ajudar você?',
     tarjetas: {
       serParte: {
@@ -163,16 +172,30 @@ export const pt: Diccionario = {
       'Porque quando uma pessoa ampara outra, quando um profissional compartilha o que sabe, quando alguém escuta, orienta ou simplesmente permanece presente em um momento difícil, reconstrói-se algo que vai muito além daquela situação. Reconstrói-se a humanidade.',
       'Porque, quando tudo parece se fragmentar, sempre podemos começar por nos reencontrar.',
     ],
+    proyeccionTitulo: 'Atuação territorial e internacional',
+    proyeccion:
+      'Fortalecemos o tecido humano e social por meio de iniciativas de apoio psicossocial e alianças estratégicas internacionais, como nosso vínculo com a Psychologische Hochschule Berlin (PHB), e em novembro de 2026 iniciamos nossa atuação territorial na Tanzânia.',
+    donarTitulo: 'Apoie a Rede',
+    donarTexto: 'Sua doação sustenta acompanhamento psicológico gratuito para pessoas e famílias em crise.',
+    donarBoton: 'Quero doar',
+    sociosTitulo: 'Parceiros estratégicos',
+    sociosTexto: 'Organizações que caminham conosco para levar apoio psicossocial a mais pessoas.',
+    sociosVisitar: 'Visitar a página de {nombre} (abre em outra aba)',
     contacto: 'Fale conosco',
     noEstasSola: 'Você não está só.',
     estamosAqui: 'Estamos aqui para acompanhar você.',
-    whatsappTitulo: 'Escreva para nós no WhatsApp',
+    whatsappTitulo: 'Acompanhamento psicossocial e voluntariado',
+    whatsappTexto: 'Escreva para nós para pedir acompanhamento ou para se juntar à nossa Rede como voluntário(a).',
     whatsappBoton: 'Enviar mensagem no WhatsApp',
-    instagramTitulo: 'Siga-nos no Instagram',
+    instagramTitulo: 'Conecte-se com a nossa Rede',
+    instagramTexto: 'Siga-nos no Instagram e conheça nosso trabalho e nosso impacto social.',
     instagramBoton: 'Seguir',
-    comercialTitulo: 'Assuntos comerciais',
-    comercialCargo: 'Diretor de Comunicação',
-    comercialBoton: 'Escrever para Daniel no WhatsApp',
+    equipo: {
+      titulo: 'Equipe diretiva',
+      direccion: { cargo: 'Fundadora e Diretora', boton: 'Escrever para Poli no WhatsApp' },
+      subdireccion: { cargo: 'Subdiretora', boton: 'Escrever para Alejandra no WhatsApp' },
+      relaciones: { cargo: 'Diretor de Comunicação · Relações públicas', boton: 'Escrever para Daniel no WhatsApp' },
+    },
     cierreAlt: 'Ilustração de comunidade',
     cierre: 'Acompanhar é uma forma de reconstruir o nosso país',
   },
@@ -432,9 +455,10 @@ export const pt: Diccionario = {
     bajada:
       'Faça parte da nossa rede de profissionais e vamos construir mais possibilidades de acompanhamento.',
     aviso: [
-      'Estamos formando uma rede de profissionais de psicologia interessados em oferecer acompanhamento psicológico e primeiros cuidados psicológicos a famílias afetadas por situações de emergência e crise.',
-      'As informações registradas serão usadas para identificar perfis, experiência e população de foco dos profissionais disponíveis para participar desta iniciativa.',
-      'Agradecemos por colocar seu conhecimento e sua experiência a serviço de quem hoje precisa de acompanhamento.',
+      'Na Red Aquí Estamos, articulamos uma rede de profissionais de psicologia comprometidos em oferecer acompanhamento psicológico e primeiros cuidados psicológicos a pessoas e famílias que atravessam situações de emergência e crise.',
+      'Se esse propósito faz sentido para você, convidamos você a somar seus conhecimentos e sua experiência para contribuir com o bem-estar emocional e a reconstrução do tecido humano e social.',
+      'As informações que você nos fornecer permitirão conhecer seu perfil profissional e explorar oportunidades de participação na Rede.',
+      '**Sua experiência pode fazer a diferença.** Obrigado por querer fazer parte!',
     ],
     whatsapp: 'Enviar mensagem no WhatsApp',
     formulario: 'Preencha o formulário',
@@ -450,9 +474,68 @@ export const pt: Diccionario = {
     titulo: 'Quero ser voluntário(a) geral',
     bajada:
       'Uma emergência não se enfrenta só com a psicologia. Participe a partir do que você sabe fazer.',
-    aviso:
-      '**Diretório de Voluntariado Multidisciplinar.** Se você quer contribuir com saúde e primeiros socorros, logística, direito, serviço social, comunicação, tecnologia ou gestão de projetos, deixe seus dados. Quando surgir uma brigada ou necessidade concreta, a equipe de coordenação entrará em contato. O cadastro leva 2 minutos e não gera nenhum compromisso.',
+    aviso: [
+      'Na Red Aquí Estamos, contamos com uma rede de voluntariado multidisciplinar que reúne pessoas dispostas a contribuir com seus conhecimentos, habilidades e experiência diante de situações de emergência e crise.',
+      'Se você deseja contribuir a partir da sua área de formação, profissão ou ofício, convidamos você a se juntar a nós e colocar suas capacidades a serviço de pessoas e famílias que precisam de apoio.',
+      'As informações que você compartilhar nos permitirão conhecer seu perfil e sua disponibilidade para identificar oportunidades de participação e colaboração nas ações da Rede.',
+      '**Cada contribuição conta.** Sua disposição pode fazer a diferença.',
+    ],
     whatsapp: 'Tem dúvidas? Escreva para o nosso WhatsApp {numero}',
+  },
+
+  donar: {
+    meta: {
+      titulo: 'Doar',
+      descripcion: 'Apoie a Red Aquí Estamos: sua doação sustenta acompanhamento psicológico gratuito para pessoas e famílias em situações de emergência e crise.',
+    },
+    titulo: 'Apoie a Rede',
+    bajada: 'Sua doação sustenta acompanhamento psicológico gratuito para pessoas e famílias em crise.',
+    intro: 'Aquí Estamos é uma rede de profissionais e voluntários que acompanha gratuitamente pessoas e famílias em situações de emergência e crise. Com a sua doação, podemos sustentar esse trabalho e chegar a mais pessoas.',
+    boton: 'Doar agora',
+    botonNota: 'Abre-se o WhyDonate, a plataforma onde recebemos as doações on-line.',
+    titular: 'Lá a campanha aparece em nome de María Ramírez: é a Poli, fundadora e diretora da Rede.',
+    cifrasTitulo: 'A Rede hoje',
+    cifras: {
+      profesionales: 'profissionais voluntários ativos',
+      personasAcompanadas: 'pessoas acompanhadas',
+      sesiones: 'sessões de acompanhamento',
+      voluntariosDeApoyo: 'pessoas no voluntariado de apoio',
+    },
+    cifrasNota: 'Dados da Rede em {fecha}.',
+    impactoTitulo: 'O que a sua doação sustenta',
+    impacto: [
+      {
+        titulo: 'Acompanhamento gratuito',
+        texto: 'Sessões com profissionais de psicologia para pessoas e famílias que atravessam uma emergência ou uma crise, sem custo para elas.',
+        alt: 'Ilustração de uma pessoa acompanhada',
+      },
+      {
+        titulo: 'Presença nos territórios',
+        texto: 'Iniciativas de apoio psicossocial com as comunidades, junto com nossos parceiros.',
+        alt: 'Mãos que se acompanham',
+      },
+      {
+        titulo: 'Uma rede que se cuida',
+        texto: 'Formação, coordenação e cuidado dos profissionais e voluntários que tornam possível cada acompanhamento.',
+        alt: 'Ilustração de comunidade',
+      },
+    ],
+    qrTitulo: 'Doe com o código QR',
+    qrTexto: 'Escaneie com a câmera do seu celular.',
+    qrAlt: 'Código QR para doar à Red Aquí Estamos',
+    bancoTitulo: 'Transferência bancária (Colômbia)',
+    banco: {
+      entidad: 'Banco',
+      titular: 'Titular',
+      tipo: 'Tipo de conta',
+      numero: 'Número da conta',
+      documento: 'NIT (identificação fiscal)',
+    },
+    copiar: 'Copiar o número',
+    copiado: 'Copiado!',
+    dudas: 'Tem alguma dúvida sobre a sua doação?',
+    dudasBoton: 'Escreva para nós no WhatsApp',
+    dudasMensaje: 'Olá, tenho uma dúvida sobre uma doação para a Red Aquí Estamos.',
   },
 
   recursos: {
@@ -709,6 +792,15 @@ export const pt: Diccionario = {
         principales: 'Principais cidades e municípios da Colômbia:',
         noEsta: 'Não encontramos “{busqueda}” na lista, mas',
         seGuarda: 'será salvo exatamente como você escreveu',
+      },
+      pais: {
+        etiqueta: 'Em que país você está?',
+        ciudadFuera: { etiqueta: 'Em que cidade?', ejemplo: 'Ex.: São Paulo' },
+        avisoAtencion:
+          'Como você escreve de fora da Colômbia, o acompanhamento será virtual (por videochamada ou ligação) e os horários são combinados no horário da Colômbia. Se você estiver em perigo, ligue para o número de emergência do país onde está.',
+        avisoVoluntariado:
+          'De fora da Colômbia, você pode participar de forma virtual. Os horários da rede seguem o horário da Colômbia.',
+        soloVirtual: 'De fora da Colômbia, só é possível de forma virtual.',
       },
       casillas: {
         atencion:

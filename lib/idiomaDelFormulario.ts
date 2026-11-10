@@ -1,10 +1,10 @@
 /**
  * En qué idioma llenó alguien el formulario del sitio, dicho para el equipo.
  *
- * El sitio público existe en español, inglés y portugués, y los tres guardan
+ * El sitio público existe en español, inglés, portugués y francés, y todos guardan
  * las respuestas con los mismos valores: en el portal, una solicitud llegada
  * en portugués se veía idéntica a una en español. El backend ahora anota el
- * idioma (`formLocale`: `es`, `en`, `pt`, o nada si no se sabe) y el portal lo
+ * idioma (`formLocale`: `es`, `en`, `pt`, `fr`, o nada si no se sabe) y el portal lo
  * enseña.
  *
  * Solo se dice algo cuando fue en OTRO idioma. «En español» es lo esperado, y
@@ -16,9 +16,10 @@
 const NOMBRES: Record<string, string> = {
   en: 'inglés',
   pt: 'portugués',
+  fr: 'francés',
 }
 
-/** «inglés» o «portugués». Null si fue en español o si no se sabe. */
+/** «inglés», «portugués» o «francés». Null si fue en español o si no se sabe. */
 export function idiomaDistintoDelEspanol(formLocale: string | null | undefined): string | null {
   if (!formLocale) return null
   return Object.prototype.hasOwnProperty.call(NOMBRES, formLocale) ? NOMBRES[formLocale] : null

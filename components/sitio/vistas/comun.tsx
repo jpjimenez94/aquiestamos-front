@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Callout } from '@/components/ui/Callout'
 import { TextoRico } from '@/components/sitio/TextoRico'
-import { site } from '@/lib/site'
+import { type ContactoDelEquipo, site } from '@/lib/site'
 import { ETIQUETA, IDIOMA_BASE, rellenar, ruta, type Idioma } from '@/lib/i18n/idiomas'
 import type { Bloque } from '@/lib/i18n/diccionarios/es'
 
@@ -22,9 +22,9 @@ export function numeroWhatsapp(idioma: Idioma): string {
   return idioma === IDIOMA_BASE ? site.whatsappDisplay : site.whatsappInternacional
 }
 
-/** El del contacto comercial, con la misma regla. */
-export function numeroComercial(idioma: Idioma): string {
-  return idioma === IDIOMA_BASE ? site.comercial.whatsappDisplay : site.comercial.whatsappInternacional
+/** El de alguien del equipo directivo, con la misma regla. */
+export function numeroDe(contacto: ContactoDelEquipo, idioma: Idioma): string {
+  return idioma === IDIOMA_BASE ? contacto.whatsappDisplay : contacto.whatsappInternacional
 }
 
 /**

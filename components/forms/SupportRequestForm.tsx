@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/Button'
 import { TextoRico } from '@/components/sitio/TextoRico'
 import { ConHueco } from '@/components/sitio/ConHueco'
 import { ConsentField, RadioField, TextField } from './fields'
-import { MunicipioSelector } from './MunicipioSelector'
+import { CampoUbicacion } from './CampoUbicacion'
+import { esDeFuera, type OpcionDePais } from '@/lib/paises'
 import { FormStatus, type Status } from './FormStatus'
 import { pasoConError, rechazoDelServidor } from './rechazo'
 import { HUECO_PARA_LA_BARRA, usePasoALaVista } from './pasoALaVista'
@@ -64,6 +65,7 @@ const PASO_DE_CADA_CAMPO: Record<string, 1 | 2> = {
   phone: 1,
   email: 1,
   preferredContact: 1,
+  country: 1,
   city: 1,
   distress: 2,
   selfHarmThoughts: 2,
@@ -81,6 +83,8 @@ const VACIO = {
   phone: '',
   email: '',
   preferredContact: '',
+  // Colombia de entrada: es de donde escribe casi todo el mundo.
+  country: 'CO',
   city: '',
 
   // Paso 2: Triaje / Prioridad ágil
@@ -110,7 +114,18 @@ const VACIO = {
  * tengan hoy enlace o no: uno que se siguiera en la misma pestaña borraría lo
  * que la persona lleva escrito.
  */
-export function SupportRequestForm({ idioma, t, comun }: { idioma: Idioma; t: Textos; comun: Comun }) {
+export function SupportRequestForm({
+  idioma,
+  t,
+  comun,
+  paises,
+}: {
+  idioma: Idioma
+  t: Textos
+  comun: Comun
+  /** La lista del desplegable de países, hecha en el servidor. Ver `lib/paises.ts`. */
+  paises: OpcionDePais[]
+}) {
   const [paso, setPaso] = useState<1 | 2 | 3>(1)
   const [form, setForm] = useState(VACIO)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -135,6 +150,18 @@ export function SupportRequestForm({ idioma, t, comun }: { idioma: Idioma; t: Te
   function update<K extends keyof typeof VACIO>(key: K, value: (typeof VACIO)[K]) {
     setForm((current) => ({ ...current, [key]: value }))
     clearError(key as string)
+  }
+
+  /**
+   * Elegir un país de fuera deja la modalidad en virtual: desde otro país no
+   * hay cita presencial posible, y el paso 3 ya no ofrece otra cosa.
+   */
+  function cambiarPais(codigo: string) {
+    setForm((actual) =>
+      esDeFuera(codigo)
+        ? { ...actual, country: codigo, preferredModality: 'VIRTUAL' }
+        : { ...actual, country: codigo },
+    )
   }
 
   function validarPaso1(): boolean {
@@ -481,16 +508,16 @@ export function SupportRequestForm({ idioma, t, comun }: { idioma: Idioma; t: Te
               onChange={(v) => update('preferredContact', v)}
             />
 
-            <MunicipioSelector
-              label={t.ciudad.etiqueta}
-              name="city"
-              required
-              placeholder={t.ciudad.ejemplo}
-              hint={t.ciudad.pista}
-              textos={comun.municipio}
-              value={form.city}
-              error={errors.city}
-              onChange={(v) => update('city', v)}
+            <CampoUbicacion
+              paises={paises}
+              pais={form.country}
+              ciudad={form.city}
+              onPais={cambiarPais}
+              onCiudad={(v) => update('city', v)}
+              errorCiudad={errors.city}
+              preguntaCiudad={t.ciudad}
+              avisoFuera={comun.pais.avisoAtencion}
+              comun={comun}
             />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
@@ -735,7 +762,10 @@ export function SupportRequestForm({ idioma, t, comun }: { idioma: Idioma; t: Te
             <RadioField
               label={t.modalidad.etiqueta}
               required
-              options={MODALIDAD_PREFERIDA.map((value) => ({ value, label: t.modalidad.opciones[value] }))}
+              hint={esDeFuera(form.country) ? comun.pais.soloVirtual : undefined}
+              options={MODALIDAD_PREFERIDA.filter((value) => !esDeFuera(form.country) || value === 'VIRTUAL').map(
+                (value) => ({ value, label: t.modalidad.opciones[value] }),
+              )}
               value={form.preferredModality}
               error={errors.preferredModality}
               onChange={(v) => update('preferredModality', v)}

@@ -71,6 +71,7 @@ export function SitioShell({
           es: diccionario('es').idioma,
           en: diccionario('en').idioma,
           pt: diccionario('pt').idioma,
+          fr: diccionario('fr').idioma,
         }}
       />
     </div>

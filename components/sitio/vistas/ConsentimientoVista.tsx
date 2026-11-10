@@ -61,7 +61,11 @@ export function ConsentimientoVista({ idioma }: { idioma: Idioma }) {
         {LINEAS_EMERGENCIA.map((linea) => (
           <li key={linea.numero}>
             {/* El nombre sale del diccionario; el número, de donde vive. */}
-            <strong>{nombresDeLinea[linea.numero] ?? linea.nombre}:</strong>{' '}
+            <strong>
+              {nombresDeLinea[linea.numero] ?? linea.nombre}
+              {/* En francés, los dos puntos van separados por un espacio que no se parte. */}
+              {idioma === 'fr' ? '\u00a0:' : ':'}
+            </strong>{' '}
             <a href={linea.href}>{linea.numero}</a>
           </li>
         ))}

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { portalFetch, enBogota, usuarioActual, puede } from '@/lib/portal'
 import { Cabecera, Dato, Etiqueta, Vacio } from '../../componentes'
 import { idiomaDistintoDelEspanol } from '@/lib/idiomaDelFormulario'
+import { paisDeFuera } from '@/lib/paisDelFormulario'
 import { EditorDisponibilidad } from './EditorDisponibilidad'
 import { SeccionTarjetaProfesional } from './SeccionTarjetaProfesional'
 import { BotonCambiarEstadoProfesional } from './BotonCambiarEstadoProfesional'
@@ -23,6 +24,7 @@ type Profesional = {
   travelsTo?: string | null
   /** En qué idioma se postuló: es, en, pt, o null si no se sabe. */
   formLocale?: string | null
+  country?: string | null
   professionalCardNumber?: string | null
   professionalCardDocumentUrl?: string | null
   professionalCardVerified?: boolean
@@ -176,6 +178,8 @@ export default async function ProfesionalPage({ params }: { params: Promise<{ id
           {idiomaDistintoDelEspanol(p.formLocale) ? (
             <Dato etiqueta="Se postuló en">{idiomaDistintoDelEspanol(p.formLocale)}</Dato>
           ) : null}
+          {/* Fuera de Colombia solo acompaña en virtual, y con otra hora. */}
+          {paisDeFuera(p.country) ? <Dato etiqueta="Vive en">{paisDeFuera(p.country)}</Dato> : null}
           {p.travelsTo ? <Dato etiqueta="Se desplaza a">{p.travelsTo}</Dato> : null}
           {p.notes ? <Dato etiqueta="Notas internas">{p.notes}</Dato> : null}
         </div>

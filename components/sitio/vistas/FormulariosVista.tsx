@@ -12,6 +12,7 @@ import { site, whatsappHref } from '@/lib/site'
 import { RESPONSABLE } from '@/lib/consentimiento'
 import { rellenar, ruta, type Idioma } from '@/lib/i18n/idiomas'
 import { diccionario } from '@/lib/i18n/diccionario'
+import { opcionesDePais } from '@/lib/paises'
 import { numeroWhatsapp } from './comun'
 
 /**
@@ -83,6 +84,7 @@ export function AtencionVista({ idioma }: { idioma: Idioma }) {
           idioma={idioma}
           t={t.formularios.atencion}
           comun={t.formularios.comun}
+          paises={opcionesDePais(idioma)}
         />
       </section>
     </>
@@ -110,7 +112,9 @@ export function QuieroSerParteVista({ idioma }: { idioma: Idioma }) {
       <section className="content section">
         <Callout icon="arrow-right-orange">
           {s.aviso.map((parrafo) => (
-            <p key={parrafo}>{parrafo}</p>
+            <p key={parrafo}>
+              <TextoRico texto={parrafo} idioma={idioma} />
+            </p>
           ))}
         </Callout>
 
@@ -135,6 +139,7 @@ export function QuieroSerParteVista({ idioma }: { idioma: Idioma }) {
           idioma={idioma}
           t={t.formularios.profesional}
           comun={t.formularios.comun}
+          paises={opcionesDePais(idioma)}
           // Aquí siempre con indicativo, como ya lo decía el formulario: es el
           // número al que alguien manda sus documentos, quizá desde otro país.
           whatsapp={site.whatsappInternacional}
@@ -175,9 +180,11 @@ export function QuieroApoyarVista({ idioma }: { idioma: Idioma }) {
       <section className="content section">
         <div style={{ marginTop: 24, marginBottom: 20 }}>
           <Callout icon="arrow-right-orange">
-            <p style={{ margin: 0, fontSize: '0.94rem', lineHeight: 1.5 }}>
-              <TextoRico texto={a.aviso} idioma={idioma} />
-            </p>
+            {a.aviso.map((parrafo) => (
+              <p key={parrafo}>
+                <TextoRico texto={parrafo} idioma={idioma} />
+              </p>
+            ))}
           </Callout>
         </div>
 
@@ -193,6 +200,7 @@ export function QuieroApoyarVista({ idioma }: { idioma: Idioma }) {
           idioma={idioma}
           t={t.formularios.apoyo}
           comun={t.formularios.comun}
+          paises={opcionesDePais(idioma)}
           anosDeRetencion={ANOS_DE_RETENCION}
         />
       </section>

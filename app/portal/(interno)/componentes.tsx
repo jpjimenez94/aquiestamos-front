@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { etiquetaDeIdioma } from '@/lib/idiomaDelFormulario'
+import { etiquetaDePais } from '@/lib/paisDelFormulario'
 
 export function Cabecera({
   titulo,
@@ -76,6 +77,31 @@ export function EtiquetaIdioma({ formLocale }: { formLocale?: string | null }) {
       className="etiqueta etiqueta--idioma"
       data-tono="azul"
       title="Llenó el formulario del sitio en ese idioma: puede que no hable español."
+    >
+      {texto}
+    </span>
+  )
+}
+
+/**
+ * «Desde España»: la persona llenó el formulario desde fuera de Colombia.
+ *
+ * Va junto a la del idioma y por lo mismo: quien va a llamar tiene que saber
+ * antes que hay diferencia de hora y que la cita solo puede ser virtual. No
+ * pinta nada si es Colombia o si no se sabe (`lib/paisDelFormulario`).
+ *
+ * El nombre del país lo da `Intl` del servidor y luego el del navegador; si
+ * alguna vez difieren en una letra, no vale la pena el aviso de hidratación.
+ */
+export function EtiquetaPais({ country }: { country?: string | null }) {
+  const texto = etiquetaDePais(country)
+  if (!texto) return null
+  return (
+    <span
+      className="etiqueta etiqueta--idioma"
+      data-tono="ambar"
+      title="Llenó el formulario desde fuera de Colombia: solo virtual, y en otra zona horaria."
+      suppressHydrationWarning
     >
       {texto}
     </span>

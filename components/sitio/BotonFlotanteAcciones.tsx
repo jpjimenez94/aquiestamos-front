@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MessageCircle, HelpCircle } from 'lucide-react'
-import { whatsappHref } from '@/lib/site'
+import { MessageCircle, HelpCircle, Instagram } from 'lucide-react'
+import { site, whatsappHref } from '@/lib/site'
 import { ruta, type Idioma } from '@/lib/i18n/idiomas'
 import type { Diccionario } from '@/lib/i18n/diccionarios/es'
 
@@ -76,8 +76,48 @@ export function BotonFlotanteAcciones({
         }}
       >
         <HelpCircle size={18} style={{ color: '#fff6eb', flexShrink: 0 }} />
-        <span>{t.preguntas}</span>
+        <span className="flotante__etiqueta">{t.preguntas}</span>
       </Link>
+
+      {/*
+        Botón flotante: Instagram. Lo pidió el equipo, para que seguir a la red
+        quede a un toque desde cualquier página. El degradado es el de la marca,
+        en sus tonos oscuros: con el naranja de la paleta completa el texto
+        blanco no se leería.
+      */}
+      <a
+        href={site.instagramUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={t.instagramAyuda}
+        title={t.instagramAyuda}
+        style={{
+          pointerEvents: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 16px',
+          borderRadius: 999,
+          background: 'linear-gradient(135deg, #833ab4 0%, #c13584 100%)',
+          color: '#ffffff',
+          fontSize: '0.86rem',
+          fontWeight: 700,
+          boxShadow: '0 6px 18px rgba(131, 58, 180, 0.32)',
+          textDecoration: 'none',
+          transition: 'all 0.18s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px) scale(1.03)'
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(131, 58, 180, 0.42)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'none'
+          e.currentTarget.style.boxShadow = '0 6px 18px rgba(131, 58, 180, 0.32)'
+        }}
+      >
+        <Instagram size={18} style={{ flexShrink: 0 }} />
+        <span className="flotante__etiqueta">{t.instagram}</span>
+      </a>
 
       {/* Botón flotante: WhatsApp */}
       <a

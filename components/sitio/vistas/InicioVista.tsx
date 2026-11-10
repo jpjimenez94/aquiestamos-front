@@ -1,16 +1,17 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Instagram, MessageCircle } from 'lucide-react'
+import { Heart, Instagram, MessageCircle } from 'lucide-react'
 import { ButtonLink } from '@/components/ui/Button'
 import { Callout } from '@/components/ui/Callout'
 import { Icon } from '@/components/ui/Icon'
-import { TARJETAS_INICIO, comercialHref, site, whatsappHref } from '@/lib/site'
-import { ruta, type Idioma } from '@/lib/i18n/idiomas'
+import { TARJETAS_INICIO, site, whatsappDe, whatsappHref } from '@/lib/site'
+import { rellenar, ruta, type Idioma } from '@/lib/i18n/idiomas'
+import { sociosConLogo } from '@/lib/socios'
 import { diccionario } from '@/lib/i18n/diccionario'
 import { SeccionPreguntasFrecuentes } from '@/components/sitio/SeccionPreguntasFrecuentes'
 import { InfografiaEmergencia } from '@/components/sitio/InfografiaEmergencia'
 import { MisionVisionCompromiso } from '@/components/sitio/MisionVisionCompromiso'
-import { numeroComercial, numeroWhatsapp } from './comun'
+import { numeroDe, numeroWhatsapp } from './comun'
 
 /**
  * La portada, en el idioma que se le pida.
@@ -22,6 +23,7 @@ import { numeroComercial, numeroWhatsapp } from './comun'
 export function InicioVista({ idioma }: { idioma: Idioma }) {
   const t = diccionario(idioma)
   const i = t.inicio
+  const socios = sociosConLogo()
 
   return (
     <>
@@ -40,10 +42,12 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
 
         <h1>{i.titulo}</h1>
 
-        <p>{t.sitio.descripcion}</p>
+        {i.presentacion.map((parrafo) => (
+          <p key={parrafo}>{parrafo}</p>
+        ))}
 
         <Callout icon="arrow-right-red">
-          <p>{i.etapa}</p>
+          <p>{i.destacado}</p>
         </Callout>
       </section>
 
@@ -100,6 +104,74 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
           t={i}
           mision={{ titulo: t.camino.misionTitulo, texto: t.camino.mision }}
         />
+
+        <div className="proyeccion" id="proyeccion">
+          <h2>{i.proyeccionTitulo}</h2>
+          <p>{i.proyeccion}</p>
+        </div>
+
+        {/* Solo los socios que ya tienen logo. Ver `lib/socios.ts`. */}
+        {socios.length > 0 ? (
+          <div className="socios" id="socios">
+            <h2>{i.sociosTitulo}</h2>
+            <p className="text-muted">{i.sociosTexto}</p>
+            <ul className="socios__lista">
+              {socios.map((socio) => {
+                const logo = (
+                  <Image
+                    className="socios__logo"
+                    src={socio.logo.src}
+                    alt={socio.nombre}
+                    width={socio.logo.ancho}
+                    height={socio.logo.alto}
+                    sizes="200px"
+                  />
+                )
+                const contenido = socio.conNombre ? (
+                  <>
+                    {logo}
+                    <span className="socios__nombre">{socio.nombre}</span>
+                  </>
+                ) : (
+                  logo
+                )
+                const visitar = rellenar(i.sociosVisitar, { nombre: socio.nombre })
+                return (
+                  <li key={socio.slug}>
+                    {socio.url ? (
+                      <a href={socio.url} target="_blank" rel="noopener noreferrer" title={visitar} aria-label={visitar}>
+                        {contenido}
+                      </a>
+                    ) : (
+                      contenido
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ) : null}
+      </section>
+
+      <div className="content">
+        <hr className="divider" />
+      </div>
+
+      {/*
+        ---------- Donar ----------
+        Abajo y no arriba a propósito: quien llega en crisis tiene que encontrar
+        primero «Necesito ayuda», no una petición de dinero.
+      */}
+      <section className="content content--wide section" id="donar">
+        <div className="donar-cta">
+          <div>
+            <h2>{i.donarTitulo}</h2>
+            <p>{i.donarTexto}</p>
+          </div>
+          <ButtonLink href={ruta(idioma, '/donar')} variant="primary" icon={<Heart size={16} />}>
+            {i.donarBoton}
+          </ButtonLink>
+        </div>
       </section>
 
       <div className="content">
@@ -132,22 +204,6 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
               {i.noEstasSola}
             </h3>
             <p className="text-muted">{i.estamosAqui}</p>
-
-            {/* Lo comercial va aparte del WhatsApp de la red, que es para quien pide ayuda. */}
-            <div style={{ marginTop: 28 }}>
-              <h3 className="contact-card__title">
-                <Icon name="briefcase" size={20} />
-                {i.comercialTitulo}
-              </h3>
-              <p className="text-muted">
-                {site.comercial.nombre} · {i.comercialCargo}
-                <br />
-                {numeroComercial(idioma)}
-              </p>
-              <ButtonLink href={comercialHref} external icon={<MessageCircle size={16} />}>
-                {i.comercialBoton}
-              </ButtonLink>
-            </div>
           </div>
 
           <div>
@@ -155,6 +211,7 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
               <Icon name="sparkles" size={20} />
               {i.whatsappTitulo}
             </h3>
+            <p className="text-muted">{i.whatsappTexto}</p>
             <p className="text-muted">{numeroWhatsapp(idioma)}</p>
             <ButtonLink href={whatsappHref} external icon={<MessageCircle size={16} />}>
               {i.whatsappBoton}
@@ -166,11 +223,39 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
               <Icon name="instagram" size={20} />
               {i.instagramTitulo}
             </h3>
+            <p className="text-muted">{i.instagramTexto}</p>
             <p className="text-muted">{site.instagramHandle}</p>
             <ButtonLink href={site.instagramUrl} external icon={<Instagram size={16} />}>
               {i.instagramBoton}
             </ButtonLink>
           </div>
+        </div>
+
+        {/*
+          El equipo directivo va aparte del WhatsApp de la red: ese es por donde
+          escribe quien pide ayuda, y no conviene que una cosa tape a la otra.
+        */}
+        <h3 className="contact-equipo">{i.equipo.titulo}</h3>
+        <div className="contact-grid">
+          {site.equipo.map((persona) => {
+            const textos = i.equipo[persona.id]
+            return (
+              <div key={persona.id}>
+                <h4 className="contact-card__title">
+                  <Icon name="briefcase" size={20} />
+                  {persona.nombre}
+                </h4>
+                <p className="text-muted">
+                  {textos.cargo}
+                  <br />
+                  {numeroDe(persona, idioma)}
+                </p>
+                <ButtonLink href={whatsappDe(persona)} external icon={<MessageCircle size={16} />}>
+                  {textos.boton}
+                </ButtonLink>
+              </div>
+            )
+          })}
         </div>
       </section>
 

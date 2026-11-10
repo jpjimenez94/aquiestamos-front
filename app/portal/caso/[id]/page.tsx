@@ -15,6 +15,7 @@ import { Dato, Etiqueta } from '../../(interno)/componentes'
 import { enBogota } from '@/lib/portal'
 import { nombrePropio } from '@/lib/nombre'
 import { avisoDeIdioma } from '@/lib/idiomaDelFormulario'
+import { avisoDePais } from '@/lib/paisDelFormulario'
 
 /**
  * Esta pantalla usa las tarjetas del portal (`panel`, `datos`, `tabla`) y no
@@ -158,6 +159,9 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
               {avisoDeIdioma(caso.formLocale) ? (
                 <Dato etiqueta="Idioma del formulario">{avisoDeIdioma(caso.formLocale)}</Dato>
               ) : null}
+              {avisoDePais(caso.country) ? (
+                <Dato etiqueta="Escribe desde">{avisoDePais(caso.country)}</Dato>
+              ) : null}
             </div>
           </div>
 
@@ -209,6 +213,9 @@ export default async function SharedCasePage({ params }: { params: Promise<{ id:
             </Dato>
             {avisoDeIdioma(paciente.formLocale) ? (
               <Dato etiqueta="Idioma del formulario">{avisoDeIdioma(paciente.formLocale)}</Dato>
+            ) : null}
+            {avisoDePais(paciente.country) ? (
+              <Dato etiqueta="Escribe desde">{avisoDePais(paciente.country)}</Dato>
             ) : null}
           </div>
         </div>

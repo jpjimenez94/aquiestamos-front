@@ -2,7 +2,7 @@ import { NoEncontradaSegunRuta } from '@/components/sitio/NoEncontradaSegunRuta'
 import { diccionario } from '@/lib/i18n/diccionario'
 
 /**
- * El 404 de las páginas en inglés y portugués.
+ * El 404 de las páginas en inglés, portugués y francés.
  *
  * Se pinta dentro de `app/[lang]/layout.tsx`, así que la barra y el pie ya
  * salen en el idioma de la dirección. Lo que falta por saber es en cuál
@@ -15,6 +15,7 @@ export default function NotFound() {
         es: diccionario('es').noEncontrada,
         en: diccionario('en').noEncontrada,
         pt: diccionario('pt').noEncontrada,
+        fr: diccionario('fr').noEncontrada,
       }}
     />
   )

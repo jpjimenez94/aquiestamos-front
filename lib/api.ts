@@ -29,6 +29,31 @@ export async function backendFetch<T>(
   return payload
 }
 
+/** Las cifras públicas de la red: las de la página «Donar». Solo totales. */
+export type CifrasDeImpacto = {
+  profesionales: number
+  voluntariosDeApoyo: number
+  personasAcompanadas: number
+  sesiones: number
+  /** Cuándo se calcularon, en ISO. */
+  actualizado: string
+}
+
+/**
+ * Se piden una vez por hora: las cifras no cambian de un minuto a otro, y la
+ * página no tiene por qué esperar al backend en cada visita. Null si no
+ * contesta: la página se pinta igual, sin esa sección.
+ */
+export async function getImpacto(): Promise<CifrasDeImpacto | null> {
+  try {
+    const payload = await backendFetch<CifrasDeImpacto>('/impacto', { next: { revalidate: 3600 } })
+    return payload.success && payload.data ? payload.data : null
+  } catch (error) {
+    console.error('[api] No se pudieron cargar las cifras de la red:', error)
+    return null
+  }
+}
+
 /** Biblioteca "Recursos para todos", agrupada por categoría. */
 export async function getResourceGroups(): Promise<ResourceGroup[]> {
   try {
