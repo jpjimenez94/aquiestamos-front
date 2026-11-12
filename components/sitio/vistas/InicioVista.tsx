@@ -4,7 +4,8 @@ import { Heart, Instagram, MessageCircle } from 'lucide-react'
 import { ButtonLink } from '@/components/ui/Button'
 import { Callout } from '@/components/ui/Callout'
 import { Icon } from '@/components/ui/Icon'
-import { TARJETAS_INICIO, site, whatsappDe, whatsappHref } from '@/lib/site'
+import { TARJETAS_INICIO, VIDEO_PORTADA, site, whatsappDe, whatsappHref } from '@/lib/site'
+import { VideoDePortada } from '@/components/sitio/VideoDePortada'
 import { rellenar, ruta, type Idioma } from '@/lib/i18n/idiomas'
 import { sociosConLogo } from '@/lib/socios'
 import { diccionario } from '@/lib/i18n/diccionario'
@@ -49,6 +50,9 @@ export function InicioVista({ idioma }: { idioma: Idioma }) {
         <Callout icon="arrow-right-red">
           <p>{i.destacado}</p>
         </Callout>
+
+        {/* El video institucional, en los idiomas que lo tienen (hoy, solo inglés). */}
+        {VIDEO_PORTADA[idioma] ? <VideoDePortada video={VIDEO_PORTADA[idioma]} /> : null}
       </section>
 
       <div className="content">

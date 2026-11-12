@@ -49,9 +49,12 @@ const VALORES_EJEMPLO: Record<string, string> = {
   prioridad: "Media",
   urgencia: "Te pedimos responder en los próximos días.",
   horarios: "jueves en la noche (de 6:00 p. m. a 9:00 p. m.)",
-  enlace: "https://www.redaquiestamos.org/portal/caso/demo-caso-456",
-  enlaceReunion: "https://www.redaquiestamos.org/sala/demo-sesion-123",
-  enlaceCaso: "https://www.redaquiestamos.org/portal/caso/demo-caso-456",
+  // Los enlaces de verdad son personales: los arma el portal para cada
+  // persona, en su ficha. Uno de ejemplo con forma de dirección se copió
+  // como si sirviera; así se ve que no es un enlace que se pueda mandar.
+  enlace: "[enlace personal de cada persona: sale de su ficha]",
+  enlaceReunion: "[enlace de la sala de la cita: sale de la agenda]",
+  enlaceCaso: "[enlace del caso para el profesional: sale de la ficha]",
   canalContacto: "WhatsApp",
   motivo: "un imprevisto médico de última hora",
   opcionesHorario: "· Martes 1 de Sep a las 4:00 p. m.\n· Jueves 3 de Sep a las 9:00 a. m.",

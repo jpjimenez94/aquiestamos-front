@@ -1,3 +1,5 @@
+import type { Idioma } from './i18n/idiomas'
+
 /**
  * Lo que el sitio es, sin lo que el sitio dice.
  *
@@ -129,6 +131,46 @@ export function whatsappConMensaje(mensaje: string): string {
  * viene a hacer la persona, no cómo se llama el módulo: «Necesito ayuda» se
  * entiende en crisis; «Atención Psicológica» es lenguaje de quien opera.
  */
+/**
+ * El video institucional de la portada, por idioma.
+ *
+ * Por ahora solo hay uno, en inglés (noviembre de 2026), y va solo en la
+ * portada en inglés: en las demás sería un video en otro idioma. Va con
+ * `preload="none"` y su imagen de portada: no se descarga nada hasta que
+ * alguien le da a reproducir, que importa a quien llega desde el celular.
+ *
+ * El video es texto animado. Ese texto va también escrito debajo, para quien
+ * no lo puede ver o usa lector de pantalla. Está en inglés como el video, y
+ * por eso vive aquí y no en los diccionarios.
+ */
+export type VideoDePortada = {
+  src: string
+  poster: string
+  ancho: number
+  alto: number
+  titulo: string
+  leerTexto: string
+  transcripcion: readonly string[]
+}
+
+export const VIDEO_PORTADA: Partial<Record<Idioma, VideoDePortada>> = {
+  en: {
+    src: '/videos/aqui-estamos-en.mp4',
+    poster: '/videos/aqui-estamos-en.png',
+    ancho: 1920,
+    alto: 1080,
+    titulo: 'Threads of hope, roots of peace: Fundación Red Aquí Estamos (video, 46 seconds)',
+    leerTexto: 'Read the words in the video',
+    transcripcion: [
+      'Threads of hope. Roots of peace.',
+      'Across Colombia, we are weaving new connections through psychological support, collective action, and community-led initiatives.',
+      'We bring together professionals, organizations, and communities to rebuild the social fabric, strengthen psychosocial well-being, and cultivate cultures of peace rooted in empathy, solidarity, dialogue, and mutual care.',
+      'From individual healing to collective transformation, we are creating opportunities for communities to reconnect, grow, and shape more peaceful futures.',
+      'Explore our work. Connect with our mission. Know more about Fundación Red Aquí Estamos: www.redaquiestamos.org',
+    ],
+  },
+}
+
 export const ENLACES_NAV = [
   { id: 'serParte', href: '/quiero-ser-parte', cta: false },
   { id: 'apoyar', href: '/quiero-apoyar', cta: false },
